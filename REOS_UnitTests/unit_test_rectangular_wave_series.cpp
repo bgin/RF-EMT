@@ -129,8 +129,8 @@ void unit_test_rectangw_series_optimized()
 
 int main()
 {
-     //unit_test_rectangw_series_1();
-     //unit_test_rectangw_series_2();
+     unit_test_rectangw_series_1();
+     unit_test_rectangw_series_2();
      unit_test_rectangw_series_optimized();
      return 0;
 }
