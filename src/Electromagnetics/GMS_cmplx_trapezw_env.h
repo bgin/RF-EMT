@@ -39,6 +39,7 @@ namespace file_info
 
 #include <cstdint>
 #include <string>
+#include <iostream>
 #include "GMS_config.h"
 #include "GMS_dyn_array.h"
 
@@ -201,23 +202,98 @@ namespace radiolocation
                                                    const std::string &,
                                                    const bool );
 
+                    template <typename T> std::int32_t signum(T val)
+                    {
+                             return (T(0)<val)-(val<T(0));
+                    }
+
+                    __ATTR_ALWAYS_INLINE__
+                    inline float sin_squarew_I_sample(const float t,
+                                                     const float invT) // the value of either __I_m__ or __Q_m__
+                    {
+                          using namespace gms::math;
+                          constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+                          const float arg{this->__I_m__*C6283185307179586476925286766559*t*invT};
+                          float sin_val{};
+#if (CMPLX_TRAPEZW_ENV_USE_CEPHES) == 1
+                          sin_val = ceph_sinf(arg);
+                          return static_cast<float>(signum<float>(sin_val));
+#else                     
+                          sin_val = std::sin(arg);
+                          return static_cast<float>(signum<float>(sin_val));
+#endif 
+                    }
+
+                     __ATTR_ALWAYS_INLINE__
+                    inline float sin_squarew_Q_sample(const float t,
+                                                    const float invT) // the value of either __I_m__ or __Q_m__
+                    {
+                          using namespace gms::math;
+                          constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+                          const float arg{this->__Q_m__*C6283185307179586476925286766559*t*invT};
+                          float sin_val{};
+#if (CMPLX_TRAPEZW_ENV_USE_CEPHES) == 1
+                          sin_val = ceph_sinf(arg);
+                          return static_cast<float>(signum<float>(sin_val));
+#else                     
+                          sin_val = std::sin(arg);
+                          return static_cast<float>(signum<float>(sin_val));
+#endif 
+                    }
+
+
+
+                     __ATTR_ALWAYS_INLINE__
+                    inline float cos_squarew_I_sample(const float t,
+                                                    const float invT) // the value of either __I_m__ or __Q_m__
+                    {
+                          using namespace gms::math;
+                          constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+                          const float arg{this->__I_m__*C6283185307179586476925286766559*t*invT};
+                          float cos_val{};
+#if (CMPLX_TRAPEZW_ENV_USE_CEPHES) == 1
+                          cos_val = ceph_cosf(arg);
+                          return static_cast<float>(signum<float>(cos_val));
+#else 
+                          cos_val = std::cos(arg);
+                          return static_cast<float>(signum<float>(cos_val));
+#endif 
+                    }
+
+                    __ATTR_ALWAYS_INLINE__
+                    inline float cos_squarew_Q_sample(const float t,
+                                                    const float invT) // the value of either __I_m__ or __Q_m__
+                    {
+                          using namespace gms::math;
+                          constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+                          const float arg{this->__Q_m__*C6283185307179586476925286766559*t*invT};
+                          float cos_val{};
+#if (CMPLX_TRAPEZW_ENV_USE_CEPHES) == 1
+                          cos_val = ceph_cosf(arg);
+                          return static_cast<float>(signum<float>(cos_val));
+#else 
+                          cos_val = std::cos(arg);
+                          return static_cast<float>(signum<float>(cos_val));
+#endif 
+                    }
+
                     __ATTR_ALWAYS_INLINE__ 
                     inline float I_sample(const float t)
                     {
-                         using namespace gms::math;
-                         constexpr float invPI{0.318309886183790671537767526745f};
-                         constexpr float PI{3.14159265358979323846264338328f};
+                          using namespace gms::math;
+                          constexpr float invPI{0.318309886183790671537767526745f};
+                          constexpr float PI{3.14159265358979323846264338328f};
 	                     float     a_over_PI{this->__I_a__*invPI};
 	                     float     PI_over_m{PI/this->__I_m__};
 	                     const float arg{PI_over_m*t+this->__I_l__};
 #if (CMPLX_TRAPEZW_ENV_USE_CEPHES) == 1
-                         const float t_as{ceph_asinf(ceph_sinf(arg))};
+                           const float t_as{ceph_asinf(ceph_sinf(arg))};
 		                 const float t_ac{ceph_acosf(ceph_cosf(arg))};
 #else 
-                         const float t_as{std::asin(std::sin(arg))};
+                           const float t_as{std::asin(std::sin(arg))};
 		                 const float t_ac{std::acos(std::cos(arg))};
 #endif 
-                         const float t_0{a_over_PI*(t_as+t_ac)};
+                           const float t_0{a_over_PI*(t_as+t_ac)};
 		                 const float t_1{t_0-5.0f+this->__I_c__};
 		                 return (t_1);
                     }
@@ -225,40 +301,34 @@ namespace radiolocation
                    __ATTR_ALWAYS_INLINE__ 
                     inline float Q_sample(const float t)
                     {
-                         using namespace gms::math;
-                         constexpr float invPI{0.318309886183790671537767526745f};
-                         constexpr float PI{3.14159265358979323846264338328f};
+                          using namespace gms::math;
+                          constexpr float invPI{0.318309886183790671537767526745f};
+                          constexpr float PI{3.14159265358979323846264338328f};
 	                     float     a_over_PI{this->__Q_a__*invPI};
 	                     float     PI_over_m{PI/this->__Q_m__};
 	                     const float arg{PI_over_m*t+this->__Q_l__};
 #if (CMPLX_TRAPEZW_ENV_USE_CEPHES) == 1
-                         const float t_as{ceph_asinf(ceph_sinf(arg))};
+                           const float t_as{ceph_asinf(ceph_sinf(arg))};
 		                 const float t_ac{ceph_acosf(ceph_cosf(arg))};
 #else 
-                         const float t_as{std::asin(std::sin(arg))};
+                           const float t_as{std::asin(std::sin(arg))};
 		                 const float t_ac{std::acos(std::cos(arg))};
 #endif 
-                         const float t_0{a_over_PI*(t_as+t_ac)};
+                           const float t_0{a_over_PI*(t_as+t_ac)};
 		                 const float t_1{t_0-5.0f+this->__Q_c__};
 		                 return (t_1);
                     }
 
-                    std::int32_t cmplx_env_I_chan(const float * __restrict,
-                                                  const float * __restrict,
-                                                  const std::uint32_t,
-                                                  const std::uint32_t);
+                    std::int32_t chan_I_squarew_modulated(const std::uint32_t);
 
-                    std::int32_t cmplx_env_Q_chan(const float * __restrict,
-                                                  const float * __restrict,
-                                                  const std::uint32_t,
-                                                  const std::uint32_t);
+                    std::int32_t chan_Q_squarew_modulated(const std::uint32_t);
 
-                    void cmplx_env_I_chan_uncoded();
-
-                    void cmplx_env_Q_chan_uncoded();
-
+                    
 
             };
+
+            auto operator<<(std::ostream &,
+                            cmplx_trapezw_env_t &)->std::ostream &;
 
 
 }

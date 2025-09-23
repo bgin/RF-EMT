@@ -1,5 +1,6 @@
 
 #include <fstream>
+#include <iomanip>
 #include "GMS_cmplx_trapezw_env.h"
 #include "GMS_sse_memset.h"
 
@@ -171,15 +172,12 @@ gms::radiolocation
 std::int32_t  
 gms::radiolocation
 ::cmplx_trapezw_env_t
-::cmplx_env_I_chan(const float * __restrict I_seq_1_0,
-                   const float * __restrict I_seq_1_1,
-                   const std::uint32_t  n_seq,
-                   const std::uint32_t  which_seq)
+::chan_I_squarew_modulated(const std::uint32_t  which_squarew)
 {
-        if(__builtin_expect(this->__I_n_K__!=n_seq,0)) {return (-2);}
-        const float T{static_cast<float>(this->__I_n_samples__)};
-        float sum;
-         switch (which_seq)
+         const float T{static_cast<float>(this->__I_n_samples__)};
+         const float invT{1.0f/this->__I_m__};
+         float sum;
+         switch (which_squarew)
          {
             case 0 :
                for(std::size_t __t{0ull}; __t != this->__I_n_samples__; ++__t) 
@@ -189,7 +187,8 @@ gms::radiolocation
                     for(std::uint32_t __k{0}; __k != this->__I_n_K__; ++__k) 
                     {
                         const float k{static_cast<float>(__k)};
-                        sum += I_sample(t-k*T)*I_seq_1_0[__k];
+                        const float arg{t-k*T};
+                        sum += I_sample(arg)*sin_squarew_I_sample(arg,invT);
                     }
                     this->__I_chan__.m_data[__t] = sum;
                }
@@ -202,13 +201,14 @@ gms::radiolocation
                     for(std::uint32_t __k{0}; __k != this->__I_n_K__; ++__k) 
                     {
                         const float k{static_cast<float>(__k)};
-                        sum += I_sample(t-k*T)*I_seq_1_1[__k];
+                        const float arg{t-k*T};
+                        sum += I_sample(arg)*cos_squarew_I_sample(arg,invT);
                     }
                     this->__I_chan__.m_data[__t] = sum;
                }
             break;
             default : 
-                return (-2);
+                return (-1);
         }
         return (0);
 }
@@ -216,16 +216,12 @@ gms::radiolocation
 std::int32_t  
 gms::radiolocation
 ::cmplx_trapezw_env_t
-::cmplx_env_Q_chan(const float * __restrict Q_seq_1_0,
-                   const float * __restrict Q_seq_1_1,
-                   const std::uint32_t  n_seq,
-                   const std::uint32_t  which_seq)
+::chan_Q_squarew_modulated(const std::uint32_t  which_squarew)
 {
-        if(__builtin_expect(this->__Q_n_K__!=n_seq,0)) {return (-2);}
         const float T{static_cast<float>(this->__Q_n_samples__)};
+        const float invT{1.0f/this->__Q_m__};
         float sum;
-        std::int32_t status{9999};
-        switch (which_seq)
+        switch (which_squarew)
         {
             case 0 :
                for(std::size_t __t{0ull}; __t != this->__Q_n_samples__; ++__t) 
@@ -235,7 +231,8 @@ gms::radiolocation
                     for(std::uint32_t __k{0}; __k != this->__Q_n_K__; ++__k) 
                     {
                         const float k{static_cast<float>(__k)};
-                        sum += Q_sample(t-k*T)*Q_seq_1_0[__k];
+                        const float arg{t-k*T};
+                        sum += Q_sample(arg)*sin_squarew_Q_sample(arg,invT);
                     }
                     this->__Q_chan__.m_data[__t] = sum;
                }
@@ -248,56 +245,54 @@ gms::radiolocation
                     for(std::uint32_t __k{0}; __k != this->__I_n_K__; ++__k) 
                     {
                         const float k{static_cast<float>(__k)};
-                        sum += Q_sample(t-k*T)*Q_seq_1_1[__k];
+                        const float arg{t-k*T};
+                        sum += Q_sample(arg)*cos_squarew_Q_sample(arg,invT);
                     }
                     this->__Q_chan__.m_data[__t] = sum;
                }
             break;
             default : 
-                return (-2);
+                return (-1);
         }
         return (0);
 }
 
-void 
+auto
 gms::radiolocation
-::cmplx_trapezw_env_t
-::cmplx_env_I_chan_uncoded()
+::operator<<(std::ostream &os,
+             gms::radiolocation::cmplx_trapezw_env_t &rhs)->std::ostream &
 {
-       const float T{static_cast<float>(this->__I_n_samples__)};
-       float sum;
-       for(std::size_t __t{0ull}; __t != this->__I_n_samples__; ++__t) 
-       {
-            const float t{static_cast<float>(__t)};
-            sum = 0.0f;
-            for(std::uint32_t __k{0}; __k != this->__I_n_K__; ++__k) 
-            {
-                const float k{static_cast<float>(__k)};
-                sum += I_sample(t-k*T);
-            }
-            this->__I_chan__.m_data[__t] = sum;
-        }
+    std::cout << typeid(rhs).name() << "Begin: object state dump." << std::endl;
+    std::cout << "__I_n_samples__: " << rhs.__I_n_samples__ << std::endl;
+    std::cout << "__Q_n_samples__: " << rhs.__Q_n_samples__ << std::endl;
+    std::cout << "__I_n_K__      : " << rhs.__I_n_K__       << std::endl;
+    std::cout << "__Q_n_K__      :"  << rhs.__Q_n_K__       << std::endl;
+    std::cout << "__I_a__        :"  << std::fixed << std::setprecision(7) << rhs.__I_a__ << std::endl;
+    std::cout << "__Q_a__        :"  << std::fixed << std::setprecision(7) << rhs.__Q_a__ << std::endl;
+    std::cout << "__I_m__        :"  << std::fixed << std::setprecision(7) << rhs.__I_m__ << std::endl;
+    std::cout << "__Q_m__        :"  << std::fixed << std::setprecision(7) << rhs.__Q_m__ << std::endl;
+    std::cout << "__I_l__        :"  << std::fixed << std::setprecision(7) << rhs.__I_l__ << std::endl;
+    std::cout << "__Q_l__        :"  << std::fixed << std::setprecision(7) << rhs.__Q_l__ << std::endl;
+    std::cout << "__I_c__        :"  << std::fixed << std::setprecision(7) << rhs.__I_c__ << std::endl;
+    std::cout << "__Q_c__        :"  << std::fixed << std::setprecision(7) << rhs.__Q_c__ << std::endl;
+    std::cout << "Channel: In-Phase(I)" << std::endl;
+    for(std::size_t __i{0ull}; __i != rhs.__I_n_samples__; ++__i)
+    {
+         os << std::fixed << std::setprecision(7) << 
+                             rhs.__I_chan__.m_data[__i] << std::endl;
+    }
+    std::cout <<"Channel: Quadrature(Q)" << std::endl;
+    for(std::size_t __i{0ull}; __i != rhs.__Q_n_samples__; ++__i) 
+    {
+          os << std::fixed << std::setprecision(7) << 
+                             rhs.__Q_chan__.m_data[__i] << std::endl;
+    }
+    std::cout << typeid(rhs).name() << "End: object state dump." << std::endl;
+    return (os);
 }
+    
 
-void 
-gms::radiolocation
-::cmplx_trapezw_env_t
-::cmplx_env_Q_chan_uncoded()
-{
-       const float T{static_cast<float>(this->__Q_n_samples__)};
-       float sum;
-       for(std::size_t __t{0ull}; __t != this->__Q_n_samples__; ++__t) 
-       {
-            const float t{static_cast<float>(__t)};
-            sum = 0.0f;
-            for(std::uint32_t __k{0}; __k != this->__Q_n_K__; ++__k) 
-            {
-                const float k{static_cast<float>(__k)};
-                sum += Q_sample(t-k*T);
-            }
-            this->__Q_chan__.m_data[__t] = sum;
-        }
-}
+
 
 
 
