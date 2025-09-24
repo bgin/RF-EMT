@@ -257,6 +257,270 @@ gms::radiolocation
         return (0);
 }
 
+std::int32_t 
+gms::radiolocation
+::cmplx_trapezw_env_t
+::chan_I_squarew_modulated_u4x(const std::uint32_t which_squarew) 
+{
+        const float T{static_cast<float>(this->__I_n_samples__)};
+        const std::uint32_t n_samples{static_cast<std::uint32_t>(this->__I_n_samples__)};
+        const float invT{1.0f/this->__I_m__};
+        float sum0;
+        float sum1;
+        float sum2;
+        float sum3;
+        float t__i_0{-4.0f};
+        float t__i_1{1.0f};
+        float t__i_2{2.0f};
+        float t__i_3{3.0f};
+        std::uint32_t __i;
+        std::uint32_t __j;
+        switch (which_squarew)
+        {
+            case 0 :
+               for(__i = 0; __i != ROUND_TO_FOUR(n_samples,4); __i += 4) 
+               {
+                    t__i_0 += 4.0f;
+                    sum0   = 0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__I_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t__i_0-k*T};
+                        sum0 += I_sample(arg)*sin_squarew_I_sample(arg,invT);
+                    }
+                    this->__I_chan__.m_data[__i+0] = sum0;
+                    t__i_1 += 4.0f;
+                    sum1   = 0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__I_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t__i_1-k*T};
+                        sum1 += I_sample(arg)*sin_squarew_I_sample(arg,invT);
+                    }
+                    this->__I_chan__.m_data[__i+1] = sum1;
+                    t__i_2 += 4.0f;
+                    sum2    = 0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__I_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t__i_2-k*T};
+                        sum2 += I_sample(arg)*sin_squarew_I_sample(arg,invT);
+                    }
+                    this->__I_chan__.m_data[__i+2] = sum2;
+                    t__i_3 += 4.0f;
+                    sum3   =  0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__I_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t__i_3-k*T};
+                        sum3 += I_sample(arg)*sin_squarew_I_sample(arg,invT);
+                    }
+                    this->__I_chan__.m_data[__i+3] = sum3;
+               }
+               for(__j = __i; __j != n_samples; ++__j) 
+               {
+                    const float t{static_cast<float>(__j)};
+                    sum0 = 0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__I_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t-k*T};
+                        sum0 += I_sample(arg)*sin_squarew_I_sample(arg,invT);
+                    }
+                    this->__I_chan__.m_data[__j] = sum0;
+               }
+            break;
+            case 1 : 
+               for(__i = 0; __i != ROUND_TO_FOUR(n_samples,4); __i += 4) 
+               {
+                    t__i_0 += 4.0f;
+                    sum0   = 0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__I_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t__i_0-k*T};
+                        sum0 += I_sample(arg)*cos_squarew_I_sample(arg,invT);
+                    }
+                    this->__I_chan__.m_data[__i+0] = sum0;
+                    t__i_1 += 4.0f;
+                    sum1   = 0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__I_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t__i_1-k*T};
+                        sum1 += I_sample(arg)*cos_squarew_I_sample(arg,invT);
+                    }
+                    this->__I_chan__.m_data[__i+1] = sum1;
+                    t__i_2 += 4.0f;
+                    sum2    = 0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__I_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t__i_2-k*T};
+                        sum2 += I_sample(arg)*cos_squarew_I_sample(arg,invT);
+                    }
+                    this->__I_chan__.m_data[__i+2] = sum2;
+                    t__i_3 += 4.0f;
+                    sum3   =  0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__I_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t__i_3-k*T};
+                        sum3 += I_sample(arg)*cos_squarew_I_sample(arg,invT);
+                    }
+                    this->__I_chan__.m_data[__i+3] = sum3;
+               }
+               for(__j = __i; __j != n_samples; ++__j) 
+               {
+                    const float t{static_cast<float>(__j)};
+                    sum0 = 0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__I_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t-k*T};
+                        sum0 += I_sample(arg)*cos_squarew_I_sample(arg,invT);
+                    }
+                    this->__I_chan__.m_data[__j] = sum0;
+               }
+            break;
+            default : 
+                return (-1);
+        }
+        return (0);
+}
+
+std::int32_t 
+gms::radiolocation
+::cmplx_trapezw_env_t
+::chan_Q_squarew_modulated_u4x(const std::uint32_t which_squarew)
+{
+        const float T{static_cast<float>(this->__Q_n_samples__)};
+        const std::uint32_t n_samples{static_cast<std::uint32_t>(this->__Q_n_samples__)};
+        const float invT{1.0f/this->__Q_m__};
+        float sum0;
+        float sum1;
+        float sum2;
+        float sum3;
+        float t__i_0{-4.0f};
+        float t__i_1{1.0f};
+        float t__i_2{2.0f};
+        float t__i_3{3.0f};
+        std::uint32_t __i;
+        std::uint32_t __j;
+        switch (which_squarew)
+        {
+            case 0 :
+               for(__i = 0; __i != ROUND_TO_FOUR(n_samples,4); __i += 4) 
+               {
+                    t__i_0 += 4.0f;
+                    sum0   = 0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__Q_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t__i_0-k*T};
+                        sum0 += Q_sample(arg)*sin_squarew_Q_sample(arg,invT);
+                    }
+                    this->__Q_chan__.m_data[__i+0] = sum0;
+                    t__i_1 += 4.0f;
+                    sum1   = 0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__Q_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t__i_1-k*T};
+                        sum1 += Q_sample(arg)*sin_squarew_Q_sample(arg,invT);
+                    }
+                    this->__Q_chan__.m_data[__i+1] = sum1;
+                    t__i_2 += 4.0f;
+                    sum2    = 0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__Q_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t__i_2-k*T};
+                        sum2 += Q_sample(arg)*sin_squarew_Q_sample(arg,invT);
+                    }
+                    this->__Q_chan__.m_data[__i+2] = sum2;
+                    t__i_3 += 4.0f;
+                    sum3   =  0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__Q_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t__i_3-k*T};
+                        sum3 += Q_sample(arg)*sin_squarew_Q_sample(arg,invT);
+                    }
+                    this->__Q_chan__.m_data[__i+3] = sum3;
+               }
+               for(__j = __i; __j != n_samples; ++__j) 
+               {
+                    const float t{static_cast<float>(__j)};
+                    sum0 = 0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__Q_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t-k*T};
+                        sum0 += Q_sample(arg)*sin_squarew_Q_sample(arg,invT);
+                    }
+                    this->__Q_chan__.m_data[__j] = sum0;
+               }
+            break;
+            case 1 : 
+               for(__i = 0; __i != ROUND_TO_FOUR(n_samples,4); __i += 4) 
+               {
+                    t__i_0 += 4.0f;
+                    sum0   = 0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__Q_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t__i_0-k*T};
+                        sum0 += Q_sample(arg)*cos_squarew_Q_sample(arg,invT);
+                    }
+                    this->__Q_chan__.m_data[__i+0] = sum0;
+                    t__i_1 += 4.0f;
+                    sum1   = 0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__Q_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t__i_1-k*T};
+                        sum1 += Q_sample(arg)*cos_squarew_Q_sample(arg,invT);
+                    }
+                    this->__Q_chan__.m_data[__i+1] = sum1;
+                    t__i_2 += 4.0f;
+                    sum2    = 0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__Q_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t__i_2-k*T};
+                        sum2 += Q_sample(arg)*cos_squarew_Q_sample(arg,invT);
+                    }
+                    this->__Q_chan__.m_data[__i+2] = sum2;
+                    t__i_3 += 4.0f;
+                    sum3   =  0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__Q_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t__i_3-k*T};
+                        sum3 += Q_sample(arg)*cos_squarew_Q_sample(arg,invT);
+                    }
+                    this->__Q_chan__.m_data[__i+3] = sum3;
+               }
+               for(__j = __i; __j != n_samples; ++__j) 
+               {
+                    const float t{static_cast<float>(__j)};
+                    sum0 = 0.0f;
+                    for(std::uint32_t __k{0}; __k != this->__Q_n_K__; ++__k) 
+                    {
+                        const float k{static_cast<float>(__k)};
+                        const float arg{t-k*T};
+                        sum0 += Q_sample(arg)*cos_squarew_Q_sample(arg,invT);
+                    }
+                    this->__Q_chan__.m_data[__j] = sum0;
+               }
+            break;
+            default : 
+                return (-1);
+        }
+        return (0);
+}
+
 auto
 gms::radiolocation
 ::operator<<(std::ostream &os,

@@ -322,6 +322,15 @@ namespace radiolocation
                     std::int32_t chan_I_squarew_modulated(const std::uint32_t);
 
                     std::int32_t chan_Q_squarew_modulated(const std::uint32_t);
+                    
+                    /*
+                          Outer loop unrolled four times
+                    */
+                    std::int32_t chan_I_squarew_modulated_u4x(const std::uint32_t);
+                    /*
+                          Outer loop unrolled four times
+                    */
+                    std::int32_t chan_Q_squarew_modulated_u4x(const std::uint32_t);
 
                     
 

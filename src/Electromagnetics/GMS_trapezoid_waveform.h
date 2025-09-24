@@ -163,7 +163,7 @@ namespace radiolocation
                                         const std::uint32_t,
                                         const std::uint32_t) noexcept(false);
 
-                    trapezoid_waveform_t(trapezoid_waveform_t &&) noexcept(false);
+                    trapezoid_waveform_t(trapezoid_waveform_t &&) noexcept(true);
 
                    ~trapezoid_waveform_t() noexcept(false);
 
@@ -193,12 +193,7 @@ namespace radiolocation
                                                const float,
                                                const float);
 
-                   /* Create single trapezoid wave coded sequence added*/
-                    void single_trapezoid_wave_coded(const float,
-                                                     const float,
-                                                     const float,
-                                                     const float,
-                                                     darray_r4_t &);
+                  
                      /* Create series of trapezoid waves (shaping the curve)*/
                     void series_of_trapezoid_waves(const float,
                                                    const float,
@@ -217,16 +212,7 @@ namespace radiolocation
                                                        const float,
                                                        const float,
                                                        const float);
-
-                    /* Creat series of trapezoid waves modulated by the coded sequence.
-                       non-shaped*/
-                    void series_of_trapezoid_waves_coded(const float,
-                                                         const float,
-                                                         const float,
-                                                         const float,
-                                                         const std::uint32_t, 
-                                                         darray_r4_t &);
-
+                   
                     /*
                       Create single trapezoid wave with a,l,c,m parameters
                       monotonically growing. and (curve shaped)

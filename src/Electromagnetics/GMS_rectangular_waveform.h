@@ -112,7 +112,7 @@ namespace radiolocation
                                         const float,
                                         const float)  noexcept(false);
 
-                  rectangular_waveform_t(rectangular_waveform_t &&) noexcept(false);
+                  rectangular_waveform_t(rectangular_waveform_t &&);
 
                   ~rectangular_waveform_t() noexcept(false);
 
