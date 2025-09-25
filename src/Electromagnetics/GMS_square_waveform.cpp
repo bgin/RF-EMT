@@ -127,11 +127,13 @@ gms::radiolocation
 ::square_waveform_t
 ::square_waveform_t(const std::size_t n_samples,
                     const std::uint32_t n_waves,
-                    const float A ) 
+                    const float A,
+                    const float T) 
 :
 __n_samples__{n_samples},
 __n_waves__{n_waves},
 __A__{A},
+__T__{T},
 __sw_samples__{darray_r4_t(__n_samples__)}
 {
 
@@ -144,6 +146,7 @@ gms::radiolocation
 __n_samples__{std::move(other.__n_samples__)},
 __n_waves__{std::move(other.__n_waves__)},
 __A__{std::move(other.__A__)},
+__T__{std::move(other.__T__)},
 __sw_samples__{std::move(other.__sw_samples__)}
 {
 
@@ -166,6 +169,7 @@ gms::radiolocation
     this->__n_samples__ = std::move(other.__n_samples__);
     this->__n_waves__   = std::move(other.__n_waves__);
     this->__A__         = std::move(other.__A__);
+    this->__T__         = std::move(other.__T__);
     this->__sw_samples__.operator=(std::move(other.__sw_samples__));
     return (*this);
 }
@@ -319,7 +323,8 @@ static constexpr float k_coff_buf[64] = {
      constexpr float C127323954473516268615107010698{1.27323954473516268615107010698f};
      constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
      const std::uint32_t n_samples{static_cast<std::uint32_t>(this->__n_samples__)};
-     const float invT{1.0f/static_cast<float>(n_samples)};
+     //const float period{8.0f/static_cast<float>(n_samples)};
+     const float invT{this->__T__/static_cast<float>(n_samples)};
      float sum;
      if(__builtin_expect(this->__n_waves__<=64,0))
      {
@@ -355,7 +360,7 @@ static constexpr float k_coff_buf[64] = {
                   const float t__k{static_cast<float>(__k)};
                   const float two_k_1{2.0f*t__k-1.0f};
                   const float one_over_twok1{1.0f/two_k_1};
-                  const float arg{C6283185307179586476925286766559*two_k_1*t__t*invT};
+                  const float arg{C6283185307179586476925286766559*two_k_1*t__t*invT}; //was invT
 #if (SQUARE_WAVEFORM_USE_CEPHES) == 1 
                   const float t_sin{ceph_sinf(arg)};
 #else 
@@ -378,6 +383,7 @@ gms::radiolocation
     std::cout << "__n_samples__ :"  << rhs.__n_samples__ << std::endl;
     std::cout << "__n_waves__   :"  << rhs.__n_waves__   << std::endl;
     std::cout << "__A__         :"  << rhs.__A__         << std::endl;
+    std::cout << "__T__         :"  << rhs.__T__         << std::endl;
     std::cout << "Square-Wave samples (Fourier-expansion) of " << rhs.__n_waves__ << "waves" << std::endl;
      for(std::size_t __i{0ull}; __i != rhs.__n_samples__; ++__i)
     {

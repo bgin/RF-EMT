@@ -100,12 +100,14 @@ namespace radiolocation
                  std::size_t   __n_samples__;
                  std::uint32_t __n_waves__;
                  float         __A__; // amplitude 
+                 float         __T__; // period
                  darray_r4_t   __sw_samples__;
 
                  square_waveform_t() = default;
 
                  square_waveform_t(const std::size_t,
                                    const std::uint32_t,
+                                   const float,
                                    const float) noexcept(false);
 
                  square_waveform_t(square_waveform_t &&) noexcept(true);
@@ -125,7 +127,7 @@ namespace radiolocation
                                                  const std::string &,
                                                  const bool );
 
-                  void fourier_series_expansion();
+                  fourier_series_expansion();
 
         };
 
