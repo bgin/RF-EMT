@@ -23,10 +23,11 @@ void unit_test_squarew_series_1()
      constexpr std::size_t   n_samples{256ull};
      constexpr std::uint32_t n_waves{70ull};
      constexpr float A{1.0f};
+     constexpr float T{8.0f};
      int32_t status{};
      //__asm__ ("int3");
      printf("[UNIT_TEST]: function=%s -- **START**\n", __PRETTY_FUNCTION__);
-     square_waveform_t __squarew_1__ = square_waveform_t(n_samples,n_waves,A);
+     square_waveform_t __squarew_1__ = square_waveform_t(n_samples,n_waves,A,T);
      char * ctor_name{gms::common::demangle(typeid(__squarew_1__).name(),status)};
      if(status==0 && ctor_name != NULL)
      {
@@ -44,7 +45,7 @@ void unit_test_squarew_series_1()
      __squarew_1__.fourier_series_expansion();
      std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n");
      square_waveform_t::create_signal_plot(__squarew_1__.__n_samples__,__squarew_1__.__sw_samples__.m_data,nullptr,
-                                              "square_wave_expanded_test_4_","Square_Waveform_Expansion",false);
+                                              "square_wave_expanded_test_6_","Square_Waveform_Expansion",false);
      printf("[UNIT_TEST]: function=%s -- **END**\n", __PRETTY_FUNCTION__);
 }
 
