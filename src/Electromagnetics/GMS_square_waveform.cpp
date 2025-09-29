@@ -326,7 +326,7 @@ static constexpr float k_coff_buf[64] = {
      //const float period{8.0f/static_cast<float>(n_samples)};
      const float invT{this->__T__/static_cast<float>(n_samples)};
      float sum;
-     if(__builtin_expect(this->__n_waves__<=64,0))
+     if(__builtin_expect(this->__n_waves__<=64,1))
      {
          for(std::uint32_t __t{0}; __t != n_samples; ++__t) 
          {
@@ -359,7 +359,7 @@ static constexpr float k_coff_buf[64] = {
              {
                   const float t__k{static_cast<float>(__k)};
                   const float two_k_1{2.0f*t__k-1.0f};
-                  const float one_over_twok1{1.0f/two_k_1};
+                  const float one_over_twok1{std::pow(-1.0f,t__k)/two_k_1};
                   const float arg{C6283185307179586476925286766559*two_k_1*t__t*invT}; //was invT
 #if (SQUARE_WAVEFORM_USE_CEPHES) == 1 
                   const float t_sin{ceph_sinf(arg)};

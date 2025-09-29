@@ -309,14 +309,14 @@ namespace radiolocation
 	                     const float arg{PI_over_m*t+this->__Q_l__};
 #if (CMPLX_TRAPEZW_ENV_USE_CEPHES) == 1
                            const float t_as{ceph_asinf(ceph_sinf(arg))};
-		                 const float t_ac{ceph_acosf(ceph_cosf(arg))};
+		               const float t_ac{ceph_acosf(ceph_cosf(arg))};
 #else 
                            const float t_as{std::asin(std::sin(arg))};
-		                 const float t_ac{std::acos(std::cos(arg))};
+		               const float t_ac{std::acos(std::cos(arg))};
 #endif 
                            const float t_0{a_over_PI*(t_as+t_ac)};
-		                 const float t_1{t_0-5.0f+this->__Q_c__};
-		                 return (t_1);
+		               const float t_1{t_0-5.0f+this->__Q_c__};
+		               return (t_1);
                     }
 
                     std::int32_t chan_I_squarew_modulated(const std::uint32_t);
