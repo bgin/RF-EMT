@@ -1,12 +1,12 @@
 
 # Electromagnetic Engineering Modeling Toolkit
 
-This project provides a high-fidelity simulation framework for Radar, Telecommunication and Electro-Optical (EO) systems. The goal is to achieve realistic, design-level system modeling and simulation, following standards and methodologies found in advanced engineering and technical literature.
+This project provides a high-fidelity simulation framework for Radar,Telecommunication and the other Radio-frequency engineering systems. The goal is to achieve realistic, design-level system modeling and simulation, following standards and methodologies found in advanced engineering and technical literature.
 
 ## Key Features
 
 - **Comprehensive System Modeling:**  
-  Models core components of radar and electro-optical systems, including analytical Radar Cross Section (RCS) calculations and antennae radiation characteristics.
+  Models core components of Radar and Telecommunication systems , including analytical Radar Cross Section (RCS) calculations and antennae radiation patterns.  
 - **Performance-Optimized Kernels:**  
   Implements highly optimized algorithms, leveraging Intel Intrinsics (SSE/AVX/AVX2/AVX512) for massive manual vectorization. Compiler-level autovectorization is used for descriptive statistics and profiling.
 - **GPGPU Acceleration:**  
@@ -14,13 +14,12 @@ This project provides a high-fidelity simulation framework for Radar, Telecommun
 - **Modular Architecture:**  
   Organized as a collection of standalone modules, each describing distinct modeled components. The library can serve as a computational backend or be integrated with a GUI frontend.
 - **Component Scope:**  
-  The framework is structured around five main simulation domains:
-  1. Radar system modeling and simulation
-  2. Radio altimeter modeling and simulation
-  3. Propagation of laser and IR radiation through turbulent atmospheric channels
-  4. Optical signal processing (e.g., background noise extraction)
-  5. Electro-optical sensor modeling and simulation
-
+  The framework is structured around four main simulation domains:
+  1. RF Telecommunication system modeling and simulation
+  2. Radar modeling and simulation
+  3. Digital Signal Processing
+  4. Support libraries (e.g. an Atmosphere and Radiative Transfer)
+  
 ## Implementation Overview
 
 - **SIMD Execution Paths:**  
@@ -37,7 +36,7 @@ This software is intended as a backend computational library for advanced simula
 ## Contributing
 
 Contributions are welcome, especially from those with expertise in:
-- Radar and EO system modeling
+- Radar,Telecommunication and Radioengineering systems
 - High-performance computing (SIMD, CUDA)
 - Numerical methods and scientific computing
 
