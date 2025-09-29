@@ -27,7 +27,7 @@ This project provides a high-fidelity simulation framework for Radar,Telecommuni
 - **CUDA Path:**  
   GPU kernels for large-scale, high-performance computations.
 - **Current Status:**  
-  The project contains approximately 1,000 SIMD kernels and a comprehensive set of analytical and simulation tools for radar and EO system analysis.
+  The project contains hundreds of SIMD kernels and a comprehensive set of analytical and simulation tools for radar and Telecom system analysis and modeling.
 
 ## Usage
 
