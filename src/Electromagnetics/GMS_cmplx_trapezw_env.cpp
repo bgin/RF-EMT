@@ -3,7 +3,7 @@
 #include <iomanip>
 #include "GMS_cmplx_trapezw_env.h"
 #include "GMS_sse_memset.h"
-
+#include "GMS_indices.h"
 
 
 gms::radiolocation
@@ -520,6 +520,212 @@ gms::radiolocation
         }
         return (0);
 }
+
+std::int32_t 
+gms::radiolocation
+::cmplx_trapezw_env_t
+::chan_I_data_symbol(const float * __restrict__ I_sym_in, // size of __I_n_samples__ * __I_n_K__
+                     const std::uint32_t n_T,
+                     const std::uint32_t n_K)
+{
+      if(__builtin_expect(static_cast<std::uint32_t>(this->__I_n_samples__)!=n_T,0) || 
+         __builtin_expect(this->__I_n_K__!=n_K,0)) { return (-2);}
+
+      const float T{static_cast<float>(this->__I_n_samples__)};
+      float sum;
+      for(std::uint32_t __t{0ull}; __t != n_T; ++__t) 
+      {
+            const float t{static_cast<float>(__t)};
+            sum = 0.0f;
+            for(std::uint32_t __k{0}; __k != n_K; ++__k) 
+            {
+                const float k{static_cast<float>(__k)};
+                const float arg{t-k*T};
+                sum += I_sample(arg)*I_sym_in[Ix2D(__t,n_K,__k)];
+            }
+            this->__I_chan__.m_data[__t] = sum;
+      }
+      return (0);
+}
+
+std::int32_t 
+gms::radiolocation 
+::cmplx_trapezw_env_t
+::chan_Q_data_symbol(const float * __restrict__ Q_sym_in, // size of __Q_n_samples__ * __Q_n_K__
+                     const std::uint32_t n_T,
+                     const std::uint32_t n_K)
+{
+      if(__builtin_expect(static_cast<std::uint32_t>(this->__Q_n_samples__)!=n_T,0) || 
+         __builtin_expect(this->__Q_n_K__!=n_K,0)) { return (-2);}
+
+      const float T{static_cast<float>(this->__Q_n_samples__)};
+      float sum;
+      for(std::uint32_t __t{0ull}; __t != n_T; ++__t) 
+      {
+            const float t{static_cast<float>(__t)};
+            sum = 0.0f;
+            for(std::uint32_t __k{0}; __k != n_K; ++__k) 
+            {
+                const float k{static_cast<float>(__k)};
+                const float arg{t-k*T};
+                sum += Q_sample(arg)*Q_sym_in[Ix2D(__t,n_K,__k)];
+            }
+            this->__Q_chan__.m_data[__t] = sum;
+      }
+      return (0);
+}
+
+std::int32_t 
+gms::radiolocation
+::cmplx_trapezw_env_t
+::chan_I_data_symbol_u4x(const float * __restrict__ I_sym_in, // size of __I_n_samples__ * __I_n_K__
+                         const std::uint32_t n_T,
+                         const std::uint32_t n_K)
+{
+      if(__builtin_expect(static_cast<std::uint32_t>(this->__I_n_samples__)!=n_T,0) || 
+         __builtin_expect(this->__I_n_K__!=n_K,0)) { return (-2);}
+
+      const float T{static_cast<float>(this->__I_n_samples__)};
+      float sum0;
+      float sum1;
+      float sum2;
+      float sum3;
+      float t__i_0{-4.0f};
+      float t__i_1{1.0f};
+      float t__i_2{2.0f};
+      float t__i_3{3.0f};
+      std::uint32_t __i;
+      std::uint32_t __j;
+      for(__i = 0; __i != ROUND_TO_FOUR(n_T,4); __i += 4) 
+      {
+           t__i_0 += 4.0f;
+           sum0   = 0.0f;
+           for(std::uint32_t __k{0}; __k != n_K; ++__k) 
+           {
+                const float k{static_cast<float>(__k)};
+                const float arg{t__i_0-k*T};
+                sum0 += I_sample(arg)*I_sym_in[Ix2D(__i+0,n_K,__k)];
+           }
+           this->__I_chan__.m_data[__i+0] = sum0;
+           t__i_1 += 4.0f;
+           sum1   = 0.0f;
+           for(std::uint32_t __k{0}; __k != n_K; ++__k) 
+           {
+                const float k{static_cast<float>(__k)};
+                const float arg{t__i_1-k*T};
+                sum1 += I_sample(arg)*I_sym_in[Ix2D(__i+1,n_K,__k)];
+           }
+           this->__I_chan__.m_data[__i+1] = sum1;
+           t__i_2 += 4.0f;
+           sum2    = 0.0f;
+           for(std::uint32_t __k{0}; __k != n_K; ++__k) 
+           {
+                const float k{static_cast<float>(__k)};
+                const float arg{t__i_2-k*T};
+                sum2 += I_sample(arg)*I_sym_in[Ix2D(__i+2,n_K,__k)];
+           }
+           this->__I_chan__.m_data[__i+2] = sum2;
+           t__i_3 += 4.0f;
+           sum3   =  0.0f;
+           for(std::uint32_t __k{0}; __k != n_K; ++__k) 
+           {
+                const float k{static_cast<float>(__k)};
+                const float arg{t__i_3-k*T};
+                sum3 += I_sample(arg)*I_sym_in[Ix2D(__i+3,n_K,__k)];
+           }
+           this->__I_chan__.m_data[__i+3] = sum3;
+       }
+       for(__j = __i; __j != n_T; ++__j) 
+       {
+            const float t{static_cast<float>(__j)};
+            sum0 = 0.0f;
+            for(std::uint32_t __k{0}; __k != n_K; ++__k) 
+            {
+                const float k{static_cast<float>(__k)};
+                const float arg{t-k*T};
+                sum0 += I_sample(arg)*I_sym_in[Ix2D(__j,n_K,__k)];
+            }
+            this->__I_chan__.m_data[__j] = sum0;
+        }
+        return (0);
+}
+
+std::int32_t 
+gms::radiolocation
+::cmplx_trapezw_env_t
+::chan_Q_data_symbol_u4x(const float * __restrict__ Q_sym_in, // size of __Q_n_samples__ * __Q_n_K__
+                         const std::uint32_t n_T,
+                         const std::uint32_t n_K)
+{
+      if(__builtin_expect(static_cast<std::uint32_t>(this->__Q_n_samples__)!=n_T,0) || 
+         __builtin_expect(this->__Q_n_K__!=n_K,0)) { return (-2);}
+
+      const float T{static_cast<float>(this->__Q_n_samples__)};
+      float sum0;
+      float sum1;
+      float sum2;
+      float sum3;
+      float t__i_0{-4.0f};
+      float t__i_1{1.0f};
+      float t__i_2{2.0f};
+      float t__i_3{3.0f};
+      std::uint32_t __i;
+      std::uint32_t __j;
+      for(__i = 0; __i != ROUND_TO_FOUR(n_T,4); __i += 4) 
+      {
+           t__i_0 += 4.0f;
+           sum0   = 0.0f;
+           for(std::uint32_t __k{0}; __k != n_K; ++__k) 
+           {
+                const float k{static_cast<float>(__k)};
+                const float arg{t__i_0-k*T};
+                sum0 += Q_sample(arg)*Q_sym_in[Ix2D(__i+0,n_K,__k)];
+           }
+           this->__Q_chan__.m_data[__i+0] = sum0;
+           t__i_1 += 4.0f;
+           sum1   = 0.0f;
+           for(std::uint32_t __k{0}; __k != n_K; ++__k) 
+           {
+                const float k{static_cast<float>(__k)};
+                const float arg{t__i_1-k*T};
+                sum1 += Q_sample(arg)*Q_sym_in[Ix2D(__i+1,n_K,__k)];
+           }
+           this->__Q_chan__.m_data[__i+1] = sum1;
+           t__i_2 += 4.0f;
+           sum2    = 0.0f;
+           for(std::uint32_t __k{0}; __k != n_K; ++__k) 
+           {
+                const float k{static_cast<float>(__k)};
+                const float arg{t__i_2-k*T};
+                sum2 += Q_sample(arg)*Q_sym_in[Ix2D(__i+2,n_K,__k)];
+           }
+           this->__Q_chan__.m_data[__i+2] = sum2;
+           t__i_3 += 4.0f;
+           sum3   =  0.0f;
+           for(std::uint32_t __k{0}; __k != n_K; ++__k) 
+           {
+                const float k{static_cast<float>(__k)};
+                const float arg{t__i_3-k*T};
+                sum3 += Q_sample(arg)*Q_sym_in[Ix2D(__i+3,n_K,__k)];
+           }
+           this->__Q_chan__.m_data[__i+3] = sum3;
+       }
+       for(__j = __i; __j != n_T; ++__j) 
+       {
+            const float t{static_cast<float>(__j)};
+            sum0 = 0.0f;
+            for(std::uint32_t __k{0}; __k != n_K; ++__k) 
+            {
+                const float k{static_cast<float>(__k)};
+                const float arg{t-k*T};
+                sum0 += Q_sample(arg)*Q_sym_in[Ix2D(__j,n_K,__k)];
+            }
+            this->__Q_chan__.m_data[__j] = sum0;
+        }
+        return (0);
+}
+
+
 
 auto
 gms::radiolocation

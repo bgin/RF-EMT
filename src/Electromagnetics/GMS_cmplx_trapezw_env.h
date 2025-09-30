@@ -319,6 +319,9 @@ namespace radiolocation
 		               return (t_1);
                     }
 
+                    /*
+                         Square-wave modulated (no data symbol)
+                    */
                     std::int32_t chan_I_squarew_modulated(const std::uint32_t);
 
                     std::int32_t chan_Q_squarew_modulated(const std::uint32_t);
@@ -333,7 +336,69 @@ namespace radiolocation
                     std::int32_t chan_Q_squarew_modulated_u4x(const std::uint32_t);
 
                     
+                    /*  Data symbol-transmitted*/
+                    std::int32_t chan_I_data_symbol(const float * __restrict__,
+                                                     const std::uint32_t,
+                                                     const std::uint32_t);
+                    
+                     /*  Data symbol-transmitted*/
+                    std::int32_t chan_Q_data_symbol(const float * __restrict__,
+                                                     const std::uint32_t,
+                                                     const std::uint32_t);
 
+                     /*  Data symbol-transmitted, outer loop unrolled four times.*/
+                    std::int32_t chan_I_data_symbol_u4x(const float * __restrict__,
+                                                        const std::uint32_t,
+                                                        const std::uint32_t);
+                    
+                     /*  Data symbol-transmitted, outer loop unrolled four times.*/
+                    std::int32_t chan_Q_data_symbol_u4x(const float * __restrict__,
+                                                        const std::uint32_t,
+                                                        const std::uint32_t);
+
+                    /*  Data symbol-transmitted random*/
+                    
+                    template<class Functor> std::int32_t 
+                    chan_I_rand_data_symbol(Functor & f)
+                    {
+                         const float T{static_cast<float>(this->__I_n_samples__)};
+                         float sum;
+                         for(std::uint32_t __t{0ull}; __t != this->__I_n_samples__; ++__t) 
+                         {
+                              const float t{static_cast<float>(__t)};
+                              sum = 0.0f;
+                              for(std::uint32_t __k{0}; __k != this->__I_n_K__; ++__k) 
+                              {
+                                  const float k{static_cast<float>(__k)};
+                                  const float arg{t-k*T};
+                                  sum += I_sample(arg)*f();
+                              }
+                             this->__I_chan__.m_data[__t] = sum;
+                         }
+                        return (0);
+                    }
+                    
+                     /*  Data symbol-transmitted*/
+                    template<class Functor>
+                    std::int32_t chan_Q_rand_data_symbol(Functor & f)
+                    {
+                         const float T{static_cast<float>(this->__Q_n_samples__)};
+                         float sum;
+                         for(std::uint32_t __t{0ull}; __t != this->__Q_n_samples__; ++__t) 
+                         {
+                            const float t{static_cast<float>(__t)};
+                            sum = 0.0f;
+                            for(std::uint32_t __k{0}; __k != this->__Q_n_K__; ++__k) 
+                            {
+                               const float k{static_cast<float>(__k)};
+                               const float arg{t-k*T};
+                               sum += Q_sample(arg)*f();
+                            }
+                            this->__Q_chan__.m_data[__t] = sum;
+                         }
+                         return (0);
+                    }                                 
+ 
             };
 
             auto operator<<(std::ostream &,
