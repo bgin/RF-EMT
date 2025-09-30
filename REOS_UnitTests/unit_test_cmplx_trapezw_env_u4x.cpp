@@ -8,9 +8,9 @@
 
 /*
    icpc -o unit_test_cmplx_trapezw_env_u4x -fp-model fast=2 -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
-   GMS_config.h GMS_malloc.h GMS_fast_pmc_access.h  GMS_dyn_array.h GMS_sse_memset.h GMS_sse_memset.cpp GMS_cephes_sin_cos.h GMS_cmplx_trapezw_env.h GMS_cmplx_trapezw_env.cpp unit_test_cmplx_trapezw_env_u4x.cpp
+   GMS_config.h GMS_malloc.h GMS_fast_pmc_access.h  GMS_dyn_array.h GMS_sse_memset.h GMS_sse_memset.cpp GMS_cephes_sin_cos.h GMS_indices.h GMS_cmplx_trapezw_env.h GMS_cmplx_trapezw_env.cpp unit_test_cmplx_trapezw_env_u4x.cpp
    ASM: 
-   icpc -S -fverbose-asm -masm=intel  -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_malloc.h GMS_fast_pmc_access.h  GMS_dyn_array.h GMS_sse_memset.h GMS_sse_memset.cpp GMS_cmplx_trapezw_env.h GMS_cmplx_trapezw_env.cpp unit_test_cmplx_trapezw_env_u4x.cpp
+   icpc -S -fverbose-asm -masm=intel  -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_malloc.h GMS_fast_pmc_access.h  GMS_dyn_array.h GMS_sse_memset.h GMS_sse_memset.cpp GMS_indices.h GMS_cmplx_trapezw_env.h GMS_cmplx_trapezw_env.cpp unit_test_cmplx_trapezw_env_u4x.cpp
 
 */
 
@@ -75,5 +75,5 @@ void unit_test_cmplx_trapezw_env_s1024_u4x()
 int main()
 {   
     unit_test_cmplx_trapezw_env_s1024_u4x();
-    return 0;
+     return 0;
 }
