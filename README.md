@@ -17,7 +17,7 @@ This project provides a high-fidelity simulation framework for Radar,Telecommuni
   The framework is structured around four main simulation domains:
   1. RF Telecommunication system modeling and simulation (partly implemented).
   2. Radar modeling and simulation (partly implemented).
-  3. DSP (of complex envelopes) and optimum receivers modeling (not yet implemented).
+  3. Baseband (complex envelope) signal processing and optimum receivers modeling (not yet implemented).
   4. Support libraries (e.g. an Atmosphere, terrain and buildings) (partly implemented).
   
 ## Implementation Overview
