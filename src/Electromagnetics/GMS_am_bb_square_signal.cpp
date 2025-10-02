@@ -24,7 +24,7 @@ m_sig_samples{darray_r4_t(m_nsamples)}
 
 gms::radiolocation
 ::am_bb_square_signal_t
-::am_bb_square_signal_t(am_bb_square_signal_t &&other)
+::am_bb_square_signal_t(am_bb_square_signal_t &&other) noexcept(true)
 :
 m_nsamples{std::move(other.m_nsamples)},
 m_nK{std::move(other.m_nK)},
@@ -47,7 +47,7 @@ gms::radiolocation
 ::am_bb_square_signal_t &
 gms::radiolocation
 ::am_bb_square_signal_t
-::operator=(am_bb_square_signal_t &&other) 
+::operator=(am_bb_square_signal_t &&other) noexcept(true)
 {
     if(__builtin_expect(this==&other,0)) { return (*this);}
     this->m_nsamples  = std::move(other.m_nsamples);
