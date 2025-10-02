@@ -76,11 +76,11 @@ void
 gms::radiolocation 
 ::am_bb_square_signal_t
 ::create_signal_plot(const std::uint32_t n_samp,
-                    const float * __restrict sig_arg,
-                    const float * __restrict sig_val,
-                    const std::string &header,
-                    const std::string &title,
-                    const bool is_sig_arg_present)
+                     const float * __restrict sig_arg,
+                     const float * __restrict sig_val,
+                     const std::string &header,
+                     const std::string &title,
+                     const bool is_sig_arg_present)
 {
     std::string plot_fname;
     std::string sig_fname;
@@ -239,7 +239,7 @@ gms::radiolocation
                         {
                             const float k{static_cast<float>(__k)};
                             const float arg{t__i_2-k*T};
-                            sum1 += sin_squarew_sample(arg,invT)*sym_in[Ix2D(__i+2,n_K,__k)];
+                            sum2 += sin_squarew_sample(arg,invT)*sym_in[Ix2D(__i+2,n_K,__k)];
                         }
                         this->m_sig_samples.m_data[__i+2] = sum2;
                         t__i_3  += 4.0f;
@@ -248,7 +248,7 @@ gms::radiolocation
                         {
                             const float k{static_cast<float>(__k)};
                             const float arg{t__i_3-k*T};
-                            sum1 += sin_squarew_sample(arg,invT)*sym_in[Ix2D(__i+3,n_K,__k)];
+                            sum3 += sin_squarew_sample(arg,invT)*sym_in[Ix2D(__i+3,n_K,__k)];
                         }
                         this->m_sig_samples.m_data[__i+3] = sum3;
                   }
@@ -293,7 +293,7 @@ gms::radiolocation
                         {
                             const float k{static_cast<float>(__k)};
                             const float arg{t__i_2-k*T};
-                            sum1 += cos_squarew_sample(arg,invT)*sym_in[Ix2D(__i+2,n_K,__k)];
+                            sum2 += cos_squarew_sample(arg,invT)*sym_in[Ix2D(__i+2,n_K,__k)];
                         }
                         this->m_sig_samples.m_data[__i+2] = sum2;
                         t__i_3  += 4.0f;
@@ -302,7 +302,7 @@ gms::radiolocation
                         {
                             const float k{static_cast<float>(__k)};
                             const float arg{t__i_3-k*T};
-                            sum1 += cos_squarew_sample(arg,invT)*sym_in[Ix2D(__i+3,n_K,__k)];
+                            sum3 += cos_squarew_sample(arg,invT)*sym_in[Ix2D(__i+3,n_K,__k)];
                         }
                         this->m_sig_samples.m_data[__i+3] = sum3;
                   }
