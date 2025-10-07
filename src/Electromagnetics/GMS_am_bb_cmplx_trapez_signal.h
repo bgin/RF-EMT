@@ -103,7 +103,7 @@ namespace radiolocation
           /*
                 Useful for noise added modulation
            */
-           enum class am_bb_cmpl_trapez_signal_rand_gens : int32_t 
+           enum class am_bb_cmplx_trapez_signal_rand_gens : int32_t 
            {
                      rg_minstd_rand0,
                      rg_minstd_rand,
@@ -114,6 +114,17 @@ namespace radiolocation
                      rg_ranlux24,
                      rg_ranlux48,
                      rg_knuth_b
+             };
+
+             enum class am_bb_cmplx_trapez_signal_rand_distr : int32_t 
+             {
+                     uniform,
+                     normal,
+                     cauchy,
+                     log_norm,
+                     expo_gamma,
+                     weibull,
+                     gamma
              };
 
               /*
@@ -212,6 +223,60 @@ namespace radiolocation
 		                 return (sample);
                     }
 
+                    template<class Functor> float 
+                    trapezoid_sample_noisy(const float t,
+                                           const float scale,
+                                           Functor &f)
+                    {
+                          using namespace gms::math;
+                          constexpr float invPI{0.318309886183790671537767526745f};
+                          constexpr float PI{3.14159265358979323846264338328f};
+	                     float     a_over_PI{this->m_a*invPI};
+	                     float     PI_over_m{PI/this->m_m};
+	                     const float arg{PI_over_m*t+this->m_l};
+#if (AM_BB_TRAPEZ_SIGNAL_USE_CEPHES) == 1
+                          const float t_as{ceph_asinf(ceph_sinf(arg))};
+		                const float t_ac{ceph_acosf(ceph_cosf(arg))};
+#else 
+                         const float t_as{std::asin(std::sin(arg))};
+		               const float t_ac{std::acos(std::cos(arg))};
+#endif 
+                         const float t_0{a_over_PI*(t_as+t_ac)};
+                         const float r_noise{f()*scale};
+                         float sample{t_0-5.0f+this->m_c};
+                         sample += r_noise;
+                         //const float noisy_sample{r_noise+sample};
+		               return (sample);
+                    }
+
+                    __ATTR_ALWAYS_INLINE__ 
+                    inline const float * get_I_channel() const noexcept
+                    {
+                         const float * __restrict__ p_I{&reinterpret_cast<float(&)[2]>(this->m_sig_samples.m_data[0])[0]};
+                         return (p_I);
+                    }
+
+                    __ATTR_ALWAYS_INLINE__
+                    inline const float * get_Q_channel() const noexcept
+                    {
+                         const float * __restrict__ p_Q{&reinterpret_cast<float(&)[2]>(this->m_sig_samples.m_data[0])[1]};
+                         return (p_Q);
+                    }
+
+                    __ATTR_ALWAYS_INLINE__ 
+                    inline float * get_I_channel() noexcept
+                    {
+                         float * __restrict__ p_I{&reinterpret_cast<float(&)[2]>(this->m_sig_samples.m_data[0])[0]};
+                         return (p_I);
+                    }
+
+                    __ATTR_ALWAYS_INLINE__
+                    inline  float * get_Q_channel() noexcept
+                    {
+                         float * __restrict__ p_Q{&reinterpret_cast<float(&)[2]>(this->m_sig_samples.m_data[0])[1]};
+                         return (p_Q);
+                    }
+
                      /*  Data symbol-transmitted*/
                     std::int32_t 
                     create_signal_user_data(const float * __restrict__,
@@ -224,6 +289,14 @@ namespace radiolocation
                     create_signal_user_data_u4x(const float * __restrict__,
                                                 const std::uint32_t,
                                                 const std::uint32_t);
+
+                     /*  Data symbol-transmitted*/
+                    std::int32_t 
+                    create_noisy_signal_user_data(am_bb_cmplx_trapez_signal_pdf_params_t &,
+                                                  const float,
+                                                  const float * __restrict__,
+                                                  const std::uint32_t,
+                                                  const std::uint32_t);
 
             };
 

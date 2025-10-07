@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iomanip>
+#include <random>
 #include "GMS_am_bb_cmplx_trapez_signal.h"
 #include "GMS_sse_memset.h"
 #include "GMS_indices.h"
@@ -264,6 +265,43 @@ gms::radiolocation
             this->m_sig_samples.m_data[__j] = sum0;
         }
         return (0);
+}
+
+std::int32_t 
+gms::radiolocation
+::am_bb_cmplx_trapez_signal_t
+::create_noisy_signal_user_data(am_bb_cmplx_trapez_signal_pdf_params_t & pdf_params,
+                                const float scale,
+                                const float * __restrict__ sym_in, // size of m_nsamples*m_nK values [0,1]
+                                const std::uint32_t n_T,
+                                const std::uint32_t n_K)
+{
+      if(__builtin_expect(static_cast<std::uint32_t>(this->m_nsamples)!=n_T,0) || 
+         __builtin_expect(this->m_nK!=n_K,0)) { return (-1);}
+
+      const float T{static_cast<float>(this->m_nsamples)};
+      constexpr float C141421356237309504880168872421{1.41421356237309504880168872421f};
+      std::uint64_t tsc{};
+      tsc = __rdtsc();
+      auto uni_rand{std::bind(std::uniform_real_distribution<float>(pdf_params.uni_real_a_r,pdf_params.uni_real_b_r),std::mt19937(tsc))};
+      std::complex<float> sum;
+      for(std::uint32_t __t{0ull}; __t != n_T; ++__t) 
+      {
+            const float t{static_cast<float>(__t)};
+            sum =  (0.0f,0.0f);
+            for(std::uint32_t __k{0}; __k != n_K; ++__k) 
+            {
+                const float k{static_cast<float>(__k)};
+                const float arg{t-k*T};
+                const float sym{sym_in[Ix2D(__t,n_K,__k)]};
+                const float re_im{1.0f-(2.0f*sym)};
+                const std::complex<float> c_sym{re_im,re_im};
+                //sum += trapezoid_sample(arg)*(C141421356237309504880168872421*c_sym);
+                sum += trapezoid_sample_noisy(arg,scale,uni_rand)*(C141421356237309504880168872421*c_sym);
+            }
+            this->m_sig_samples.m_data[__t] = sum;
+      }
+      return (0);
 }
 
 auto
