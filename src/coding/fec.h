@@ -286,15 +286,15 @@ extern enum cpu_mode {UNKNOWN=0,PORT,MMX,SSE,SSE2,ALTIVEC} Cpu_mode;
 void find_cpu_mode(void); /* Call this once at startup to set Cpu_mode */
 
 /* Determine parity of argument: 1 = odd, 0 = even */
-#ifdef __i386__
+//#ifdef __i386__
 static inline int parityb(unsigned char x){
   __asm__ __volatile__ ("test %1,%1;setpo %0" : "=g"(x) : "r" (x));
   return x;
 }
-#else
-void partab_init();
+//#else
+//void partab_init();
 
-static inline int parityb(unsigned char x){
+/*static inline int parityb(unsigned char x){
   extern unsigned char Partab[256];
   extern int P_init;
   if(!P_init){
@@ -303,7 +303,7 @@ static inline int parityb(unsigned char x){
   return Partab[x];
 }
 #endif
-
+*/
 
 static inline int parity(int x){
   /* Fold down to one byte */

@@ -38,7 +38,8 @@
 namespace gms
 {
 
-typedef union { 
+typedef union 
+{ 
     alignas(16) unsigned long w[512]; 
     alignas(16) unsigned short s[1024];
 } decision_t;
@@ -69,7 +70,7 @@ struct alignas(16) v615
 
 /* Initialize Viterbi decoder for start of new frame */
 int init_viterbi615_sse2(void * __restrict__ p,int starting_state){
-  struct v615 * __restrict__ vp{p};
+  struct v615 * __restrict__ vp{reinterpret_cast<struct v615 *>(p)};
   //int i;
   if(p == NULL)
     return (-1);
@@ -84,9 +85,26 @@ int init_viterbi615_sse2(void * __restrict__ p,int starting_state){
   return (0);
 }
 
+void set_viterbi615_polynomial_sse2(int polys[6]){
+  //int state;
+  //int i;
+  for(int state{0};state < 8192;state++)
+  {
+    //for(int i{0};i<6;i++)
+    //  Branchtab615[i].s[state] = (polys[i] < 0) ^ parity((2*state) & abs(polys[i])) ? 255 : 0;
+    Branchtab615[0].s[state] = (polys[0] < 0) ^ parity((2*state) & abs(polys[0])) ? 255 : 0;
+    Branchtab615[1].s[state] = (polys[1] < 0) ^ parity((2*state) & abs(polys[1])) ? 255 : 0;
+    Branchtab615[2].s[state] = (polys[2] < 0) ^ parity((2*state) & abs(polys[2])) ? 255 : 0;
+    Branchtab615[3].s[state] = (polys[3] < 0) ^ parity((2*state) & abs(polys[3])) ? 255 : 0;
+    Branchtab615[4].s[state] = (polys[4] < 0) ^ parity((2*state) & abs(polys[4])) ? 255 : 0;
+    Branchtab615[5].s[state] = (polys[5] < 0) ^ parity((2*state) & abs(polys[5])) ? 255 : 0;
+  }
+  Init++;
+}
+
 /* Create a new instance of a Viterbi decoder */
 void *create_viterbi615_sse2(int len){
-  void * __restrict__ p;
+  void *  p;
   struct v615 * __restrict__ vp;
 
   if(!Init)
@@ -109,22 +127,7 @@ void *create_viterbi615_sse2(int len){
   return vp;
 }
 
-void set_viterbi615_polynomial_sse2(int polys[6]){
-  //int state;
-  //int i;
-  for(int state{0};state < 8192;state++)
-  {
-    //for(int i{0};i<6;i++)
-    //  Branchtab615[i].s[state] = (polys[i] < 0) ^ parity((2*state) & abs(polys[i])) ? 255 : 0;
-    Branchtab615[0].s[state] = (polys[0] < 0) ^ parity((2*state) & abs(polys[0])) ? 255 : 0;
-    Branchtab615[1].s[state] = (polys[1] < 0) ^ parity((2*state) & abs(polys[1])) ? 255 : 0;
-    Branchtab615[2].s[state] = (polys[2] < 0) ^ parity((2*state) & abs(polys[2])) ? 255 : 0;
-    Branchtab615[3].s[state] = (polys[3] < 0) ^ parity((2*state) & abs(polys[3])) ? 255 : 0;
-    Branchtab615[4].s[state] = (polys[4] < 0) ^ parity((2*state) & abs(polys[4])) ? 255 : 0;
-    Branchtab615[5].s[state] = (polys[5] < 0) ^ parity((2*state) & abs(polys[5])) ? 255 : 0;
-  }
-  Init++;
-}
+
 
 /* Viterbi chainback */
 int chainback_viterbi615_sse2(
@@ -133,7 +136,7 @@ int chainback_viterbi615_sse2(
                         unsigned int nbits, /* Number of data bits */
                         unsigned int endstate)
 { /* Terminal encoder state */
-  struct v615 * __restrict__ vp{p};
+  struct v615 * __restrict__ vp{reinterpret_cast<struct v615 *>(p)};
   decision_t *d{(decision_t *)vp->decisions};
   endstate %= 16384;
 
@@ -154,7 +157,7 @@ int chainback_viterbi615_sse2(
 
 /* Delete instance of a Viterbi decoder */
 void delete_viterbi615_sse2(void * __restrict__ p){
-  struct v615 * __restrict__ vp{p};
+  struct v615 * __restrict__ vp{reinterpret_cast<struct v615 *>(p)};
   if(vp != NULL)
   {
     free(vp->decisions);
@@ -166,13 +169,14 @@ int update_viterbi615_blk_sse2(void * __restrict__ p,
                                unsigned char * __restrict__ syms,
                                int nbits)
 {
-  struct v615 * __restrict__ vp{p};
+  struct v615 * __restrict__ vp{reinterpret_cast<struct v615 *> (p)};
   decision_t *d{(decision_t *)vp->dp};
 
   while(nbits--)
   {
     __m128i sym0v,sym1v,sym2v,sym3v,sym4v,sym5v;
-    void * __restrict__ tmp;
+    //void * __restrict__ tmp;
+    metric_t * __restrict__ tmp;
     int i;
 
     /* Splat the 0th symbol across sym0v, the 1st symbol across sym1v, etc */
