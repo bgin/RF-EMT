@@ -7,45 +7,67 @@
 
 __ATTR_ALWAYS_INLINE__
 static inline
-double ppnd(double p)
+void ppnd7(const float p,
+           float &normal_dev,
+           std::int32_t &ifault)
 {
-constexpr double split{4.19999999999999984456877655248E-1};
-constexpr double A0{2.50662823883999985596915394126E0};
-constexpr double A1{-1.86150006252900013237194798421E1};
-constexpr double A2{4.13911977353400004631112096831E1};
-constexpr double A3{-2.54410604963699995550996391103E1};
-constexpr double B1{-8.47351093089999984897531248862E0};
-constexpr double B2{2.308336743742999885853350861E1};
-constexpr double B3{-2.1062241018259999947304095258E1};
-constexpr double B4{3.13082909833000000432434717368E0};
-constexpr double C0{-2.78718931138000014513522728521E0};
-constexpr double C1{-2.2979647913400000902583997231E0};
-constexpr double C2{4.85014127135000006063592081773E0};
-constexpr double C3{2.32121276858000014087224371906E0};
-constexpr double D1{3.54388924762000012691487427219E0};
-constexpr double D2{1.63706781897000008818565675028E0};
-constexpr double ZERO{0.0};
-constexpr double ONE{1.0};
-constexpr double HALF{0.5};
-double q,r,result;
-q = p-HALF;
-if(std::fabs(q)>split) { goto label10;}
-    // 0.08 < P < 0.92
-    r = q*q;
-    result = q*(((A3*r+A2)*r+A1)*r+A0)/((((B4*r+B3)*r+B2)*r+B1)*r+ONE);
-    return (result);
-    // P < 0.08 OR P > 0.92, SET R = MIN(P,1-P)
-label10:
-    r = p;
-    if(q>ZERO) {r = ONE-p;}
-    if(r<=ZERO) {goto label20;}
-    r = std::sqrt(-std::log(r));
-    result = (((C3*r+C2)*r+C1)*r+C0)/((D2*r+D1)*r+ONE);
-    if(q<ZERO) {result = -result;}
-    return (result);
-label20:
-    result = 0.0;
-    return (result);
+    constexpr float zero   = 0.0f;
+    constexpr float one    = 1.0f;
+    constexpr float half   = 0.5f;
+    constexpr float split1 = 0.425f;
+    constexpr float split2 = 5.0f;
+    constexpr float const1 = 0.180625;
+    constexpr float const2 = 1.6f;
+    float q,r;
+    // Coefficients for P close to 0.5
+    constexpr float a0 = 3.3871327179E+00f, a1 = 5.0434271938E+01f,
+                    a2 = 1.5929113202E+02f, a3 = 5.9109374720E+01f,
+                    b1 = 1.7895169469E+01f, b2 = 7.8757757664E+01f,
+                    b3 = 6.7187563600E+01f;
+    // ! Coefficients for P not close to 0, 0.5 or 1.
+    constexpr float c0 = 1.4234372777E+00f, c1 = 2.7568153900E+00f, 
+                    c2 = 1.3067284816E+00f, c3 = 1.7023821103E-01f, 
+                    d1 = 7.3700164250E-01f, d2 = 1.2021132975E-01f;
+    // Coefficients for P near 0 or 1.
+    constexpr float e0 = 6.6579051150E+00f, e1 = 3.0812263860E+00f, 
+                    e2 = 4.2868294337E-01f, e3 = 1.7337203997E-02f, 
+                    f1 = 2.4197894225E-01f, f2 = 1.2258202635E-02f;
+
+    ifault = 0;
+    q = p - half;
+    if(std::abs(q) <= split1)
+    {
+       r = const1 - q * q;
+       normal_dev = q * (((a3 * r + a2) * r + a1) * r + a0) / 
+                    (((b3 * r + b2) * r + b1) * r + one);
+       return;
+    }
+    else 
+    {
+      if(q < zero)
+          r = p;
+      else
+          r = one - p;
+      if(r <= zero)
+      {
+         ifault = 1;
+         normal_dev = zero;
+         return;
+      }
+      r = std::sqrt(-std::log(r));
+      if(r <= split2)
+      {
+        r = r - const2;
+        normal_dev = (((c3 * r + c2) * r + c1) * r + c0) / ((d2 * r + d1) * r + one);
+      }
+      else 
+      {
+        r = r - split2;
+        normal_dev = (((e3 * r + e2) * r + e1) * r + e0) / ((f2 * r + f1) * r + one);
+      }
+      if(q < zero) normal_dev = -normal_dev;
+      return;
+    }
 }
 
 __ATTR_ALWAYS_INLINE__
@@ -199,10 +221,11 @@ gms::math::shapiro_wilk(bool init,
 
             for(int32_t i = 1; i != n2; ++i) 
             {
-                a[i] = ppnd((i-TH)/an25);
+                ppnd7((i-TH)/an25,a[i],ifault);
                 summ2 += a[i] * a[i];
             }
             summ2 *= TWO;
+                      
             ssumm2 = std::sqrt(summ2);
             rsn = ONE/std::sqrt(an);
             a1 = poly(C1,6,rsn)-a[0]/ssumm2;
@@ -213,19 +236,27 @@ gms::math::shapiro_wilk(bool init,
                 a2 = -a[1]/ssumm2+poly(C2,6,rsn);
                 const float t0 = a[0]*a[0];
                 const float t1 = a[1]*a[1];
-                fac = std::sqrt((summ2-TWO*t0-TWO*t1)/
-                         (ONE-TWO*t0-TWO*t1) );
+                float arg1 = (summ2-TWO*t0-TWO*t1)/
+                              (ONE-TWO*t0-TWO*t1);
+                if(arg1<0.0f) arg1 *= -1.0f;
+                fac = std::sqrt(arg1);
+                //fac = std::sqrt(-1.0f*((summ2-TWO*t0-TWO*t1)/
+                //         (ONE-TWO*t0-TWO*t1)) );
                 a[0] = a1;
                 a[1] = a2;
             }
             else 
             {
                 i1 = 2;
-                fac = std::sqrt((summ2-TWO*a[0]*a[0])/
-                                (ONE-TWO*a[1]*a[1]));
+                float arg2 = (summ2-TWO*a[0]*a[0])/
+                             (ONE-TWO*a[1]*a[1]);
+                if(arg2<0.0f) arg2 *= -1.0f;
+                fac = std::sqrt(arg2);
+                //fac = std::sqrt(-1.0f*((summ2-TWO*a[0]*a[0])/
+                //                (ONE-TWO*a[1]*a[1])));
                 a[0] = a1;
             }
-
+            
             for(int32_t i = i1; i != nn2; ++i) 
             {
                 const float t = -a[i];
@@ -240,7 +271,7 @@ gms::math::shapiro_wilk(bool init,
     const bool b0 = ncens>0 && n<20;
     if(ncens<0 || b0) { return;}
     ifault = 5;
-    delta = (float)ncens/an;
+    delta = ((float)ncens)/an;
     if(delta>0.8f) {return;}
     //  If W input as negative, calculate significance level of -W
     if(w<ZERO) {
@@ -257,8 +288,9 @@ gms::math::shapiro_wilk(bool init,
     xx = x[0]/range;
     sx = xx;
     sa = -a[0];
+    //std::printf("sa=%.7f\n",sa);
     j = n-1;
-
+    
     for(int32_t i = 1; i != n2; ++i) 
     {
         xi = x[i]/range;
@@ -266,8 +298,11 @@ gms::math::shapiro_wilk(bool init,
         sx += xi;
         if(i!=j)
         { 
+            //std::printf("copysignf=%.7f\n",copysignf((float)1,(float)i-j));
+            //std::printf("a[std::min(i,j)]=%.7f\n",a[std::min(i,j)]);
             sa = sa+copysignf((float)1,(float)i-j)
-                              *a[std::min(i,j)];
+                             *a[std::min(i,j)];
+            //std::printf("sa=%.7f\n",sa);
         }
         xx = xi;
         j = j-1;
@@ -278,7 +313,9 @@ gms::math::shapiro_wilk(bool init,
     // Calculate W statistic as squared correlation
     //        between data and coefficients
     //
+    
     sa = sa/n1;
+    //std::printf("sa=%.7f\n",sa);
     sx = sx/n1;
     ssa = ZERO;
     ssx = ZERO;
@@ -296,8 +333,9 @@ gms::math::shapiro_wilk(bool init,
         {
             asa = -sa;
         }
-        xsx = x[i]/range;
+        xsx = x[i]/range-sx;
         ssa = ssa+asa*asa;
+        //std::printf("ssa=%.7f\n",ssa);
         ssx = ssx+xsx*xsx;
         sax = sax+asa*xsx;
         j = j-1;
@@ -306,6 +344,7 @@ gms::math::shapiro_wilk(bool init,
     //  W1 equals (1-W) claculated to avoid excessive rounding error
     //       for W very near 1 (a potential problem in very large samples)
     // 
+    //std::printf("%.17f\n",ssa*ssx);
     ssassx = std::sqrt(ssa*ssx);
     w1 = (ssassx-sax)*(ssassx+sax)/(ssa*ssx);
 label_70:
