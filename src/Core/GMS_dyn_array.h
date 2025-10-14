@@ -718,7 +718,7 @@ namespace gms
                           
                           this->mnx    =  rhs.mnx;
                           this->m_data =  &rhs.m_data[0];
-                          this->ismmap = rhs.ismmap;
+                          this->ismmap =  rhs.ismmap;
                           rhs.mnx      =  0ULL;
                           rhs.m_data   =  NULL;
                           rhs.ismmap   = false;                      
@@ -969,7 +969,23 @@ namespace gms
                           rhs.ismmap   = false;                     
                       }
                                  
-                     darray_r8_t(const darray_r8_t &)             = delete;
+                     darray_r8_t(const darray_r8_t &rhs) noexcept(false)
+                     {
+                           using namespace gms::common;
+#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
+               PMC_VARS                  
+               HW_PMC_COLLECTION_PROLOGE_BODY
+#endif                  
+                           this->mnx = rhs.mnx;
+                           this->allocate();
+                           this->ismmap = rhs.ismmap;
+                           std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
+               HW_PMC_COLLECTION_EPILOGE_BODY
+
+               HW_PMC_SHOW_INFO
+#endif                                
+                     }
                       
                      inline ~darray_r8_t() noexcept(false)
                      {
