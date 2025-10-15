@@ -84,6 +84,8 @@ gms::math
     }
     
     double W{(num*num)/denom};
+    if(W>1.0) return (std::numeric_limits<double>::quiet_NaN());
+    if(W<0.0) W *= -1.0;
     return (W);
     
 }
