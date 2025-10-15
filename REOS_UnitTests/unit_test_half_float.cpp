@@ -5,13 +5,14 @@
 #include <functional>
 #include <algorithm>
 #include <valarray>
+#include <iostream>
 #include "GMS_half.h"
 
 /*
-   icpc -o unit_test_normality -fp-model fast=2 -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
-   GMS_config.h GMS_half.hpp unit_test_half_float.cpp 
+   icpc -o unit_test_half_float -fp-model fast=2 -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
+   GMS_config.h GMS_half.h unit_test_half_float.cpp 
    ASM: 
-   icpc -S -fverbose-asm -masm=intel  -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_half.hpp unit_test_half_float.cpp 
+   icpc -S -fverbose-asm -masm=intel  -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_half.h unit_test_half_float.cpp 
 
 */
 
@@ -63,7 +64,8 @@ void unit_test_half_float_simple()
       {
         half a(3.4), b(5);
         half c = a * b;
-        c += 3;
+        c += 3.0_h;
+        std::cout << sizeof(c) << std::endl;
       }
       {
         half a(-3.14159);
@@ -72,6 +74,8 @@ void unit_test_half_float_simple()
       }
       
 }
+
+
 
 int main()
 {
