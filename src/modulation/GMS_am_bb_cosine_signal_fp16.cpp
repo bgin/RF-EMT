@@ -1,30 +1,30 @@
 #include <fstream>
 #include <iomanip>
-#include "GMS_am_bb_sine_signal.h"
+#include "GMS_am_bb_cosine_signal_fp16.h"
 #include "GMS_sse_memset.h"
 #include "GMS_indices.h"
 
 gms::radiolocation
-::am_bb_sine_signal_t
-::am_bb_sine_signal_t(const std::size_t nsamples,
-                           const std::uint32_t nK,
-                           const float n,
-                           const float A,
-                           const float P)
+::am_bb_cosine_signal_fp16_t
+::am_bb_cosine_signal_fp16_t(const std::size_t nsamples,
+                             const std::uint32_t nK,
+                             const float n,
+                             const float A,
+                             const float P)
 :
 m_nsamples{nsamples},
 m_nK{nK},
 m_n{n},
 m_A{A},
 m_P{P},
-m_sig_samples{darray_r4_t(m_nsamples)}
+m_sig_samples{darray_r2_t(m_nsamples)}
 {
 
 }
 
 gms::radiolocation
-::am_bb_sine_signal_t
-::am_bb_sine_signal_t(am_bb_sine_signal_t &&other) noexcept(true)
+::am_bb_cosine_signal_fp16_t
+::am_bb_cosine_signal_fp16_t(am_bb_cosine_signal_fp16_t &&other) noexcept(true)
 :
 m_nsamples{std::move(other.m_nsamples)},
 m_nK{std::move(other.m_nK)},
@@ -36,18 +36,32 @@ m_sig_samples{std::move(other.m_sig_samples)}
     
 }   
 
+gms::radiolocation
+::am_bb_cosine_signal_fp16_t
+::am_bb_cosine_signal_fp16_t(const am_bb_cosine_signal_fp16_t &other) noexcept(false)
+:
+m_nsamples{other.m_nsamples},
+m_nK{other.m_nK},
+m_n{other.m_n},
+m_A{other.m_A},
+m_P{other.m_P},
+m_sig_samples{other.m_sig_samples}
+{
+    
+}   
+
 gms::radiolocation 
-::am_bb_sine_signal_t
-::~am_bb_sine_signal_t()
+::am_bb_cosine_signal_fp16_t
+::~am_bb_cosine_signal_fp16_t()
 {
 
 }
 
 gms::radiolocation
-::am_bb_sine_signal_t &
+::am_bb_cosine_signal_fp16_t &
 gms::radiolocation
-::am_bb_sine_signal_t
-::operator=(am_bb_sine_signal_t &&other) noexcept(true)
+::am_bb_cosine_signal_fp16_t
+::operator=(am_bb_cosine_signal_fp16_t &&other) noexcept(true)
 {
     if(__builtin_expect(this==&other,0)) { return (*this);}
     this->m_nsamples  = std::move(other.m_nsamples);
@@ -61,12 +75,12 @@ gms::radiolocation
 
 void 
 gms::radiolocation
-::am_bb_sine_signal_t
-::init_storage(const float filler)
+::am_bb_cosine_signal_fp16_t
+::init_storage(const half_float::half filler)
 {
 #if (INIT_BY_STD_FILL) == 0
      using namespace gms::common;
-	 sse_memset_unroll8x_ps(&this->m_sig_samples.m_data[0],filler,this->m_nsamples);
+	 sse_memset_unroll8x_ps(reinterpret_cast<float*>(this->m_sig_samples.m_data),static_cast<float>(filler),this->m_nsamples);
 #else 
      std::fill(this->m_sig_samples.m_data,this->m_sig_samples.m_data+this->m_nsamples,filler);
 #endif
@@ -74,10 +88,10 @@ gms::radiolocation
 
 void 
 gms::radiolocation
-::am_bb_sine_signal_t
+::am_bb_cosine_signal_fp16_t
 ::create_signal_plot(const std::uint32_t n_samp,
-                     const float * __restrict sig_arg,
-                     const float * __restrict sig_val,
+                     const half_float::half * __restrict sig_arg,
+                     const half_float::half * __restrict sig_val,
                      const std::string &header,
                      const std::string &title,
                      const bool is_sig_arg_present)
@@ -135,11 +149,12 @@ gms::radiolocation
 
 std::int32_t 
 gms::radiolocation
-::am_bb_sine_signal_t
+::am_bb_cosine_signal_fp16_t
 ::create_signal_user_data(const float * __restrict__ sym_in, // size of m_nsamples*m_nK
                           const std::uint32_t n_T,
                           const std::uint32_t n_K)
 {
+      using namespace half_float;
       if(__builtin_expect(static_cast<std::uint32_t>(this->m_nsamples)!=n_T,0) || 
          __builtin_expect(this->m_nK!=n_K,0)) { return (-1);}
        const float T{static_cast<float>(this->m_nsamples)};
@@ -153,20 +168,21 @@ gms::radiolocation
             {
                  const float k{static_cast<float>(__k)};
                  const float arg{t-k*T};
-                 sum += sin_sample(arg,invT)*sym_in[Ix2D(__t,n_K,__k)];
+                 sum += cos_sample(arg,invT)*sym_in[Ix2D(__t,n_K,__k)];
             }
-            this->m_sig_samples.m_data[__t] = sum;
+            this->m_sig_samples.m_data[__t] = half_cast<half>(sum);
         }
         return (0);
 }
 
 std::int32_t 
 gms::radiolocation
-::am_bb_sine_signal_t
+::am_bb_cosine_signal_fp16_t
 ::create_signal_user_data_u4x(const float * __restrict__ sym_in, // size of m_nsamples*m_nK
                               const std::uint32_t n_T,
                               const std::uint32_t n_K)
 {
+      using namespace half_float;
       if(__builtin_expect(static_cast<std::uint32_t>(this->m_nsamples)!=n_T,0) || 
          __builtin_expect(this->m_nK!=n_K,0)) { return (-1);}
         const float T{static_cast<float>(this->m_nsamples)};
@@ -189,36 +205,36 @@ gms::radiolocation
             {
                 const float k{static_cast<float>(__k)};
                 const float arg{t__i_0-k*T};
-                sum0 += sin_sample(arg,invT)*sym_in[Ix2D(__i+0,n_K,__k)];
+                sum0 += cos_sample(arg,invT)*sym_in[Ix2D(__i+0,n_K,__k)];
             }
-            this->m_sig_samples.m_data[__i+0] = sum0;
+            this->m_sig_samples.m_data[__i+0] = half_cast<half>(sum0);
             t__i_1 += 4.0f;
             sum1    = 0.0f;
             for(std::uint32_t __k{0}; __k != n_K; ++__k) 
             {
                 const float k{static_cast<float>(__k)};
                 const float arg{t__i_1-k*T};
-                sum1 += sin_sample(arg,invT)*sym_in[Ix2D(__i+1,n_K,__k)];
+                sum1 += cos_sample(arg,invT)*sym_in[Ix2D(__i+1,n_K,__k)];
             }
-            this->m_sig_samples.m_data[__i+1] = sum1;
+            this->m_sig_samples.m_data[__i+1] = half_cast<half>(sum1);
             t__i_2  += 4.0f;
             sum2     = 0.0f;
             for(std::uint32_t __k{0}; __k != n_K; ++__k) 
             {
                 const float k{static_cast<float>(__k)};
                 const float arg{t__i_2-k*T};
-                sum2 += sin_sample(arg,invT)*sym_in[Ix2D(__i+2,n_K,__k)];
+                sum2 += cos_sample(arg,invT)*sym_in[Ix2D(__i+2,n_K,__k)];
             }
-            this->m_sig_samples.m_data[__i+2] = sum2;
+            this->m_sig_samples.m_data[__i+2] = half_cast<half>(sum2);
             t__i_3  += 4.0f;
             sum3     = 0.0f;
             for(std::uint32_t __k{0}; __k != n_K; ++__k) 
             {
                 const float k{static_cast<float>(__k)};
                 const float arg{t__i_3-k*T};
-                sum3 += sin_sample(arg,invT)*sym_in[Ix2D(__i+3,n_K,__k)];
+                sum3 += cos_sample(arg,invT)*sym_in[Ix2D(__i+3,n_K,__k)];
             }
-            this->m_sig_samples.m_data[__i+3] = sum3;
+            this->m_sig_samples.m_data[__i+3] = half_cast<half>(sum3);
             }
             for(__j = __i; __j != n_T; ++__j) 
             {
@@ -228,9 +244,9 @@ gms::radiolocation
                 {
                     const float k{static_cast<float>(__k)};
                     const float arg{t-k*T};
-                    sum0 += sin_sample(arg,invT)*sym_in[Ix2D(__j,n_K,__k)];
+                    sum0 += cos_sample(arg,invT)*sym_in[Ix2D(__j,n_K,__k)];
                 }
-                this->m_sig_samples.m_data[__j] = sum0;
+                this->m_sig_samples.m_data[__j] = half_cast<half>(sum0);
             }
             return (0);
 }
@@ -238,7 +254,7 @@ gms::radiolocation
 auto
 gms::radiolocation
 ::operator<<(std::ostream &os,
-             gms::radiolocation::am_bb_sine_signal_t &rhs)->std::ostream &
+             gms::radiolocation::am_bb_cosine_signal_fp16_t &rhs)->std::ostream &
 {
     std::cout << typeid(rhs).name() << "Begin: object state dump." << std::endl;
     std::cout << "m_nsamples : "      << rhs.m_nsamples << std::endl;
@@ -249,7 +265,7 @@ gms::radiolocation
     std::cout << "Signal-samples:" << std::endl;
     for(std::size_t __i{0ull}; __i != rhs.m_nsamples; ++__i)
     {
-         os << std::fixed << std::setprecision(7) << 
+         os << std::fixed << std::setprecision(4) << 
                              rhs.m_sig_samples.m_data[__i] << std::endl;
     }
     std::cout << typeid(rhs).name() << "End: object state dump." << std::endl;
