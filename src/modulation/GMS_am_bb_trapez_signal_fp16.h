@@ -17,23 +17,23 @@
 !SOFTWARE.
 */
 
-#ifndef __GMS_AM_BB_TRAPEZ_SIGNAL_H__
-#define __GMS_AM_BB_TRAPEZ_SIGNAL_H__ 011020250641
+#ifndef __GMS_AM_BB_TRAPEZ_SIGNAL_FP16_H__
+#define __GMS_AM_BB_TRAPEZ_SIGNAL_FP16_H__ 201020250918
 
 
 namespace file_info 
 {
 
-     static const unsigned int GMS_AM_BB_TRAPEZ_SIGNAL_MAJOR = 1;
-     static const unsigned int GMS_AM_BB_TRAPEZ_SIGNAL_MINOR = 1;
-     static const unsigned int GMS_AM_BB_TRAPEZ_SIGNAL_MICRO = 0;
-     static const unsigned int GMS_AM_BB_TRAPEZ_SIGNAL_FULLVER =
-       1000U*GMS_AM_BB_TRAPEZ_SIGNAL_MAJOR+100U*GMS_AM_BB_TRAPEZ_SIGNAL_MINOR+
-       10U*GMS_AM_BB_TRAPEZ_SIGNAL_MICRO;
-     static const char GMS_AM_BB_TRAPEZ_SIGNAL_CREATION_DATE[] = "01-10-2025 06:41 +00200 (WED 01 OCT 2025 GMT+2)";
-     static const char GMS_AM_BB_TRAPEZ_SIGNAL_BUILD_DATE[]    = __DATE__; 
-     static const char GMS_AM_BB_TRAPEZ_SIGNAL_BUILD_TIME[]    = __TIME__;
-     static const char GMS_AM_BB_TRAPEZ_SIGNAL_SYNOPSIS[]      = "AM baseband trapezoid signal.";
+     static const unsigned int GMS_AM_BB_TRAPEZ_SIGNAL_FP16_MAJOR = 1;
+     static const unsigned int GMS_AM_BB_TRAPEZ_SIGNAL_FP16_MINOR = 1;
+     static const unsigned int GMS_AM_BB_TRAPEZ_SIGNAL_FP16_MICRO = 0;
+     static const unsigned int GMS_AM_BB_TRAPEZ_SIGNAL_FP16_FULLVER =
+       1000U*GMS_AM_BB_TRAPEZ_SIGNAL_FP16_MAJOR+100U*GMS_AM_BB_TRAPEZ_SIGNAL_FP16_MINOR+
+       10U*GMS_AM_BB_TRAPEZ_SIGNAL_FP16_MICRO;
+     static const char GMS_AM_BB_TRAPEZ_SIGNAL_FP16_CREATION_DATE[] = "20-10-2025 09:18 +00200 (MON 20 OCT 2025 GMT+2)";
+     static const char GMS_AM_BB_TRAPEZ_SIGNAL_FP16_BUILD_DATE[]    = __DATE__; 
+     static const char GMS_AM_BB_TRAPEZ_SIGNAL_FP16_BUILD_TIME[]    = __TIME__;
+     static const char GMS_AM_BB_TRAPEZ_SIGNAL_FP16_SYNOPSIS[]      = "AM baseband trapezoid signal half-float stored.";
 
 }
 
@@ -46,34 +46,34 @@ namespace file_info
 // Enable non-temporal stores for this class only( used with free-standing operators)
 // defaulted to 0.
 // To be added.
-#if !defined (AM_BB_TRAPEZ_SIGNAL_USE_NT_STORES)
-#define AM_BB_TRAPEZ_SIGNAL_USE_NT_STORES 0
+#if !defined (AM_BB_TRAPEZ_SIGNAL_FP16_USE_NT_STORES)
+#define AM_BB_TRAPEZ_SIGNAL_FP16_USE_NT_STORES 0
 #endif
 
 #ifdef _OPENMP
 // Default init a storage arrays for the first-touch (OpenMP) processing
-#if !defined(AM_BB_TRAPEZ_SIGNAL_INIT_STORAGE)
-#define AM_BB_TRAPEZ_SIGNAL_INIT_STORAGE 1
+#if !defined(AM_BB_TRAPEZ_SIGNAL_FP16_INIT_STORAGE)
+#define AM_BB_TRAPEZ_SIGNAL_FP16_INIT_STORAGE 1
 #endif 
 #endif
 
-#if (AM_BB_TRAPEZ_SIGNAL_INIT_STORAGE) == 1
+#if (AM_BB_TRAPEZ_SIGNAL_FP16_INIT_STORAGE) == 1
 #define INIT_BY_STD_FILL 0
 #endif 
 
 // For inlining of trigo functions (asin,acos,sin,cos)
-#if !defined(AM_BB_TRAPEZ_SIGNAL_USE_CEPHES)
-#define AM_BB_TRAPEZ_SIGNAL_USE_CEPHES 1
+#if !defined(AM_BB_TRAPEZ_SIGNAL_FP16_USE_CEPHES)
+#define AM_BB_TRAPEZ_SIGNAL_FP16_USE_CEPHES 1
 #endif 
 
 // Enable for the basic PMC tracing (wall-clock) readout (not statistically rigorous)!!
 // *** Warning *** -- An access for the PM hardware counters must be enabled for the user-mode space!!
 // 
-#if !defined (AM_BB_TRAPEZ_SIGNAL_USE_PMC_INSTRUMENTATION)
-#define AM_BB_TRAPEZ_SIGNAL_USE_PMC_INSTRUMENTATION 1
+#if !defined (AM_BB_TRAPEZ_SIGNAL_FP16_USE_PMC_INSTRUMENTATION)
+#define AM_BB_TRAPEZ_SIGNAL_FP16_USE_PMC_INSTRUMENTATION 1
 #endif 
 
-#if (AM_BB_TRAPEZ_SIGNAL_USE_PMC_INSTRUMENTATION) == 1
+#if (AM_BB_TRAPEZ_SIGNAL_FP16_USE_PMC_INSTRUMENTATION) == 1
 #include "GMS_hw_perf_macros.h"
 
 #define PMC_VARS                      \
@@ -89,7 +89,7 @@ int32_t core_counter_width;           \
 double utilization,nom_ghz,avg_ghz;
 #endif 
 
-#if (AM_BB_TRAPEZ_SIGNAL_USE_CEPHES) == 0
+#if (AM_BB_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 0
 #include <cmath>
 #else 
 #include "GMS_cephes_sin_cos.h"
@@ -105,7 +105,7 @@ namespace radiolocation
            /*
                 Useful for noise added modulation
            */
-           enum class am_bb_trapez_signal_rand_gens : int32_t 
+           enum class am_bb_trapez_signal_fp16_rand_gens : int32_t 
            {
                      rg_minstd_rand0,
                      rg_minstd_rand,
@@ -121,7 +121,7 @@ namespace radiolocation
               /*
                 Useful for noise added modulation
            */
-             struct alignas(64) am_bb_trapez_signal_pdf_params_t 
+             struct alignas(64) am_bb_trapez_signal_fp16_pdf_params_t 
              {
                    float uni_real_a_r;
                    float uni_real_a_i;
@@ -157,7 +157,7 @@ namespace radiolocation
                Amplitude-Modulated Base-Band trapezoid waveform signal
                only information-bearer part (real-valued).
            */
-            struct alignas(64) am_bb_trapez_signal_t final 
+            struct alignas(64) am_bb_trapez_signal_fp16_t final 
             {
                    std::size_t       m_nsamples; 
                    std::uint32_t     m_nK; // number of inner loop wave components
@@ -166,33 +166,34 @@ namespace radiolocation
                    float             m_l;
                    float             m_c;
                    float             m_m;
-                   darray_r4_t       m_sig_samples; //In-phase channel
+                   darray_r2_t       m_sig_samples; //In-phase channel
 
-                   am_bb_trapez_signal_t() = delete;
+                   am_bb_trapez_signal_fp16_t() = delete;
 
-                   am_bb_trapez_signal_t(const std::size_t,
-                                         const std::uint32_t,
-                                         const float,
-                                         const float,
-                                         const float,
-                                         const float) noexcept(false);
+                   am_bb_trapez_signal_fp16_t(const std::size_t,
+                                              const std::uint32_t,
+                                              const float,
+                                              const float,
+                                              const float,
+                                              const float) noexcept(false);
 
-                   am_bb_trapez_signal_t(am_bb_trapez_signal_t &&);
+                   am_bb_trapez_signal_fp16_t(am_bb_trapez_signal_fp16_t &&) noexcept(true);
 
-                   am_bb_trapez_signal_t(const am_bb_trapez_signal_t &) = delete;
+                   am_bb_trapez_signal_fp16_t(const am_bb_trapez_signal_fp16_t &) noexcept(false);
 
-                  ~am_bb_trapez_signal_t() noexcept(false);
+                  ~am_bb_trapez_signal_fp16_t() noexcept(false);
 
-                   am_bb_trapez_signal_t & operator=(const am_bb_trapez_signal_t &) = delete;
+                   am_bb_trapez_signal_fp16_t & operator=(const am_bb_trapez_signal_fp16_t &) = delete;
 
-                   am_bb_trapez_signal_t & operator=(am_bb_trapez_signal_t &&);
+                   am_bb_trapez_signal_fp16_t & operator=(am_bb_trapez_signal_fp16_t &&);
 
-                   void init_storage(const float);
+                   void init_storage(const half_float::half);
                                      
-
+                   __ATTR_ALIGN__(32)
+                   __ATTR_HOT__
                    static void create_signal_plot( const std::uint32_t,
-                                                   const float * __restrict,
-                                                   const float * __restrict,
+                                                   const half_float::half * __restrict,
+                                                   const half_float::half * __restrict,
                                                    const std::string &,
                                                    const std::string &,
                                                    const bool );
@@ -219,6 +220,9 @@ namespace radiolocation
                     }
 
                      /*  Data symbol-transmitted*/
+                    __ATTR_ALIGN__(32)
+                    __ATTR_OPTIMIZE_03__
+                    __ATTR_HOT__
                     std::int32_t 
                     create_signal_user_data(const float * __restrict__,
                                             const std::uint32_t,
@@ -226,6 +230,9 @@ namespace radiolocation
                     
                     
                      /*  Data symbol-transmitted, outer loop unrolled four times.*/
+                    __ATTR_ALIGN__(32)
+                    __ATTR_OPTIMIZE_03__
+                    __ATTR_HOT__
                     std::int32_t 
                     create_signal_user_data_u4x(const float * __restrict__,
                                                 const std::uint32_t,
@@ -236,6 +243,7 @@ namespace radiolocation
                     template<class Functor> std::int32_t 
                     create_signal_rand_data(Functor & f)
                     {
+                         using namespace half_float;
                          const float T{static_cast<float>(this->m_nsample)};
                          float sum;
                          for(std::uint32_t __t{0ull}; __t != this->m_nsamples; ++__t) 
@@ -248,14 +256,14 @@ namespace radiolocation
                                   const float arg{t-k*T};
                                   sum += trapezoid_sample(arg)*f();
                               }
-                             this->m_sig_samples.m_data[__t] = sum;
+                             this->m_sig_samples.m_data[__t] = half_cast<half>(sum);
                          }
                         return (0);
                     }
             };
 
              auto operator<<(std::ostream &,
-                             am_bb_trapez_signal_t &)->std::ostream &;
+                             am_bb_trapez_signal_fp16_t &)->std::ostream &;
 }
 
 }
@@ -277,4 +285,4 @@ namespace radiolocation
 
 
 
-#endif /*__GMS_AM_BB_TRAPEZ_SIGNAL_H__*/
+#endif /*__GMS_AM_BB_TRAPEZ_SIGNAL_FP16_H__*/
