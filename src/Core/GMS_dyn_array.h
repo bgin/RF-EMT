@@ -92,12 +92,12 @@ namespace gms
 
                // Simple dynamically allocated arrays without vector-like functionality (growing,resizing, ...etc)
                // Used mainly for the baseband/narrowband signal representation and henceforth processing.
-               using namespace half_float;
+               //using namespace half_float;
 
                struct alignas(32) darray_c2_t final 
                {
                       
-                      std::complex<half> * __restrict m_data;
+                      std::complex<half_float::half> * __restrict m_data;
                       std::size_t                      mnx;
                       bool                             ismmap;
 
@@ -143,18 +143,18 @@ namespace gms
                              this->mnx = nx;
                              switch (fsize) {
                                  case 0:
-                                      this->m_data = (std::complex<half>*)
-                                                 gms_mmap_4KiB<std::complex<half>>(this->mnx,prot,flags,fd,offset);
+                                      this->m_data = (std::complex<half_float::half>*)
+                                                 gms_mmap_4KiB<std::complex<half_float::half>>(this->mnx,prot,flags,fd,offset);
                                       this->ismmap = true;
                                  break;
                                  case 1:
-                                      this->m_data = (std::complex<half>*)
-                                                 gms_mmap_2MiB<std::complex<half>>(this->mnx,prot,flags,fd,offset);
+                                      this->m_data = (std::complex<half_float::half>*)
+                                                 gms_mmap_2MiB<std::complex<half_float::half>>(this->mnx,prot,flags,fd,offset);
                                       this->ismmap = true;
                                  break;
                                  case 2:
-                                      this->m_data = (std::complex<half>*)
-                                                 gms_mmap_1GiB<std::complex<half>>(this->mnx,prot,flags,fd,offset);
+                                      this->m_data = (std::complex<half_float::half>*)
+                                                 gms_mmap_1GiB<std::complex<half_float::half>>(this->mnx,prot,flags,fd,offset);
                                       this->ismmap = true;
                                  break;
                                  default :
@@ -168,7 +168,7 @@ namespace gms
                              }          
                      }
                       
-                     inline darray_c2_t(const std::vector<std::complex<half>> &data) noexcept(false)
+                     inline darray_c2_t(const std::vector<std::complex<half_float::half>> &data) noexcept(false)
                      {    //shall be of the same size (no error checking implemented)
                                   
                           using namespace gms::common;
@@ -188,7 +188,7 @@ namespace gms
 #endif                                                  
                      }
                      
-                     inline darray_c2_t(const std::valarray<std::complex<half>> &data) noexcept(false)
+                     inline darray_c2_t(const std::valarray<std::complex<half_float::half>> &data) noexcept(false)
                     {
                                    
                           using namespace gms::common;
@@ -211,7 +211,7 @@ namespace gms
                              
                       
                      inline  darray_c2_t(const std::size_t nx,
-                                         const std::complex<half> * __restrict data) noexcept(false)
+                                         const std::complex<half_float::half> * __restrict data) noexcept(false)
                      {
                                  
                           using namespace gms::common;
@@ -222,7 +222,7 @@ namespace gms
                           this->mnx = nx;
                           allocate();
                           this->ismmap = false;
-                          const std::size_t lenx = sizeof(std::complex<half>)*this->mnx;
+                          const std::size_t lenx = sizeof(std::complex<half_float::half>)*this->mnx;
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                 HW_PMC_COLLECTION_EPILOGE_BODY
@@ -270,7 +270,7 @@ namespace gms
                           if(this->ismmap == true) 
                           { 
                              int32_t err1{};
-                             err1 = gms_ummap<std::complex<half>>(this->m_data,this->mnx); this->m_data = NULL;
+                             err1 = gms_ummap<std::complex<half_float::half>>(this->m_data,this->mnx); this->m_data = NULL;
                              if(__builtin_expect(err1==-1,0))
                              {
 #if (FAST_TERMINATE_ON_CRITICAL_ERROR) == 1
@@ -310,15 +310,15 @@ namespace gms
 
                     inline std::size_t bytes_mnx() const noexcept(true)
                     {
-                         return (sizeof(std::complex<half>)*this->mnx);
+                         return (sizeof(std::complex<half_float::half>)*this->mnx);
                     }
 
-                    inline std::complex<half> * begin() const noexcept
+                    inline std::complex<half_float::half> * begin() const noexcept
                     {
                          return this->m_data;
                     }
 
-                    inline std::complex<half> * end() const noexcept
+                    inline std::complex<half_float::half> * end() const noexcept
                     {
                          return this->m_data+this->mnx;
                     }
@@ -337,8 +337,8 @@ namespace gms
                     inline void allocate() noexcept(false)
                     {
                           using namespace gms::common;
-                          this->m_data  = (std::complex<half>*)
-                                         gms_mm_malloc( sizeof(std::complex<half>)*this->mnx,64ULL);
+                          this->m_data  = (std::complex<half_float::half>*)
+                                         gms_mm_malloc( sizeof(std::complex<half_float::half>)*this->mnx,64ULL);
                        
                      }
                      public: 
@@ -876,7 +876,7 @@ namespace gms
                 struct alignas(32) darray_r2_t final 
                 {
                       
-                      half * __restrict               m_data;
+                      half_float::half * __restrict    m_data;
                       std::size_t                      mnx;
                       bool                             ismmap;
 
@@ -920,18 +920,18 @@ namespace gms
                              this->mnx = nx;
                              switch (fsize) {
                                  case 0:
-                                      this->m_data = (half*)
-                                                 gms_mmap_4KiB<half>(this->mnx,prot,flags,fd,offset);
+                                      this->m_data = (half_float::half*)
+                                                 gms_mmap_4KiB<half_float::half>(this->mnx,prot,flags,fd,offset);
                                       this->ismmap = true;
                                  break;
                                  case 1:
-                                      this->m_data = (half*)
-                                                 gms_mmap_2MiB<half>(this->mnx,prot,flags,fd,offset);
+                                      this->m_data = (half_float::half*)
+                                                 gms_mmap_2MiB<half_float::half>(this->mnx,prot,flags,fd,offset);
                                       this->ismmap = true;
                                  break;
                                  case 2:
-                                      this->m_data = (half*)
-                                                 gms_mmap_1GiB<half>(this->mnx,prot,flags,fd,offset);
+                                      this->m_data = (half_float::half*)
+                                                 gms_mmap_1GiB<half_float::half>(this->mnx,prot,flags,fd,offset);
                                       this->ismmap = true;
                                  break;
                                  default :
@@ -945,7 +945,7 @@ namespace gms
 #endif       
                      }
                       
-                     inline darray_r2_t(const std::vector<half> &data) noexcept(false)
+                     inline darray_r2_t(const std::vector<half_float::half> &data) noexcept(false)
                      {    //shall be of the same size (no error checking implemented)
                                   
                           using namespace gms::common;
@@ -965,7 +965,7 @@ namespace gms
 #endif                                                
                      }
                      
-                    inline darray_r2_t(const std::valarray<half> &data) noexcept(false)
+                    inline darray_r2_t(const std::valarray<half_float::half> &data) noexcept(false)
                     {
                                    
                           using namespace gms::common;
@@ -988,7 +988,7 @@ namespace gms
                              
                       
                      inline  darray_r2_t(const std::size_t nx,
-                                         const half * __restrict data) noexcept(false)
+                                         const half_float::half * __restrict data) noexcept(false)
                      {
                                  
                           using namespace gms::common;
@@ -999,7 +999,7 @@ namespace gms
                           this->mnx = nx;
                           allocate();
                           this->ismmap = false;
-                          const std::size_t lenx = sizeof(half)*this->mnx;
+                          const std::size_t lenx = sizeof(half_float::half)*this->mnx;
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
@@ -1049,7 +1049,7 @@ namespace gms
                           { 
                              
                              int32_t err1{};
-                             err1 = gms_ummap<half>(this->m_data,this->mnx); this->m_data = NULL;
+                             err1 = gms_ummap<half_float::half>(this->m_data,this->mnx); this->m_data = NULL;
                              if(__builtin_expect(err1==-1,0))
                              {
 #if (FAST_TERMINATE_ON_CRITICAL_ERROR) == 1
@@ -1092,12 +1092,12 @@ namespace gms
                          return (sizeof(float)*this->mnx);
                     }
 
-                    inline half * begin() const noexcept
+                    inline half_float::half * begin() const noexcept
                     {
                          return this->m_data;
                     }
 
-                    inline half * end() const noexcept
+                    inline half_float::half * end() const noexcept
                     {
                          return this->m_data+this->mnx;
                     }
@@ -1116,8 +1116,8 @@ namespace gms
                     inline void allocate() noexcept(false)
                     {
                           using namespace gms::common;
-                          this->m_data  = (half*)
-                                         gms_mm_malloc( sizeof(half)*this->mnx,64ULL);
+                          this->m_data  = (half_float::half*)
+                                         gms_mm_malloc( sizeof(half_float::half)*this->mnx,64ULL);
                        
                      }
                      public: 
