@@ -25,9 +25,7 @@
  * jroche    01/02/10  created
  */
 
-#ifndef __cplusplus
-#error "This is a C++ include file and cannot be used from plain C"
-#endif
+
 
 #ifdef ALMA_TELCAL
 #define ATM_NAMESPACE_BEGIN namespace telcal { namespace atm {

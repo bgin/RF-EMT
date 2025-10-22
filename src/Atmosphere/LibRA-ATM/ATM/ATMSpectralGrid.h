@@ -25,9 +25,7 @@
  * pardo     24/03/09  created
  */
 
-#ifndef __cplusplus
-#error "This is a C++ include file and cannot be used from plain C"
-#endif
+
 
 #include "ATMCommon.h"
 #include "ATMEnumerations.h"
@@ -212,8 +210,10 @@ public:
   {
     unsigned int spwid;
     std::vector<double> v;
-    for(unsigned int i = 0; i < chanFreq.size(); i++) {
-      v.push_back(chanFreq[i].get(Frequency::UnitGigaHertz));
+    for(std::size_t i = 0; i < chanFreq.size(); i++)
+    {
+      //v.push_back(chanFreq[i].get(Frequency::UnitGigaHertz));
+        v.operator[](i) = chanFreq[i].get(Frequency::UnitGigaHertz);
     }
     spwid = add(chanFreq.size(), chanFreq[0].get(Frequency::UnitGigaHertz), v, Frequency::UnitGigaHertz);
     return spwid;

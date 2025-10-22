@@ -26,9 +26,7 @@
  * jroche    09/09/09  created
  */
 
-#ifndef __cplusplus
-#error "This is a C++ include file and cannot be used from plain C"
-#endif
+
 
 #include "ATMCommon.h" 
 #include <exception>
