@@ -33,11 +33,11 @@ namespace file_info
      static const char GMS_ATMOS_REFRACTION_STATE_CREATION_DATE[] = "22-10-2025 01:11PM +00200 (WED 22 OCT 2025 GMT+2)";
      static const char GMS_ATMOS_REFRACTION_STATE_BUILD_DATE[]    = __DATE__; 
      static const char GMS_ATMOS_REFRACTION_STATE_BUILD_TIME[]    = __TIME__;
-     static const char GMS_ATMOS_REFRACTION_STATE_SYNOPSIS[]      = "Calculation of EM Wave atmospheric refraction.
-                                                               Various characteristics and formulae of atmospheric refraction 
-                                                               (radio waves and visible light/IR wavelengths)  
-                                                               Based mainly on Колосов М.А., Шабельников А.В. - 
-                                                               Рефракция электромагнитных волн в атмосферах Земли, 
+     static const char GMS_ATMOS_REFRACTION_STATE_SYNOPSIS[]      = "Calculation of EM Wave atmospheric refraction.           \
+                                                               Various characteristics and formulae of atmospheric refraction \
+                                                               (radio waves and visible light/IR wavelengths)                 \
+                                                               Based mainly on Колосов М.А., Шабельников А.В. -               \
+                                                               Рефракция электромагнитных волн в атмосферах Земли,            \
                                                                Венеры и Марса-Советское Радио (1976)";
 
 }
@@ -424,16 +424,17 @@ namespace atmos
 
                   atmos_refraction_state_t() = default;
 
-                  atmos_refraction_state_t(const atmos_refraction_size_params_t &) noexcept(false);
+                  atmos_refraction_state_t(const atmos_refraction_size_params_t &,
+                                           const bool) noexcept(false);
 
                   atmos_refraction_state_t(const atmos_refraction_size_params_t &,
-                                           /* Same arguments for every member*/
                                            const int32_t ,
                                            const int32_t ,
                                            const int32_t ,
                                            const long ,
-                                           const int32_t ) noexcept(false);
-
+                                           const int32_t,
+                                           const bool) noexcept(false);
+                  
                   ~atmos_refraction_state_t() noexcept(false);
 
                   atmos_refraction_state_t(const atmos_refraction_state_t &) = delete;
