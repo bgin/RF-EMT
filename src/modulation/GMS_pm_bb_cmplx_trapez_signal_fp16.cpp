@@ -1,14 +1,14 @@
 #include <fstream>
 #include <iomanip>
 #include <random>
-#include "GMS_pm_bb_cmplx_trapez_signal.h"
+#include "GMS_pm_bb_cmplx_trapez_signal_fp16.h"
 #include "GMS_sse_memset.h"
 #include "GMS_indices.h"
 
 
 gms::radiolocation 
-::pm_bb_cmplx_trapez_signal_t
-::pm_bb_cmplx_trapez_signal_t(const std::size_t nsamples,
+::pm_bb_cmplx_trapez_signal_fp16_t
+::pm_bb_cmplx_trapez_signal_fp16_t(const std::size_t nsamples,
                               const std::uint32_t nK,
                               const float w0,
                               const float ph,
@@ -25,14 +25,14 @@ m_a{a},
 m_l{l},
 m_c{c},
 m_m{m},
-m_sig_samples{darray_c4_t(m_nsamples)}
+m_sig_samples{std::valarray<std::complex<half_float::half>>(m_nsamples)}
 {
 
 }
 
 gms::radiolocation 
-::pm_bb_cmplx_trapez_signal_t
-::pm_bb_cmplx_trapez_signal_t(pm_bb_cmplx_trapez_signal_t &&other)
+::pm_bb_cmplx_trapez_signal_fp16_t
+::pm_bb_cmplx_trapez_signal_fp16_t(pm_bb_cmplx_trapez_signal_fp16_t &&other)
 :
 m_nsamples{std::move(other.m_nsamples)},
 m_nK{std::move(other.m_nK)},
@@ -48,17 +48,17 @@ m_sig_samples{std::move(other.m_sig_samples)}
 }
 
 gms::radiolocation 
-::pm_bb_cmplx_trapez_signal_t
-::~pm_bb_cmplx_trapez_signal_t()
+::pm_bb_cmplx_trapez_signal_fp16_t
+::~pm_bb_cmplx_trapez_signal_fp16_t() 
 {
 
 }
 
 gms::radiolocation 
-::pm_bb_cmplx_trapez_signal_t & 
+::pm_bb_cmplx_trapez_signal_fp16_t & 
 gms::radiolocation 
-::pm_bb_cmplx_trapez_signal_t
-::operator=(pm_bb_cmplx_trapez_signal_t &&other)
+::pm_bb_cmplx_trapez_signal_fp16_t
+::operator=(pm_bb_cmplx_trapez_signal_fp16_t &&other)
 {
     if(__builtin_expect(this==&other,0)) { return (*this);}
     this->m_nsamples            = std::move(other.m_nsamples);
@@ -75,12 +75,12 @@ gms::radiolocation
 
 void 
 gms::radiolocation
-::pm_bb_cmplx_trapez_signal_t
-::init_storage(const float filler)
+::pm_bb_cmplx_trapez_signal_fp16_t
+::init_storage(const half_float::half filler)
 {         
 #if (INIT_BY_STD_FILL) == 0
      using namespace gms::common;
-	 sse_memset_unroll8x_ps(reinterpret_cast<float*>(this->m_sig_samples.m_data),filler,2ull*this->m_nsamples);
+	 sse_memset_unroll8x_ps(reinterpret_cast<float*>(&this->m_sig_samples.operator[](0)),filler,2ull*this->m_nsamples);
 #else 
      std::fill(this->m_sig_samples.m_data,this->m_sig_samples.m_data+this->m_nsamples,filler);
 #endif 
@@ -88,10 +88,10 @@ gms::radiolocation
 
 void 
 gms::radiolocation 
-::pm_bb_cmplx_trapez_signal_t
+::pm_bb_cmplx_trapez_signal_fp16_t
 ::create_signal_plot(const std::uint32_t n_samp,
-                    const float * __restrict sig_arg,
-                    const float * __restrict sig_val,
+                    const half_float::half * __restrict sig_arg,
+                    const half_float::half * __restrict sig_val,
                     const std::string &header,
                     const std::string &title,
                     const bool is_sig_arg_present)
@@ -149,12 +149,13 @@ gms::radiolocation
 
 std::int32_t 
 gms::radiolocation
-::pm_bb_cmplx_trapez_signal_t
+::pm_bb_cmplx_trapez_signal_fp16_t
 ::create_signal_user_data(const float * __restrict__ sym_in, // size of m_nsamples*m_nK values [0,1]
                           const std::uint32_t n_T,
                           const std::uint32_t n_K)
 {
       using namespace gms::math;
+      using namespace half_float;
       if(__builtin_expect(static_cast<std::uint32_t>(this->m_nsamples)!=n_T,0) || 
          __builtin_expect(this->m_nK!=n_K,0)) { return (-1);}
 
@@ -167,7 +168,7 @@ gms::radiolocation
       {
             const float t{static_cast<float>(__t)};
             const float carrier_arg{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invT)};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1
             const float cos_carrier{ceph_cosf(carrier_arg)};
             const float sin_carrier{ceph_sinf(carrier_arg)};
 #else 
@@ -180,11 +181,8 @@ gms::radiolocation
                 const float k{static_cast<float>(__k)};
                 const float arg{t-k*T};
                 const float sym{sym_in[Ix2D(__t,n_K,__k)]};
-                //const float re_im{1.0f-(2.0f*sym)};
-                //const std::complex<float> c_sym{re_im,re_im};
-                //sum += trapezoid_sample(arg)*(C141421356237309504880168872421*c_sym);
                 const float pm{trapezoid_sample(arg)*sym};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1                
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1                
                 const float  I{ceph_cosf(pm)*cos_carrier};
                 const float  Q{ceph_sinf(pm)*sin_carrier};
 #else 
@@ -194,19 +192,21 @@ gms::radiolocation
                 const std::complex<float> sample{I,-Q};
                 sum += sample;
             }
-            this->m_sig_samples.m_data[__t] = sum;
+            std::complex<half> sum_fp16(half_cast<half>(sum.real()),half_cast<half>(sum.imag()));
+            this->m_sig_samples[__t] = sum_fp16;
       }
       return (0);
 }
 
 std::int32_t 
 gms::radiolocation
-::pm_bb_cmplx_trapez_signal_t
+::pm_bb_cmplx_trapez_signal_fp16_t
 ::create_signal_user_data_u4x(const float * __restrict__ sym_in, // size of __I_n_samples__ * __I_n_K__
                               const std::uint32_t n_T,
                               const std::uint32_t n_K)
 {
       using namespace gms::math;
+      using namespace half_float;
       if(__builtin_expect(static_cast<std::uint32_t>(this->m_nsamples)!=n_T,0) || 
          __builtin_expect(this->m_nK!=n_K,0)) { return (-2);}
 
@@ -240,7 +240,7 @@ gms::radiolocation
       {
            t__i_0 += 4.0f;
            carrier_arg_0 = this->m_ph+(C6283185307179586476925286766559*this->m_w0*t__i_0*invT);
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1
            cos_carrier_0 = ceph_cosf(carrier_arg_0);
            sin_carrier_0 = ceph_sinf(carrier_arg_0);
 #else 
@@ -253,11 +253,8 @@ gms::radiolocation
                 const float k{static_cast<float>(__k)};
                 const float arg{t__i_0-k*T};
                 const float sym{sym_in[Ix2D(__i+0,n_K,__k)]};
-                //const float im_re{1.0f-(2.0f*sym)};
-                //const std::complex<float> c_sym{im_re,im_re};
-                //sum0 += trapezoid_sample(arg)*(C141421356237309504880168872421*c_sym);
                 const float pm{trapezoid_sample(arg)*sym};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1                
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1                
                 const float  I{ceph_cosf(pm)*cos_carrier_0};
                 const float  Q{ceph_sinf(pm)*sin_carrier_0};
 #else 
@@ -268,10 +265,11 @@ gms::radiolocation
                 sum0 += sample;
                
            }
-           this->m_sig_samples.m_data[__i+0] = sum0;
+           std::complex<half> tmp_sum0(half_cast<half>(sum0.real()),half_cast<half>(sum0.imag()));
+           this->m_sig_samples[__i+0] = tmp_sum0;
            t__i_1 += 4.0f;
            carrier_arg_1 = this->m_ph+(C6283185307179586476925286766559*this->m_w0*t__i_1*invT);
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1
            cos_carrier_1 = ceph_cosf(carrier_arg_1);
            sin_carrier_1 = ceph_sinf(carrier_arg_1);
 #else 
@@ -284,11 +282,8 @@ gms::radiolocation
                 const float k{static_cast<float>(__k)};
                 const float arg{t__i_1-k*T};
                 const float sym{sym_in[Ix2D(__i+1,n_K,__k)]};
-                //const float im_re{1.0f-(2.0f*sym)};
-                //const std::complex<float> c_sym{im_re,im_re};
-                //sum1 += trapezoid_sample(arg)*(C141421356237309504880168872421*c_sym);
                 const float pm{trapezoid_sample(arg)*sym};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1                
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1                
                 const float  I{ceph_cosf(pm)*cos_carrier_1};
                 const float  Q{ceph_sinf(pm)*sin_carrier_1};
 #else 
@@ -298,10 +293,11 @@ gms::radiolocation
                 const std::complex<float> sample{I,-Q};
                 sum1 += sample;             
            }
-           this->m_sig_samples.m_data[__i+1] = sum1;
+           std::complex<half> tmp_sum1(half_cast<half>(sum1.real()),half_cast<half>(sum1.imag()));
+           this->m_sig_samples[__i+1] = tmp_sum1;
            t__i_2 += 4.0f;
            carrier_arg_2 = this->m_ph+(C6283185307179586476925286766559*this->m_w0*t__i_2*invT);
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1
            cos_carrier_2 = ceph_cosf(carrier_arg_2);
            sin_carrier_2 = ceph_sinf(carrier_arg_2);
 #else 
@@ -314,11 +310,8 @@ gms::radiolocation
                 const float k{static_cast<float>(__k)};
                 const float arg{t__i_2-k*T};
                 const float sym{sym_in[Ix2D(__i+2,n_K,__k)]};
-                //const float im_re{1.0f-(2.0f*sym)};
-                //const std::complex<float> c_sym{im_re,im_re};
-                //sum2 += trapezoid_sample(arg)*(C141421356237309504880168872421*c_sym);
                 const float pm{trapezoid_sample(arg)*sym};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1                
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1                
                 const float  I{ceph_cosf(pm)*cos_carrier_2};
                 const float  Q{ceph_sinf(pm)*sin_carrier_2};
 #else 
@@ -329,10 +322,11 @@ gms::radiolocation
                 sum2 += sample;                   
                 
            }
-           this->m_sig_samples.m_data[__i+2] = sum2;
+           std::complex<half> tmp_sum2(half_cast<half>(sum2.real()),half_cast<half>(sum2.imag()));
+           this->m_sig_samples[__i+2] = tmp_sum2;
            t__i_3 += 4.0f;
            carrier_arg_3 = this->m_ph+(C6283185307179586476925286766559*this->m_w0*t__i_3*invT);
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1
            cos_carrier_3 = ceph_cosf(carrier_arg_3);
            sin_carrier_3 = ceph_sinf(carrier_arg_3);
 #else 
@@ -345,11 +339,8 @@ gms::radiolocation
                 const float k{static_cast<float>(__k)};
                 const float arg{t__i_3-k*T};
                 const float sym{sym_in[Ix2D(__i+3,n_K,__k)]};
-                //const float im_re{1.0f-(2.0f*sym)};
-                //const std::complex<float> c_sym{im_re,im_re};
-                //sum3 += trapezoid_sample(arg)*(C141421356237309504880168872421*c_sym);
                 const float pm{trapezoid_sample(arg)*sym};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1                
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1                
                 const float  I{ceph_cosf(pm)*cos_carrier_3};
                 const float  Q{ceph_sinf(pm)*sin_carrier_3};
 #else 
@@ -360,13 +351,14 @@ gms::radiolocation
                 sum3 += sample;                 
                      
            }
-           this->m_sig_samples.m_data[__i+3] = sum3;
+           std::complex<half> tmp_sum3(half_cast<half>(sum3.real()),half_cast<half>(sum3.imag()));
+           this->m_sig_samples[__i+3] = tmp_sum3;
        }
        for(__j = __i; __j != n_T; ++__j) 
        {
             const float t{static_cast<float>(__j)};
             carrier_arg_0 = this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invT);
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1
             cos_carrier_0 = ceph_cosf(carrier_arg_0);
             sin_carrier_0 = ceph_sinf(carrier_arg_0);
 #else 
@@ -379,11 +371,8 @@ gms::radiolocation
                 const float k{static_cast<float>(__k)};
                 const float arg{t-k*T};
                 const float sym{sym_in[Ix2D(__j,n_K,__k)]};
-               //const float im_re{1.0f-(2.0f*sym)};
-                //const std::complex<float> c_sym{im_re,im_re};
-                //sum0 += trapezoid_sample(arg)*(C141421356237309504880168872421*c_sym);
                 const float pm{trapezoid_sample(arg)*sym};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1                
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1                
                 const float  I{ceph_cosf(pm)*cos_carrier_0};
                 const float  Q{ceph_sinf(pm)*sin_carrier_0};
 #else 
@@ -394,21 +383,23 @@ gms::radiolocation
                 sum0 += sample;
                
             }
-            this->m_sig_samples.m_data[__j] = sum0;
+            std::complex<half> tmp_sum0(half_cast<half>(sum0.real()),half_cast<half>(sum0.imag()));
+            this->m_sig_samples[__j] = tmp_sum0;
         }
         return (0);
 }
 
 std::int32_t 
 gms::radiolocation
-::pm_bb_cmplx_trapez_signal_t
-::create_noisy_signal_user_data(pm_bb_cmplx_trapez_signal_pdf_params_t & pdf_params,
+::pm_bb_cmplx_trapez_signal_fp16_t
+::create_noisy_signal_user_data(pm_bb_cmplx_trapez_signal_fp16_pdf_params_t & pdf_params,
                                 const float scale,
                                 const float * __restrict__ sym_in, // size of m_nsamples*m_nK values [0,1]
                                 const std::uint32_t n_T,
                                 const std::uint32_t n_K)
 {
       using namespace gms::math;
+      using namespace half_float;
       if(__builtin_expect(static_cast<std::uint32_t>(this->m_nsamples)!=n_T,0) || 
          __builtin_expect(this->m_nK!=n_K,0)) { return (-1);}
 
@@ -425,7 +416,7 @@ gms::radiolocation
       {
             const float t{static_cast<float>(__t)};
             const float carrier_arg{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invT)};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1
             const float cos_carrier{ceph_cosf(carrier_arg)};
             const float sin_carrier{ceph_sinf(carrier_arg)};
 #else 
@@ -438,12 +429,8 @@ gms::radiolocation
                 const float k{static_cast<float>(__k)};
                 const float arg{t-k*T};
                 const float sym{sym_in[Ix2D(__t,n_K,__k)]};
-                //const float re_im{1.0f-(2.0f*sym)};
-                //const std::complex<float> c_sym{re_im,re_im};
-                //sum += trapezoid_sample(arg)*(C141421356237309504880168872421*c_sym);
-                //sum += trapezoid_sample_noisy(arg,scale,uni_rand)*(C141421356237309504880168872421*c_sym);
                 const float pm{trapezoid_sample_noisy(arg,scale,uni_rand)*sym};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1                
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1                
                 const float  I{ceph_cosf(pm)*cos_carrier};
                 const float  Q{ceph_sinf(pm)*sin_carrier};
 #else 
@@ -453,22 +440,24 @@ gms::radiolocation
                 const std::complex<float> sample{I,-Q};
                 sum += sample;
             }
-            this->m_sig_samples.m_data[__t] = sum;
+            std::complex<half> tmp_sum(half_cast<half>(sum.real()),half_cast<half>(sum.imag()));
+            this->m_sig_samples[__t] = tmp_sum;
       }
       return (0);
 }
 
 std::int32_t 
 gms::radiolocation
-::pm_bb_cmplx_trapez_signal_t
-::create_noisy_signal_user_data(pm_bb_cmplx_trapez_signal_pdf_params_t & pdf_params,
-                                pm_bb_cmplx_trapez_signal_rand_distr rd_enum,
+::pm_bb_cmplx_trapez_signal_fp16_t
+::create_noisy_signal_user_data(pm_bb_cmplx_trapez_signal_fp16_pdf_params_t & pdf_params,
+                                pm_bb_cmplx_trapez_signal_fp16_rand_distr rd_enum,
                                 const float scale,
                                 const float * __restrict__ sym_in, // size of m_nsamples*m_nK values [0,1]
                                 const std::uint32_t n_T,
                                 const std::uint32_t n_K)
 {
       using namespace gms::math;
+      using namespace half_float;
       if(__builtin_expect(static_cast<std::uint32_t>(this->m_nsamples)!=n_T,0) || 
          __builtin_expect(this->m_nK!=n_K,0)) { return (-1);}
 
@@ -481,14 +470,14 @@ gms::radiolocation
       std::complex<float> sum;
       switch (rd_enum)
       {
-        case pm_bb_cmplx_trapez_signal_rand_distr::uniform : 
+        case pm_bb_cmplx_trapez_signal_fp16_rand_distr::uniform : 
               tsc = __rdtsc();
               auto uni_rand{std::bind(std::uniform_real_distribution<float>(pdf_params.uni_real_a_r,pdf_params.uni_real_b_r),std::mt19937(tsc))};
               for(std::uint32_t __t{0ull}; __t != n_T; ++__t) 
               {
                      const float t{static_cast<float>(__t)};
                      const float carrier_arg{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invT)};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1
                      const float cos_carrier{ceph_cosf(carrier_arg)};
                      const float sin_carrier{ceph_sinf(carrier_arg)};
 #else 
@@ -502,7 +491,7 @@ gms::radiolocation
                           const float arg{t-k*T};
                           const float sym{sym_in[Ix2D(__t,n_K,__k)]};
                           const float pm{trapezoid_sample_noisy(arg,scale,uni_rand)*sym};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1                
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1                
                            const float  I{ceph_cosf(pm)*cos_carrier};
                            const float  Q{ceph_sinf(pm)*sin_carrier};
 #else 
@@ -512,10 +501,11 @@ gms::radiolocation
                            const std::complex<float> sample{I,-Q};
                            sum += sample; 
                      }
-                     this->m_sig_samples.m_data[__t] = sum;
+                     std::complex<half> tmp_sum(half_cast<half>(sum.real()),half_cast<half>(sum.imag()));
+                     this->m_sig_samples[__t] = tmp_sum;
                }
         break;
-        case pm_bb_cmplx_trapez_signal_rand_distr::normal : 
+        case pm_bb_cmplx_trapez_signal_fp16_rand_distr::normal : 
               tsc = __rdtsc();
               auto normal_rand{std::bind(std::normal_distribution<float>(pdf_params.norm_mu_r,pdf_params.norm_sigma_r),
                                                                          std::mt19937(tsc))};
@@ -523,7 +513,7 @@ gms::radiolocation
               {
                      const float t{static_cast<float>(__t)};
                      const float carrier_arg{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invT)};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1
                      const float cos_carrier{ceph_cosf(carrier_arg)};
                      const float sin_carrier{ceph_sinf(carrier_arg)};
 #else 
@@ -537,7 +527,7 @@ gms::radiolocation
                           const float arg{t-k*T};
                           const float sym{sym_in[Ix2D(__t,n_K,__k)]};
                           const float pm{trapezoid_sample_noisy(arg,scale,normal_rand)*sym};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1                
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1                
                            const float  I{ceph_cosf(pm)*cos_carrier};
                            const float  Q{ceph_sinf(pm)*sin_carrier};
 #else 
@@ -547,10 +537,11 @@ gms::radiolocation
                            const std::complex<float> sample{I,-Q};
                            sum += sample;
                      }
-                     this->m_sig_samples.m_data[__t] = sum;
+                     std::complex<half> tmp_sum(half_cast<half>(sum.real()),half_cast<half>(sum.imag()));
+                     this->m_sig_samples[__t] = tmp_sum;
                }
          break;
-         case pm_bb_cmplx_trapez_signal_rand_distr::cauchy : 
+         case pm_bb_cmplx_trapez_signal_fp16_rand_distr::cauchy : 
                 tsc = __rdtsc();
                 auto cauchy_rand{std::bind(std::cauchy_distribution<float>(pdf_params.cauchy_a_r,pdf_params.cauchy_b_r),
                                                                            std::mt19937(tsc))};
@@ -558,7 +549,7 @@ gms::radiolocation
                 {
                      const float t{static_cast<float>(__t)};
                      const float carrier_arg{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invT)};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1
                      const float cos_carrier{ceph_cosf(carrier_arg)};
                      const float sin_carrier{ceph_sinf(carrier_arg)};
 #else 
@@ -571,12 +562,8 @@ gms::radiolocation
                           const float k{static_cast<float>(__k)};
                           const float arg{t-k*T};
                           const float sym{sym_in[Ix2D(__t,n_K,__k)]};
-                          //const float re_im{1.0f-(2.0f*sym)};
-                          //const std::complex<float> c_sym{re_im,re_im};
-                //sum += trapezoid_sample(arg)*(C141421356237309504880168872421*c_sym);
-                          //sum += trapezoid_sample_noisy(arg,scale,cauchy_rand)*(C141421356237309504880168872421*c_sym);
-                           const float pm{trapezoid_sample_noisy(arg,scale,cauchy_rand)*sym};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1                
+                          const float pm{trapezoid_sample_noisy(arg,scale,cauchy_rand)*sym};
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1                
                            const float  I{ceph_cosf(pm)*cos_carrier};
                            const float  Q{ceph_sinf(pm)*sin_carrier};
 #else 
@@ -586,10 +573,11 @@ gms::radiolocation
                            const std::complex<float> sample{I,-Q};
                            sum += sample;
                      }
-                     this->m_sig_samples.m_data[__t] = sum;
+                     std::complex<half> tmp_sum(half_cast<half>(sum.real()),half_cast<half>(sum.imag()));
+                     this->m_sig_samples[__t] = tmp_sum;
                }
          break;
-         case pm_bb_cmplx_trapez_signal_rand_distr::log_norm : 
+         case pm_bb_cmplx_trapez_signal_fp16_rand_distr::log_norm : 
                tsc = __rdtsc();
                auto lognorm_rand{std::bind(std::lognormal_distribution<float>(pdf_params.log_norm_m_r,pdf_params.log_norm_s_r),
                                                                                std::mt19937(tsc))};
@@ -597,7 +585,7 @@ gms::radiolocation
                 {
                      const float t{static_cast<float>(__t)};
                      const float carrier_arg{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invT)};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1
                      const float cos_carrier{ceph_cosf(carrier_arg)};
                      const float sin_carrier{ceph_sinf(carrier_arg)};
 #else 
@@ -610,12 +598,8 @@ gms::radiolocation
                           const float k{static_cast<float>(__k)};
                           const float arg{t-k*T};
                           const float sym{sym_in[Ix2D(__t,n_K,__k)]};
-                          //const float re_im{1.0f-(2.0f*sym)};
-                          //const std::complex<float> c_sym{re_im,re_im};
-                //sum += trapezoid_sample(arg)*(C141421356237309504880168872421*c_sym);
-                          //sum += trapezoid_sample_noisy(arg,scale,lognorm_rand)*(C141421356237309504880168872421*c_sym);
-                          const float pm{trapezoid_sample_noisy(arg,scale,lognorm_rand)*sym};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1                
+                         const float pm{trapezoid_sample_noisy(arg,scale,lognorm_rand)*sym};
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1                
                            const float  I{ceph_cosf(pm)*cos_carrier};
                            const float  Q{ceph_sinf(pm)*sin_carrier};
 #else 
@@ -625,10 +609,11 @@ gms::radiolocation
                            const std::complex<float> sample{I,-Q};
                            sum += sample;
                      }
-                     this->m_sig_samples.m_data[__t] = sum;
+                     std::complex<half> tmp_sum(half_cast<half>(sum.real()),half_cast<half>(sum.imag()));
+                     this->m_sig_samples[__t] = tmp_sum;
                }
          break;
-         case pm_bb_cmplx_trapez_signal_rand_distr::expo_gamma : 
+         case pm_bb_cmplx_trapez_signal_fp16_rand_distr::expo_gamma : 
                tsc = __rdtsc();
                auto expo_rand{std::bind(std::exponential_distribution<float>(pdf_params.expo_gamma_r),
                                                                              std::mt19937(tsc))};
@@ -636,7 +621,7 @@ gms::radiolocation
                 {
                      const float t{static_cast<float>(__t)};
                      const float carrier_arg{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invT)};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1
                      const float cos_carrier{ceph_cosf(carrier_arg)};
                      const float sin_carrier{ceph_sinf(carrier_arg)};
 #else 
@@ -649,11 +634,8 @@ gms::radiolocation
                           const float k{static_cast<float>(__k)};
                           const float arg{t-k*T};
                           const float sym{sym_in[Ix2D(__t,n_K,__k)]};
-                          //const float re_im{1.0f-(2.0f*sym)};
-                          //const std::complex<float> c_sym{re_im,re_im};
-                          //sum += trapezoid_sample_noisy(arg,scale,expo_rand)*(C141421356237309504880168872421*c_sym);
-                           const float pm{trapezoid_sample_noisy(arg,scale,expo_rand)*sym};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1                
+                          const float pm{trapezoid_sample_noisy(arg,scale,expo_rand)*sym};
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1                
                            const float  I{ceph_cosf(pm)*cos_carrier};
                            const float  Q{ceph_sinf(pm)*sin_carrier};
 #else 
@@ -663,10 +645,11 @@ gms::radiolocation
                            const std::complex<float> sample{I,-Q};
                            sum += sample;
                      }
-                     this->m_sig_samples.m_data[__t] = sum;
+                     std::complex<half> tmp_sum(half_cast<half>(sum.real()),half_cast<half>(sum.imag()));
+                     this->m_sig_samples[__t] = tmp_sum;
                }
           break;
-          case pm_bb_cmplx_trapez_signal_rand_distr::weibull : 
+          case pm_bb_cmplx_trapez_signal_fp16_rand_distr::weibull : 
                  tsc = __rdtsc();
                  auto weibull_rand{std::bind(std::weibull_distribution<float>(pdf_params.weibull_a_r,pdf_params.weibull_b_r),
                                                                               std::mt19937(tsc))};
@@ -674,7 +657,7 @@ gms::radiolocation
                  {
                      const float t{static_cast<float>(__t)};
                      const float carrier_arg{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invT)};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1
                      const float cos_carrier{ceph_cosf(carrier_arg)};
                      const float sin_carrier{ceph_sinf(carrier_arg)};
 #else 
@@ -687,11 +670,8 @@ gms::radiolocation
                           const float k{static_cast<float>(__k)};
                           const float arg{t-k*T};
                           const float sym{sym_in[Ix2D(__t,n_K,__k)]};
-                          //const float re_im{1.0f-(2.0f*sym)};
-                          //const std::complex<float> c_sym{re_im,re_im};
-                          //sum += trapezoid_sample_noisy(arg,scale,weibull_rand)*(C141421356237309504880168872421*c_sym);
-                           const float pm{trapezoid_sample_noisy(arg,scale,weibull_rand)*sym};
-#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1                
+                          const float pm{trapezoid_sample_noisy(arg,scale,weibull_rand)*sym};
+#if (PM_BB_CMPLX_TRAPEZ_SIGNAL_FP16_USE_CEPHES) == 1                
                            const float  I{ceph_cosf(pm)*cos_carrier};
                            const float  Q{ceph_sinf(pm)*sin_carrier};
 #else 
@@ -701,10 +681,11 @@ gms::radiolocation
                            const std::complex<float> sample{I,-Q};
                            sum += sample;
                      }
-                     this->m_sig_samples.m_data[__t] = sum;
+                     std::complex<half> tmp_sum(half_cast<half>(sum.real()),half_cast<half>(sum.imag()));
+                     this->m_sig_samples[__t] = tmp_sum;
                }
           break;
-          case pm_bb_cmplx_trapez_signal_rand_distr::gamma : 
+          case pm_bb_cmplx_trapez_signal_fp16_rand_distr::gamma : 
                  tsc = __rdtsc();
                  auto gamma_rand{std::bind(std::gamma_distribution<float>(pdf_params.gamma_alph_r,pdf_params.gamma_bet_r),
                                                                           std::mt19937(tsc))};
@@ -725,10 +706,7 @@ gms::radiolocation
                           const float k{static_cast<float>(__k)};
                           const float arg{t-k*T};
                           const float sym{sym_in[Ix2D(__t,n_K,__k)]};
-                          //const float re_im{1.0f-(2.0f*sym)};
-                          //const std::complex<float> c_sym{re_im,re_im};
-                          //sum += trapezoid_sample_noisy(arg,scale,gamma_rand)*(C141421356237309504880168872421*c_sym);
-                           const float pm{trapezoid_sample_noisy(arg,scale,gamma_rand)*sym};
+                          const float pm{trapezoid_sample_noisy(arg,scale,gamma_rand)*sym};
 #if (PM_BB_CMPLX_TRAPEZ_SIGNAL_USE_CEPHES) == 1                
                            const float  I{ceph_cosf(pm)*cos_carrier};
                            const float  Q{ceph_sinf(pm)*sin_carrier};
@@ -739,7 +717,8 @@ gms::radiolocation
                            const std::complex<float> sample{I,-Q};
                            sum += sample;
                      }
-                     this->m_sig_samples.m_data[__t] = sum;
+                     std::complex<half> tmp_sum(half_cast<half>(sum.real()),half_cast<half>(sum.imag()));
+                     this->m_sig_samples[__t] = tmp_sum;
                }
            break;
               default : 
@@ -751,7 +730,7 @@ gms::radiolocation
 auto
 gms::radiolocation
 ::operator<<(std::ostream &os,
-             gms::radiolocation::pm_bb_cmplx_trapez_signal_t &rhs)->std::ostream &
+             gms::radiolocation::pm_bb_cmplx_trapez_signal_fp16_t &rhs)->std::ostream &
 {
     std::cout << typeid(rhs).name() << "Begin: object state dump." << std::endl;
     std::cout << "m_nsamples : "      << rhs.m_nsamples << std::endl;
@@ -765,8 +744,8 @@ gms::radiolocation
     std::cout << "Signal-samples:" << std::endl;
     for(std::size_t __i{0ull}; __i != rhs.m_nsamples; ++__i)
     {
-         os << std::fixed << std::setprecision(7) << "("
-                          << rhs.m_sig_samples.m_data[__i].real() << ",+j" << rhs.m_sig_samples.m_data[__i].imag() << ")" << std::endl;
+         os << std::fixed << std::setprecision(4) << "("
+                          << rhs.m_sig_samples.operator[](__i).real() << ",+j" << rhs.m_sig_samples.operator[](__i).imag() << ")" << std::endl;
     }
     std::cout << typeid(rhs).name() << "End: object state dump." << std::endl;
     return (os);
