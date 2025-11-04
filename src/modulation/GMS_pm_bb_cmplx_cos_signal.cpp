@@ -1,13 +1,13 @@
 #include <fstream>
 #include <iomanip>
 #include <random>
-#include "GMS_pm_bb_cmplx_sine_signal.h"
+#include "GMS_pm_bb_cmplx_cos_signal.h"
 #include "GMS_sse_memset.h"
 #include "GMS_indices.h"
 
 gms::radiolocation
-::pm_bb_cmplx_sin_signal_t
-::pm_bb_cmplx_sin_signal_t(const std::size_t nsamples,
+::pm_bb_cmplx_cos_signal_t
+::pm_bb_cmplx_cos_signal_t(const std::size_t nsamples,
                            const std::uint32_t nK,
                            const float w0,
                            const float ph,
@@ -28,14 +28,14 @@ m_sig_samples{darray_c4_t(m_nsamples)}
 }
 
 gms::radiolocation
-::pm_bb_cmplx_sin_signal_t
-::pm_bb_cmplx_sin_signal_t(pm_bb_cmplx_sin_signal_t &&other) noexcept(true)
+::pm_bb_cmplx_cos_signal_t
+::pm_bb_cmplx_cos_signal_t(pm_bb_cmplx_cos_signal_t &&other) noexcept(true)
 :
 m_nsamples{std::move(other.m_nsamples)},
 m_nK{std::move(other.m_nK)},
-m_n{std::move(other.m_n)},
 m_w0{std::move(other.m_w0)},
 m_ph{std::move(other.m_ph)},
+m_n{std::move(other.m_n)},
 m_A{std::move(other.m_A)},
 m_P{std::move(other.m_P)},
 m_sig_samples{std::move(other.m_sig_samples)}
@@ -44,23 +44,23 @@ m_sig_samples{std::move(other.m_sig_samples)}
 }   
 
 gms::radiolocation 
-::pm_bb_cmplx_sin_signal_t
-::~pm_bb_cmplx_sin_signal_t()
+::pm_bb_cmplx_cos_signal_t
+::~pm_bb_cmplx_cos_signal_t()
 {
 
 }
 
 gms::radiolocation
-::pm_bb_cmplx_sin_signal_t &
+::pm_bb_cmplx_cos_signal_t &
 gms::radiolocation
-::pm_bb_cmplx_sin_signal_t
-::operator=(pm_bb_cmplx_sin_signal_t &&other) noexcept(true)
+::pm_bb_cmplx_cos_signal_t
+::operator=(pm_bb_cmplx_cos_signal_t &&other) noexcept(true)
 {
     if(__builtin_expect(this==&other,0)) { return (*this);}
     this->m_nsamples  = std::move(other.m_nsamples);
     this->m_nK        = std::move(other.m_nK);
-    this->m_w0        = std::move(other.m_w0);
-    this->m_ph        = std::move(other.m_ph);
+    this->m_w0        = std::move(other.m_w0),
+    this->m_ph        = std::move(other.m_ph),
     this->m_n         = std::move(other.m_n);
     this->m_A         = std::move(other.m_A);
     this->m_P         = std::move(other.m_P);
@@ -70,7 +70,7 @@ gms::radiolocation
 
 void 
 gms::radiolocation
-::pm_bb_cmplx_sin_signal_t
+::pm_bb_cmplx_cos_signal_t
 ::init_storage(const float filler)
 {
 #if (INIT_BY_STD_FILL) == 0
@@ -83,7 +83,7 @@ gms::radiolocation
 
 void 
 gms::radiolocation
-::pm_bb_cmplx_sin_signal_t
+::pm_bb_cmplx_cos_signal_t
 ::create_signal_plot(const std::uint32_t n_samp,
                      const float * __restrict sig_arg,
                      const float * __restrict sig_val,
@@ -144,7 +144,7 @@ gms::radiolocation
 
 std::int32_t 
 gms::radiolocation
-::pm_bb_cmplx_sin_signal_t
+::pm_bb_cmplx_cos_signal_t
 ::create_signal_user_data(const float * __restrict__ sym_in, // size of m_nsamples*m_nK
                           const std::uint32_t n_T,
                           const std::uint32_t n_K)
@@ -163,7 +163,7 @@ gms::radiolocation
        {
             const float t{static_cast<float>(__t)};
             const float carrier_arg{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invTc)};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1
             const float cos_carrier{ceph_cosf(carrier_arg)};
             const float sin_carrier{ceph_sinf(carrier_arg)};
 #else 
@@ -176,19 +176,16 @@ gms::radiolocation
                  const float k{static_cast<float>(__k)};
                  const float arg{t-k*T};
                  const float sym{sym_in[Ix2D(__t,n_K,__k)]};
-                 const float pm{sin_sample(arg,invT)*sym};
-                 //const float re_im{1.0f-(2.0f*sym)};
-                 //const std::complex<float> csym{re_im,re_im};
-                 //sum += sin_sample(arg,invT)*(C141421356237309504880168872421*csym);
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1                
-                const float  I{ceph_cosf(pm)*cos_carrier};
-                const float  Q{ceph_sinf(pm)*sin_carrier};
+                 const float pm{cos_sample(arg,invT)*sym};
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1                
+                 const float  I{ceph_cosf(pm)*cos_carrier};
+                 const float  Q{ceph_sinf(pm)*sin_carrier};
 #else 
-                const float  I{std::cos(pm)*cos_carrier};
-                const float  Q{std::sin(pm)*sin_carrier};
+                 const float  I{std::cos(pm)*cos_carrier};
+                 const float  Q{std::sin(pm)*sin_carrier};
 #endif
-                const std::complex<float> sample{I,-Q};
-                sum += sample;
+                 const std::complex<float> sample{I,-Q};
+                 sum += sample;
             }
             this->m_sig_samples.m_data[__t] = sum;
         }
@@ -197,7 +194,7 @@ gms::radiolocation
 
 std::int32_t 
 gms::radiolocation
-::pm_bb_cmplx_sin_signal_t
+::pm_bb_cmplx_cos_signal_t
 ::create_signal_user_data_u4x(const float * __restrict__ sym_in, // size of m_nsamples*m_nK
                               const std::uint32_t n_T,
                               const std::uint32_t n_K)
@@ -236,13 +233,13 @@ gms::radiolocation
         for(__i = 0; __i != ROUND_TO_FOUR(n_T,4); __i += 4u)
         {
             t__i_0 += 4.0f;
-            const float carrier_arg_0{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t__i_0*invTc)};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1
+            carrier_arg_0 = this->m_ph+(C6283185307179586476925286766559*this->m_w0*t__i_0*invTc);
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1
             cos_carrier_0 = ceph_cosf(carrier_arg_0);
             sin_carrier_0 = ceph_sinf(carrier_arg_0);
 #else 
-           cos_carrier_0 = std::cos(carrier_arg_0);
-           sin_carrier_0 = std::sin(carrier_arg_0);
+            cos_carrier_0 = std::cos(carrier_arg_0);
+            sin_carrier_0 = std::sin(carrier_arg_0);
 #endif
             sum0    = (0.0f,0.0f);
             for(std::uint32_t __k{0}; __k != n_K; ++__k) 
@@ -250,11 +247,8 @@ gms::radiolocation
                 const float k{static_cast<float>(__k)};
                 const float arg{t__i_0-k*T};
                 const float sym{sym_in[Ix2D(__i+0,n_K,__k)]};
-                //const float re_im{1.0f-(2.0f*sym)};
-                //const std::complex<float> csym{re_im,re_im};
-                //sum0 += sin_sample(arg,invT)*(C141421356237309504880168872421*csym);
-                const float pm{sin_sample(arg,invT)*sym};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1                
+                const float pm{cos_sample(arg,invT)*sym};
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1                
                 const float  I{ceph_cosf(pm)*cos_carrier_0};
                 const float  Q{ceph_sinf(pm)*sin_carrier_0};
 #else 
@@ -266,13 +260,13 @@ gms::radiolocation
             }
             this->m_sig_samples.m_data[__i+0] = sum0;
             t__i_1 += 4.0f;
-            const float carrier_arg_1{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t__i_1*invTc)};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1
+            carrier_arg_1 = this->m_ph+(C6283185307179586476925286766559*this->m_w0*t__i_1*invTc);
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1
             cos_carrier_1 = ceph_cosf(carrier_arg_1);
             sin_carrier_1 = ceph_sinf(carrier_arg_1);
 #else 
-           cos_carrier_1 = std::cos(carrier_arg_1);
-           sin_carrier_1 = std::sin(carrier_arg_1);
+            cos_carrier_1 = std::cos(carrier_arg_1);
+            sin_carrier_1 = std::sin(carrier_arg_1);
 #endif
             sum1    = (0.0f,0.0f);
             for(std::uint32_t __k{0}; __k != n_K; ++__k) 
@@ -280,11 +274,8 @@ gms::radiolocation
                 const float k{static_cast<float>(__k)};
                 const float arg{t__i_1-k*T};
                 const float sym{sym_in[Ix2D(__i+1,n_K,__k)]};
-                //const float re_im{1.0f-(2.0f*sym)};
-               // const std::complex<float> csym{re_im,re_im};
-                //sum1 += sin_sample(arg,invT)*(C141421356237309504880168872421*csym);
-                const float pm{sin_sample(arg,invT)*sym};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1                
+                const float pm{cos_sample(arg,invT)*sym};
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1                
                 const float  I{ceph_cosf(pm)*cos_carrier_1};
                 const float  Q{ceph_sinf(pm)*sin_carrier_1};
 #else 
@@ -296,13 +287,13 @@ gms::radiolocation
             }
             this->m_sig_samples.m_data[__i+1] = sum1;
             t__i_2  += 4.0f;
-            const float carrier_arg_2{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t__i_2*invTc)};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1
+            carrier_arg_2 = this->m_ph+(C6283185307179586476925286766559*this->m_w0*t__i_2*invTc);
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1
             cos_carrier_2 = ceph_cosf(carrier_arg_2);
             sin_carrier_2 = ceph_sinf(carrier_arg_2);
 #else 
-           cos_carrier_2 = std::cos(carrier_arg_2);
-           sin_carrier_2 = std::sin(carrier_arg_2);
+            cos_carrier_2 = std::cos(carrier_arg_2);
+            sin_carrier_2 = std::sin(carrier_arg_2);
 #endif
             sum2     = (0.0f,0.0f);
             for(std::uint32_t __k{0}; __k != n_K; ++__k) 
@@ -310,29 +301,26 @@ gms::radiolocation
                 const float k{static_cast<float>(__k)};
                 const float arg{t__i_2-k*T};
                 const float sym{sym_in[Ix2D(__i+2,n_K,__k)]};
-                //const float re_im{1.0f-(2.0f*sym)};
-                //const std::complex<float> csym{re_im,re_im};
-                //sum2 += sin_sample(arg,invT)*(C141421356237309504880168872421*csym);
-                 const float pm{sin_sample(arg,invT)*sym};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1                
-                 const float  I{ceph_cosf(pm)*cos_carrier_2};
-                 const float  Q{ceph_sinf(pm)*sin_carrier_2};
+                const float pm{cos_sample(arg,invT)*sym};
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1                
+                const float  I{ceph_cosf(pm)*cos_carrier_2};
+                const float  Q{ceph_sinf(pm)*sin_carrier_2};
 #else 
-                 const float  I{std::cos(pm)*cos_carrier_2};
-                 const float  Q{std::sin(pm)*sin_carrier_2};
+                const float  I{std::cos(pm)*cos_carrier_2};
+                const float  Q{std::sin(pm)*sin_carrier_2};
 #endif
-                 const std::complex<float> sample{I,-Q};
-                 sum2 += sample;
+                const std::complex<float> sample{I,-Q};
+                sum2 += sample;
             }
             this->m_sig_samples.m_data[__i+2] = sum2;
             t__i_3  += 4.0f;
-            const float carrier_arg_3{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t__i_3*invTc)};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1
+            carrier_arg_3 = this->m_ph+(C6283185307179586476925286766559*this->m_w0*t__i_3*invTc);
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1
             cos_carrier_3 = ceph_cosf(carrier_arg_3);
             sin_carrier_3 = ceph_sinf(carrier_arg_3);
 #else 
-           cos_carrier_3 = std::cos(carrier_arg_3);
-           sin_carrier_3 = std::sin(carrier_arg_3);
+            cos_carrier_3 = std::cos(carrier_arg_3);
+            sin_carrier_3 = std::sin(carrier_arg_3);
 #endif
             sum3     = (0.0f,0.0f);
             for(std::uint32_t __k{0}; __k != n_K; ++__k) 
@@ -340,49 +328,46 @@ gms::radiolocation
                 const float k{static_cast<float>(__k)};
                 const float arg{t__i_3-k*T};
                 const float sym{sym_in[Ix2D(__i+3,n_K,__k)]};
-                //const float re_im{1.0f-(2.0f*sym)};
-                //const std::complex<float> csym{re_im,re_im};
-                //sum3 += sin_sample(arg,invT)*(C141421356237309504880168872421*csym);
-                 const float pm{sin_sample(arg,invT)*sym};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1                
-                 const float  I{ceph_cosf(pm)*cos_carrier_3};
-                 const float  Q{ceph_sinf(pm)*sin_carrier_3};
+                const float pm{cos_sample(arg,invT)*sym};
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1                
+                const float  I{ceph_cosf(pm)*cos_carrier_3};
+                const float  Q{ceph_sinf(pm)*sin_carrier_3};
 #else 
-                 const float  I{std::cos(pm)*cos_carrier_3};
-                 const float  Q{std::sin(pm)*sin_carrier_3};
+                const float  I{std::cos(pm)*cos_carrier_3};
+                const float  Q{std::sin(pm)*sin_carrier_3};
 #endif
-                 const std::complex<float> sample{I,-Q};
-                 sum3 += sample;
+                const std::complex<float> sample{I,-Q};
+                sum3 += sample;
             }
             this->m_sig_samples.m_data[__i+3] = sum3;
             }
             for(__j = __i; __j != n_T; ++__j) 
             {
                 const float t{static_cast<float>(__j)};
-                const float carrier_arg_0{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invTc)};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1
+                carrier_arg_0 = this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invTc);
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1
                 cos_carrier_0 = ceph_cosf(carrier_arg_0);
                 sin_carrier_0 = ceph_sinf(carrier_arg_0);
 #else 
-                cos_carrier_0 = std::cos(carrier_arg_0);
-                sin_carrier_0 = std::sin(carrier_arg_0);
-#endif                
+               cos_carrier_0 = std::cos(carrier_arg_0);
+               sin_carrier_0 = std::sin(carrier_arg_0);
+#endif
                 sum0 = (0.0f,0.0f);
                 for(std::uint32_t __k{0}; __k != n_K; ++__k) 
                 {
                     const float k{static_cast<float>(__k)};
                     const float arg{t-k*T};
                     const float sym{sym_in[Ix2D(__j,n_K,__k)]};
-                    const float pm{sin_sample(arg,invT)*sym};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1                
-                     const float  I{ceph_cosf(pm)*cos_carrier_0};
-                     const float  Q{ceph_sinf(pm)*sin_carrier_0};
+                    const float pm{cos_sample(arg,invT)*sym};
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1                
+                    const float  I{ceph_cosf(pm)*cos_carrier_0};
+                    const float  Q{ceph_sinf(pm)*sin_carrier_0};
 #else 
-                     const float  I{std::cos(pm)*cos_carrier_0};
-                     const float  Q{std::sin(pm)*sin_carrier_0};
+                    const float  I{std::cos(pm)*cos_carrier_0};
+                    const float  Q{std::sin(pm)*sin_carrier_0};
 #endif
-                     const std::complex<float> sample{I,-Q};
-                     sum0 += sample;
+                    const std::complex<float> sample{I,-Q};
+                    sum0 += sample;
                 }
                 this->m_sig_samples.m_data[__j] = sum0;
             }
@@ -394,8 +379,8 @@ gms::radiolocation
 */
 std::int32_t 
 gms::radiolocation
-::pm_bb_cmplx_sin_signal_t
-::create_noisy_signal_user_data(pm_bb_cmplx_sin_signal_pdf_params_t & pdf_params,
+::pm_bb_cmplx_cos_signal_t
+::create_noisy_signal_user_data(pm_bb_cmplx_cos_signal_pdf_params_t & pdf_params,
                                 const float scale,
                                 const float * __restrict__ sym_in, // size of m_nsamples*m_nK values [0,1]
                                 const std::uint32_t n_T,
@@ -406,8 +391,8 @@ gms::radiolocation
          __builtin_expect(this->m_nK!=n_K,0)) { return (-1);}
 
       const float T{static_cast<float>(this->m_nsamples)};
-      const float invT{this->m_P/T};
       const float invTc{1.0f/T};
+      const float invT{this->m_P/T};
       constexpr float C141421356237309504880168872421{1.41421356237309504880168872421f};
       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
       thread_local std::uint64_t tsc{};
@@ -419,7 +404,7 @@ gms::radiolocation
       {
             const float t{static_cast<float>(__t)};
             const float carrier_arg{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invTc)};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1
             const float cos_carrier{ceph_cosf(carrier_arg)};
             const float sin_carrier{ceph_sinf(carrier_arg)};
 #else 
@@ -432,8 +417,8 @@ gms::radiolocation
                  const float k{static_cast<float>(__k)};
                  const float arg{t-k*T};
                  const float sym{sym_in[Ix2D(__t,n_K,__k)]};
-                 const float pm{sin_sample_noisy(arg,invT,scal,uni_rand)*sym};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1                
+                 const float pm{cos_sample_noisy(arg,invT,scale,uni_rand)*sym};
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1                
                  const float  I{ceph_cosf(pm)*cos_carrier};
                  const float  Q{ceph_sinf(pm)*sin_carrier};
 #else 
@@ -450,9 +435,9 @@ gms::radiolocation
 
 std::int32_t 
 gms::radiolocation
-::pm_bb_cmplx_sin_signal_t
-::create_noisy_signal_user_data(pm_bb_cmplx_sin_signal_pdf_params_t & pdf_params,
-                                pm_bb_cmplx_sin_signal_rand_distr rd_enum,
+::pm_bb_cmplx_cos_signal_t
+::create_noisy_signal_user_data(pm_bb_cmplx_cos_signal_pdf_params_t & pdf_params,
+                                pm_bb_cmplx_cos_signal_rand_distr rd_enum,
                                 const float scale,
                                 const float * __restrict__ sym_in, // size of m_nsamples*m_nK values [0,1]
                                 const std::uint32_t n_T,
@@ -463,22 +448,22 @@ gms::radiolocation
          __builtin_expect(this->m_nK!=n_K,0)) { return (-1);}
 
       const float T{static_cast<float>(this->m_nsamples)};
-      const float invT{this->m_P/T};
       const float invTc{1.0f/T};
+      const float invT{this->m_P/T};
       constexpr float C141421356237309504880168872421{1.41421356237309504880168872421f};
       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
       thread_local std::uint64_t tsc{};
       std::complex<float> sum;
       switch (rd_enum)
       {
-        case pm_bb_cmplx_sin_signal_rand_distr::uniform : 
+        case pm_bb_cmplx_cos_signal_rand_distr::uniform : 
               tsc = __rdtsc();
               auto uni_rand{std::bind(std::uniform_real_distribution<float>(pdf_params.uni_real_a_r,pdf_params.uni_real_b_r),std::mt19937(tsc))};
               for(std::uint32_t __t{0ull}; __t != n_T; ++__t) 
               {
                      const float t{static_cast<float>(__t)};
                      const float carrier_arg{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invTc)};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1
                      const float cos_carrier{ceph_cosf(carrier_arg)};
                      const float sin_carrier{ceph_sinf(carrier_arg)};
 #else 
@@ -491,8 +476,8 @@ gms::radiolocation
                           const float k{static_cast<float>(__k)};
                           const float arg{t-k*T};
                           const float sym{sym_in[Ix2D(__t,n_K,__k)]};
-                          const float pm{sin_sample_noisy(arg,invT,scale,uni_rand)*sym};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1                
+                          const float pm{cos_sample_noisy(arg,invT,scale,uni_rand)*sym};
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1                
                           const float  I{ceph_cosf(pm)*cos_carrier};
                           const float  Q{ceph_sinf(pm)*sin_carrier};
 #else 
@@ -505,7 +490,7 @@ gms::radiolocation
                      this->m_sig_samples.m_data[__t] = sum;
                }
         break;
-        case pm_bb_cmplx_sin_signal_rand_distr::normal : 
+        case pm_bb_cmplx_cos_signal_rand_distr::normal : 
               tsc = __rdtsc();
               auto normal_rand{std::bind(std::normal_distribution<float>(pdf_params.norm_mu_r,pdf_params.norm_sigma_r),
                                                                          std::mt19937(tsc))};
@@ -513,7 +498,7 @@ gms::radiolocation
               {
                      const float t{static_cast<float>(__t)};
                      const float carrier_arg{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invTc)};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1
                      const float cos_carrier{ceph_cosf(carrier_arg)};
                      const float sin_carrier{ceph_sinf(carrier_arg)};
 #else 
@@ -526,8 +511,8 @@ gms::radiolocation
                           const float k{static_cast<float>(__k)};
                           const float arg{t-k*T};
                           const float sym{sym_in[Ix2D(__t,n_K,__k)]};
-                          const float pm{sin_sample_noisy(arg,invT,scale,normal_rand)*sym};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1                
+                          const float pm{cos_sample_noisy(arg,invT,scale,normal_rand)*sym};
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1                
                           const float  I{ceph_cosf(pm)*cos_carrier};
                           const float  Q{ceph_sinf(pm)*sin_carrier};
 #else 
@@ -540,7 +525,7 @@ gms::radiolocation
                      this->m_sig_samples.m_data[__t] = sum;
                }
          break;
-         case pm_bb_cmplx_sin_signal_rand_distr::cauchy : 
+         case pm_bb_cmplx_cos_signal_rand_distr::cauchy : 
                 tsc = __rdtsc();
                 auto cauchy_rand{std::bind(std::cauchy_distribution<float>(pdf_params.cauchy_a_r,pdf_params.cauchy_b_r),
                                                                            std::mt19937(tsc))};
@@ -548,7 +533,7 @@ gms::radiolocation
                 {
                      const float t{static_cast<float>(__t)};
                      const float carrier_arg{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invTc)};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1
                      const float cos_carrier{ceph_cosf(carrier_arg)};
                      const float sin_carrier{ceph_sinf(carrier_arg)};
 #else 
@@ -561,8 +546,8 @@ gms::radiolocation
                           const float k{static_cast<float>(__k)};
                           const float arg{t-k*T};
                           const float sym{sym_in[Ix2D(__t,n_K,__k)]};
-                          const float pm{sin_sample_noisy(arg,invT,scale,cauchy_rand)*sym};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1                
+                          const float pm{cos_sample_noisy(arg,invT,scale,cauchy_rand)*sym};
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1                
                           const float  I{ceph_cosf(pm)*cos_carrier};
                           const float  Q{ceph_sinf(pm)*sin_carrier};
 #else 
@@ -575,7 +560,7 @@ gms::radiolocation
                      this->m_sig_samples.m_data[__t] = sum;
                }
          break;
-         case pm_bb_cmplx_sin_signal_rand_distr::log_norm : 
+         case pm_bb_cmplx_cos_signal_rand_distr::log_norm : 
                tsc = __rdtsc();
                auto lognorm_rand{std::bind(std::lognormal_distribution<float>(pdf_params.log_norm_m_r,pdf_params.log_norm_s_r),
                                                                                std::mt19937(tsc))};
@@ -583,7 +568,7 @@ gms::radiolocation
                 {
                      const float t{static_cast<float>(__t)};
                      const float carrier_arg{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invTc)};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1
                      const float cos_carrier{ceph_cosf(carrier_arg)};
                      const float sin_carrier{ceph_sinf(carrier_arg)};
 #else 
@@ -596,8 +581,8 @@ gms::radiolocation
                           const float k{static_cast<float>(__k)};
                           const float arg{t-k*T};
                           const float sym{sym_in[Ix2D(__t,n_K,__k)]};
-                          const float pm{sin_sample_noisy(arg,invT,scale,lognorm_rand)*sym};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1                
+                          const float pm{cos_sample_noisy(arg,invT,scale,lognorm_rand)*sym};
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1                
                           const float  I{ceph_cosf(pm)*cos_carrier};
                           const float  Q{ceph_sinf(pm)*sin_carrier};
 #else 
@@ -610,7 +595,7 @@ gms::radiolocation
                      this->m_sig_samples.m_data[__t] = sum;
                }
          break;
-         case pm_bb_cmplx_sin_signal_rand_distr::expo_gamma : 
+         case pm_bb_cmplx_cos_signal_rand_distr::expo_gamma : 
                tsc = __rdtsc();
                auto expo_rand{std::bind(std::exponential_distribution<float>(pdf_params.expo_gamma_r),
                                                                              std::mt19937(tsc))};
@@ -618,7 +603,7 @@ gms::radiolocation
                 {
                      const float t{static_cast<float>(__t)};
                      const float carrier_arg{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invTc)};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1
                      const float cos_carrier{ceph_cosf(carrier_arg)};
                      const float sin_carrier{ceph_sinf(carrier_arg)};
 #else 
@@ -631,8 +616,8 @@ gms::radiolocation
                           const float k{static_cast<float>(__k)};
                           const float arg{t-k*T};
                           const float sym{sym_in[Ix2D(__t,n_K,__k)]};
-                          const float pm{sin_sample_noisy(arg,invT,scale,expo_rand)*sym};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1                
+                          const float pm{cos_sample_noisy(arg,invT,scale,expo_rand)*sym};
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1                
                           const float  I{ceph_cosf(pm)*cos_carrier};
                           const float  Q{ceph_sinf(pm)*sin_carrier};
 #else 
@@ -645,7 +630,7 @@ gms::radiolocation
                      this->m_sig_samples.m_data[__t] = sum;
                }
           break;
-          case pm_bb_cmplx_sin_signal_rand_distr::weibull : 
+          case pm_bb_cmplx_cos_signal_rand_distr::weibull : 
                  tsc = __rdtsc();
                  auto weibull_rand{std::bind(std::weibull_distribution<float>(pdf_params.weibull_a_r,pdf_params.weibull_b_r),
                                                                               std::mt19937(tsc))};
@@ -653,21 +638,21 @@ gms::radiolocation
                  {
                      const float t{static_cast<float>(__t)};
                      const float carrier_arg{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invTc)};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1
                      const float cos_carrier{ceph_cosf(carrier_arg)};
                      const float sin_carrier{ceph_sinf(carrier_arg)};
 #else 
                      const float cos_carrier{std::cos(carrier_arg)};
                      const float sin_carrier{std::sin(carrier_arg)};
-#endif                     
+#endif
                      sum =  (0.0f,0.0f);
                      for(std::uint32_t __k{0}; __k != n_K; ++__k) 
                      {
                           const float k{static_cast<float>(__k)};
                           const float arg{t-k*T};
                           const float sym{sym_in[Ix2D(__t,n_K,__k)]};
-                          const float pm{sin_sample_noisy(arg,invT,scale,weibull_rand)*sym};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1                
+                          const float pm{cos_sample_noisy(arg,invT,scale,weibull_rand)*sym};
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1                
                           const float  I{ceph_cosf(pm)*cos_carrier};
                           const float  Q{ceph_sinf(pm)*sin_carrier};
 #else 
@@ -680,7 +665,7 @@ gms::radiolocation
                      this->m_sig_samples.m_data[__t] = sum;
                }
           break;
-          case pm_bb_cmplx_sin_signal_rand_distr::gamma : 
+          case pm_bb_cmplx_cos_signal_rand_distr::gamma : 
                  tsc = __rdtsc();
                  auto gamma_rand{std::bind(std::gamma_distribution<float>(pdf_params.gamma_alph_r,pdf_params.gamma_bet_r),
                                                                           std::mt19937(tsc))};
@@ -688,21 +673,21 @@ gms::radiolocation
                  {
                      const float t{static_cast<float>(__t)};
                      const float carrier_arg{this->m_ph+(C6283185307179586476925286766559*this->m_w0*t*invTc)};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1
                      const float cos_carrier{ceph_cosf(carrier_arg)};
                      const float sin_carrier{ceph_sinf(carrier_arg)};
 #else 
                      const float cos_carrier{std::cos(carrier_arg)};
                      const float sin_carrier{std::sin(carrier_arg)};
-#endif                  
+#endif
                      sum =  (0.0f,0.0f);
                      for(std::uint32_t __k{0}; __k != n_K; ++__k) 
                      {
                           const float k{static_cast<float>(__k)};
                           const float arg{t-k*T};
                           const float sym{sym_in[Ix2D(__t,n_K,__k)]};
-                          const float pm{sin_sample_noisy(arg,invT,scale,gamma_rand)*sym};
-#if (PM_BB_CMPLX_SINE_SIGNAL_USE_CEPHES) == 1                
+                          const float pm{cos_sample_noisy(arg,invT,scale,gamma_rand)*sym};
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1                
                           const float  I{ceph_cosf(pm)*cos_carrier};
                           const float  Q{ceph_sinf(pm)*sin_carrier};
 #else 
@@ -724,7 +709,7 @@ gms::radiolocation
 auto
 gms::radiolocation
 ::operator<<(std::ostream &os,
-             gms::radiolocation::pm_bb_cmplx_sin_signal_t &rhs)->std::ostream &
+             gms::radiolocation::pm_bb_cmplx_cos_signal_t &rhs)->std::ostream &
 {
     std::cout << typeid(rhs).name() << "Begin: object state dump." << std::endl;
     std::cout << "m_nsamples : "      << rhs.m_nsamples << std::endl;
