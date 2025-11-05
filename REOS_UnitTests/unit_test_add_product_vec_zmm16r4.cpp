@@ -7,13 +7,13 @@
 #include <immintrin.h>
 #include <string>
 #include "GMS_malloc.h"
-#include "GMS_add_vec_zmm16r4.h"
+#include "GMS_add_product_vec_zmm16r4.h"
 
 /*
-   icpc -o unit_test_add_vec_zmm16r4_a -fp-model fast=2 -ftz -ggdb -ipo -qopt-zmm-usage=high -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5 -fopenmp \
-   GMS_config.h GMS_malloc.h GMS_add_vec_zmm16r4.h GMS_add_vec_zmm16r4.cpp unit_test_add_vec_zmm16r4.cpp
+   icpc -o unit_test_add_product_vec_zmm16r4_a  -O3 -fp-model fast=2 -ftz -ggdb -ipo -qopt-zmm-usage=high -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5 -fopenmp \
+   GMS_config.h GMS_malloc.h GMS_add_product_vec_zmm16r4.h GMS_add_product_vec_zmm16r4.cpp unit_test_add_product_vec_zmm16r4.cpp
    ASM: 
-   icpc -S -fverbose-asm -masm=intel -qopt-zmm-usage=high -march=skylake-avx512 -mavx512f -fopenmp -falign-functions=32 GMS_config.h GMS_malloc.h GMS_add_vec_zmm16r4.h GMS_add_vec_zmm16r4.cpp unit_test_add_vec_zmm16r4.cpp
+   icpc -S -fverbose-asm -masm=intel --O3 qopt-zmm-usage=high -march=skylake-avx512 -mavx512f -fopenmp -falign-functions=32 GMS_config.h GMS_malloc.h GMS_add_product_vec_zmm16r4.h GMS_add_product_vec_zmm16r4.cpp unit_test_add_product_vec_zmm16r4.cpp
 
 */
 
@@ -23,22 +23,22 @@ int32_t fnorm_distr_idx = 0;
 __attribute__((hot))
 __attribute__((noinline))
 __attribute__((aligned(32)))
-void unit_test_vadd_f32_2x512v_u16x_a();
+void unit_test_vaddpc_f32_1x512_1xf32_u16x_a();
 
 __attribute__((hot))
 __attribute__((noinline))
 __attribute__((aligned(32)))
-void unit_test_vadd_f32_2x512v_u16x_a()
+void unit_test_vaddpc_f32_1x512_1xf32_u16x_a()
 {
     using namespace gms::common;
     constexpr std::size_t nelems{456748ull};
     constexpr std::size_t nbytes{reinterpret_cast<std::size_t>(sizeof(float)*nelems)};
     constexpr unsigned long long RDTSCP_LAT{42ull};
-    std::string fname1 = "UNIT-TEST_uni_distro_vadd_f32_2x512v_u16x_a_" + std::to_string(funi_distro_idx++)+".csv";
-    std::string fname2 = "UNIT-TEST_norm_distro_vadd_f32_2x512v_u16x_a_" + std::to_string(fnorm_distr_idx++)+".csv";
+    std::string fname1 = "UNIT-TEST_uni_distro_vaddpc_f32_1x512_1xf32_u16x_a_" + std::to_string(funi_distro_idx++)+".csv";
+    std::string fname2 = "UNIT-TEST_norm_distro_vaddpc_f32_1x512_1xf32_u16x_a_" + std::to_string(fnorm_distr_idx++)+".csv";
     float * __restrict__ vec_x{NULL};
     float * __restrict__ vec_y{NULL};
-    float * __restrict__ vec_z{NULL};
+    const float c_z{0.748f};
     FILE  * __restrict__ fp{NULL};
     std::clock_t seed_d{0ull};
     unsigned long long seed_vec_x{0ull};
@@ -54,7 +54,6 @@ void unit_test_vadd_f32_2x512v_u16x_a()
     int32_t idx{};
     bool  vec_x_neq_0{};
     bool  vec_y_neq_0{};
-    bool  vec_z_neq_0{};
     seed_d = std::clock();
     auto rand_d{std::bind(std::uniform_int_distribution<int32_t>(0,1),std::mt19937(seed_d))};
     which = rand_d();
@@ -82,8 +81,6 @@ void unit_test_vadd_f32_2x512v_u16x_a()
             vec_x_neq_0 = (vec_x != NULL) && (nbytes > 0ull);
             vec_y = reinterpret_cast<float * __restrict__>(gms_mm_malloc(nbytes,64ull));
             vec_y_neq_0 = (vec_y != NULL) && (nbytes > 0ull);
-            vec_z = reinterpret_cast<float * __restrict__>(gms_mm_malloc(nbytes,64ull));
-            vec_z_neq_0 = (vec_z != NULL) && (nbytes > 0ull);
             seed_vec_x = __rdtsc();
             auto rand_vec_x{std::bind(std::uniform_real_distribution<float>(-3.14159265358979323846264338328f,3.14159265358979323846264338328f),
                                      std::mt19937(seed_vec_x))};
@@ -128,26 +125,25 @@ void unit_test_vadd_f32_2x512v_u16x_a()
             }
             for(;__i != nelems; ++__i)
             {
-                 rx = rand_vec_x();
+                rx = rand_vec_x();
                 vec_x[__i] = rx;
                 ry = rand_vec_y();
                 vec_y[__i] = ry;
             }
 
             printf("[UNIT-TEST]: -- End of data initialization\n");
-            printf("[UNIT-TEST]: -- START: vadd_f32_2x512v_u16x_a\n");
+            printf("[UNIT-TEST]: -- START: vaddpc_f32_1x512_1xf32_u16x_a\n");
             start   = __rdtscp(&tsc_aux);
-            std::int32_t call_state = gms::math::vadd_f32_2x512v_u16x_a(vec_x,vec_y,vec_z,nelems);
+            std::int32_t call_state = gms::math::vaddpc_f32_1x512_1xf32_u16x_a(vec_x,vec_y,c_z,nelems);
             end     = __rdtscp(&tsc_aux);
             start_c = start-RDTSCP_LAT;
             end_c   = end-RDTSCP_LAT;
             elapsed_tsc = end_c-start_c;
-            printf("[UNIT-TEST]: vadd_f32_2x512v_u16x_a -- TSC=%llu,TSC_AUX=%d,call_state=%d\n",elapsed_tsc,tsc_aux,call_state);
+            printf("[UNIT-TEST]: vaddpc_f32_1x512_1xf32_u16x_a -- TSC=%llu,TSC_AUX=%d,call_state=%d\n",elapsed_tsc,tsc_aux,call_state);
             fp = fopen(fout,"w+");
             if(!fp)
             {
                  std::perror("fopen failed to open a file -- TERMINATING!!");
-                 if(vec_z_neq_0) gms_mm_free(vec_z);
                  if(vec_y_neq_0) gms_mm_free(vec_y);
                  if(vec_x_neq_0) gms_mm_free(vec_x);
                  std::terminate();
@@ -155,9 +151,8 @@ void unit_test_vadd_f32_2x512v_u16x_a()
             
             for(std::size_t __i{0}; __i != nelems; ++__i)
             {
-                fprintf(fp,"%.7f\n",vec_z[__i]);
+                fprintf(fp,"%.7f\n",vec_y[__i]);
             }
-            if(vec_z_neq_0) gms_mm_free(vec_z);
             if(vec_y_neq_0) gms_mm_free(vec_y);
             if(vec_x_neq_0) gms_mm_free(vec_x);
             fclose(fp);
@@ -184,8 +179,7 @@ void unit_test_vadd_f32_2x512v_u16x_a()
 
             vec_x = reinterpret_cast<float * __restrict__>(gms_mm_malloc(nbytes,64ull));
             vec_y = reinterpret_cast<float * __restrict__>(gms_mm_malloc(nbytes,64ull));
-            vec_z = reinterpret_cast<float * __restrict__>(gms_mm_malloc(nbytes,64ull));
-
+           
             seed_vec_x = __rdtsc();
             auto rand_vec_x{std::bind(std::normal_distribution<float>(0.0f,0.2f),
                                      std::mt19937(seed_vec_x))};
@@ -238,19 +232,19 @@ void unit_test_vadd_f32_2x512v_u16x_a()
             }
 
             printf("[UNIT-TEST]: -- End of data initialization\n");
-            printf("[UNIT-TEST]: -- START: vadd_f32_2x512v_u16x_a\n");
+            printf("[UNIT-TEST]: -- START: vaddpc_f32_1x512_1xf32_u16x_a\n");
             start  = __rdtscp(&tsc_aux);
-            std::int32_t call_state = gms::math::vadd_f32_2x512v_u16x_a(vec_x,vec_y,vec_z,nelems);
+            std::int32_t call_state = gms::math::vaddpc_f32_1x512_1xf32_u16x_a(vec_x,vec_y,c_z,nelems);
             end     = __rdtscp(&tsc_aux);
             start_c = start-RDTSCP_LAT;
             end_c   = end-RDTSCP_LAT;
             elapsed_tsc = end_c-start_c;
-            printf("[UNIT-TEST]: vadd_f32_2x512v_u16x_a() -- TSC=%llu,TSC_AUX=%d,call_state=%d\n",elapsed_tsc,tsc_aux,call_state);
+            printf("[UNIT-TEST]: vaddpc_f32_1x512_1xf32_u16x_a -- TSC=%llu,TSC_AUX=%d,call_state=%d\n",elapsed_tsc,tsc_aux,call_state);
             fp = fopen(fout,"w+");
             if(!fp)
             {
                  std::perror("fopen failed to open a file -- TERMINATING!!");
-                 if(vec_z_neq_0) gms_mm_free(vec_z);
+                 
                  if(vec_y_neq_0) gms_mm_free(vec_y);
                  if(vec_x_neq_0) gms_mm_free(vec_x);
                  std::terminate();
@@ -258,13 +252,13 @@ void unit_test_vadd_f32_2x512v_u16x_a()
             
             for(int32_t __i{0}; __i != nelems; ++__i)
             {
-                fprintf(fp,"%.7f\n",vec_z[__i]);
+                fprintf(fp,"%.7f\n",vec_y[__i]);
             }
-            if(vec_z_neq_0) gms_mm_free(vec_z);
+            
             if(vec_y_neq_0) gms_mm_free(vec_y);
             if(vec_x_neq_0) gms_mm_free(vec_x);
             fclose(fp);
-            printf("[UNIT-TEST]: -- END: vadd_f32_2x512v_u16x_a\n");
+            printf("[UNIT-TEST]: -- END: vaddpc_f32_1x512_1xf32_u16x_a\n");
         }
         break;
         default : 
@@ -277,22 +271,22 @@ void unit_test_vadd_f32_2x512v_u16x_a()
 __attribute__((hot))
 __attribute__((noinline))
 __attribute__((aligned(32)))
-void unit_test_vadd_f32_2x512v_u10x_a();
+void unit_test_vaddpc_f32_1x512_1xf32_u10x_a();
 
 __attribute__((hot))
 __attribute__((noinline))
 __attribute__((aligned(32)))
-void unit_test_vadd_f32_2x512v_u10x_a()
+void unit_test_vaddpc_f32_1x512_1xf32_u10x_a()
 {
     using namespace gms::common;
     constexpr std::size_t nelems{456748ull};
     constexpr std::size_t nbytes{reinterpret_cast<std::size_t>(sizeof(float)*nelems)};
     constexpr unsigned long long RDTSCP_LAT{42ull};
-    std::string fname1 = "UNIT-TEST_uni_distro_vadd_f32_2x512v_u10x_a_" + std::to_string(funi_distro_idx++)+".csv";
-    std::string fname2 = "UNIT-TEST_norm_distro_vadd_f32_2x512v_u10x_a_" + std::to_string(fnorm_distr_idx++)+".csv";
+    std::string fname1 = "UNIT-TEST_uni_distro_vaddpc_f32_1x512_1xf32_u10x_a_" + std::to_string(funi_distro_idx++)+".csv";
+    std::string fname2 = "UNIT-TEST_norm_distro_vaddpc_f32_1x512_1xf32_u10x_a_" + std::to_string(fnorm_distr_idx++)+".csv";
     float * __restrict__ vec_x{NULL};
     float * __restrict__ vec_y{NULL};
-    float * __restrict__ vec_z{NULL};
+    const float c_z{0.789f};
     FILE  * __restrict__ fp{NULL};
     std::clock_t seed_d{0ull};
     unsigned long long seed_vec_x{0ull};
@@ -308,7 +302,6 @@ void unit_test_vadd_f32_2x512v_u10x_a()
     int32_t idx{};
     bool  vec_x_neq_0{};
     bool  vec_y_neq_0{};
-    bool  vec_z_neq_0{};
     seed_d = std::clock();
     auto rand_d{std::bind(std::uniform_int_distribution<int32_t>(0,1),std::mt19937(seed_d))};
     which = rand_d();
@@ -336,8 +329,6 @@ void unit_test_vadd_f32_2x512v_u10x_a()
             vec_x_neq_0 = (vec_x != NULL) && (nbytes > 0ull);
             vec_y = reinterpret_cast<float * __restrict__>(gms_mm_malloc(nbytes,64ull));
             vec_y_neq_0 = (vec_y != NULL) && (nbytes > 0ull);
-            vec_z = reinterpret_cast<float * __restrict__>(gms_mm_malloc(nbytes,64ull));
-            vec_z_neq_0 = (vec_z != NULL) && (nbytes > 0ull);
             seed_vec_x = __rdtsc();
             auto rand_vec_x{std::bind(std::uniform_real_distribution<float>(-3.14159265358979323846264338328f,3.14159265358979323846264338328f),
                                      std::mt19937(seed_vec_x))};
@@ -389,19 +380,19 @@ void unit_test_vadd_f32_2x512v_u10x_a()
             }
 
             printf("[UNIT-TEST]: -- End of data initialization\n");
-            printf("[UNIT-TEST]: -- START: vadd_f32_2x512v_u10x_a\n");
+            printf("[UNIT-TEST]: -- START: vaddpc_f32_1x512_1xf32_u10x_a\n");
             start   = __rdtscp(&tsc_aux);
-            std::int32_t call_state = gms::math::vadd_f32_2x512v_u10x_a(vec_x,vec_y,vec_z,nelems);
+            std::int32_t call_state = gms::math::vaddpc_f32_1x512_1xf32_u10x_a(vec_x,vec_y,c_z,nelems);
             end     = __rdtscp(&tsc_aux);
             start_c = start-RDTSCP_LAT;
             end_c   = end-RDTSCP_LAT;
             elapsed_tsc = end_c-start_c;
-            printf("[UNIT-TEST]: vadd_f32_2x512v_u10x_a -- TSC=%llu,TSC_AUX=%d,call_state=%d\n",elapsed_tsc,tsc_aux,call_state);
+            printf("[UNIT-TEST]: vaddpc_f32_1x512_1xf32_u10x_a -- TSC=%llu,TSC_AUX=%d,call_state=%d\n",elapsed_tsc,tsc_aux,call_state);
             fp = fopen(fout,"w+");
             if(!fp)
             {
                  std::perror("fopen failed to open a file -- TERMINATING!!");
-                 if(vec_z_neq_0) gms_mm_free(vec_z);
+                
                  if(vec_y_neq_0) gms_mm_free(vec_y);
                  if(vec_x_neq_0) gms_mm_free(vec_x);
                  std::terminate();
@@ -409,13 +400,13 @@ void unit_test_vadd_f32_2x512v_u10x_a()
             
             for(std::size_t __i{0}; __i != nelems; ++__i)
             {
-                fprintf(fp,"%.7f\n",vec_z[__i]);
+                fprintf(fp,"%.7f\n",vec_y[__i]);
             }
-            if(vec_z_neq_0) gms_mm_free(vec_z);
+            
             if(vec_y_neq_0) gms_mm_free(vec_y);
             if(vec_x_neq_0) gms_mm_free(vec_x);
             fclose(fp);
-            printf("[UNIT-TEST]: -- END: vadd_f32_2x512v_u10x_a\n");
+            printf("[UNIT-TEST]: -- END: vaddpc_f32_1x512_1xf32_u10x_a\n");
         }
         break;
         case 1 :
@@ -438,8 +429,7 @@ void unit_test_vadd_f32_2x512v_u10x_a()
 
             vec_x = reinterpret_cast<float * __restrict__>(gms_mm_malloc(nbytes,64ull));
             vec_y = reinterpret_cast<float * __restrict__>(gms_mm_malloc(nbytes,64ull));
-            vec_z = reinterpret_cast<float * __restrict__>(gms_mm_malloc(nbytes,64ull));
-
+            
             seed_vec_x = __rdtsc();
             auto rand_vec_x{std::bind(std::normal_distribution<float>(0.0f,0.2f),
                                      std::mt19937(seed_vec_x))};
@@ -492,19 +482,18 @@ void unit_test_vadd_f32_2x512v_u10x_a()
             }
 
             printf("[UNIT-TEST]: -- End of data initialization\n");
-            printf("[UNIT-TEST]: -- START: vadd_f32_2x512v_u10x_a\n");
+            printf("[UNIT-TEST]: -- START: vaddpc_f32_1x512_1xf32_u10x_a\n");
             start  = __rdtscp(&tsc_aux);
-            std::int32_t call_state = gms::math::vadd_f32_2x512v_u10x_a(vec_x,vec_y,vec_z,nelems);
+            std::int32_t call_state = gms::math::vaddpc_f32_1x512_1xf32_u10x_a(vec_x,vec_y,c_z,nelems);
             end     = __rdtscp(&tsc_aux);
             start_c = start-RDTSCP_LAT;
             end_c   = end-RDTSCP_LAT;
             elapsed_tsc = end_c-start_c;
-            printf("[UNIT-TEST]: vadd_f32_2x512v_u10x_a() -- TSC=%llu,TSC_AUX=%d,call_state=%d\n",elapsed_tsc,tsc_aux,call_state);
+            printf("[UNIT-TEST]: vaddpc_f32_1x512_1xf32_u10x_a -- TSC=%llu,TSC_AUX=%d,call_state=%d\n",elapsed_tsc,tsc_aux,call_state);
             fp = fopen(fout,"w+");
             if(!fp)
             {
                  std::perror("fopen failed to open a file -- TERMINATING!!");
-                 if(vec_z_neq_0) gms_mm_free(vec_z);
                  if(vec_y_neq_0) gms_mm_free(vec_y);
                  if(vec_x_neq_0) gms_mm_free(vec_x);
                  std::terminate();
@@ -512,13 +501,12 @@ void unit_test_vadd_f32_2x512v_u10x_a()
             
             for(int32_t __i{0}; __i != nelems; ++__i)
             {
-                fprintf(fp,"%.7f\n",vec_z[__i]);
+                fprintf(fp,"%.7f\n",vec_y[__i]);
             }
-            if(vec_z_neq_0) gms_mm_free(vec_z);
             if(vec_y_neq_0) gms_mm_free(vec_y);
             if(vec_x_neq_0) gms_mm_free(vec_x);
             fclose(fp);
-            printf("[UNIT-TEST]: -- END: vadd_f32_2x512v_u10x_a\n");
+            printf("[UNIT-TEST]: -- END: vaddpc_f32_1x512_1xf32_u10x_a\n");
         }
         break;
         default : 
@@ -531,22 +519,22 @@ void unit_test_vadd_f32_2x512v_u10x_a()
 __attribute__((hot))
 __attribute__((noinline))
 __attribute__((aligned(32)))
-void unit_test_vadd_f32_2x512v_u6x_a();
+void unit_test_vaddpc_f32_1x512_1xf32_u6x_a();
 
 __attribute__((hot))
 __attribute__((noinline))
 __attribute__((aligned(32)))
-void unit_test_vadd_f32_2x512v_u6x_a()
+void unit_test_vaddpc_f32_1x512_1xf32_u6x_a()
 {
     using namespace gms::common;
     constexpr std::size_t nelems{456748ull};
     constexpr std::size_t nbytes{reinterpret_cast<std::size_t>(sizeof(float)*nelems)};
     constexpr unsigned long long RDTSCP_LAT{42ull};
-    std::string fname1 = "UNIT-TEST_uni_distro_vadd_f32_2x512v_u6x_a_" + std::to_string(funi_distro_idx++)+".csv";
-    std::string fname2 = "UNIT-TEST_norm_distro_vadd_f32_2x512v_u6x_a_" + std::to_string(fnorm_distr_idx++)+".csv";
+    std::string fname1 = "UNIT-TEST_uni_distro_vaddpc_f32_1x512_1xf32_u6x_a_" + std::to_string(funi_distro_idx++)+".csv";
+    std::string fname2 = "UNIT-TEST_norm_distro_vaddpc_f32_1x512_1xf32_u6x_a_" + std::to_string(fnorm_distr_idx++)+".csv";
     float * __restrict__ vec_x{NULL};
     float * __restrict__ vec_y{NULL};
-    float * __restrict__ vec_z{NULL};
+    const float c_z{0.478f};
     FILE  * __restrict__ fp{NULL};
     std::clock_t seed_d{0ull};
     unsigned long long seed_vec_x{0ull};
@@ -590,8 +578,6 @@ void unit_test_vadd_f32_2x512v_u6x_a()
             vec_x_neq_0 = (vec_x != NULL) && (nbytes > 0ull);
             vec_y = reinterpret_cast<float * __restrict__>(gms_mm_malloc(nbytes,64ull));
             vec_y_neq_0 = (vec_y != NULL) && (nbytes > 0ull);
-            vec_z = reinterpret_cast<float * __restrict__>(gms_mm_malloc(nbytes,64ull));
-            vec_z_neq_0 = (vec_z != NULL) && (nbytes > 0ull);
             seed_vec_x = __rdtsc();
             auto rand_vec_x{std::bind(std::uniform_real_distribution<float>(-3.14159265358979323846264338328f,3.14159265358979323846264338328f),
                                      std::mt19937(seed_vec_x))};
@@ -643,19 +629,18 @@ void unit_test_vadd_f32_2x512v_u6x_a()
             }
 
             printf("[UNIT-TEST]: -- End of data initialization\n");
-            printf("[UNIT-TEST]: -- START: vadd_f32_2x512v_u6x_a\n");
+            printf("[UNIT-TEST]: -- START: vaddpc_f32_1x512_1xf32_u6x_a\n");
             start   = __rdtscp(&tsc_aux);
-            std::int32_t call_state = gms::math::vadd_f32_2x512v_u6x_a(vec_x,vec_y,vec_z,nelems);
+            std::int32_t call_state = gms::math::vaddpc_f32_1x512_1xf32_u6x_a(vec_x,vec_y,c_z,nelems);
             end     = __rdtscp(&tsc_aux);
             start_c = start-RDTSCP_LAT;
             end_c   = end-RDTSCP_LAT;
             elapsed_tsc = end_c-start_c;
-            printf("[UNIT-TEST]: vadd_f32_2x512v_u10x_a -- TSC=%llu,TSC_AUX=%d,call_state=%d\n",elapsed_tsc,tsc_aux,call_state);
+            printf("[UNIT-TEST]: vaddpc_f32_1x512_1xf32_u6x_a -- TSC=%llu,TSC_AUX=%d,call_state=%d\n",elapsed_tsc,tsc_aux,call_state);
             fp = fopen(fout,"w+");
             if(!fp)
             {
                  std::perror("fopen failed to open a file -- TERMINATING!!");
-                 if(vec_z_neq_0) gms_mm_free(vec_z);
                  if(vec_y_neq_0) gms_mm_free(vec_y);
                  if(vec_x_neq_0) gms_mm_free(vec_x);
                  std::terminate();
@@ -663,13 +648,12 @@ void unit_test_vadd_f32_2x512v_u6x_a()
             
             for(std::size_t __i{0}; __i != nelems; ++__i)
             {
-                fprintf(fp,"%.7f\n",vec_z[__i]);
+                fprintf(fp,"%.7f\n",vec_y[__i]);
             }
-            if(vec_z_neq_0) gms_mm_free(vec_z);
             if(vec_y_neq_0) gms_mm_free(vec_y);
             if(vec_x_neq_0) gms_mm_free(vec_x);
             fclose(fp);
-            printf("[UNIT-TEST]: -- END: vadd_f32_2x512v_u6x_a\n");
+            printf("[UNIT-TEST]: -- END: vaddpc_f32_1x512_1xf32_u6x_a\n");
         }
         break;
         case 1 :
@@ -692,8 +676,7 @@ void unit_test_vadd_f32_2x512v_u6x_a()
 
             vec_x = reinterpret_cast<float * __restrict__>(gms_mm_malloc(nbytes,64ull));
             vec_y = reinterpret_cast<float * __restrict__>(gms_mm_malloc(nbytes,64ull));
-            vec_z = reinterpret_cast<float * __restrict__>(gms_mm_malloc(nbytes,64ull));
-
+            
             seed_vec_x = __rdtsc();
             auto rand_vec_x{std::bind(std::normal_distribution<float>(0.0f,0.2f),
                                      std::mt19937(seed_vec_x))};
@@ -746,19 +729,18 @@ void unit_test_vadd_f32_2x512v_u6x_a()
             }
 
             printf("[UNIT-TEST]: -- End of data initialization\n");
-            printf("[UNIT-TEST]: -- START: vadd_f32_2x512v_u6x_a\n");
+            printf("[UNIT-TEST]: -- START: vaddpc_f32_1x512_1xf32_u6x_a\n");
             start  = __rdtscp(&tsc_aux);
-            std::int32_t call_state = gms::math::vadd_f32_2x512v_u6x_a(vec_x,vec_y,vec_z,nelems);
+            std::int32_t call_state = gms::math::vaddpc_f32_1x512_1xf32_u6x_a(vec_x,vec_y,c_z,nelems);
             end     = __rdtscp(&tsc_aux);
             start_c = start-RDTSCP_LAT;
             end_c   = end-RDTSCP_LAT;
             elapsed_tsc = end_c-start_c;
-            printf("[UNIT-TEST]: vadd_f32_2x512v_u6x_a() -- TSC=%llu,TSC_AUX=%d,call_state=%d\n",elapsed_tsc,tsc_aux,call_state);
+            printf("[UNIT-TEST]: vaddpc_f32_1x512_1xf32_u6x_a -- TSC=%llu,TSC_AUX=%d,call_state=%d\n",elapsed_tsc,tsc_aux,call_state);
             fp = fopen(fout,"w+");
             if(!fp)
             {
                  std::perror("fopen failed to open a file -- TERMINATING!!");
-                 if(vec_z_neq_0) gms_mm_free(vec_z);
                  if(vec_y_neq_0) gms_mm_free(vec_y);
                  if(vec_x_neq_0) gms_mm_free(vec_x);
                  std::terminate();
@@ -766,13 +748,13 @@ void unit_test_vadd_f32_2x512v_u6x_a()
             
             for(int32_t __i{0}; __i != nelems; ++__i)
             {
-                fprintf(fp,"%.7f\n",vec_z[__i]);
+                fprintf(fp,"%.7f\n",vec_y[__i]);
             }
-            if(vec_z_neq_0) gms_mm_free(vec_z);
+           
             if(vec_y_neq_0) gms_mm_free(vec_y);
             if(vec_x_neq_0) gms_mm_free(vec_x);
             fclose(fp);
-            printf("[UNIT-TEST]: -- END: vadd_f32_2x512v_u6x_a\n");
+            printf("[UNIT-TEST]: -- END: vaddpc_f32_1x512_1xf32_u6x_a\n");
         }
         break;
         default : 
@@ -786,8 +768,8 @@ void unit_test_vadd_f32_2x512v_u6x_a()
 
 int main()
 {  
-   unit_test_vadd_f32_2x512v_u16x_a();
-   unit_test_vadd_f32_2x512v_u10x_a();
-   unit_test_vadd_f32_2x512v_u6x_a();
+   unit_test_vaddpc_f32_1x512_1xf32_u16x_a();
+   unit_test_vaddpc_f32_1x512_1xf32_u10x_a();
+   unit_test_vaddpc_f32_1x512_1xf32_u6x_a();
    return 0;
 }
