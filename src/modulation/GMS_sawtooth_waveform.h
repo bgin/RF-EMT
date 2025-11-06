@@ -130,7 +130,9 @@ namespace radiolocation
                  
                  /* Outer loop unrolled 4 times.*/
                  std::int32_t fourier_series_expansion_u4x(const std::uint32_t);
-
+                 /*
+                 std::int32_t fourier_series_expansion_sse(const std::uint32_t);
+                 */
         };
 
           auto 

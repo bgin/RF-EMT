@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iomanip>
+#include <immintrin.h>
 #include "GMS_sawtooth_waveform.h"
 #include "GMS_sse_memset.h"
 #if (SAWTOOTH_WAVEFORM_USE_CEPHES) == 0
@@ -799,6 +800,263 @@ static constexpr float k_coff_buf[128] = {
              
 }
 
+/*
+__ATTR_ALWAYS_INLINE__
+static inline 
+float _mm_reduce_add_ps(const __m128 x) 
+{
+    __m128 sum;
+    sum = _mm_hadd_ps(x,x);
+    sum = _mm_hadd_ps(sum,sum);
+    return (_mm_cvtss_f32(sum));
+}
+
+std::int32_t 
+gms::radiolocation
+::sawtooth_waveform_t
+::fourier_series_expansion_sse(const std::uint32_t which_dir)
+{
+       if(__builtin_expect(this->__n_waves__>128,0)) { return (-2);}
+       if(this->__n_waves__ <= 4) {this->fourier_series_expansion(which_dir);}
+__ATTR_ALIGN__(16)
+static const __m128 k_coff_buf_sse[128] = {
+                _mm_set1_ps(-1.0000000f),
+                _mm_set1_ps( 0.5000000f),
+                _mm_set1_ps(-0.3333333f),
+                _mm_set1_ps( 0.2500000f),
+                _mm_set1_ps(-0.2000000f),
+                _mm_set1_ps( 0.1666667f),
+                _mm_set1_ps(-0.1428571f),
+                _mm_set1_ps( 0.1250000f),
+                _mm_set1_ps(-0.1111111f),
+                _mm_set1_ps( 0.1000000f),
+                _mm_set1_ps(-0.0909091f),
+                _mm_set1_ps( 0.0833333f),
+                _mm_set1_ps(-0.0769231f),
+                _mm_set1_ps( 0.0714286f),
+                _mm_set1_ps(-0.0666667f),
+                _mm_set1_ps( 0.0625000f),
+                _mm_set1_ps(-0.0588235f),
+                _mm_set1_ps( 0.0555556f),
+                _mm_set1_ps(-0.0526316f),
+                _mm_set1_ps( 0.0500000f),
+                _mm_set1_ps(-0.0476190f),
+                _mm_set1_ps( 0.0454545f),
+                _mm_set1_ps(-0.0434783f),
+                _mm_set1_ps( 0.0416667f),
+                _mm_set1_ps(-0.0400000f),
+                _mm_set1_ps( 0.0384615f),
+                _mm_set1_ps(-0.0370370f),
+                _mm_set1_ps( 0.0357143f),
+                _mm_set1_ps(-0.0344828f),
+                _mm_set1_ps( 0.0333333f),
+                _mm_set1_ps(-0.0322581f),
+                _mm_set1_ps( 0.0312500f),
+                _mm_set1_ps(-0.0303030f),
+                _mm_set1_ps( 0.0294118f),
+                _mm_set1_ps(-0.0285714f),
+                _mm_set1_ps( 0.0277778f),
+                _mm_set1_ps(-0.0270270f),
+                _mm_set1_ps( 0.0263158f),
+                _mm_set1_ps(-0.0256410f),
+                _mm_set1_ps( 0.0250000f),
+                _mm_set1_ps(-0.0243902f),
+                _mm_set1_ps( 0.0238095f),
+                _mm_set1_ps(-0.0232558f),
+                _mm_set1_ps( 0.0227273f),
+                _mm_set1_ps(-0.0222222f),
+                _mm_set1_ps( 0.0217391f),
+                _mm_set1_ps(-0.0212766f),
+                _mm_set1_ps( 0.0208333f),
+                _mm_set1_ps(-0.0204082f),
+                _mm_set1_ps( 0.0200000f),
+                _mm_set1_ps(-0.0196078f),
+                _mm_set1_ps( 0.0192308f),
+                _mm_set1_ps(-0.0188679f),
+                _mm_set1_ps( 0.0185185f),
+                _mm_set1_ps(-0.0181818f),
+                _mm_set1_ps( 0.0178571f),
+                _mm_set1_ps(-0.0175439f),
+                _mm_set1_ps( 0.0172414f),
+                _mm_set1_ps(-0.0169492f),
+                _mm_set1_ps( 0.0166667f),
+                _mm_set1_ps(-0.0163934f),
+                _mm_set1_ps( 0.0161290f),
+                _mm_set1_ps(-0.0158730f),
+                _mm_set1_ps( 0.0156250f),
+                _mm_set1_ps(-0.0153846f),
+                _mm_set1_ps( 0.0151515f),
+                _mm_set1_ps(-0.0149254f),
+                _mm_set1_ps( 0.0147059f),
+                _mm_set1_ps(-0.0144928f),
+                _mm_set1_ps( 0.0142857f),
+                _mm_set1_ps(-0.0140845f),
+                _mm_set1_ps( 0.0138889f),
+                _mm_set1_ps(-0.0136986f),
+                _mm_set1_ps( 0.0135135f),
+                _mm_set1_ps(-0.0133333f),
+                _mm_set1_ps( 0.0131579f),
+                _mm_set1_ps(-0.0129870f),
+                _mm_set1_ps( 0.0128205f),
+                _mm_set1_ps(-0.0126582f),
+                _mm_set1_ps( 0.0125000f),
+                _mm_set1_ps(-0.0123457f),
+                _mm_set1_ps( 0.0121951f),
+                _mm_set1_ps(-0.0120482f),
+                _mm_set1_ps( 0.0119048f),
+                _mm_set1_ps(-0.0117647f),
+                _mm_set1_ps( 0.0116279f),
+                _mm_set1_ps(-0.0114943f),
+                _mm_set1_ps( 0.0113636f),
+                _mm_set1_ps(-0.0112360f),
+                _mm_set1_ps( 0.0111111f),
+                _mm_set1_ps(-0.0109890f),
+                _mm_set1_ps( 0.0108696f),
+                _mm_set1_ps(-0.0107527f),
+                _mm_set1_ps( 0.0106383f),
+                _mm_set1_ps(-0.0105263f),
+                _mm_set1_ps( 0.0104167f),
+                _mm_set1_ps(-0.0103093f),
+                _mm_set1_ps( 0.0102041f),
+                _mm_set1_ps(-0.0101010f),
+                _mm_set1_ps( 0.0100000f),
+                _mm_set1_ps(-0.0099010f),
+                _mm_set1_ps( 0.0098039f),
+                _mm_set1_ps(-0.0097087f),
+                _mm_set1_ps( 0.0096154f),
+                _mm_set1_ps(-0.0095238f),
+                _mm_set1_ps( 0.0094340f),
+                _mm_set1_ps(-0.0093458f),
+                _mm_set1_ps( 0.0092593f),
+                _mm_set1_ps(-0.0091743f),
+                _mm_set1_ps( 0.0090909f),
+                _mm_set1_ps(-0.0090090f),
+                _mm_set1_ps( 0.0089286f),
+                _mm_set1_ps(-0.0088496f),
+                _mm_set1_ps( 0.0087719f),
+                _mm_set1_ps(-0.0086957f),
+                _mm_set1_ps( 0.0086207f),
+                _mm_set1_ps(-0.0085470f),
+                _mm_set1_ps( 0.0084746f),
+                _mm_set1_ps(-0.0084034f),
+                _mm_set1_ps( 0.0083333f),
+                _mm_set1_ps(-0.0082645f),
+                _mm_set1_ps( 0.0081967f),
+                _mm_set1_ps(-0.0081301f),
+                _mm_set1_ps( 0.0080645f),
+                _mm_set1_ps(-0.0080000f),
+                _mm_set1_ps( 0.0079365f),
+                _mm_set1_ps(-0.0078740f),
+                _mm_set1_ps( 0.0078125f)};
+        const __m128 vC6283185307179586476925286766559{_mm_set1_ps(6.283185307179586476925286766559f)};
+        const __m128 vA{_mm_set1_ps(this->__A__)};
+        constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+        const float     lead_coff{2.0f*0.318309886183790671537767526745f};
+        const std::uint32_t n_samples{static_cast<std::uint32_t>(this->__n_samples__)};
+        const float invT{this->__T__/static_cast<float>(n_samples)};
+        const __m128 vinvT{_mm_set1_ps(invT)};
+        const float * __restrict__ p_k_coff_buff_sse{(const float*)&k_coff_buf_sse[0]};
+        float sum;
+        int32_t idx;
+        std::uint32_t __k,__j;
+        float t__k_1{-4.0f};
+        float t__k_2{-3.0f};
+        float t__k_3{-2.0f};
+        float t__k_4{-1.0f}; 
+        switch (which_dir)
+        {
+            case 0 : // direct sawtooth 
+                
+                          
+                     for(std::uint32_t __t{0}; __t != n_samples; ++__t) 
+                     {
+                         const float t__t{static_cast<float>(__t)};
+                         const __m128 vt__t{_mm_set1_ps(t__t)};
+                         sum = 0.0f;
+                         idx = 0;
+                         t__k_1 += 4.0f;
+                         t__k_2 += 4.0f;
+                         t__k_3 += 4.0f;
+                         t__k_4 += 4.0f;
+                         const __m128 vt__k{_mm_setr_ps(t__k_1,t__k_2,t__k_3,t__k_4)};
+                         for(__k = 0u; __k != ROUND_TO_FOUR(this->__n_waves__,4);  __k += 4u) 
+                         {            
+                             //const float t__k{static_cast<float>(__k)};
+                             const __m128 arg{_mm_mul_ps(_mm_mul_ps(vC6283185307179586476925286766559, 
+                                              vt__k),_mm_mul_ps(vt__t,vinvT))};
+                             //const float arg{C6283185307179586476925286766559*t__k*t__t*invT};
+                             const __m128 v_sin{_mm_sin_ps(arg)};
+                             //const float sample{k_coff_buf[idx++]*this->__A__*t_sin};
+                             const __m128 sample{_mm_mul_ps(_mm_load_ps(&p_k_coff_buff_sse[__k]),_mm_mul_ps(vA,v_sin))};
+                             sum += _mm_reduce_add_ps(sample);
+                         }
+                         for(__j = __k; __j != this->__n_waves__; ++ __j) 
+                         {
+                             const float t__k{static_cast<float>(__k)};
+                             const float arg{C6283185307179586476925286766559*t__k*t__t*invT};
+#if (SAWTOOTH_WAVEFORM_USE_CEPHES) == 1 
+                             const float t_sin{ceph_sinf(arg)};
+#else 
+                             const float t_sin{std::sin(arg)};
+#endif 
+                             const float LUT_val{p_k_coff_buff_sse[idx++]};
+                             const float s_sample{LUT_val*this->__A__*t_sin};
+                             sum += s_sample;
+                         }
+                         this->__sw_samples__.m_data[__t] = -lead_coff*sum;
+                     }
+
+                
+                
+           break;
+           case 1 : // reverse sawtooth
+               
+                            
+                     for(std::uint32_t __t{0}; __t != n_samples; ++__t) 
+                     {
+                         const float t__t{static_cast<float>(__t)};
+                         const __m128 vt__t{_mm_set1_ps(t__t)};
+                         sum = 0.0f;
+                         idx = 0;
+                         t__k_1 += 4.0f;
+                         t__k_2 += 4.0f;
+                         t__k_3 += 4.0f;
+                         t__k_4 += 4.0f;
+                         const __m128 vt__k{_mm_setr_ps(t__k_1,t__k_2,t__k_3,t__k_4)};
+                         for(__k = 1; __k != ROUND_TO_FOUR(this->__n_waves__,4u); __k += 4u) 
+                         {
+                            const __m128 arg{_mm_mul_ps(_mm_mul_ps(vC6283185307179586476925286766559, 
+                                              vt__k),_mm_mul_ps(vt__t,vinvT))};
+                             //const float arg{C6283185307179586476925286766559*t__k*t__t*invT};
+                             const __m128 v_sin{_mm_sin_ps(arg)};
+                             //const float sample{k_coff_buf[idx++]*this->__A__*t_sin};
+                             const __m128 sample{_mm_mul_ps(k_coff_buf_sse[idx++],_mm_mul_ps(vA,v_sin))};
+                             sum += _mm_reduce_add_ps(sample);
+                         }
+                         for(__j = __k; __j != this->__n_waves__; ++ __j) 
+                         {
+                             const float t__k{static_cast<float>(__k)};
+                             const float arg{C6283185307179586476925286766559*t__k*t__t*invT};
+#if (SAWTOOTH_WAVEFORM_USE_CEPHES) == 1 
+                             const float t_sin{ceph_sinf(arg)};
+#else 
+                             const float t_sin{std::sin(arg)};
+#endif 
+                             const float LUT_val{p_k_coff_buff_sse[idx++]};
+                             const float s_sample{LUT_val*this->__A__*t_sin};
+                             sum += s_sample;
+                         }
+                          this->__sw_samples__.m_data[__t] = lead_coff*sum;
+                     }
+           break;     
+           default : 
+                 return (-1);
+     }
+     return (0);
+             
+}
+
+*/
 auto 
 gms::radiolocation
 ::operator<<(std::ostream &os, 
