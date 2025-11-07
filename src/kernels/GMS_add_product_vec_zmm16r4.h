@@ -157,6 +157,54 @@ namespace math
                                   float       * __restrict__,
                                   std::size_t);   
 
+
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif 
+          std::int32_t 
+          vaddpv_f32_2x512_u10x_u(const float * __restrict__,
+                                  const float * __restrict__,
+                                  float       * __restrict__,
+                                  std::size_t);
+
+
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif 
+          std::int32_t 
+          vaddpv_f32_2x512_u10x_a(const float * __restrict__,
+                                  const float * __restrict__,
+                                  float       * __restrict__,
+                                  std::size_t);
+
+
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif 
+          std::int32_t 
+          vaddpv_f32_2x512_u6x_u(const float * __restrict__,
+                                  const float * __restrict__,
+                                  float       * __restrict__,
+                                  std::size_t);
+
+
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif 
+          std::int32_t 
+          vaddpv_f32_2x512_u6x_a(const float * __restrict__,
+                                  const float * __restrict__,
+                                  float       * __restrict__,
+                                  std::size_t);
+
 }
 
 
