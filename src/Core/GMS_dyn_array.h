@@ -1138,13 +1138,23 @@ namespace gms
                       
                       float * __restrict               m_data;
                       std::size_t                      mnx;
+                      std::int32_t                     m_prot;
+                      std::int32_t                     m_flags;
+                      std::int32_t                     m_fd;
+                      long                             m_offset;
+                      std::int32_t                     m_fsize;
                       bool                             ismmap;
-
+                      
                      inline darray_r4_t() noexcept(true)
                      {
                           
                           this->mnx     = 0ULL;
                           this->m_data  = NULL;
+                          this->m_prot  = 0;
+                          this->m_flags = 0;
+                          this->m_fd    = 0;
+                          this->m_offset= 0;
+                          this->m_fsize = 0;
                           this->ismmap  = false;          
                      } 
                           
@@ -1157,7 +1167,13 @@ namespace gms
 #endif                          
                           this->mnx = nx;
                           allocate();
-                          this->ismmap = false;
+                          this->m_prot  = 0;
+                          this->m_flags = 0;
+                          this->m_fd    = 0;
+                          this->m_offset= 0;
+                          this->m_fsize = 0;
+                          this->ismmap  = false;
+
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -1177,21 +1193,26 @@ namespace gms
                PMC_VARS                   
                HW_PMC_COLLECTION_PROLOGE_BODY
 #endif
-                             this->mnx = nx;
-                             switch (fsize) {
+                             this->mnx     = nx;
+                             this->m_prot  = prot;
+                             this->m_flags = flags;
+                             this->m_fd    = fd;
+                             this->m_offset= offset;
+                             this->m_fsize = fsize;
+                             switch (this->m_fsize) {
                                  case 0:
                                       this->m_data = (float*)
-                                                 gms_mmap_4KiB<float>(this->mnx,prot,flags,fd,offset);
+                                                 gms_mmap_4KiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
                                       this->ismmap = true;
                                  break;
                                  case 1:
                                       this->m_data = (float*)
-                                                 gms_mmap_2MiB<float>(this->mnx,prot,flags,fd,offset);
+                                                 gms_mmap_2MiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
                                       this->ismmap = true;
                                  break;
                                  case 2:
                                       this->m_data = (float*)
-                                                 gms_mmap_1GiB<float>(this->mnx,prot,flags,fd,offset);
+                                                 gms_mmap_1GiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
                                       this->ismmap = true;
                                  break;
                                  default :
@@ -1215,6 +1236,11 @@ namespace gms
 #endif                          
                           this->mnx = data.size();
                           allocate();
+                          this->m_prot  = 0;
+                          this->m_flags = 0;
+                          this->m_fd    = 0;
+                          this->m_offset= 0;
+                          this->m_fsize = 0;
                           this->ismmap = false;
                           const std::size_t lenx{bytes_mnx()};
                           std::memcpy(this->m_data,&data[0],lenx);
@@ -1235,6 +1261,11 @@ namespace gms
 #endif                         
                           this->mnx = data.size();
                           allocate();
+                          this->m_prot  = 0;
+                          this->m_flags = 0;
+                          this->m_fd    = 0;
+                          this->m_offset= 0;
+                          this->m_fsize = 0;
                           this->ismmap = false;
                           const std::size_t lenx{bytes_mnx()};
                           std::memcpy(this->m_data,&data[0],lenx);
@@ -1258,6 +1289,11 @@ namespace gms
 #endif                         
                           this->mnx = nx;
                           allocate();
+                          this->m_prot  = 0;
+                          this->m_flags = 0;
+                          this->m_fd    = 0;
+                          this->m_offset= 0;
+                          this->m_fsize = 0;
                           this->ismmap = false;
                           const std::size_t lenx = sizeof(float)*this->mnx;
                           std::memcpy(this->m_data,&data[0],lenx);
@@ -1271,12 +1307,22 @@ namespace gms
                      inline  darray_r4_t(darray_r4_t && rhs) noexcept(true)
                      {
                           
-                          this->mnx    =  rhs.mnx;
-                          this->m_data =  &rhs.m_data[0];
-                          this->ismmap =  rhs.ismmap;
-                          rhs.mnx      =  0ULL;
-                          rhs.m_data   =  NULL;
-                          rhs.ismmap   = false;                      
+                          this->mnx     =  rhs.mnx;
+                          this->m_data  =  &rhs.m_data[0];
+                          this->m_prot  =  rhs.m_prot;
+                          this->m_flags =  rhs.m_flags;
+                          this->m_fd    =  rhs.m_fd;
+                          this->m_offset=  rhs.m_offset;
+                          this->m_fsize =  rhs.m_fsize;
+                          this->ismmap  =  rhs.ismmap;
+                          rhs.mnx       =  0ULL;
+                          rhs.m_data    =  NULL;
+                          rhs.m_prot    =  0;
+                          rhs.m_flags   =  0;
+                          rhs.m_fd      =  0;
+                          rhs.m_offset  =  0;
+                          rhs.m_fsize   =  0;
+                          rhs.ismmap    =  false;                      
                       }
                                  
                      darray_r4_t(const darray_r4_t &rhs)   noexcept(false)
@@ -1286,9 +1332,37 @@ namespace gms
                PMC_VARS                  
                HW_PMC_COLLECTION_PROLOGE_BODY
 #endif                  
-                           this->mnx = rhs.mnx;
-                           this->allocate();
-                           this->ismmap = rhs.ismmap;
+                           this->mnx     = rhs.mnx;
+                           this->m_prot  = rhs.m_prot;
+                           this->m_flags = rhs.m_flags;
+                           this->m_fd    = rhs.m_fd;
+                           this->m_offset= rhs.m_offset;
+                           this->m_fsize = rhs.m_fsize;
+                           this->ismmap  = rhs.ismmap;
+                           if(this->ismmap==true)
+                           {
+                              switch (this->m_fsize) 
+                              {
+                                 case 0:
+                                      this->m_data = (float*)
+                                                 gms_mmap_4KiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
+                                 break;
+                                 case 1:
+                                      this->m_data = (float*)
+                                                 gms_mmap_2MiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
+                                 break;
+                                 case 2:
+                                      this->m_data = (float*)
+                                                 gms_mmap_1GiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
+                                 break;
+                                 default : // do nothing
+                                 break;                      
+                              }   
+                           }
+                           else 
+                           {
+                               this->allocate();
+                           }
                            std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
@@ -1330,9 +1404,69 @@ namespace gms
 #endif
                      }    
                          
-                                                                 
-                     darray_r4_t & operator=(const darray_r4_t &) = delete;
-                      
+                     
+                                                                                    
+                     darray_r4_t & operator=(const darray_r4_t &rhs) noexcept(false) 
+                     {
+                           using namespace gms::common;
+                           if(__builtin_expect(this==&rhs,0)) { return (*this);}
+                           const bool ismmap_true = (this->ismmap==true);
+                                     
+                                 if(ismmap_true) 
+                                 { 
+                             
+                                    int32_t err1{};
+                                    err1 = gms_ummap<float>(this->m_data,this->mnx); this->m_data = NULL;
+                                    if(__builtin_expect(err1==-1,0))
+                                    {
+#if (FAST_TERMINATE_ON_CRITICAL_ERROR) == 1
+                                          __builtin_trap();
+#else
+                                          std::terminate();
+#endif                               
+                                     }
+                                 }
+                                 else 
+                                 {
+                                    gms_mm_free(this->m_data); this->m_data = NULL;  
+                                 }  
+                                 this->mnx     = rhs.mnx;
+                                 this->m_prot  = rhs.m_prot;
+                                 this->m_flags = rhs.m_flags;
+                                 this->m_fd    = rhs.m_fd;
+                                 this->m_offset= rhs.m_offset;
+                                 this->m_fsize = rhs.m_fsize;
+                                 this->ismmap  = rhs.ismmap;
+                                 if(this->ismmap) 
+                                 {
+                                     switch (this->m_fsize) 
+                                     {
+                                         case 0:
+                                             this->m_data = (float*)
+                                                 gms_mmap_4KiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
+                                         break;
+                                         case 1:
+                                             this->m_data = (float*)
+                                                 gms_mmap_2MiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
+                                         break;
+                                         case 2:
+                                             this->m_data = (float*)
+                                                 gms_mmap_1GiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
+                                         break;
+                                         default: // do nothing
+                                         break; 
+                                     }
+                                 }
+                                 else 
+                                 {
+                                     this->allocate();
+                                 }
+                                 std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+
+                         return (*this);
+                     }
+
+
                      inline darray_r4_t & operator=(darray_r4_t &&rhs) noexcept(true)
                      {
                            using namespace gms::common;
