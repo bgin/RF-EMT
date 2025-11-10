@@ -34,6 +34,20 @@ m_P{std::move(other.m_P)},
 m_sig_samples{std::move(other.m_sig_samples)}
 {
     
+}  
+
+gms::radiolocation
+::am_bb_cosine_signal_t
+::am_bb_cosine_signal_t(const am_bb_cosine_signal_t &other) noexcept(false)
+:
+m_nsamples{other.m_nsamples},
+m_nK{other.m_nK},
+m_n{other.m_n},
+m_A{other.m_A},
+m_P{other.m_P},
+m_sig_samples{other.m_sig_samples}
+{
+    
 }   
 
 gms::radiolocation 
@@ -41,6 +55,22 @@ gms::radiolocation
 ::~am_bb_cosine_signal_t()
 {
 
+}
+
+gms::radiolocation
+::am_bb_cosine_signal_t &
+gms::radiolocation
+::am_bb_cosine_signal_t
+::operator=(const am_bb_cosine_signal_t &other) noexcept(false)
+{
+    if(__builtin_expect(this==&other,0)) { return (*this);}
+    this->m_nsamples  = other.m_nsamples;
+    this->m_nK        = other.m_nK;
+    this->m_n         = other.m_n;
+    this->m_A         = other.m_A;
+    this->m_P         = other.m_P;
+    this->m_sig_samples.operator=(other.m_sig_samples);
+    return (*this);
 }
 
 gms::radiolocation
