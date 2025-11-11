@@ -170,8 +170,10 @@ gms::radiolocation
                           const std::uint32_t n_T,
                           const std::uint32_t n_K)
 {
+      
       if(__builtin_expect(static_cast<std::uint32_t>(this->m_nsamples)!=n_T,0) || 
          __builtin_expect(this->m_nK!=n_K,0)) { return (-1);}
+       
        const float T{static_cast<float>(this->m_nsamples)};
        const float invT{this->m_P/T};
        float sum;
