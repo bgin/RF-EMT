@@ -99,14 +99,13 @@ namespace gms
                       
                       std::complex<half_float::half> * __restrict m_data;
                       std::size_t                      mnx;
-                      bool                             ismmap;
-
+                     
                      inline darray_c2_t() noexcept(true)
                      {
                           
                           this->mnx     = 0ULL;
                           this->m_data  = NULL;
-                          this->ismmap  = false;             
+                                  
                      } 
                           
                      inline explicit darray_c2_t(const std::size_t nx) noexcept(false)
@@ -118,7 +117,6 @@ namespace gms
 #endif
                           this->mnx = nx;
                           allocate();
-                          this->ismmap = false;
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
               HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -127,47 +125,7 @@ namespace gms
 #endif
                       }  
                       
-                     inline  darray_c2_t(const std::size_t nx,
-                                         const int32_t prot,
-                                         const int32_t flags,
-                                         const int32_t fd,
-                                         const long offset,
-                                         const int32_t fsize) noexcept(false)
-                     {
-                             using namespace gms::common;
-                            
-#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
-               PMC_VARS
-               HW_PMC_COLLECTION_PROLOGE_BODY
-#endif
-                             this->mnx = nx;
-                             switch (fsize) {
-                                 case 0:
-                                      this->m_data = (std::complex<half_float::half>*)
-                                                 gms_mmap_4KiB<std::complex<half_float::half>>(this->mnx,prot,flags,fd,offset);
-                                      this->ismmap = true;
-                                 break;
-                                 case 1:
-                                      this->m_data = (std::complex<half_float::half>*)
-                                                 gms_mmap_2MiB<std::complex<half_float::half>>(this->mnx,prot,flags,fd,offset);
-                                      this->ismmap = true;
-                                 break;
-                                 case 2:
-                                      this->m_data = (std::complex<half_float::half>*)
-                                                 gms_mmap_1GiB<std::complex<half_float::half>>(this->mnx,prot,flags,fd,offset);
-                                      this->ismmap = true;
-                                 break;
-                                 default :
-                                      allocate();
-                                      this->ismmap = false; // do not call mmap!!   
-#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
-                HW_PMC_COLLECTION_EPILOGE_BODY
-
-                HW_PMC_SHOW_INFO
-#endif                                                        
-                             }          
-                     }
-                      
+                                         
                      inline darray_c2_t(const std::vector<std::complex<half_float::half>> &data) noexcept(false)
                      {    //shall be of the same size (no error checking implemented)
                                   
@@ -178,7 +136,6 @@ namespace gms
 #endif                          
                           this->mnx = data.size();
                           allocate();
-                          this->ismmap = false;
                           const std::size_t lenx{bytes_mnx()};
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -198,7 +155,6 @@ namespace gms
 #endif                           
                           this->mnx = data.size();
                           allocate();
-                          this->ismmap = false;
                           const std::size_t lenx{bytes_mnx()};
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -221,7 +177,6 @@ namespace gms
 #endif                           
                           this->mnx = nx;
                           allocate();
-                          this->ismmap = false;
                           const std::size_t lenx = sizeof(std::complex<half_float::half>)*this->mnx;
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -236,10 +191,9 @@ namespace gms
                           
                           this->mnx    =  rhs.mnx;
                           this->m_data =  &rhs.m_data[0];
-                          this->ismmap =  rhs.ismmap;
                           rhs.mnx      =  0ULL;
                           rhs.m_data   =  NULL;
-                          rhs.ismmap   = false;                      
+                                             
                       }
                                  
                      inline darray_c2_t(const darray_c2_t &rhs)  noexcept(false)
@@ -251,7 +205,6 @@ namespace gms
 #endif                  
                            this->mnx = rhs.mnx;
                            this->allocate();
-                           this->ismmap = rhs.ismmap;
                            std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
@@ -267,23 +220,10 @@ namespace gms
                PMC_VARS                  
                HW_PMC_COLLECTION_PROLOGE_BODY
 #endif                          
-                          if(this->ismmap == true) 
-                          { 
-                             int32_t err1{};
-                             err1 = gms_ummap<std::complex<half_float::half>>(this->m_data,this->mnx); this->m_data = NULL;
-                             if(__builtin_expect(err1==-1,0))
-                             {
-#if (FAST_TERMINATE_ON_CRITICAL_ERROR) == 1
-                                __builtin_trap();
-#else
-                                std::terminate();
-#endif                               
-                             }
-                          }
-                          else 
-                          {
+                          if(__builtin_expect(this->m_data!=NULL,1))
+                          {     
                              gms_mm_free(this->m_data); this->m_data = NULL;  
-                          }  
+                          } 
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -292,7 +232,17 @@ namespace gms
                      }    
                          
                                                                  
-                     darray_c2_t & operator=(const darray_c2_t &) = delete;
+                     darray_c2_t & operator=(const darray_c2_t &rhs) noexcept(false) 
+                     {
+                           using namespace gms::common;
+                           if(__builtin_expect(this==&rhs,0)) { return (*this);}
+
+                           gms_mm_free(this->m_data);
+                           this->mnx = rhs.mnx;
+                           this->allocate();
+                           std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+                           return (*this);
+                     } 
                       
                      inline darray_c2_t & operator=(darray_c2_t &&rhs) noexcept(true)
                      {
@@ -301,10 +251,8 @@ namespace gms
                                                                                                                 
                            gms_swap(this->mnx,rhs.mnx);
                            gms_swap(this->m_data,rhs.m_data);
-                           gms_swap(this->ismmap,rhs.ismmap);
                            rhs.mnx       = 0ULL;
                            rhs.m_data    = NULL;
-                           rhs.ismmap    = false;
                            return (*this);
                       }
 
@@ -348,8 +296,8 @@ namespace gms
                                     << "sizeof(struct  darray_c2_t) = " << sizeof(darray_c2_t)  << '\n'
                                     << std::hex << std::showbase        << '\n'
                                     << "&this->m_data               ="  << (void*)&this->m_data  << "\n"
-                                       "&this->mnx                  ="  << &this->mnx            << "\n"
-                                       "&this->ismmap               ="  << &this->ismmap         << "\n";
+                                       "&this->mnx                  ="  << &this->mnx            << "\n";
+                     
                      }
                       
                };
@@ -359,14 +307,13 @@ namespace gms
                       
                       std::complex<float> * __restrict m_data;
                       std::size_t                      mnx;
-                      bool                             ismmap;
-
+                      
                      inline darray_c4_t() noexcept(true)
                      {
                           
                           this->mnx     = 0ULL;
                           this->m_data  = NULL;
-                          this->ismmap  = false;             
+                                   
                      } 
                           
                      inline explicit darray_c4_t(const std::size_t nx) noexcept(false)
@@ -378,7 +325,6 @@ namespace gms
 #endif
                           this->mnx = nx;
                           allocate();
-                          this->ismmap = false;
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
               HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -387,46 +333,7 @@ namespace gms
 #endif
                       }  
                       
-                     inline  darray_c4_t(const std::size_t nx,
-                                         const int32_t prot,
-                                         const int32_t flags,
-                                         const int32_t fd,
-                                         const long offset,
-                                         const int32_t fsize) noexcept(false)
-                     {
-                             using namespace gms::common;
-#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
-               PMC_VARS
-               HW_PMC_COLLECTION_PROLOGE_BODY
-#endif
-                             this->mnx = nx;
-                             switch (fsize) {
-                                 case 0:
-                                      this->m_data = (std::complex<float>*)
-                                                 gms_mmap_4KiB<std::complex<float>>(this->mnx,prot,flags,fd,offset);
-                                      this->ismmap = true;
-                                 break;
-                                 case 1:
-                                      this->m_data = (std::complex<float>*)
-                                                 gms_mmap_2MiB<std::complex<float>>(this->mnx,prot,flags,fd,offset);
-                                      this->ismmap = true;
-                                 break;
-                                 case 2:
-                                      this->m_data = (std::complex<float>*)
-                                                 gms_mmap_1GiB<std::complex<float>>(this->mnx,prot,flags,fd,offset);
-                                      this->ismmap = true;
-                                 break;
-                                 default :
-                                      allocate();
-                                      this->ismmap = false; // do not call mmap!!   
-#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
-                HW_PMC_COLLECTION_EPILOGE_BODY
-
-                HW_PMC_SHOW_INFO
-#endif                                                        
-                             }          
-                     }
-                      
+                                          
                      inline darray_c4_t(const std::vector<std::complex<float>> &data) noexcept(false)
                      {    //shall be of the same size (no error checking implemented)
                                   
@@ -437,7 +344,6 @@ namespace gms
 #endif                          
                           this->mnx = data.size();
                           allocate();
-                          this->ismmap = false;
                           const std::size_t lenx{bytes_mnx()};
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -457,7 +363,6 @@ namespace gms
 #endif                           
                           this->mnx = data.size();
                           allocate();
-                          this->ismmap = false;
                           const std::size_t lenx{bytes_mnx()};
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -480,7 +385,6 @@ namespace gms
 #endif                           
                           this->mnx = nx;
                           allocate();
-                          this->ismmap = false;
                           const std::size_t lenx = sizeof(std::complex<float>)*this->mnx;
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -495,10 +399,9 @@ namespace gms
                           
                           this->mnx    =  rhs.mnx;
                           this->m_data =  &rhs.m_data[0];
-                          this->ismmap =  rhs.ismmap;
                           rhs.mnx      =  0ULL;
                           rhs.m_data   =  NULL;
-                          rhs.ismmap   = false;                      
+                                             
                       }
                                  
                      darray_c4_t(const darray_c4_t &rhs)  noexcept(false)
@@ -510,7 +413,6 @@ namespace gms
 #endif                  
                            this->mnx = rhs.mnx;
                            this->allocate();
-                           this->ismmap = rhs.ismmap;
                            std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
@@ -526,20 +428,7 @@ namespace gms
                PMC_VARS                  
                HW_PMC_COLLECTION_PROLOGE_BODY
 #endif                          
-                          if(this->ismmap == true) 
-                          { 
-                             int32_t err1{};
-                             err1 = gms_ummap<std::complex<float>>(this->m_data,this->mnx); this->m_data = NULL;
-                             if(__builtin_expect(err1==-1,0))
-                             {
-#if (FAST_TERMINATE_ON_CRITICAL_ERROR) == 1
-                                __builtin_trap();
-#else
-                                std::terminate();
-#endif                               
-                             }
-                          }
-                          else 
+                          if(__builtin_expect(this->m_data!=NULL,1))
                           {
                              gms_mm_free(this->m_data); this->m_data = NULL;  
                           }  
@@ -551,19 +440,35 @@ namespace gms
                      }    
                          
                                                                  
-                     darray_c4_t & operator=(const darray_c4_t &) = delete;
+                     darray_c4_t & operator=(const darray_c4_t &rhs) noexcept(false)
+                     {
+                          using namespace gms::common;
+                          if(__builtin_expect(this==&rhs,0)) {return (*this);} 
+#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
+               PMC_VARS                  
+               HW_PMC_COLLECTION_PROLOGE_BODY
+#endif  
+                          gms_mm_free(this->m_data);
+                          this->mnx = rhs.mnx;
+                          this->allocate();
+                          std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
+               HW_PMC_COLLECTION_EPILOGE_BODY
+
+               HW_PMC_SHOW_INFO
+#endif                            
+                          return (*this); 
+                     }
                       
                      inline darray_c4_t & operator=(darray_c4_t &&rhs) noexcept(true)
                      {
                            using namespace gms::common;
-                           if(this==&rhs) return (*this);
+                           if(__builtin_expect(this==&rhs,0)) {return (*this);}
                                                                                                                 
                            gms_swap(this->mnx,rhs.mnx);
                            gms_swap(this->m_data,rhs.m_data);
-                           gms_swap(this->ismmap,rhs.ismmap);
                            rhs.mnx       = 0ULL;
                            rhs.m_data    = NULL;
-                           rhs.ismmap    = false;
                            return (*this);
                       }
 
@@ -607,8 +512,8 @@ namespace gms
                                     << "sizeof(struct  darray_c4_t) = " << sizeof(darray_c4_t)  << '\n'
                                     << std::hex << std::showbase        << '\n'
                                     << "&this->m_data               ="  << (void*)&this->m_data  << "\n"
-                                       "&this->mnx                  ="  << &this->mnx            << "\n"
-                                       "&this->ismmap               ="  << &this->ismmap         << "\n";
+                                       "&this->mnx                  ="  << &this->mnx            << "\n";
+                                      
                      }
                       
                };
@@ -619,14 +524,13 @@ namespace gms
                       
                       std::complex<double> * __restrict m_data;
                       std::size_t                      mnx;
-                      bool                             ismmap;
-
+                     
                      inline darray_c8_t() noexcept(true)
                      {
                           
                           this->mnx     = 0ULL;
                           this->m_data  = NULL;
-                          this->ismmap  = false;           
+                                
                      } 
                           
                      inline explicit darray_c8_t(const std::size_t nx) noexcept(false)
@@ -638,7 +542,6 @@ namespace gms
 #endif          
                           this->mnx = nx;
                           allocate();
-                          this->ismmap = false;
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -646,46 +549,7 @@ namespace gms
 #endif                          
                       }  
                       
-                     inline  darray_c8_t(const std::size_t nx,
-                                         const int32_t prot,
-                                         const int32_t flags,
-                                         const int32_t fd,
-                                         const long offset,
-                                         const int32_t fsize) noexcept(false)
-                     {
-                             using namespace gms::common;
-#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
-               PMC_VARS                  
-               HW_PMC_COLLECTION_PROLOGE_BODY
-#endif   
-                             this->mnx = nx;
-                             switch (fsize) {
-                                 case 0:
-                                      this->m_data = (std::complex<double>*)
-                                                 gms_mmap_4KiB<std::complex<double>>(this->mnx,prot,flags,fd,offset);
-                                      this->ismmap = true;
-                                 break;
-                                 case 1:
-                                      this->m_data = (std::complex<double>*)
-                                                 gms_mmap_2MiB<std::complex<double>>(this->mnx,prot,flags,fd,offset);
-                                      this->ismmap = true;
-                                 break;
-                                 case 2:
-                                      this->m_data = (std::complex<double>*)
-                                                 gms_mmap_1GiB<std::complex<double>>(this->mnx,prot,flags,fd,offset);
-                                      this->ismmap = true;
-                                 break;
-                                 default :
-                                      allocate();
-                                      this->ismmap = false; // do not call mmap!!                        
-                             }      
-#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
-               HW_PMC_COLLECTION_EPILOGE_BODY
-
-               HW_PMC_SHOW_INFO
-#endif                                 
-                     }
-                      
+                                          
                      inline darray_c8_t(const std::vector<std::complex<double>> &data) noexcept(false)
                      {    //shall be of the same size (no error checking implemented)
                                   
@@ -696,7 +560,6 @@ namespace gms
 #endif  
                           this->mnx = data.size();
                           allocate();
-                          this->ismmap = false;
                           const std::size_t lenx{bytes_mnx()};
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -716,7 +579,6 @@ namespace gms
 #endif  
                           this->mnx = data.size();
                           allocate();
-                          this->ismmap = false;
                           const std::size_t lenx{bytes_mnx()};
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -739,7 +601,6 @@ namespace gms
 #endif                          
                           this->mnx = nx;
                           allocate();
-                          this->ismmap = false;
                           const std::size_t lenx = sizeof(std::complex<double>)*this->mnx;
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -754,10 +615,9 @@ namespace gms
                           
                           this->mnx    =  rhs.mnx;
                           this->m_data =  &rhs.m_data[0];
-                          this->ismmap =  rhs.ismmap;
                           rhs.mnx      =  0ULL;
                           rhs.m_data   =  NULL;
-                          rhs.ismmap   = false;                      
+                                             
                       }
                                  
                      darray_c8_t(const darray_c8_t &rhs)  noexcept(false)
@@ -769,7 +629,6 @@ namespace gms
 #endif                  
                            this->mnx = rhs.mnx;
                            this->allocate();
-                           this->ismmap = rhs.ismmap;
                            std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
@@ -785,20 +644,7 @@ namespace gms
                PMC_VARS                  
                HW_PMC_COLLECTION_PROLOGE_BODY
 #endif
-                          if(this->ismmap == true) 
-                          { 
-                             int32_t err1{};
-                             err1 = gms_ummap<std::complex<double>>(this->m_data,this->mnx); this->m_data = NULL;
-                             if(__builtin_expect(err1==-1,0))
-                             {
-#if (FAST_TERMINATE_ON_CRITICAL_ERROR) == 1
-                                __builtin_trap();
-#else
-                                std::terminate();
-#endif                               
-                             }
-                          }
-                          else 
+                          if(__builtin_expect(this->m_data!=NULL,1))
                           {
                              gms_mm_free(this->m_data); this->m_data = NULL;  
                           }  
@@ -810,19 +656,35 @@ namespace gms
                      }    
                          
                                                                  
-                     darray_c8_t & operator=(const darray_c8_t &) = delete;
+                     darray_c8_t & operator=(const darray_c8_t &rhs) noexcept(false) 
+                     {
+                           using namespace gms::common;
+                           if(__builtin_expect(this==&rhs,0)) {return (*this);}
+#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
+               PMC_VARS                  
+               HW_PMC_COLLECTION_PROLOGE_BODY
+#endif
+                            gms_mm_free(this->m_data);
+                            this->mnx = rhs.mnx;
+                            this->allocate();
+                            std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
+               HW_PMC_COLLECTION_EPILOGE_BODY
+
+               HW_PMC_SHOW_INFO
+#endif
+                             return (*this);                            
+                     }
                       
                      inline darray_c8_t & operator=(darray_c8_t &&rhs) noexcept(true)
                      {
                            using namespace gms::common;
-                           if(this==&rhs) return (*this);
+                           if(__builtin_expect(this==&rhs,0)) {return (*this);}
                                                                                                           
                            gms_swap(this->mnx,rhs.mnx);
                            gms_swap(this->m_data,rhs.m_data);
-                           gms_swap(this->ismmap,rhs.ismmap);
                            rhs.mnx       = 0ULL;
                            rhs.m_data    = NULL;
-                           rhs.ismmap    = false;
                            return (*this);
                       }
 
@@ -866,8 +728,8 @@ namespace gms
                                     << "sizeof(struct  darray_c8_t) = " << sizeof(darray_c8_t)  << '\n'
                                     << std::hex << std::showbase        << '\n'
                                     << "&this->m_data               ="  << (void*)&this->m_data  << "\n"
-                                       "&this->mnx                  ="  << &this->mnx            << "\n"
-                                       "&this->ismmap               ="  << &this->ismmap         << "\n";
+                                       "&this->mnx                  ="  << &this->mnx            << "\n";
+                                      
                     }
                       
                };
@@ -878,14 +740,14 @@ namespace gms
                       
                       half_float::half * __restrict    m_data;
                       std::size_t                      mnx;
-                      bool                             ismmap;
+                     
 
                      inline darray_r2_t() noexcept(true)
                      {
                           
                           this->mnx     = 0ULL;
                           this->m_data  = NULL;
-                          this->ismmap  = false;          
+                                
                      } 
                           
                      inline explicit darray_r2_t(const std::size_t nx) noexcept(false)
@@ -897,7 +759,7 @@ namespace gms
 #endif                          
                           this->mnx = nx;
                           allocate();
-                          this->ismmap = false;
+                          
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -905,45 +767,7 @@ namespace gms
 #endif
                       }  
                       
-                     inline  darray_r2_t(const std::size_t nx,
-                                         const int32_t prot,
-                                         const int32_t flags,
-                                         const int32_t fd,
-                                         const long offset,
-                                         const int32_t fsize) noexcept(false)
-                     {
-                             using namespace gms::common;
-#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
-               PMC_VARS                   
-               HW_PMC_COLLECTION_PROLOGE_BODY
-#endif
-                             this->mnx = nx;
-                             switch (fsize) {
-                                 case 0:
-                                      this->m_data = (half_float::half*)
-                                                 gms_mmap_4KiB<half_float::half>(this->mnx,prot,flags,fd,offset);
-                                      this->ismmap = true;
-                                 break;
-                                 case 1:
-                                      this->m_data = (half_float::half*)
-                                                 gms_mmap_2MiB<half_float::half>(this->mnx,prot,flags,fd,offset);
-                                      this->ismmap = true;
-                                 break;
-                                 case 2:
-                                      this->m_data = (half_float::half*)
-                                                 gms_mmap_1GiB<half_float::half>(this->mnx,prot,flags,fd,offset);
-                                      this->ismmap = true;
-                                 break;
-                                 default :
-                                      allocate();
-                                      this->ismmap = false; // do not call mmap!!                        
-                             }   
-#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
-               HW_PMC_COLLECTION_EPILOGE_BODY
-
-               HW_PMC_SHOW_INFO
-#endif       
-                     }
+                    
                       
                      inline darray_r2_t(const std::vector<half_float::half> &data) noexcept(false)
                      {    //shall be of the same size (no error checking implemented)
@@ -955,7 +779,6 @@ namespace gms
 #endif                          
                           this->mnx = data.size();
                           allocate();
-                          this->ismmap = false;
                           const std::size_t lenx{bytes_mnx()};
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -975,7 +798,6 @@ namespace gms
 #endif                         
                           this->mnx = data.size();
                           allocate();
-                          this->ismmap = false;
                           const std::size_t lenx{bytes_mnx()};
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -998,7 +820,6 @@ namespace gms
 #endif                         
                           this->mnx = nx;
                           allocate();
-                          this->ismmap = false;
                           const std::size_t lenx = sizeof(half_float::half)*this->mnx;
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -1013,10 +834,9 @@ namespace gms
                           
                           this->mnx    =  rhs.mnx;
                           this->m_data =  &rhs.m_data[0];
-                          this->ismmap =  rhs.ismmap;
                           rhs.mnx      =  0ULL;
                           rhs.m_data   =  NULL;
-                          rhs.ismmap   = false;                      
+                                               
                       }
                                  
                      darray_r2_t(const darray_r2_t &rhs)   noexcept(false)
@@ -1028,7 +848,6 @@ namespace gms
 #endif                  
                            this->mnx = rhs.mnx;
                            this->allocate();
-                           this->ismmap = rhs.ismmap;
                            std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
@@ -1045,21 +864,7 @@ namespace gms
                HW_PMC_COLLECTION_PROLOGE_BODY
 #endif
 
-                          if(this->ismmap == true) 
-                          { 
-                             
-                             int32_t err1{};
-                             err1 = gms_ummap<half_float::half>(this->m_data,this->mnx); this->m_data = NULL;
-                             if(__builtin_expect(err1==-1,0))
-                             {
-#if (FAST_TERMINATE_ON_CRITICAL_ERROR) == 1
-                                __builtin_trap();
-#else
-                                std::terminate();
-#endif                               
-                             }
-                          }
-                          else 
+                          if(__builtin_expect(this->m_data!=NULL,1))
                           {
                              gms_mm_free(this->m_data); this->m_data = NULL;  
                           }  
@@ -1071,19 +876,35 @@ namespace gms
                      }    
                          
                                                                  
-                     darray_r2_t & operator=(const darray_r2_t &) = delete;
+                     darray_r2_t & operator=(const darray_r2_t &rhs) noexcept(false) 
+                     {
+                           using namespace gms::common;
+                           if(__builtin_expect(this==&rhs,0))  {return (*this);}
+#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
+               PMC_VARS                   
+               HW_PMC_COLLECTION_PROLOGE_BODY
+#endif
+                           gms_mm_free(this->m_data);
+                           this->mnx = rhs.mnx;
+                           this->allocate();
+                           std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
+               HW_PMC_COLLECTION_EPILOGE_BODY
+
+               HW_PMC_SHOW_INFO
+#endif
+                            return (*this);
+                     }
                       
                      inline darray_r2_t & operator=(darray_r2_t &&rhs) noexcept(true)
                      {
                            using namespace gms::common;
-                           if(this==&rhs) return (*this);
+                           if(__builtin_expect(this==&rhs,0))  {return (*this);}
                                                                            
                            gms_swap(this->mnx,rhs.mnx);
                            gms_swap(this->m_data,rhs.m_data);
-                           gms_swap(this->ismmap,rhs.ismmap);
                            rhs.mnx       = 0ULL;
                            rhs.m_data    = NULL;
-                           rhs.ismmap    = false;
                            return (*this);
                       }
 
@@ -1127,8 +948,8 @@ namespace gms
                                     << "sizeof(struct  darray_r2_t) = " << sizeof(darray_r2_t)  << '\n'
                                     << std::hex << std::showbase        << '\n'
                                     << "&this->m_data               ="  << (void*)&this->m_data  << "\n"
-                                       "&this->mnx                  ="  << &this->mnx            << "\n"
-                                       "&this->ismmap               ="  << &this->ismmap         << "\n";
+                                       "&this->mnx                  ="  << &this->mnx            << "\n";
+                                      
                      }
                       
                };
@@ -1138,24 +959,13 @@ namespace gms
                       
                       float * __restrict               m_data;
                       std::size_t                      mnx;
-                      std::int32_t                     m_prot;
-                      std::int32_t                     m_flags;
-                      std::int32_t                     m_fd;
-                      long                             m_offset;
-                      std::int32_t                     m_fsize;
-                      bool                             ismmap;
-                      
+                                            
                      inline darray_r4_t() noexcept(true)
                      {
                           
                           this->mnx     = 0ULL;
                           this->m_data  = NULL;
-                          this->m_prot  = 0;
-                          this->m_flags = 0;
-                          this->m_fd    = 0;
-                          this->m_offset= 0;
-                          this->m_fsize = 0;
-                          this->ismmap  = false;          
+                                
                      } 
                           
                      inline explicit darray_r4_t(const std::size_t nx) noexcept(false)
@@ -1167,13 +977,7 @@ namespace gms
 #endif                          
                           this->mnx = nx;
                           allocate();
-                          this->m_prot  = 0;
-                          this->m_flags = 0;
-                          this->m_fd    = 0;
-                          this->m_offset= 0;
-                          this->m_fsize = 0;
-                          this->ismmap  = false;
-
+                         
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -1181,50 +985,7 @@ namespace gms
 #endif
                       }  
                       
-                     inline  darray_r4_t(const std::size_t nx,
-                                         const int32_t prot,
-                                         const int32_t flags,
-                                         const int32_t fd,
-                                         const long offset,
-                                         const int32_t fsize) noexcept(false)
-                     {
-                             using namespace gms::common;
-#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
-               PMC_VARS                   
-               HW_PMC_COLLECTION_PROLOGE_BODY
-#endif
-                             this->mnx     = nx;
-                             this->m_prot  = prot;
-                             this->m_flags = flags;
-                             this->m_fd    = fd;
-                             this->m_offset= offset;
-                             this->m_fsize = fsize;
-                             switch (this->m_fsize) {
-                                 case 0:
-                                      this->m_data = (float*)
-                                                 gms_mmap_4KiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
-                                      this->ismmap = true;
-                                 break;
-                                 case 1:
-                                      this->m_data = (float*)
-                                                 gms_mmap_2MiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
-                                      this->ismmap = true;
-                                 break;
-                                 case 2:
-                                      this->m_data = (float*)
-                                                 gms_mmap_1GiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
-                                      this->ismmap = true;
-                                 break;
-                                 default :
-                                      allocate();
-                                      this->ismmap = false; // do not call mmap!!                        
-                             }   
-#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
-               HW_PMC_COLLECTION_EPILOGE_BODY
-
-               HW_PMC_SHOW_INFO
-#endif       
-                     }
+                    
                       
                      inline darray_r4_t(const std::vector<float> &data) noexcept(false)
                      {    //shall be of the same size (no error checking implemented)
@@ -1236,12 +997,6 @@ namespace gms
 #endif                          
                           this->mnx = data.size();
                           allocate();
-                          this->m_prot  = 0;
-                          this->m_flags = 0;
-                          this->m_fd    = 0;
-                          this->m_offset= 0;
-                          this->m_fsize = 0;
-                          this->ismmap = false;
                           const std::size_t lenx{bytes_mnx()};
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -1261,12 +1016,6 @@ namespace gms
 #endif                         
                           this->mnx = data.size();
                           allocate();
-                          this->m_prot  = 0;
-                          this->m_flags = 0;
-                          this->m_fd    = 0;
-                          this->m_offset= 0;
-                          this->m_fsize = 0;
-                          this->ismmap = false;
                           const std::size_t lenx{bytes_mnx()};
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -1289,12 +1038,6 @@ namespace gms
 #endif                         
                           this->mnx = nx;
                           allocate();
-                          this->m_prot  = 0;
-                          this->m_flags = 0;
-                          this->m_fd    = 0;
-                          this->m_offset= 0;
-                          this->m_fsize = 0;
-                          this->ismmap = false;
                           const std::size_t lenx = sizeof(float)*this->mnx;
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -1309,20 +1052,9 @@ namespace gms
                           
                           this->mnx     =  rhs.mnx;
                           this->m_data  =  &rhs.m_data[0];
-                          this->m_prot  =  rhs.m_prot;
-                          this->m_flags =  rhs.m_flags;
-                          this->m_fd    =  rhs.m_fd;
-                          this->m_offset=  rhs.m_offset;
-                          this->m_fsize =  rhs.m_fsize;
-                          this->ismmap  =  rhs.ismmap;
                           rhs.mnx       =  0ULL;
                           rhs.m_data    =  NULL;
-                          rhs.m_prot    =  0;
-                          rhs.m_flags   =  0;
-                          rhs.m_fd      =  0;
-                          rhs.m_offset  =  0;
-                          rhs.m_fsize   =  0;
-                          rhs.ismmap    =  false;                      
+                                           
                       }
                                  
                      darray_r4_t(const darray_r4_t &rhs)   noexcept(false)
@@ -1332,37 +1064,8 @@ namespace gms
                PMC_VARS                  
                HW_PMC_COLLECTION_PROLOGE_BODY
 #endif                  
-                           this->mnx     = rhs.mnx;
-                           this->m_prot  = rhs.m_prot;
-                           this->m_flags = rhs.m_flags;
-                           this->m_fd    = rhs.m_fd;
-                           this->m_offset= rhs.m_offset;
-                           this->m_fsize = rhs.m_fsize;
-                           this->ismmap  = rhs.ismmap;
-                           if(this->ismmap==true)
-                           {
-                              switch (this->m_fsize) 
-                              {
-                                 case 0:
-                                      this->m_data = (float*)
-                                                 gms_mmap_4KiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
-                                 break;
-                                 case 1:
-                                      this->m_data = (float*)
-                                                 gms_mmap_2MiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
-                                 break;
-                                 case 2:
-                                      this->m_data = (float*)
-                                                 gms_mmap_1GiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
-                                 break;
-                                 default : // do nothing
-                                 break;                      
-                              }   
-                           }
-                           else 
-                           {
-                               this->allocate();
-                           }
+                           this->mnx = rhs.mnx;
+                           this->allocate();
                            std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
@@ -1379,21 +1082,7 @@ namespace gms
                HW_PMC_COLLECTION_PROLOGE_BODY
 #endif
 
-                          if(this->ismmap == true) 
-                          { 
-                             
-                             int32_t err1{};
-                             err1 = gms_ummap<float>(this->m_data,this->mnx); this->m_data = NULL;
-                             if(__builtin_expect(err1==-1,0))
-                             {
-#if (FAST_TERMINATE_ON_CRITICAL_ERROR) == 1
-                                __builtin_trap();
-#else
-                                std::terminate();
-#endif                               
-                             }
-                          }
-                          else 
+                          if(__builtin_expect(this->m_data!=NULL,1))
                           {
                              gms_mm_free(this->m_data); this->m_data = NULL;  
                           }  
@@ -1410,74 +1099,33 @@ namespace gms
                      {
                            using namespace gms::common;
                            if(__builtin_expect(this==&rhs,0)) { return (*this);}
-                           const bool ismmap_true = (this->ismmap==true);
-                                     
-                                 if(ismmap_true) 
-                                 { 
-                             
-                                    int32_t err1{};
-                                    err1 = gms_ummap<float>(this->m_data,this->mnx); this->m_data = NULL;
-                                    if(__builtin_expect(err1==-1,0))
-                                    {
-#if (FAST_TERMINATE_ON_CRITICAL_ERROR) == 1
-                                          __builtin_trap();
-#else
-                                          std::terminate();
-#endif                               
-                                     }
-                                 }
-                                 else 
-                                 {
-                                    gms_mm_free(this->m_data); this->m_data = NULL;  
-                                 }  
-                                 this->mnx     = rhs.mnx;
-                                 this->m_prot  = rhs.m_prot;
-                                 this->m_flags = rhs.m_flags;
-                                 this->m_fd    = rhs.m_fd;
-                                 this->m_offset= rhs.m_offset;
-                                 this->m_fsize = rhs.m_fsize;
-                                 this->ismmap  = rhs.ismmap;
-                                 if(this->ismmap) 
-                                 {
-                                     switch (this->m_fsize) 
-                                     {
-                                         case 0:
-                                             this->m_data = (float*)
-                                                 gms_mmap_4KiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
-                                         break;
-                                         case 1:
-                                             this->m_data = (float*)
-                                                 gms_mmap_2MiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
-                                         break;
-                                         case 2:
-                                             this->m_data = (float*)
-                                                 gms_mmap_1GiB<float>(this->mnx,this->m_prot,this->m_flags,this->m_fd,this->m_offset);
-                                         break;
-                                         default: // do nothing
-                                         break; 
-                                     }
-                                 }
-                                 else 
-                                 {
-                                     this->allocate();
-                                 }
-                                 std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+ #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
+               PMC_VARS                   
+               HW_PMC_COLLECTION_PROLOGE_BODY
+#endif                          
+                           gms_mm_free(this->m_data);
+                           this->mnx = rhs.mnx;
+                           this->allocate();
+                           std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
+               HW_PMC_COLLECTION_EPILOGE_BODY
 
-                         return (*this);
+               HW_PMC_SHOW_INFO
+#endif                           
+                           return (*this);
                      }
 
 
                      inline darray_r4_t & operator=(darray_r4_t &&rhs) noexcept(true)
                      {
                            using namespace gms::common;
-                           if(this==&rhs) return (*this);
+                           if(__builtin_expect(this==&rhs,0)) {return (*this);}
                                                                            
                            gms_swap(this->mnx,rhs.mnx);
                            gms_swap(this->m_data,rhs.m_data);
-                           gms_swap(this->ismmap,rhs.ismmap);
                            rhs.mnx       = 0ULL;
                            rhs.m_data    = NULL;
-                           rhs.ismmap    = false;
+                         
                            return (*this);
                       }
 
@@ -1521,8 +1169,8 @@ namespace gms
                                     << "sizeof(struct  darray_r4_t) = " << sizeof(darray_r4_t)  << '\n'
                                     << std::hex << std::showbase        << '\n'
                                     << "&this->m_data               ="  << (void*)&this->m_data  << "\n"
-                                       "&this->mnx                  ="  << &this->mnx            << "\n"
-                                       "&this->ismmap               ="  << &this->ismmap         << "\n";
+                                       "&this->mnx                  ="  << &this->mnx            << "\n";
+                                     
                      }
                       
                };
@@ -1531,16 +1179,16 @@ namespace gms
                struct alignas(32) darray_r8_t final 
                {
                       
-                      double * __restrict               m_data;
+                      double * __restrict              m_data;
                       std::size_t                      mnx;
-                      bool                             ismmap;
+                      
 
                      inline darray_r8_t() noexcept(true)
                      {
                           
                           this->mnx     = 0ULL;
                           this->m_data  = NULL;
-                          this->ismmap  = false;            
+                                   
                      } 
                           
                      inline explicit darray_r8_t(const std::size_t nx) noexcept(false)
@@ -1552,7 +1200,6 @@ namespace gms
 #endif                         
                           this->mnx = nx;
                           allocate();
-                          this->ismmap = false;
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -1560,45 +1207,7 @@ namespace gms
 #endif
                       }  
                       
-                     inline  darray_r8_t(const std::size_t nx,
-                                         const int32_t prot,
-                                         const int32_t flags,
-                                         const int32_t fd,
-                                         const long offset,
-                                         const int32_t fsize) noexcept(false)
-                     {
-                             using namespace gms::common;
-#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
-               PMC_VARS                   
-               HW_PMC_COLLECTION_PROLOGE_BODY
-#endif
-                             this->mnx = nx;
-                             switch (fsize) {
-                                 case 0:
-                                      this->m_data = (double*)
-                                                 gms_mmap_4KiB<double>(this->mnx,prot,flags,fd,offset);
-                                      this->ismmap = true;
-                                 break;
-                                 case 1:
-                                      this->m_data = (double*)
-                                                 gms_mmap_2MiB<double>(this->mnx,prot,flags,fd,offset);
-                                      this->ismmap = true;
-                                 break;
-                                 case 2:
-                                      this->m_data = (double*)
-                                                 gms_mmap_1GiB<double>(this->mnx,prot,flags,fd,offset);
-                                      this->ismmap = true;
-                                 break;
-                                 default :
-                                      allocate();
-                                      this->ismmap = false; // do not call mmap!!                        
-                             } 
-#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
-               HW_PMC_COLLECTION_EPILOGE_BODY
-
-               HW_PMC_SHOW_INFO
-#endif                                 
-                     }
+                   
                       
                      inline darray_r8_t(const std::vector<double> &data) noexcept(false)
                      {    //shall be of the same size (no error checking implemented)
@@ -1610,7 +1219,6 @@ namespace gms
 #endif                         
                           this->mnx = data.size();
                           allocate();
-                          this->ismmap = false;
                           const std::size_t lenx{bytes_mnx()};
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -1630,7 +1238,6 @@ namespace gms
 #endif
                           this->mnx = data.size();
                           allocate();
-                          this->ismmap = false;
                           const std::size_t lenx{bytes_mnx()};
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -1653,7 +1260,6 @@ namespace gms
 #endif                          
                           this->mnx = nx;
                           allocate();
-                          this->ismmap = false;
                           const std::size_t lenx = sizeof(float)*this->mnx;
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
@@ -1668,10 +1274,9 @@ namespace gms
                           
                           this->mnx    =  rhs.mnx;
                           this->m_data =  &rhs.m_data[0];
-                          this->ismmap =  rhs.ismmap;
                           rhs.mnx      =  0ULL;
                           rhs.m_data   =  NULL;
-                          rhs.ismmap   = false;                     
+                                              
                       }
                                  
                      darray_r8_t(const darray_r8_t &rhs) noexcept(false)
@@ -1683,7 +1288,6 @@ namespace gms
 #endif                  
                            this->mnx = rhs.mnx;
                            this->allocate();
-                           this->ismmap = rhs.ismmap;
                            std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
@@ -1699,20 +1303,8 @@ namespace gms
                PMC_VARS                  
                HW_PMC_COLLECTION_PROLOGE_BODY
 #endif
-                          if(this->ismmap == true) 
-                          { 
-                             int32_t err1{};
-                             err1 = gms_ummap<double>(this->m_data,this->mnx); this->m_data = NULL;
-                             if(__builtin_expect(err1==-1,0))
-                             {
-#if (FAST_TERMINATE_ON_CRITICAL_ERROR) == 1
-                                __builtin_trap();
-#else
-                                std::terminate();
-#endif                               
-                             }
-                          }
-                          else 
+                          
+                          if(__builtin_expect(this->m_data!=NULL,1)) 
                           {
                              gms_mm_free(this->m_data); this->m_data = NULL;  
                           }  
@@ -1724,19 +1316,37 @@ namespace gms
                      }    
                          
                                                                  
-                     darray_r8_t & operator=(const darray_r8_t &) = delete;
+                     darray_r8_t & operator=(const darray_r8_t &rhs) noexcept(false) 
+                     {
+                           using namespace gms::common;
+                           if(__builtin_expect(this==&rhs,0))  {return (*this);}
+#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
+               PMC_VARS                  
+               HW_PMC_COLLECTION_PROLOGE_BODY
+#endif
+                           gms_mm_free(this->m_data);
+                           this->mnx = rhs.mnx;
+                           this->allocate();
+                           std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+#if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
+               HW_PMC_COLLECTION_EPILOGE_BODY
+
+               HW_PMC_SHOW_INFO
+#endif
+                           return (*this);                           
+                     }
                       
                      inline darray_r8_t & operator=(darray_r8_t &&rhs) noexcept(true)
                      {
                            using namespace gms::common;
-                           if(this==&rhs) return (*this);
+                           if(__builtin_expect(this==&rhs,0))  {return (*this);}
                                                                            
                            gms_swap(this->mnx,rhs.mnx);
                            gms_swap(this->m_data,rhs.m_data);
-                           gms_swap(this->ismmap,rhs.ismmap);
+                        
                            rhs.mnx       = 0ULL;
                            rhs.m_data    = NULL;
-                           rhs.ismmap    = false;
+                           
                            return (*this);
                       }
 
@@ -1780,32 +1390,14 @@ namespace gms
                                     << "sizeof(struct  darray_r8_t) = " << sizeof(darray_r8_t)  << '\n'
                                     << std::hex << std::showbase        << '\n'
                                     << "&this->m_data               ="  << (void*)&this->m_data  << "\n"
-                                       "&this->mnx                  ="  << &this->mnx            << "\n"
-                                       "&this->ismmap               ="  << &this->ismmap         << "\n";
+                                       "&this->mnx                  ="  << &this->mnx            << "\n";
+                                      
                      }
                       
                };
 
 
-
-
-
-
-
 } //gms 
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #endif /*__GMS_DYN_ARRAY_H__*/
