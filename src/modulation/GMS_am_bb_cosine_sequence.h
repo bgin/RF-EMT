@@ -99,39 +99,48 @@ namespace radiolocation
                 */
                 std::int32_t 
                 signal_sequence_sse42_u16x(const float         * __restrict__,
-                                           std::int32_t * __restrict__);                                                   
+                                           std::int32_t * __restrict__,
+                                           const std::uint32_t);                                                   
 
                 std::int32_t 
                 signal_sequence_sse42_u10x(const float         * __restrict__,
-                                           std::int32_t * __restrict__);                                                   
+                                           std::int32_t * __restrict__,
+                                           const std::uint32_t);                                                   
 
                 std::int32_t 
                 signal_sequence_sse42_u6x(const float         * __restrict__,
-                                          std::int32_t * __restrict__);
+                                          std::int32_t * __restrict__,
+                                          const std::uint32_t);
 
                 std::int32_t 
                 signal_sequence_avx_u16x(const float         * __restrict__,
-                                         std::int32_t * __restrict__);                                                   
+                                         std::int32_t * __restrict__,
+                                         const std::uint32_t);                                                   
 
                 std::int32_t 
                 signal_sequence_avx_u10x(const float         * __restrict__,
-                                         std::int32_t * __restrict__);                                                   
+                                         std::int32_t * __restrict__,
+                                         const std::uint32_t);                                                   
 
                 std::int32_t 
                 signal_sequence_avx_u6x(const float         * __restrict__,
-                                        std::int32_t * __restrict__);
+                                        std::int32_t * __restrict__,
+                                        const std::uint32_t);
 
                 std::int32_t 
                 signal_sequence_avx512_u16x(const float         * __restrict__,
-                                            std::int32_t * __restrict__);                                                   
+                                            std::int32_t * __restrict__,
+                                            const std::uint32_t);                                                   
 
                 std::int32_t 
                 signal_sequence_avx512_u10x(const float         * __restrict__,
-                                            std::int32_t * __restrict__);                                                   
+                                            std::int32_t * __restrict__,
+                                            const std::uint32_t);                                                   
 
                 std::int32_t 
                 signal_sequence_avx512_u6x(const float         * __restrict__,
-                                           std::int32_t * __restrict__);
+                                           std::int32_t * __restrict__,
+                                           const std::uint32_t);
                                              
           };
            

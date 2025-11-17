@@ -175,7 +175,8 @@ std::int32_t
 gms::radiolocation
 ::am_bb_cos_signal_sequence_t
 ::signal_sequence_sse42_u16x(const float * __restrict__ sym_in ,
-                               std::int32_t * __restrict__ ret_code) 
+                               std::int32_t * __restrict__ ret_code,
+                               const std::uint32_t which_generator) 
 {
         if(__builtin_expect(nullptr==sym_in,0)) {return (-1);}
         if(__builtin_expect(this->m_nsignals>256ull,0)) {return (-2);}
@@ -234,14 +235,33 @@ gms::radiolocation
         std::size_t i;
         float sum_rem{0.0f};
 
-        for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+        switch (which_generator)
         {
+             case 0 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
             
-            ret_code[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
+                            ret_code[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
                                                  static_cast<std::uint32_t>(this->m_nsamples),
                                                  this->m_nK_values.operator[](k));
-           
-        }
+                  }      
+             }     
+             break;
+             case 1 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
+            
+                            ret_code[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data_u4x(sym_in,
+                                                 static_cast<std::uint32_t>(this->m_nsamples),
+                                                 this->m_nK_values.operator[](k));
+                  } 
+             }
+             break;
+             default : 
+                  return (-3);     
+         }
 
         for(i = 0ull; (i+63ull) < this->m_nsamples; i += 64ull) 
         {
@@ -509,7 +529,8 @@ std::int32_t
 gms::radiolocation
 ::am_bb_cos_signal_sequence_t
 ::signal_sequence_sse42_u10x(const float * __restrict__ sym_in ,
-                               std::int32_t * __restrict__ ret_code) 
+                               std::int32_t * __restrict__ ret_code,
+                               const std::uint32_t which_generator) 
 {
         if(__builtin_expect(nullptr==sym_in,0)) {return (-1);}
         if(__builtin_expect(this->m_nsignals>256ull,0)) {return (-2);}
@@ -547,17 +568,36 @@ gms::radiolocation
         __m128 sum7{sum0};
         __m128 sum8{sum0};
         __m128 sum9{sum0};
-        float sum_rem{0.0f};
-        
+        float sum_rem{0.0f};    
         std::size_t i;
-        for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+
+        switch (which_generator)
         {
+             case 0 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
             
-            ret_code[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
+                            ret_code[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
                                                  static_cast<std::uint32_t>(this->m_nsamples),
                                                  this->m_nK_values.operator[](k));
-           
-        }
+                  }      
+             }     
+             break;
+             case 1 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
+            
+                            ret_code[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data_u4x(sym_in,
+                                                 static_cast<std::uint32_t>(this->m_nsamples),
+                                                 this->m_nK_values.operator[](k));
+                  } 
+             }
+             break;
+             default : 
+                  return (-3);     
+         }
 
         for(i = 0ull; (i+39ull) < this->m_nsamples; i += 40ull) 
         {
@@ -741,7 +781,8 @@ std::int32_t
 gms::radiolocation
 ::am_bb_cos_signal_sequence_t
 ::signal_sequence_sse42_u6x(const float * __restrict__ sym_in ,
-                               std::int32_t * __restrict__ ret_code) 
+                               std::int32_t * __restrict__ ret_code,
+                               const std::uint32_t which_generator) // 0 for rolled, 1 for unrolled.
 {
         if(__builtin_expect(nullptr==sym_in,0)) {return (-1);}
         if(__builtin_expect(this->m_nsignals>256ull,0)) {return (-2);}
@@ -770,14 +811,33 @@ gms::radiolocation
         float sum_rem{0.0f};
         std::size_t i;
 
-        for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+        switch (which_generator)
         {
+             case 0 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
             
-            ret_code[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
+                            ret_code[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
                                                  static_cast<std::uint32_t>(this->m_nsamples),
                                                  this->m_nK_values.operator[](k));
-           
-        }
+                  }      
+             }     
+             break;
+             case 1 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
+            
+                            ret_code[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data_u4x(sym_in,
+                                                 static_cast<std::uint32_t>(this->m_nsamples),
+                                                 this->m_nK_values.operator[](k));
+                  } 
+             }
+             break;
+             default : 
+                  return (-3);     
+         }
 
         for(i = 0ull; (i+23ull) < this->m_nsamples; i += 24ull) 
         {
@@ -895,7 +955,8 @@ std::int32_t
 gms::radiolocation 
 ::am_bb_cos_signal_sequence_t
 ::signal_sequence_avx_u16x(const float * __restrict__ sym_in ,
-                             std::int32_t * __restrict__ ret_codes) 
+                             std::int32_t * __restrict__ ret_codes,
+                             const std::uint32_t which_generator) 
 {
         if(__builtin_expect(nullptr==sym_in,0)) {return (-1);}
         if(__builtin_expect(this->m_nsignals>256ull,0)) {return (-2);}
@@ -952,15 +1013,36 @@ gms::radiolocation
         __m256 sum14{sum0};
         __m256 sum15{sum0};
         float sum_rem{0.0f};
-
         std::size_t i;
         // Create a base-band cosine signal components of this sequence.
-        for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+       
+        switch (which_generator)
         {
+             case 0 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
             
-            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
+                            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
                                                  static_cast<std::uint32_t>(this->m_nsamples),
                                                  this->m_nK_values.operator[](k));
+                  }      
+             }     
+             break;
+             case 1 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
+            
+                            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data_u4x(sym_in,
+                                                 static_cast<std::uint32_t>(this->m_nsamples),
+                                                 this->m_nK_values.operator[](k));
+                  } 
+             }
+             break;
+             default : 
+                  return (-3);     
+      
         }
 
         for(i = 0ull; (i+127ull) < this->m_nsamples; i += 128ull) 
@@ -1285,7 +1367,8 @@ std::int32_t
 gms::radiolocation 
 ::am_bb_cos_signal_sequence_t
 ::signal_sequence_avx_u10x(const float * __restrict__ sym_in ,
-                             std::int32_t * __restrict__ ret_codes) 
+                             std::int32_t * __restrict__ ret_codes,
+                             const std::uint32_t which_generator) 
 {
         if(__builtin_expect(nullptr==sym_in,0)) {return (-1);}
         if(__builtin_expect(this->m_nsignals>256ull,0)) {return (-2);}
@@ -1327,13 +1410,33 @@ gms::radiolocation
        
         std::size_t i;
         // Create a base-band cosine signal components of this sequence.
-        for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+        switch (which_generator)
         {
+             case 0 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
             
-            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
+                            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
                                                  static_cast<std::uint32_t>(this->m_nsamples),
                                                  this->m_nK_values.operator[](k));
-        }
+                  }      
+             }     
+             break;
+             case 1 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
+            
+                            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data_u4x(sym_in,
+                                                 static_cast<std::uint32_t>(this->m_nsamples),
+                                                 this->m_nK_values.operator[](k));
+                  } 
+             }
+             break;
+             default : 
+                  return (-3);     
+         }
 
         for(i = 0ull; (i+79ull) < this->m_nsamples; i += 80ull) 
         {
@@ -1526,7 +1629,8 @@ std::int32_t
 gms::radiolocation 
 ::am_bb_cos_signal_sequence_t
 ::signal_sequence_avx_u6x(const float * __restrict__ sym_in ,
-                             std::int32_t * __restrict__ ret_codes) 
+                             std::int32_t * __restrict__ ret_codes,
+                             const std::uint32_t which_generator)  
 {
         if(__builtin_expect(nullptr==sym_in,0)) {return (-1);}
         if(__builtin_expect(this->m_nsignals>256ull,0)) {return (-2);}
@@ -1557,13 +1661,33 @@ gms::radiolocation
 
         std::size_t i;
         // Create a base-band cosine signal components of this sequence.
-        for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+        switch (which_generator)
         {
-            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
+             case 0 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
+            
+                            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
                                                  static_cast<std::uint32_t>(this->m_nsamples),
                                                  this->m_nK_values.operator[](k));
-           
-        }
+                  }      
+             }     
+             break;
+             case 1 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
+            
+                            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data_u4x(sym_in,
+                                                 static_cast<std::uint32_t>(this->m_nsamples),
+                                                 this->m_nK_values.operator[](k));
+                  } 
+             }
+             break;
+             default : 
+                  return (-3);     
+         }
 
         for(i = 0ull; (i+47ull) < this->m_nsamples; i += 48ull) 
         {
@@ -1693,7 +1817,8 @@ std::int32_t
 gms::radiolocation 
 ::am_bb_cos_signal_sequence_t
 ::signal_sequence_avx512_u16x(const float * __restrict__ sym_in ,
-                                std::int32_t * __restrict__ ret_codes) 
+                                std::int32_t * __restrict__ ret_codes,
+                                const std::uint32_t which_generator)  
 {
         if(__builtin_expect(nullptr==sym_in,0)) {return (-1);}
         if(__builtin_expect(this->m_nsignals>256ull,0)) {return (-2);}
@@ -1753,13 +1878,33 @@ gms::radiolocation
 
         std::size_t i;
         // Create a base-band cosine signal components of this sequence.
-        for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+        switch (which_generator)
         {
+             case 0 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
             
-            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
+                            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
                                                  static_cast<std::uint32_t>(this->m_nsamples),
                                                  this->m_nK_values.operator[](k));
-        }
+                  }      
+             }     
+             break;
+             case 1 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
+            
+                            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data_u4x(sym_in,
+                                                 static_cast<std::uint32_t>(this->m_nsamples),
+                                                 this->m_nK_values.operator[](k));
+                  } 
+             }
+             break;
+             default : 
+                  return (-3);     
+         }
 
         for(i = 0ull; (i+255ull) < this->m_nsamples; i += 256ull) 
         {
@@ -2081,7 +2226,8 @@ std::int32_t
 gms::radiolocation 
 ::am_bb_cos_signal_sequence_t
 ::signal_sequence_avx512_u10x(const float * __restrict__ sym_in ,
-                              std::int32_t * __restrict__ ret_codes) 
+                              std::int32_t * __restrict__ ret_codes,
+                              const std::uint32_t which_generator) 
 {
         if(__builtin_expect(nullptr==sym_in,0)) {return (-1);}
         if(__builtin_expect(this->m_nsignals>256ull,0)) {return (-2);}
@@ -2123,13 +2269,33 @@ gms::radiolocation
 
         std::size_t i;
         // Create a base-band cosine signal components of this sequence.
-        for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+        switch (which_generator)
         {
+             case 0 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
             
-            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
+                            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
                                                  static_cast<std::uint32_t>(this->m_nsamples),
                                                  this->m_nK_values.operator[](k));
-        }
+                  }      
+             }     
+             break;
+             case 1 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
+            
+                            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data_u4x(sym_in,
+                                                 static_cast<std::uint32_t>(this->m_nsamples),
+                                                 this->m_nK_values.operator[](k));
+                  } 
+             }
+             break;
+             default : 
+                  return (-3);     
+         }
 
         for(i = 0ull; (i+159ull) < this->m_nsamples; i += 160ull) 
         {
@@ -2313,7 +2479,8 @@ std::int32_t
 gms::radiolocation 
 ::am_bb_cos_signal_sequence_t
 ::signal_sequence_avx512_u6x(const float * __restrict__ sym_in ,
-                              std::int32_t * __restrict__ ret_codes) 
+                              std::int32_t * __restrict__ ret_codes,
+                              const std::uint32_t which_generator) 
 {
         if(__builtin_expect(nullptr==sym_in,0)) {return (-1);}
         if(__builtin_expect(this->m_nsignals>256ull,0)) {return (-2);}
@@ -2342,14 +2509,34 @@ gms::radiolocation
         float sum_rem{0.0f};
 
         std::size_t i;
-        // Create a base-band cosine signal components of this sequence.
-        for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+        // Create a base-band cosine signal components of this sequence.        
+        switch (which_generator)
         {
+             case 0 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
             
-            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
+                            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data(sym_in,
                                                  static_cast<std::uint32_t>(this->m_nsamples),
                                                  this->m_nK_values.operator[](k));
-        }
+                  }      
+             }     
+             break;
+             case 1 :
+             {
+                  for(std::size_t k{0ull}; k != this->m_nsignals; ++k) 
+                  {
+            
+                            ret_codes[k] = this->m_bb_cos_signals.operator[](k).create_signal_user_data_u4x(sym_in,
+                                                 static_cast<std::uint32_t>(this->m_nsamples),
+                                                 this->m_nK_values.operator[](k));
+                  } 
+             }
+             break;
+             default : 
+                  return (-3);     
+         }
 
         for(i = 0ull; (i+95ull) < this->m_nsamples; i += 96ull) 
         {
