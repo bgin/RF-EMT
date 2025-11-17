@@ -35,6 +35,7 @@ void unit_test_am_bb_cosine_sequence_rand_data_avx_u16x()
      std::vector<float> P_values          = std::vector<float>(nsignals);
      std::vector<std::uint32_t> nK_values = std::vector<std::uint32_t>(nsignals);
      std::vector<std::int32_t>  ret_codes = std::vector<std::int32_t>(nsignals);
+     std::clock_t seed_func{};
      for(std::size_t i{0}; i != nsignals; ++i) 
      {
          A_values.operator[](i)  = A;
@@ -78,7 +79,10 @@ void unit_test_am_bb_cosine_sequence_rand_data_avx_u16x()
           //std::printf("%.7f\n",I_sym.m_data[__i]);
      }
      std::printf("[UNIT-TEST:] -- Calling  cosine wave components modulated by the user data -- vertically summed sequence.\n");
-     std::int32_t ret_stat = cos_sequence.signal_sequence_avx_u16x(&I_sym.m_data[0],&ret_codes.operator[](0)); 
+     seed_func = std::clock();
+     auto rand_func{std::bind(std::uniform_int_distribution<std::uint32_t>(0,1),std::mt19937(seed_func))};
+     const std::uint32_t which_func{rand_func()};
+     std::int32_t ret_stat = cos_sequence.signal_sequence_avx_u16x(&I_sym.m_data[0],&ret_codes.operator[](0),which_func); 
      if(ret_stat<0) { 
         std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_avx_u16x stat=%d\n",ret_stat);
         return;
@@ -158,7 +162,7 @@ void check_fp_approx_equality(const float * __restrict__ sig_orig,
      {
           const float so{sig_orig[i]};
           const float sr{sig_ref[i]};
-          const bool approx_equal{approximatelyEqual(so,sr,std::numeric_limits<float>::epsilon())};
+          const bool approx_equal{approximatelyEqual(so,sr,std::numeric_limits<double>::epsilon())};
           if(!approx_equal)
           {    
                const float delta{so-sr};
@@ -253,7 +257,7 @@ void unit_test_am_bb_cosine_sequence_correctness_avx_u16x()
           //std::printf("%.7f\n",I_sym.m_data[__i]);
      }
      //cos_sequence.signal_sequence_avx_u16x_u(&I_sym.m_data[0],&ret_codes.operator[](0)); 
-     std::int32_t ret_stat = cos_sequence.signal_sequence_avx_u16x(&I_sym.m_data[0],&ret_codes.operator[](0));
+     std::int32_t ret_stat = cos_sequence.signal_sequence_avx_u16x(&I_sym.m_data[0],&ret_codes.operator[](0),0);
      if(ret_stat<0) { 
         std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_avx_u16x stat=%d\n",ret_stat);
         return;
@@ -369,7 +373,7 @@ void unit_test_am_bb_cosine_sequence_correctness_avx_u10x()
           //std::printf("%.7f\n",I_sym.m_data[__i]);
      }
      //cos_sequence.signal_sequence_avx_u16x_u(&I_sym.m_data[0],&ret_codes.operator[](0)); 
-     std::int32_t ret_stat = cos_sequence.signal_sequence_avx_u10x(&I_sym.m_data[0],&ret_codes.operator[](0));
+     std::int32_t ret_stat = cos_sequence.signal_sequence_avx_u10x(&I_sym.m_data[0],&ret_codes.operator[](0),0);
      if(ret_stat<0) { 
         std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_avx_u10x stat=%d\n",ret_stat);
         return;
@@ -485,7 +489,7 @@ void unit_test_am_bb_cosine_sequence_correctness_avx_u6x()
           //std::printf("%.7f\n",I_sym.m_data[__i]);
      }
      //cos_sequence.signal_sequence_avx_u16x_u(&I_sym.m_data[0],&ret_codes.operator[](0)); 
-     std::int32_t ret_stat = cos_sequence.signal_sequence_avx_u6x(&I_sym.m_data[0],&ret_codes.operator[](0));
+     std::int32_t ret_stat = cos_sequence.signal_sequence_avx_u6x(&I_sym.m_data[0],&ret_codes.operator[](0),0);
      if(ret_stat<0) { 
         std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_avx_u6x stat=%d\n",ret_stat);
         return;
@@ -536,6 +540,7 @@ void unit_test_am_bb_cosine_sequence_varying_params_avx_u16x()
      std::clock_t seed_A;
      std::clock_t seed_n;
      std::clock_t seed_P;
+     std::clock_t seed_func{};
      seed_A = std::clock();
      auto rand_A{std::bind(std::uniform_real_distribution<float>(0.01f,1.0f),std::mt19937(seed_A))};
      seed_n = std::clock();
@@ -585,7 +590,10 @@ void unit_test_am_bb_cosine_sequence_varying_params_avx_u16x()
           //std::printf("%.7f\n",I_sym.m_data[__i]);
      }
      std::printf("[UNIT-TEST:] -- Calling  cosine wave components modulated by the user data -- vertically summed sequence.\n");
-     std::int32_t ret_stat = cos_sequence.signal_sequence_avx_u16x(&I_sym.m_data[0],&ret_codes.operator[](0));  
+     seed_func = std::clock();
+     auto rand_func{std::bind(std::uniform_int_distribution<std::uint32_t>(0,1),std::mt19937(seed_func))};
+     const std::uint32_t which_func{rand_func()};
+     std::int32_t ret_stat = cos_sequence.signal_sequence_avx_u16x(&I_sym.m_data[0],&ret_codes.operator[](0),which_func);  
      if(ret_stat<0) { 
         std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_avx_u16x stat=%d\n",ret_stat);
         return;
@@ -626,6 +634,7 @@ void unit_test_am_bb_cosine_sequence_rand_data_avx_u10x()
      std::vector<float> P_values          = std::vector<float>(nsignals);
      std::vector<std::uint32_t> nK_values = std::vector<std::uint32_t>(nsignals);
      std::vector<std::int32_t>  ret_codes = std::vector<std::int32_t>(nsignals);
+     std::clock_t seed_func{};
      for(std::size_t i{0}; i != nsignals; ++i) 
      {
          A_values.operator[](i)  = A;
@@ -670,7 +679,10 @@ void unit_test_am_bb_cosine_sequence_rand_data_avx_u10x()
           //std::printf("%.7f\n",I_sym.m_data[__i]);
      }
      std::printf("[UNIT-TEST:] -- Calling  cosine wave components modulated by the user data -- vertically summed sequence.\n");
-     std::int32_t ret_stat = cos_sequence.signal_sequence_avx_u10x(&I_sym.m_data[0],&ret_codes.operator[](0)); 
+     seed_func = std::clock();
+     auto rand_func{std::bind(std::uniform_int_distribution<std::uint32_t>(0,1),std::mt19937(seed_func))};
+     const std::uint32_t which_func{rand_func()};
+     std::int32_t ret_stat = cos_sequence.signal_sequence_avx_u10x(&I_sym.m_data[0],&ret_codes.operator[](0),which_func); 
      if(ret_stat<0) { 
         std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_avx_u10x stat=%d\n",ret_stat);
         return;
@@ -703,6 +715,7 @@ void unit_test_am_bb_cosine_sequence_rand_data_avx_u6x()
      std::vector<float> P_values          = std::vector<float>(nsignals);
      std::vector<std::uint32_t> nK_values = std::vector<std::uint32_t>(nsignals);
      std::vector<std::int32_t>  ret_codes = std::vector<std::int32_t>(nsignals);
+     std::clock_t seed_func{};
      for(std::size_t i{0}; i != nsignals; ++i) 
      {
          A_values.operator[](i)  = A;
@@ -746,7 +759,10 @@ void unit_test_am_bb_cosine_sequence_rand_data_avx_u6x()
           //std::printf("%.7f\n",I_sym.m_data[__i]);
      }
      std::printf("[UNIT-TEST:] -- Calling  cosine wave components modulated by the user data -- vertically summed sequence.\n");
-     std::int32_t ret_stat = cos_sequence.signal_sequence_avx_u6x(&I_sym.m_data[0],&ret_codes.operator[](0));  
+     seed_func = std::clock();
+     auto rand_func{std::bind(std::uniform_int_distribution<std::uint32_t>(0,1),std::mt19937(seed_func))};
+     const std::uint32_t which_func{rand_func()};
+     std::int32_t ret_stat = cos_sequence.signal_sequence_avx_u6x(&I_sym.m_data[0],&ret_codes.operator[](0),which_func);  
      if(ret_stat<0) { 
         std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_avx_u6x stat=%d\n",ret_stat);
         return;

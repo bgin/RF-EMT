@@ -3,22 +3,23 @@
 #include <ctime>
 #include <random>
 #include <functional>
+#include <cmath>
 #include "GMS_dyn_array.h"
-#include "GMS_am_bb_cosine_sequence.h"
+#include "GMS_am_bb_sine_sequence.h"
 
 /*
-   icpc -o unit_test_am_bb_cosine_sequence_sse -O3 -fp-model fast=2 -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
-   GMS_config.h GMS_malloc.h GMS_fast_pmc_access.h GMS_half.h GMS_dyn_array.h GMS_sse_memset.h GMS_sse_memset.cpp GMS_cephes_sin_cos.h GMS_indices.h GMS_am_bb_cosine_signal.h GMS_am_bb_cosine_signal.cpp GMS_am_bb_cosine_sequence.h GMS_am_bb_cosine_sequence.cpp unit_test_am_bb_cosine_sequence_sse.cpp
+   icpc -o unit_test_am_bb_sine_sequence_avx512 -O3 -fp-model fast=2 -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
+   GMS_config.h GMS_malloc.h GMS_fast_pmc_access.h GMS_half.h GMS_dyn_array.h GMS_sse_memset.h GMS_sse_memset.cpp GMS_cephes_sin_cos.h GMS_indices.h GMS_am_bb_cosine_signal.h GMS_am_bb_cosine_signal.cpp GMS_am_bb_sine_sequence.h GMS_am_bb_sine_sequence.cpp unit_test_am_bb_sine_sequence_avx512.cpp
    ASM: 
-   icpc -S --O3 fverbose-asm -masm=intel  -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_malloc.h GMS_fast_pmc_access.h  GMS_half.h GMS_dyn_array.h GMS_sse_memset.h GMS_sse_memset.cpp GMS_cephes_sin_cos.h GMS_indices.h GMS_am_bb_cosine_sequence.h GMS_am_bb_cosine_sequence.cpp unit_test_am_bb_cosine_sequence_sse.cpp
+   icpc -S --O3 fverbose-asm -masm=intel  -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_malloc.h GMS_fast_pmc_access.h  GMS_half.h GMS_dyn_array.h GMS_sse_memset.h GMS_sse_memset.cpp GMS_cephes_sin_cos.h GMS_indices.h GMS_am_bb_sine_sequence.h GMS_am_bb_sine_sequence.cpp unit_test_am_bb_sine_sequence_avx512.cpp
 
 */
 
 __attribute__((hot))
 __attribute__((noinline))
-void unit_test_am_bb_cosine_sequence_rand_data_sse42_u16x();
+void unit_test_am_bb_sine_sequence_rand_data_avx512_u16x();
 
-void unit_test_am_bb_cosine_sequence_rand_data_sse42_u16x()
+void unit_test_am_bb_sine_sequence_rand_data_avx512_u16x()
 {
      using namespace gms::radiolocation;
      using namespace gms;
@@ -34,7 +35,6 @@ void unit_test_am_bb_cosine_sequence_rand_data_sse42_u16x()
      std::vector<float> P_values          = std::vector<float>(nsignals);
      std::vector<std::uint32_t> nK_values = std::vector<std::uint32_t>(nsignals);
      std::vector<std::int32_t>  ret_codes = std::vector<std::int32_t>(nsignals);
-     std::clock_t seed_func{};
      for(std::size_t i{0}; i != nsignals; ++i) 
      {
          A_values.operator[](i)  = A;
@@ -48,11 +48,11 @@ void unit_test_am_bb_cosine_sequence_rand_data_sse42_u16x()
      int32_t status{};
      //__asm__ ("int3");
      printf("[UNIT_TEST]: function=%s -- **START**\n", __PRETTY_FUNCTION__);
-     am_bb_cos_signal_sequence_t cos_sequence = am_bb_cos_signal_sequence_t(I_n_samples,
+     am_bb_sine_signal_sequence_t sin_sequence = am_bb_sine_signal_sequence_t(I_n_samples,
                                                                              nsignals,nK_values,
                                                                              n_values,A_values,P_values);
      I_sym = darray_r4_t(I_sym_len);
-     char * ctor_name{gms::common::demangle(typeid(cos_sequence).name(),status)};
+     char * ctor_name{gms::common::demangle(typeid(sin_sequence).name(),status)};
      if(status==0 && ctor_name != NULL)
      {
           printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", ctor_name);
@@ -60,14 +60,10 @@ void unit_test_am_bb_cosine_sequence_rand_data_sse42_u16x()
      }
      else
      {
-          printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", typeid(cos_sequence).name());
+          printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", typeid(sin_sequence).name());
           if(ctor_name != NULL) gms::common::gms_mm_free(ctor_name);
      }   
-     //std::printf("[UNIT-TEST:] -- I_n_samples=%llu,I_n_K=%d,Q_n_samples=%llu,Q_n_K=%d\n\n",__cmplx_trapw_env__.__I_n_samples__,
-     //            __cmplx_trapw_env__.__I_n_K__,__cmplx_trapw_env__.__Q_n_samples__,__cmplx_trapw_env__.__Q_n_K__);
-
-     //std::printf("[UNIT-TEST:] -- Dumping an array members info and alignment.\n");
-     //symbol_1.m_sig_samples.info_size_alignment();
+    
      std::printf("[UNIT-TEST:] -- Generating random symbol data: I_channel(-1,1)\n");
      seed_I = std::clock();
      auto rand_sym_I{std::bind(std::uniform_real_distribution<float>(-1.0f,1.0f),std::mt19937(seed_I))};
@@ -77,19 +73,16 @@ void unit_test_am_bb_cosine_sequence_rand_data_sse42_u16x()
           I_sym.m_data[__i] = rand_sym_I();
           //std::printf("%.7f\n",I_sym.m_data[__i]);
      }
-     std::printf("[UNIT-TEST:] -- Calling  cosine wave components modulated by the user data -- vertically summed sequence.\n");
-     seed_func = std::clock();
-     auto rand_func{std::bind(std::uniform_int_distribution<std::uint32_t>(0,1),std::mt19937(seed_func))};
-     const std::uint32_t which_func{rand_func()};
-     std::int32_t ret_stat = cos_sequence.signal_sequence_sse42_u16x(&I_sym.m_data[0],&ret_codes.operator[](0),which_func); 
+     std::printf("[UNIT-TEST:] -- Calling  sine wave components modulated by the user data -- vertically summed sequence.\n");
+     std::int32_t ret_stat = sin_sequence.signal_sequence_avx512_u16x(&I_sym.m_data[0],&ret_codes.operator[](0),1); 
      if(ret_stat<0) { 
-        std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_sse42_u16x stat=%d\n",ret_stat);
+        std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_avx512_u16x stat=%d\n",ret_stat);
         return;
      }    
      //std::cout << __cmplx_trapw_env__ << std::endl;
      std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n");
-     am_bb_cos_signal_sequence_t::create_sequence_plot(cos_sequence.m_nsamples,&cos_sequence.m_vsummed_sequence.operator[](0),nullptr,
-                                              "am_bb_cosine_sequence_sse42_u16x_rand_data_test_1_","AM-BB_Cosine_Signals_Sequence",false);
+     am_bb_sine_signal_sequence_t::create_sequence_plot(sin_sequence.m_nsamples,&sin_sequence.m_vsummed_sequence.operator[](0),nullptr,
+                                              "am_bb_sine_sequence_avx512_u16x_rand_data_test_1_","AM-BB_sine_Signals_Sequence",false);
      
      printf("[UNIT_TEST]: function=%s -- **END**\n", __PRETTY_FUNCTION__);
 }
@@ -173,9 +166,9 @@ void check_fp_approx_equality(const float * __restrict__ sig_orig,
 
 __attribute__((hot))
 __attribute__((noinline))
-void unit_test_am_bb_cosine_sequence_correctness_sse42_u16x();
+void unit_test_am_bb_sine_sequence_correctness_avx512_u16x();
 
-void unit_test_am_bb_cosine_sequence_correctness_sse42_u16x()
+void unit_test_am_bb_sine_sequence_correctness_avx512_u16x()
 {
      using namespace gms::radiolocation;
      using namespace gms;
@@ -204,7 +197,7 @@ void unit_test_am_bb_cosine_sequence_correctness_sse42_u16x()
      std::vector<float> P_values          = std::vector<float>(nsignals);
      std::vector<std::uint32_t> nK_values = std::vector<std::uint32_t>(nsignals);
      std::vector<std::int32_t>  ret_codes = std::vector<std::int32_t>(nsignals);
-     
+     std::clock_t seed_func{};
      for(std::size_t i{0}; i != nsignals; ++i) 
      {
          A_values.operator[](i)  = A;
@@ -218,19 +211,19 @@ void unit_test_am_bb_cosine_sequence_correctness_sse42_u16x()
      int32_t status{};
      //__asm__ ("int3");
      printf("[UNIT_TEST]: function=%s -- **START**\n\n", __PRETTY_FUNCTION__);
-     am_bb_cos_signal_sequence_t cos_sequence = am_bb_cos_signal_sequence_t(I_n_samples,
+     am_bb_sine_signal_sequence_t sin_sequence = am_bb_sine_signal_sequence_t(I_n_samples,
                                                                              nsignals,nK_values,
                                                                              n_values,A_values,P_values);
-     am_bb_cosine_signal_t symbol_1 = am_bb_cosine_signal_t(I_n_samples,I_n_K,n,A,P);
-     am_bb_cosine_signal_t symbol_2 = am_bb_cosine_signal_t(I_n_samples,I_n_K,n,A,P);
-     am_bb_cosine_signal_t symbol_3 = am_bb_cosine_signal_t(I_n_samples,I_n_K,n,A,P);
-     am_bb_cosine_signal_t symbol_4 = am_bb_cosine_signal_t(I_n_samples,I_n_K,n,A,P);
+     am_bb_sine_signal_t symbol_1 = am_bb_sine_signal_t(I_n_samples,I_n_K,n,A,P);
+     am_bb_sine_signal_t symbol_2 = am_bb_sine_signal_t(I_n_samples,I_n_K,n,A,P);
+     am_bb_sine_signal_t symbol_3 = am_bb_sine_signal_t(I_n_samples,I_n_K,n,A,P);
+     am_bb_sine_signal_t symbol_4 = am_bb_sine_signal_t(I_n_samples,I_n_K,n,A,P);
           
      I_sym = darray_r4_t(I_sym_len);
      sig_vsum_reference = darray_r4_t(I_n_samples);
      std::printf("[UNIT-TEST] -- Number of samples=%llu,number of narrowband signals=%d,number of baseband signals=%llu\n\n",
                             I_n_samples,I_n_K,nsignals);
-     char * ctor_name{gms::common::demangle(typeid(cos_sequence).name(),status)};
+     char * ctor_name{gms::common::demangle(typeid(sin_sequence).name(),status)};
      if(status==0 && ctor_name != NULL)
      {
           printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", ctor_name);
@@ -238,14 +231,10 @@ void unit_test_am_bb_cosine_sequence_correctness_sse42_u16x()
      }
      else
      {
-          printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", typeid(cos_sequence).name());
+          printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", typeid(sin_sequence).name());
           if(ctor_name != NULL) gms::common::gms_mm_free(ctor_name);
      }   
-     //std::printf("[UNIT-TEST:] -- I_n_samples=%llu,I_n_K=%d,Q_n_samples=%llu,Q_n_K=%d\n\n",__cmplx_trapw_env__.__I_n_samples__,
-     //            __cmplx_trapw_env__.__I_n_K__,__cmplx_trapw_env__.__Q_n_samples__,__cmplx_trapw_env__.__Q_n_K__);
-
-     //std::printf("[UNIT-TEST:] -- Dumping an array members info and alignment.\n");
-     //symbol_1.m_sig_samples.info_size_alignment();
+    
      std::printf("[UNIT-TEST:] -- Generating random symbol data: I_channel(-1,1)\n\n");
      seed_I = std::clock();
      auto rand_sym_I{std::bind(std::uniform_real_distribution<float>(-1.0f,1.0f),std::mt19937(seed_I))};
@@ -255,17 +244,34 @@ void unit_test_am_bb_cosine_sequence_correctness_sse42_u16x()
           I_sym.m_data[__i] = rand_sym_I();
           //std::printf("%.7f\n",I_sym.m_data[__i]);
      }
+     seed_func = std::clock();
+     auto rand_func{std::bind(std::uniform_int_distribution<std::uint32_t>(0,1),std::mt19937(seed_func))};
+     const std::uint32_t which_func{rand_func()};
      //cos_sequence.signal_sequence_avx_u16x_u(&I_sym.m_data[0],&ret_codes.operator[](0)); 
-     std::int32_t ret_stat = cos_sequence.signal_sequence_sse42_u16x(&I_sym.m_data[0],&ret_codes.operator[](0),0);
+     std::int32_t ret_stat = sin_sequence.signal_sequence_avx512_u16x(&I_sym.m_data[0],&ret_codes.operator[](0),which_func);
      if(ret_stat<0) { 
-        std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_sse42_u16x stat=%d\n",ret_stat);
+        std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_avx512_u16x stat=%d\n",ret_stat);
         return;
      }
-     std::printf("[UNIT-TEST:] -- Calling  cosine wave components modulated by the user data -- vertically summed sequence (REFERENCE!!).\n\n");
-     symbol_1.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
-     symbol_2.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K); 
-     symbol_3.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
-     symbol_4.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
+     std::printf("[UNIT-TEST:] -- Calling  sine wave components modulated by the user data -- vertically summed sequence (REFERENCE!!).\n\n");
+     switch (which_func) 
+     {
+     case 0 : 
+         symbol_1.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
+         symbol_2.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K); 
+         symbol_3.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
+         symbol_4.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
+     break;
+     case 1 : 
+         symbol_1.create_signal_user_data_u4x(&I_sym.m_data[0],I_n_samples,I_n_K);
+         symbol_2.create_signal_user_data_u4x(&I_sym.m_data[0],I_n_samples,I_n_K); 
+         symbol_3.create_signal_user_data_u4x(&I_sym.m_data[0],I_n_samples,I_n_K);
+         symbol_4.create_signal_user_data_u4x(&I_sym.m_data[0],I_n_samples,I_n_K);
+     break;
+     default : 
+         std::printf("wrong case argument=%d\n",which_func);
+         return;
+     }
      
      signal_sequence_vertical_summation(&symbol_1.m_sig_samples.m_data[0],
                                         &symbol_2.m_sig_samples.m_data[0],
@@ -273,23 +279,23 @@ void unit_test_am_bb_cosine_sequence_correctness_sse42_u16x()
                                         &symbol_4.m_sig_samples.m_data[0],
                                         &sig_vsum_reference.m_data[0],
                                         I_n_samples);
-     check_fp_approx_equality(&cos_sequence.m_vsummed_sequence.operator[](0),
+     check_fp_approx_equality(&sin_sequence.m_vsummed_sequence.operator[](0),
                              &sig_vsum_reference.m_data[0],I_n_samples);
      //std::cout << __cmplx_trapw_env__ << std::endl;
      std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n\n");
-     am_bb_cos_signal_sequence_t::create_sequence_plot(cos_sequence.m_nsamples,&cos_sequence.m_vsummed_sequence.operator[](0),nullptr,
-                                              "am_bb_cosine_sequence_sse42_u16x_correctness_test_1_","AM-BB_Cosine_Signals_Sequence",false);
-     am_bb_cos_signal_sequence_t::create_sequence_plot(I_n_samples,&sig_vsum_reference.m_data[0],nullptr,
-                                               "am_bb_cosine_signal_reference_vsumm_u16x_test_1_","AM-BB_Cosine_Signals_Sequence",false);
+     am_bb_sine_signal_sequence_t::create_sequence_plot(sin_sequence.m_nsamples,&sin_sequence.m_vsummed_sequence.operator[](0),nullptr,
+                                              "am_bb_sine_sequence_avx512_u16x_correctness_test_1_","AM-BB_sine_Signals_Sequence",false);
+     am_bb_sine_signal_sequence_t::create_sequence_plot(I_n_samples,&sig_vsum_reference.m_data[0],nullptr,
+                                               "am_bb_sine_signal_reference_vsumm_u16x_test_1_","AM-BB_sine_Signals_Sequence",false);
      
      printf("[UNIT_TEST]: function=%s -- **END**\n\n", __PRETTY_FUNCTION__);
 }
 
 __attribute__((hot))
 __attribute__((noinline))
-void unit_test_am_bb_cosine_sequence_correctness_sse42_u10x();
+void unit_test_am_bb_sine_sequence_correctness_avx512_u10x();
 
-void unit_test_am_bb_cosine_sequence_correctness_sse42_u10x()
+void unit_test_am_bb_sine_sequence_correctness_avx512_u10x()
 {
      using namespace gms::radiolocation;
      using namespace gms;
@@ -320,7 +326,7 @@ void unit_test_am_bb_cosine_sequence_correctness_sse42_u10x()
      std::vector<float> P_values          = std::vector<float>(nsignals);
      std::vector<std::uint32_t> nK_values = std::vector<std::uint32_t>(nsignals);
      std::vector<std::int32_t>  ret_codes = std::vector<std::int32_t>(nsignals);
-     
+     std::clock_t seed_func{};
      for(std::size_t i{0}; i != nsignals; ++i) 
      {
          A_values.operator[](i)  = A;
@@ -334,19 +340,19 @@ void unit_test_am_bb_cosine_sequence_correctness_sse42_u10x()
      int32_t status{};
      //__asm__ ("int3");
      printf("[UNIT_TEST]: function=%s -- **START**\n\n", __PRETTY_FUNCTION__);
-     am_bb_cos_signal_sequence_t cos_sequence = am_bb_cos_signal_sequence_t(I_n_samples,
+     am_bb_sine_signal_sequence_t sin_sequence = am_bb_sine_signal_sequence_t(I_n_samples,
                                                                              nsignals,nK_values,
                                                                              n_values,A_values,P_values);
-     am_bb_cosine_signal_t symbol_1 = am_bb_cosine_signal_t(I_n_samples,I_n_K,n,A,P);
-     am_bb_cosine_signal_t symbol_2 = am_bb_cosine_signal_t(I_n_samples,I_n_K,n,A,P);
-     am_bb_cosine_signal_t symbol_3 = am_bb_cosine_signal_t(I_n_samples,I_n_K,n,A,P);
-     am_bb_cosine_signal_t symbol_4 = am_bb_cosine_signal_t(I_n_samples,I_n_K,n,A,P);
+     am_bb_sine_signal_t symbol_1 = am_bb_sine_signal_t(I_n_samples,I_n_K,n,A,P);
+     am_bb_sine_signal_t symbol_2 = am_bb_sine_signal_t(I_n_samples,I_n_K,n,A,P);
+     am_bb_sine_signal_t symbol_3 = am_bb_sine_signal_t(I_n_samples,I_n_K,n,A,P);
+     am_bb_sine_signal_t symbol_4 = am_bb_sine_signal_t(I_n_samples,I_n_K,n,A,P);
           
      I_sym = darray_r4_t(I_sym_len);
      sig_vsum_reference = darray_r4_t(I_n_samples);
      std::printf("[UNIT-TEST] -- Number of samples=%llu,number of narrowband signals=%d,number of baseband signals=%llu\n\n",
                             I_n_samples,I_n_K,nsignals);
-     char * ctor_name{gms::common::demangle(typeid(cos_sequence).name(),status)};
+     char * ctor_name{gms::common::demangle(typeid(sin_sequence).name(),status)};
      if(status==0 && ctor_name != NULL)
      {
           printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", ctor_name);
@@ -354,14 +360,10 @@ void unit_test_am_bb_cosine_sequence_correctness_sse42_u10x()
      }
      else
      {
-          printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", typeid(cos_sequence).name());
+          printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", typeid(sin_sequence).name());
           if(ctor_name != NULL) gms::common::gms_mm_free(ctor_name);
      }   
-     //std::printf("[UNIT-TEST:] -- I_n_samples=%llu,I_n_K=%d,Q_n_samples=%llu,Q_n_K=%d\n\n",__cmplx_trapw_env__.__I_n_samples__,
-     //            __cmplx_trapw_env__.__I_n_K__,__cmplx_trapw_env__.__Q_n_samples__,__cmplx_trapw_env__.__Q_n_K__);
-
-     //std::printf("[UNIT-TEST:] -- Dumping an array members info and alignment.\n");
-     //symbol_1.m_sig_samples.info_size_alignment();
+    
      std::printf("[UNIT-TEST:] -- Generating random symbol data: I_channel(-1,1)\n\n");
      seed_I = std::clock();
      auto rand_sym_I{std::bind(std::uniform_real_distribution<float>(-1.0f,1.0f),std::mt19937(seed_I))};
@@ -372,40 +374,56 @@ void unit_test_am_bb_cosine_sequence_correctness_sse42_u10x()
           //std::printf("%.7f\n",I_sym.m_data[__i]);
      }
      //cos_sequence.signal_sequence_avx_u16x_u(&I_sym.m_data[0],&ret_codes.operator[](0)); 
-     std::int32_t ret_stat = cos_sequence.signal_sequence_sse42_u10x(&I_sym.m_data[0],&ret_codes.operator[](0),0);
+     seed_func = std::clock();
+     auto rand_func{std::bind(std::uniform_int_distribution<std::uint32_t>(0,1),std::mt19937(seed_func))};
+     const std::uint32_t which_func{rand_func()};
+     std::int32_t ret_stat = sin_sequence.signal_sequence_avx512_u10x(&I_sym.m_data[0],&ret_codes.operator[](0),which_func);
      if(ret_stat<0) { 
-        std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_sse42_u10x stat=%d\n",ret_stat);
+        std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_avx512_u10x stat=%d\n",ret_stat);
         return;
      } 
-     std::printf("[UNIT-TEST:] -- Calling  cosine wave components modulated by the user data -- vertically summed sequence (REFERENCE!!).\n\n");
-     symbol_1.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
-     symbol_2.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K); 
-     symbol_3.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
-     symbol_4.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
-     
+     std::printf("[UNIT-TEST:] -- Calling  sine wave components modulated by the user data -- vertically summed sequence (REFERENCE!!).\n\n");
+     switch (which_func)
+     {
+       case 0 :
+           symbol_1.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
+           symbol_2.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K); 
+           symbol_3.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
+           symbol_4.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
+       break;
+       case 1 :
+           symbol_1.create_signal_user_data_u4x(&I_sym.m_data[0],I_n_samples,I_n_K);
+           symbol_2.create_signal_user_data_u4x(&I_sym.m_data[0],I_n_samples,I_n_K); 
+           symbol_3.create_signal_user_data_u4x(&I_sym.m_data[0],I_n_samples,I_n_K);
+           symbol_4.create_signal_user_data_u4x(&I_sym.m_data[0],I_n_samples,I_n_K);
+       break;
+       default : 
+           std::printf("wrong case argument=%d\n",which_func);
+           return;
+     }
      signal_sequence_vertical_summation(&symbol_1.m_sig_samples.m_data[0],
                                         &symbol_2.m_sig_samples.m_data[0],
                                         &symbol_3.m_sig_samples.m_data[0],
                                         &symbol_4.m_sig_samples.m_data[0],
                                         &sig_vsum_reference.m_data[0],
                                         I_n_samples);
-     check_fp_approx_equality(&cos_sequence.m_vsummed_sequence.operator[](0),
+     check_fp_approx_equality(&sin_sequence.m_vsummed_sequence.operator[](0),
                              &sig_vsum_reference.m_data[0],I_n_samples);
      //std::cout << __cmplx_trapw_env__ << std::endl;
      std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n\n");
-     am_bb_cos_signal_sequence_t::create_sequence_plot(cos_sequence.m_nsamples,&cos_sequence.m_vsummed_sequence.operator[](0),nullptr,
-                                              "am_bb_cosine_sequence_sse42_u10x_correctness_test_1_","AM-BB_Cosine_Signals_Sequence",false);
-     am_bb_cos_signal_sequence_t::create_sequence_plot(I_n_samples,&sig_vsum_reference.m_data[0],nullptr,
-                                               "am_bb_cosine_signal_reference_vsumm_u10x_test_1_","AM-BB_Cosine_Signals_Sequence",false);
+     am_bb_sine_signal_sequence_t::create_sequence_plot(sin_sequence.m_nsamples,&sin_sequence.m_vsummed_sequence.operator[](0),nullptr,
+                                              "am_bb_cosine_sequence_avx512_u10x_correctness_test_1_","AM-BB_sine_Signals_Sequence",false);
+     am_bb_sine_signal_sequence_t::create_sequence_plot(I_n_samples,&sig_vsum_reference.m_data[0],nullptr,
+                                               "am_bb_sine_signal_reference_vsumm_u10x_test_1_","AM-BB_sine_Signals_Sequence",false);
      
      printf("[UNIT_TEST]: function=%s -- **END**\n\n", __PRETTY_FUNCTION__);
 }
 
 __attribute__((hot))
 __attribute__((noinline))
-void unit_test_am_bb_cosine_sequence_correctness_sse42_u6x();
+void unit_test_am_bb_sine_sequence_correctness_avx512_u6x();
 
-void unit_test_am_bb_cosine_sequence_correctness_sse42_u6x()
+void unit_test_am_bb_sine_sequence_correctness_avx512_u6x()
 {
      using namespace gms::radiolocation;
      using namespace gms;
@@ -436,7 +454,7 @@ void unit_test_am_bb_cosine_sequence_correctness_sse42_u6x()
      std::vector<float> P_values          = std::vector<float>(nsignals);
      std::vector<std::uint32_t> nK_values = std::vector<std::uint32_t>(nsignals);
      std::vector<std::int32_t>  ret_codes = std::vector<std::int32_t>(nsignals);
-     
+     std::clock_t seed_func{};
      for(std::size_t i{0}; i != nsignals; ++i) 
      {
          A_values.operator[](i)  = A;
@@ -450,19 +468,19 @@ void unit_test_am_bb_cosine_sequence_correctness_sse42_u6x()
      int32_t status{};
      //__asm__ ("int3");
      printf("[UNIT_TEST]: function=%s -- **START**\n\n", __PRETTY_FUNCTION__);
-     am_bb_cos_signal_sequence_t cos_sequence = am_bb_cos_signal_sequence_t(I_n_samples,
+     am_bb_sine_signal_sequence_t sin_sequence = am_bb_sine_signal_sequence_t(I_n_samples,
                                                                              nsignals,nK_values,
                                                                              n_values,A_values,P_values);
-     am_bb_cosine_signal_t symbol_1 = am_bb_cosine_signal_t(I_n_samples,I_n_K,n,A,P);
-     am_bb_cosine_signal_t symbol_2 = am_bb_cosine_signal_t(I_n_samples,I_n_K,n,A,P);
-     am_bb_cosine_signal_t symbol_3 = am_bb_cosine_signal_t(I_n_samples,I_n_K,n,A,P);
-     am_bb_cosine_signal_t symbol_4 = am_bb_cosine_signal_t(I_n_samples,I_n_K,n,A,P);
+     am_bb_sine_signal_t symbol_1 = am_bb_sine_signal_t(I_n_samples,I_n_K,n,A,P);
+     am_bb_sine_signal_t symbol_2 = am_bb_sine_signal_t(I_n_samples,I_n_K,n,A,P);
+     am_bb_sine_signal_t symbol_3 = am_bb_sine_signal_t(I_n_samples,I_n_K,n,A,P);
+     am_bb_sine_signal_t symbol_4 = am_bb_sine_signal_t(I_n_samples,I_n_K,n,A,P);
           
      I_sym = darray_r4_t(I_sym_len);
      sig_vsum_reference = darray_r4_t(I_n_samples);
      std::printf("[UNIT-TEST] -- Number of samples=%llu,number of narrowband signals=%d,number of baseband signals=%llu\n\n",
                             I_n_samples,I_n_K,nsignals);
-     char * ctor_name{gms::common::demangle(typeid(cos_sequence).name(),status)};
+     char * ctor_name{gms::common::demangle(typeid(sin_sequence).name(),status)};
      if(status==0 && ctor_name != NULL)
      {
           printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", ctor_name);
@@ -470,14 +488,10 @@ void unit_test_am_bb_cosine_sequence_correctness_sse42_u6x()
      }
      else
      {
-          printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", typeid(cos_sequence).name());
+          printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", typeid(sin_sequence).name());
           if(ctor_name != NULL) gms::common::gms_mm_free(ctor_name);
      }   
-     //std::printf("[UNIT-TEST:] -- I_n_samples=%llu,I_n_K=%d,Q_n_samples=%llu,Q_n_K=%d\n\n",__cmplx_trapw_env__.__I_n_samples__,
-     //            __cmplx_trapw_env__.__I_n_K__,__cmplx_trapw_env__.__Q_n_samples__,__cmplx_trapw_env__.__Q_n_K__);
-
-     //std::printf("[UNIT-TEST:] -- Dumping an array members info and alignment.\n");
-     //symbol_1.m_sig_samples.info_size_alignment();
+    
      std::printf("[UNIT-TEST:] -- Generating random symbol data: I_channel(-1,1)\n\n");
      seed_I = std::clock();
      auto rand_sym_I{std::bind(std::uniform_real_distribution<float>(-1.0f,1.0f),std::mt19937(seed_I))};
@@ -487,32 +501,46 @@ void unit_test_am_bb_cosine_sequence_correctness_sse42_u6x()
           I_sym.m_data[__i] = rand_sym_I();
           //std::printf("%.7f\n",I_sym.m_data[__i]);
      }
-     //cos_sequence.signal_sequence_avx_u16x_u(&I_sym.m_data[0],&ret_codes.operator[](0)); 
-     std::int32_t ret_stat = cos_sequence.signal_sequence_sse42_u6x(&I_sym.m_data[0],&ret_codes.operator[](0),0);
+     seed_func = std::clock();
+     auto rand_func{std::bind(std::uniform_int_distribution<std::uint32_t>(0,1),std::mt19937(seed_func))};
+     const std::uint32_t which_func{rand_func()}; 
+     std::int32_t ret_stat = sin_sequence.signal_sequence_avx512_u6x(&I_sym.m_data[0],&ret_codes.operator[](0),which_func);
      if(ret_stat<0) { 
-        std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_sse42_u6x stat=%d\n",ret_stat);
+        std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_avx512_u6x stat=%d\n",ret_stat);
         return;
      } 
      std::printf("[UNIT-TEST:] -- Calling  cosine wave components modulated by the user data -- vertically summed sequence (REFERENCE!!).\n\n");
-     symbol_1.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
-     symbol_2.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K); 
-     symbol_3.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
-     symbol_4.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
-     
+     switch (which_func) 
+     {
+     case 0 :
+          symbol_1.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
+          symbol_2.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K); 
+          symbol_3.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
+          symbol_4.create_signal_user_data(&I_sym.m_data[0],I_n_samples,I_n_K);
+     break;
+     case 1 : 
+          symbol_1.create_signal_user_data_u4x(&I_sym.m_data[0],I_n_samples,I_n_K);
+          symbol_2.create_signal_user_data_u4x(&I_sym.m_data[0],I_n_samples,I_n_K); 
+          symbol_3.create_signal_user_data_u4x(&I_sym.m_data[0],I_n_samples,I_n_K);
+          symbol_4.create_signal_user_data_u4x(&I_sym.m_data[0],I_n_samples,I_n_K);
+     default : 
+           std::printf("wrong case argument=%d\n",which_func);
+           return;
+     }    
      signal_sequence_vertical_summation(&symbol_1.m_sig_samples.m_data[0],
                                         &symbol_2.m_sig_samples.m_data[0],
                                         &symbol_3.m_sig_samples.m_data[0],
                                         &symbol_4.m_sig_samples.m_data[0],
                                         &sig_vsum_reference.m_data[0],
                                         I_n_samples);
-     check_fp_approx_equality(&cos_sequence.m_vsummed_sequence.operator[](0),
+     check_fp_approx_equality(&sin_sequence.m_vsummed_sequence.operator[](0),
                              &sig_vsum_reference.m_data[0],I_n_samples);
      //std::cout << __cmplx_trapw_env__ << std::endl;
      std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n\n");
-     am_bb_cos_signal_sequence_t::create_sequence_plot(cos_sequence.m_nsamples,&cos_sequence.m_vsummed_sequence.operator[](0),nullptr,
-                                              "am_bb_cosine_sequence_sse42_u6x_correctness_test_1_","AM-BB_Cosine_Signals_Sequence",false);
-     am_bb_cos_signal_sequence_t::create_sequence_plot(I_n_samples,&sig_vsum_reference.m_data[0],nullptr,
-                                               "am_bb_cosine_signal_reference_vsumm_u6x_test_1_","AM-BB_Cosine_Signals_Sequence",false);
+     am_bb_sine_signal_sequence_t::create_sequence_plot(sin_sequence.m_nsamples,&sin_sequence.m_vsummed_sequence.operator[](0),nullptr,
+                                              "am_bb_sine_sequence_avx512_u6x_correctness_test_1_","AM-BB_sine_Signals_Sequence",false);
+     am_bb_sine_signal_sequence_t::create_sequence_plot(I_n_samples,&sig_vsum_reference.m_data[0],nullptr,
+                                               "am_bb_sine_signal_reference_vsumm_u6x_test_1_","AM-BB_sine_Signals_Sequence",false);
      
      printf("[UNIT_TEST]: function=%s -- **END**\n\n", __PRETTY_FUNCTION__);
 }
@@ -521,9 +549,9 @@ void unit_test_am_bb_cosine_sequence_correctness_sse42_u6x()
 
 __attribute__((hot))
 __attribute__((noinline))
-void unit_test_am_bb_cosine_sequence_varying_params_sse42_u16x();
+void unit_test_am_bb_sine_sequence_varying_params_avx512_u16x();
 
-void unit_test_am_bb_cosine_sequence_varying_params_sse42_u16x()
+void unit_test_am_bb_sine_sequence_varying_params_avx512_u16x()
 {
      using namespace gms::radiolocation;
      using namespace gms;
@@ -559,11 +587,11 @@ void unit_test_am_bb_cosine_sequence_varying_params_sse42_u16x()
      int32_t status{};
      //__asm__ ("int3");
      printf("[UNIT_TEST]: function=%s -- **START**\n", __PRETTY_FUNCTION__);
-     am_bb_cos_signal_sequence_t cos_sequence = am_bb_cos_signal_sequence_t(I_n_samples,
+     am_bb_sine_signal_sequence_t sin_sequence = am_bb_sine_signal_sequence_t(I_n_samples,
                                                                              nsignals,nK_values,
                                                                              n_values,A_values,P_values);
      I_sym = darray_r4_t(I_sym_len);
-     char * ctor_name{gms::common::demangle(typeid(cos_sequence).name(),status)};
+     char * ctor_name{gms::common::demangle(typeid(sin_sequence).name(),status)};
      if(status==0 && ctor_name != NULL)
      {
           printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", ctor_name);
@@ -571,14 +599,10 @@ void unit_test_am_bb_cosine_sequence_varying_params_sse42_u16x()
      }
      else
      {
-          printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", typeid(cos_sequence).name());
+          printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", typeid(sin_sequence).name());
           if(ctor_name != NULL) gms::common::gms_mm_free(ctor_name);
      }   
-     //std::printf("[UNIT-TEST:] -- I_n_samples=%llu,I_n_K=%d,Q_n_samples=%llu,Q_n_K=%d\n\n",__cmplx_trapw_env__.__I_n_samples__,
-     //            __cmplx_trapw_env__.__I_n_K__,__cmplx_trapw_env__.__Q_n_samples__,__cmplx_trapw_env__.__Q_n_K__);
-
-     //std::printf("[UNIT-TEST:] -- Dumping an array members info and alignment.\n");
-     //symbol_1.m_sig_samples.info_size_alignment();
+   
      std::printf("[UNIT-TEST:] -- Generating random symbol data: I_channel(-1,1)\n");
      seed_I = std::clock();
      auto rand_sym_I{std::bind(std::uniform_real_distribution<float>(-1.0f,1.0f),std::mt19937(seed_I))};
@@ -592,12 +616,12 @@ void unit_test_am_bb_cosine_sequence_varying_params_sse42_u16x()
      seed_func = std::clock();
      auto rand_func{std::bind(std::uniform_int_distribution<std::uint32_t>(0,1),std::mt19937(seed_func))};
      const std::uint32_t which_func{rand_func()};
-     std::int32_t ret_stat = cos_sequence.signal_sequence_sse42_u16x(&I_sym.m_data[0],&ret_codes.operator[](0),which_func);  
+     std::int32_t ret_stat = sin_sequence.signal_sequence_avx512_u16x(&I_sym.m_data[0],&ret_codes.operator[](0),which_func);  
      if(ret_stat<0) { 
-        std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_sse42_u16x stat=%d\n",ret_stat);
+        std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_avx512_u16x stat=%d\n",ret_stat);
         return;
      }   
-     for(std::size_t i{0}; i != cos_sequence.m_nsignals; ++i) 
+     for(std::size_t i{0}; i != sin_sequence.m_nsignals; ++i) 
      {
           const std::int32_t ret_code{ret_codes.operator[](i)};
           if(ret_code < 0ull) 
@@ -606,8 +630,8 @@ void unit_test_am_bb_cosine_sequence_varying_params_sse42_u16x()
           }
      }
      std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n");
-     am_bb_cos_signal_sequence_t::create_sequence_plot(cos_sequence.m_nsamples,&cos_sequence.m_vsummed_sequence.operator[](0),nullptr,
-                                              "am_bb_cosine_sequence_sse42_u16x_var_params_test_1_","AM-BB_Cosine_Signals_Sequence",false);
+     am_bb_sine_signal_sequence_t::create_sequence_plot(sin_sequence.m_nsamples,&sin_sequence.m_vsummed_sequence.operator[](0),nullptr,
+                                              "am_bb_sine_sequence_avx512_u16x_var_params_test_1_","AM-BB_sine_Signals_Sequence",false);
      
      printf("[UNIT_TEST]: function=%s -- **END**\n", __PRETTY_FUNCTION__);
 }
@@ -615,9 +639,9 @@ void unit_test_am_bb_cosine_sequence_varying_params_sse42_u16x()
 
 __attribute__((hot))
 __attribute__((noinline))
-void unit_test_am_bb_cosine_sequence_rand_data_sse42_u10x();
+void unit_test_am_bb_sine_sequence_rand_data_avx512_u10x();
 
-void unit_test_am_bb_cosine_sequence_rand_data_sse42_u10x()
+void unit_test_am_bb_sine_sequence_rand_data_avx512_u10x()
 {
      using namespace gms::radiolocation;
      using namespace gms;
@@ -648,11 +672,11 @@ void unit_test_am_bb_cosine_sequence_rand_data_sse42_u10x()
      int32_t status{};
      //__asm__ ("int3");
      printf("[UNIT_TEST]: function=%s -- **START**\n", __PRETTY_FUNCTION__);
-     am_bb_cos_signal_sequence_t cos_sequence = am_bb_cos_signal_sequence_t(I_n_samples,
+     am_bb_sine_signal_sequence_t sin_sequence = am_bb_sine_signal_sequence_t(I_n_samples,
                                                                              nsignals,nK_values,
                                                                              n_values,A_values,P_values);
      I_sym = darray_r4_t(I_sym_len);
-     char * ctor_name{gms::common::demangle(typeid(cos_sequence).name(),status)};
+     char * ctor_name{gms::common::demangle(typeid(sin_sequence).name(),status)};
      if(status==0 && ctor_name != NULL)
      {
           printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", ctor_name);
@@ -660,14 +684,10 @@ void unit_test_am_bb_cosine_sequence_rand_data_sse42_u10x()
      }
      else
      {
-          printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", typeid(cos_sequence).name());
+          printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", typeid(sin_sequence).name());
           if(ctor_name != NULL) gms::common::gms_mm_free(ctor_name);
      }   
-     //std::printf("[UNIT-TEST:] -- I_n_samples=%llu,I_n_K=%d,Q_n_samples=%llu,Q_n_K=%d\n\n",__cmplx_trapw_env__.__I_n_samples__,
-     //            __cmplx_trapw_env__.__I_n_K__,__cmplx_trapw_env__.__Q_n_samples__,__cmplx_trapw_env__.__Q_n_K__);
-
-     //std::printf("[UNIT-TEST:] -- Dumping an array members info and alignment.\n");
-     //symbol_1.m_sig_samples.info_size_alignment();
+     
      std::printf("[UNIT-TEST:] -- Generating random symbol data: I_channel(-1,1)\n");
      seed_I = std::clock();
      auto rand_sym_I{std::bind(std::uniform_real_distribution<float>(-1.0f,1.0f),std::mt19937(seed_I))};
@@ -681,24 +701,24 @@ void unit_test_am_bb_cosine_sequence_rand_data_sse42_u10x()
      seed_func = std::clock();
      auto rand_func{std::bind(std::uniform_int_distribution<std::uint32_t>(0,1),std::mt19937(seed_func))};
      const std::uint32_t which_func{rand_func()};
-     std::int32_t ret_stat = cos_sequence.signal_sequence_sse42_u10x(&I_sym.m_data[0],&ret_codes.operator[](0),which_func); 
+     std::int32_t ret_stat = sin_sequence.signal_sequence_avx512_u10x(&I_sym.m_data[0],&ret_codes.operator[](0),which_func); 
      if(ret_stat<0) { 
-        std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_sse42_u10x stat=%d\n",ret_stat);
+        std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_avx512_u10x stat=%d\n",ret_stat);
         return;
      }    
      //std::cout << __cmplx_trapw_env__ << std::endl;
      std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n");
-     am_bb_cos_signal_sequence_t::create_sequence_plot(cos_sequence.m_nsamples,&cos_sequence.m_vsummed_sequence.operator[](0),nullptr,
-                                              "am_bb_cosine_sequence_sse42_u10x_rand_data_test_1_","AM-BB_Cosine_Signals_Sequence",false);
+     am_bb_sine_signal_sequence_t::create_sequence_plot(sin_sequence.m_nsamples,&sin_sequence.m_vsummed_sequence.operator[](0),nullptr,
+                                              "am_bb_sine_sequence_avx512_u10x_rand_data_test_1_","AM-BB_sine_Signals_Sequence",false);
      
      printf("[UNIT_TEST]: function=%s -- **END**\n", __PRETTY_FUNCTION__);
 }
 
 __attribute__((hot))
 __attribute__((noinline))
-void unit_test_am_bb_cosine_sequence_rand_data_sse42_u6x();
+void unit_test_am_bb_sine_sequence_rand_data_avx512_u6x();
 
-void unit_test_am_bb_cosine_sequence_rand_data_sse42_u6x()
+void unit_test_am_bb_sine_sequence_rand_data_avx512_u6x()
 {
      using namespace gms::radiolocation;
      using namespace gms;
@@ -728,11 +748,11 @@ void unit_test_am_bb_cosine_sequence_rand_data_sse42_u6x()
      int32_t status{};
      //__asm__ ("int3");
      //printf("[UNIT_TEST]: function=%s -- **START**\n", __PRETTY_FUNCTION__);
-     am_bb_cos_signal_sequence_t cos_sequence = am_bb_cos_signal_sequence_t(I_n_samples,
+     am_bb_sine_signal_sequence_t sin_sequence = am_bb_sine_signal_sequence_t(I_n_samples,
                                                                              nsignals,nK_values,
                                                                              n_values,A_values,P_values);
      I_sym = darray_r4_t(I_sym_len);
-     char * ctor_name{gms::common::demangle(typeid(cos_sequence).name(),status)};
+     char * ctor_name{gms::common::demangle(typeid(sin_sequence).name(),status)};
      if(status==0 && ctor_name != NULL)
      {
           printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", ctor_name);
@@ -740,14 +760,10 @@ void unit_test_am_bb_cosine_sequence_rand_data_sse42_u6x()
      }
      else
      {
-          printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", typeid(cos_sequence).name());
+          printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", typeid(sin_sequence).name());
           if(ctor_name != NULL) gms::common::gms_mm_free(ctor_name);
      }   
-     //std::printf("[UNIT-TEST:] -- I_n_samples=%llu,I_n_K=%d,Q_n_samples=%llu,Q_n_K=%d\n\n",__cmplx_trapw_env__.__I_n_samples__,
-     //            __cmplx_trapw_env__.__I_n_K__,__cmplx_trapw_env__.__Q_n_samples__,__cmplx_trapw_env__.__Q_n_K__);
-
-     //std::printf("[UNIT-TEST:] -- Dumping an array members info and alignment.\n");
-     //symbol_1.m_sig_samples.info_size_alignment();
+   
      std::printf("[UNIT-TEST:] -- Generating random symbol data: I_channel(-1,1)\n");
      seed_I = std::clock();
      auto rand_sym_I{std::bind(std::uniform_real_distribution<float>(-1.0f,1.0f),std::mt19937(seed_I))};
@@ -757,19 +773,19 @@ void unit_test_am_bb_cosine_sequence_rand_data_sse42_u6x()
           I_sym.m_data[__i] = rand_sym_I();
           //std::printf("%.7f\n",I_sym.m_data[__i]);
      }
-     std::printf("[UNIT-TEST:] -- Calling  cosine wave components modulated by the user data -- vertically summed sequence.\n");
+     std::printf("[UNIT-TEST:] -- Calling  sine wave components modulated by the user data -- vertically summed sequence.\n");
      seed_func = std::clock();
      auto rand_func{std::bind(std::uniform_int_distribution<std::uint32_t>(0,1),std::mt19937(seed_func))};
      const std::uint32_t which_func{rand_func()};
-     std::int32_t ret_stat = cos_sequence.signal_sequence_sse42_u6x(&I_sym.m_data[0],&ret_codes.operator[](0),which_func);  
+     std::int32_t ret_stat = sin_sequence.signal_sequence_avx512_u6x(&I_sym.m_data[0],&ret_codes.operator[](0),which_func);  
      if(ret_stat<0) { 
-        std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_sse42_u6x stat=%d\n",ret_stat);
+        std::printf("[UNIT-TEST:] -- **FAIL** -> signal_sequence_avx512_u6x stat=%d\n",ret_stat);
         return;
      }   
      //std::cout << __cmplx_trapw_env__ << std::endl;
      std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n");
-     am_bb_cos_signal_sequence_t::create_sequence_plot(cos_sequence.m_nsamples,&cos_sequence.m_vsummed_sequence.operator[](0),nullptr,
-                                              "am_bb_cosine_sequence_sse42_u6x_trand_data_test_1_","AM-BB_Cosine_Signals_Sequence",false);
+     am_bb_sine_signal_sequence_t::create_sequence_plot(sin_sequence.m_nsamples,&sin_sequence.m_vsummed_sequence.operator[](0),nullptr,
+                                              "am_bb_sine_sequence_avx512_u6x_trand_data_test_1_","AM-BB_sine_Signals_Sequence",false);
      
      printf("[UNIT_TEST]: function=%s -- **END**\n", __PRETTY_FUNCTION__);
 }
@@ -777,15 +793,12 @@ void unit_test_am_bb_cosine_sequence_rand_data_sse42_u6x()
 
 int main()
 {
-    unit_test_am_bb_cosine_sequence_rand_data_sse42_u16x();
-    unit_test_am_bb_cosine_sequence_rand_data_sse42_u10x();
-    unit_test_am_bb_cosine_sequence_rand_data_sse42_u6x();
-    unit_test_am_bb_cosine_sequence_varying_params_sse42_u16x();
-    unit_test_am_bb_cosine_sequence_correctness_sse42_u16x();
-    unit_test_am_bb_cosine_sequence_correctness_sse42_u10x();
-    unit_test_am_bb_cosine_sequence_correctness_sse42_u6x();
+    unit_test_am_bb_sine_sequence_rand_data_avx512_u16x();
+    unit_test_am_bb_sine_sequence_rand_data_avx512_u10x();
+    unit_test_am_bb_sine_sequence_rand_data_avx512_u6x();
+    unit_test_am_bb_sine_sequence_varying_params_avx512_u16x();
+    unit_test_am_bb_sine_sequence_correctness_avx512_u16x();
+    unit_test_am_bb_sine_sequence_correctness_avx512_u10x();
+    unit_test_am_bb_sine_sequence_correctness_avx512_u6x();
     return 0;
 }
-
-
-
