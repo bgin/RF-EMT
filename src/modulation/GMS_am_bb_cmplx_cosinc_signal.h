@@ -181,11 +181,11 @@ namespace radiolocation
 
                    am_bb_cmplx_cosinc_signal_t(am_bb_cmplx_cosinc_signal_t &&) noexcept(true);
 
-                   am_bb_cmplx_cosinc_signal_t(const am_bb_cmplx_cosinc_signal_t &) = delete;
+                   am_bb_cmplx_cosinc_signal_t(const am_bb_cmplx_cosinc_signal_t &) noexcept(false);
 
                    ~am_bb_cmplx_cosinc_signal_t() noexcept(false);
 
-                   am_bb_cmplx_cosinc_signal_t & operator=(const am_bb_cmplx_cosinc_signal_t &) = delete;
+                   am_bb_cmplx_cosinc_signal_t & operator=(const am_bb_cmplx_cosinc_signal_t &) noexcept(false);
 
                    am_bb_cmplx_cosinc_signal_t & operator=(am_bb_cmplx_cosinc_signal_t &&) noexcept(true);
 
