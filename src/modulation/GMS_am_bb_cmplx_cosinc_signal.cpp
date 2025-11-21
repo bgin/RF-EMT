@@ -39,7 +39,7 @@ m_sig_samples{std::move(other.m_sig_samples)}
 
 gms::radiolocation
 ::am_bb_cmplx_cosinc_signal_t
-::am_bb_cmplx_cosinc_signal_t(const am_bb_cmplx_cosinc_signal_t &other) noexcept(true)
+::am_bb_cmplx_cosinc_signal_t(const am_bb_cmplx_cosinc_signal_t &other) noexcept(false)
 :
 m_nsamples{other.m_nsamples},
 m_nK{other.m_nK},
