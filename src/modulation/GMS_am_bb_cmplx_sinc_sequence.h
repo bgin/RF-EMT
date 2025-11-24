@@ -17,23 +17,23 @@
 !SOFTWARE.
 */
 
-#ifndef __GMS_AM_BB_CMPLX_COSINC_SEQUENCE_H__
-#define __GMS_AM_BB_CMPLX_COSINC_SEQUENCE_H__ 201120250910
+#ifndef __GMS_AM_BB_CMPLX_SINC_SEQUENCE_H__
+#define __GMS_AM_BB_CMPLX_SINC_SEQUENCE_H__ 241120251110
 
 
 namespace file_info 
 {
 
-     static const unsigned int GMS_AM_BB_CMPLX_COSINC_SEQUENCE_MAJOR = 1;
-     static const unsigned int GMS_AM_BB_CMPLX_COSINC_SEQUENCE_MINOR = 1;
-     static const unsigned int GMS_AM_BB_CMPLX_COSINC_SEQUENCE_MICRO = 0;
-     static const unsigned int GMS_AM_BB_CMPLX_COSINC_SEQUENCE_FULLVER =
-       1000U*GMS_AM_BB_CMPLX_COSINC_SEQUENCE_MAJOR+100U*GMS_AM_BB_CMPLX_COSINC_SEQUENCE_MINOR+
-       10U*GMS_AM_BB_CMPLX_COSINC_SEQUENCE_MICRO;
-     static const char GMS_AM_BB_CMPLX_COSINC_SEQUENCE_CREATION_DATE[] = "20-11-2025 09:10 +00200 (THR 20 NOV 2025 GMT+2)";
-     static const char GMS_AM_BB_CMPLX_COSINC_SEQUENCE_BUILD_DATE[]    = __DATE__; 
-     static const char GMS_AM_BB_CMPLX_COSINC_SEQUENCE_BUILD_TIME[]    = __TIME__;
-     static const char GMS_AM_BB_CMPLX_COSINC_SEQUENCE_SYNOPSIS[]      = "AM baseband complex cosinc signal sequence (vertically summed).";
+     static const unsigned int GMS_AM_BB_CMPLX_SINC_SEQUENCE_MAJOR = 1;
+     static const unsigned int GMS_AM_BB_CMPLX_SINC_SEQUENCE_MINOR = 1;
+     static const unsigned int GMS_AM_BB_CMPLX_SINC_SEQUENCE_MICRO = 0;
+     static const unsigned int GMS_AM_BB_CMPLX_SINC_SEQUENCE_FULLVER =
+       1000U*GMS_AM_BB_CMPLX_SINC_SEQUENCE_MAJOR+100U*GMS_AM_BB_CMPLX_SINC_SEQUENCE_MINOR+
+       10U*GMS_AM_BB_CMPLX_SINC_SEQUENCE_MICRO;
+     static const char GMS_AM_BB_CMPLX_SINC_SEQUENCE_CREATION_DATE[] = "24-11-2025 01:11 +00200 (MON 24 NOV 2025 GMT+2)";
+     static const char GMS_AM_BB_CMPLX_SINC_SEQUENCE_BUILD_DATE[]    = __DATE__; 
+     static const char GMS_AM_BB_CMPLX_SINC_SEQUENCE_BUILD_TIME[]    = __TIME__;
+     static const char GMS_AM_BB_CMPLX_SINC_SEQUENCE_SYNOPSIS[]      = "AM baseband complex sinc signal sequence (vertically summed).";
 
 }
 
@@ -42,20 +42,20 @@ namespace file_info
 #include <vector>
 #include <valarray>
 #include "GMS_config.h"
-#include "GMS_am_bb_cmplx_cosinc_signal.h"
+#include "GMS_am_bb_cmplx_sinc_signal.h"
 
-#if !defined(AM_BB_CMPLX_COSINC_SEQUENCE_SOFT_PREFETCH)
-#define AM_BB_CMPLX_COSINC_SEQUENCE_SOFT_PREFETCH 1 
+#if !defined(AM_BB_CMPLX_SINC_SEQUENCE_SOFT_PREFETCH)
+#define AM_BB_CMPLX_SINC_SEQUENCE_SOFT_PREFETCH 1 
 #endif
 
 // Enable for the basic PMC tracing (wall-clock) readout (not statistically rigorous)!!
 // *** Warning *** -- An access for the PM hardware counters must be enabled for the user-mode space!!
 // 
-#if !defined (AM_BB_CMPLX_COSINC_SEQUENCE_USE_PMC_INSTRUMENTATION)
-#define AM_BB_CMPLX_COSINC_SEQUENCE_USE_PMC_INSTRUMENTATION 0
+#if !defined (AM_BB_CMPLX_SINC_SEQUENCE_USE_PMC_INSTRUMENTATION)
+#define AM_BB_CMPLX_SINC_SEQUENCE_USE_PMC_INSTRUMENTATION 0
 #endif 
 
-#if (AM_BB_CMPLX_COSINC_SEQUENCE_USE_PMC_INSTRUMENTATION) == 1
+#if (AM_BB_CMPLX_SINC_SEQUENCE_USE_PMC_INSTRUMENTATION) == 1
 #include "GMS_hw_perf_macros.h"
 
 #define PMC_VARS                      \
@@ -77,7 +77,7 @@ namespace gms
 namespace radiolocation 
 {
 
-            struct alignas(64) am_bb_cmplx_cosinc_signal_sequence_t final
+            struct alignas(64) am_bb_cmplx_sinc_signal_sequence_t final
             {
                    std::size_t                              m_nsamples; 
                    std::size_t                              m_nsignals;
@@ -85,30 +85,30 @@ namespace radiolocation
                    std::vector<float>                       m_n_values;
                    std::vector<float>                       m_A_values;
                    std::vector<float>                       m_P_values;
-                   std::vector<am_bb_cmplx_cosinc_signal_t> m_bb_cmplx_cosinc_signals;
+                   std::vector<am_bb_cmplx_sinc_signal_t>   m_bb_cmplx_sinc_signals;
                    darray_r4_t                              m_re_sequence;
                    darray_r4_t                              m_im_sequence;
 
-                   am_bb_cmplx_cosinc_signal_sequence_t() = default;
+                   am_bb_cmplx_sinc_signal_sequence_t() = default;
 
-                   am_bb_cmplx_cosinc_signal_sequence_t(const std::size_t,
+                   am_bb_cmplx_sinc_signal_sequence_t(const std::size_t,
                                                         const std::size_t,
                                                         const std::vector<std::uint32_t> &,
                                                         const std::vector<float> &,
                                                         const std::vector<float> &,
                                                         const std::vector<float> &) noexcept(false);
 
-                   am_bb_cmplx_cosinc_signal_sequence_t(am_bb_cmplx_cosinc_signal_sequence_t &&) noexcept(true);
+                   am_bb_cmplx_sinc_signal_sequence_t(am_bb_cmplx_sinc_signal_sequence_t &&) noexcept(true);
 
-                   am_bb_cmplx_cosinc_signal_sequence_t(const am_bb_cmplx_cosinc_signal_sequence_t &) noexcept(false);
+                   am_bb_cmplx_sinc_signal_sequence_t(const am_bb_cmplx_sinc_signal_sequence_t &) noexcept(false);
 
-                   ~am_bb_cmplx_cosinc_signal_sequence_t() noexcept(false);
+                   ~am_bb_cmplx_sinc_signal_sequence_t() noexcept(false);
 
-                   am_bb_cmplx_cosinc_signal_sequence_t & 
-                                           operator=(const am_bb_cmplx_cosinc_signal_sequence_t &) noexcept(false);
+                   am_bb_cmplx_sinc_signal_sequence_t & 
+                                           operator=(const am_bb_cmplx_sinc_signal_sequence_t &) noexcept(false);
 
-                   am_bb_cmplx_cosinc_signal_sequence_t &
-                                           operator=(am_bb_cmplx_cosinc_signal_sequence_t &&) noexcept(true);
+                   am_bb_cmplx_sinc_signal_sequence_t &
+                                           operator=(am_bb_cmplx_sinc_signal_sequence_t &&) noexcept(true);
 
                    static void create_sequence_plot(  const std::uint32_t,
                                                    const float * __restrict,
@@ -130,8 +130,8 @@ namespace radiolocation
 #endif 
                   std::int32_t 
                 signal_sequence_sse42_u16x(const float         * __restrict__,
-                                           am_bb_cmplx_cosinc_signal_pdf_params_t &,
-                                           am_bb_cmplx_cosinc_signal_rand_distr,
+                                           am_bb_cmplx_sinc_signal_pdf_params_t &,
+                                           am_bb_cmplx_sinc_signal_rand_distr,
                                            const float          * __restrict__,
                                            std::int32_t * __restrict__,
                                            const std::uint32_t);                                                   
@@ -143,8 +143,8 @@ namespace radiolocation
 #endif 
                 std::int32_t 
                 signal_sequence_sse42_u10x(const float         * __restrict__,
-                                           am_bb_cmplx_cosinc_signal_pdf_params_t &,
-                                           am_bb_cmplx_cosinc_signal_rand_distr,
+                                           am_bb_cmplx_sinc_signal_pdf_params_t &,
+                                           am_bb_cmplx_sinc_signal_rand_distr,
                                            const float          * __restrict__,
                                            std::int32_t * __restrict__,
                                            const std::uint32_t);   
@@ -156,8 +156,8 @@ namespace radiolocation
 #endif 
                 std::int32_t 
                 signal_sequence_sse42_u6x(const float         * __restrict__,
-                                          am_bb_cmplx_cosinc_signal_pdf_params_t &,
-                                          am_bb_cmplx_cosinc_signal_rand_distr,
+                                          am_bb_cmplx_sinc_signal_pdf_params_t &,
+                                          am_bb_cmplx_sinc_signal_rand_distr,
                                           const float          * __restrict__,
                                           std::int32_t * __restrict__,
                                           const std::uint32_t);
@@ -169,8 +169,8 @@ namespace radiolocation
 #endif 
                 std::int32_t 
                 signal_sequence_avx_u16x(const float         * __restrict__,
-                                         am_bb_cmplx_cosinc_signal_pdf_params_t &,
-                                         am_bb_cmplx_cosinc_signal_rand_distr,
+                                         am_bb_cmplx_sinc_signal_pdf_params_t &,
+                                         am_bb_cmplx_sinc_signal_rand_distr,
                                          const float          * __restrict__,
                                          std::int32_t * __restrict__,
                                          const std::uint32_t);   
@@ -182,8 +182,8 @@ namespace radiolocation
 #endif 
                 std::int32_t 
                 signal_sequence_avx_u10x(const float         * __restrict__,
-                                         am_bb_cmplx_cosinc_signal_pdf_params_t &,
-                                         am_bb_cmplx_cosinc_signal_rand_distr,
+                                         am_bb_cmplx_sinc_signal_pdf_params_t &,
+                                         am_bb_cmplx_sinc_signal_rand_distr,
                                          const float          * __restrict__,
                                          std::int32_t * __restrict__,
                                          const std::uint32_t);   
@@ -195,8 +195,8 @@ namespace radiolocation
 #endif 
                 std::int32_t 
                 signal_sequence_avx_u6x(const float         * __restrict__,
-                                        am_bb_cmplx_cosinc_signal_pdf_params_t &,
-                                        am_bb_cmplx_cosinc_signal_rand_distr,
+                                        am_bb_cmplx_sinc_signal_pdf_params_t &,
+                                        am_bb_cmplx_sinc_signal_rand_distr,
                                         const float          * __restrict__,
                                         std::int32_t * __restrict__,
                                         const std::uint32_t);
@@ -208,8 +208,8 @@ namespace radiolocation
 #endif 
                 std::int32_t 
                 signal_sequence_avx512_u16x(const float         * __restrict__,
-                                            am_bb_cmplx_cosinc_signal_pdf_params_t &,
-                                            am_bb_cmplx_cosinc_signal_rand_distr,
+                                            am_bb_cmplx_sinc_signal_pdf_params_t &,
+                                            am_bb_cmplx_sinc_signal_rand_distr,
                                             const float          * __restrict__,
                                             std::int32_t * __restrict__,
                                             const std::uint32_t);  
@@ -221,8 +221,8 @@ namespace radiolocation
 #endif 
                 std::int32_t 
                 signal_sequence_avx512_u10x(const float         * __restrict__,
-                                            am_bb_cmplx_cosinc_signal_pdf_params_t &,
-                                            am_bb_cmplx_cosinc_signal_rand_distr,
+                                            am_bb_cmplx_sinc_signal_pdf_params_t &,
+                                            am_bb_cmplx_sinc_signal_rand_distr,
                                             const float          * __restrict__,
                                             std::int32_t * __restrict__,
                                             const std::uint32_t);       
@@ -234,8 +234,8 @@ namespace radiolocation
 #endif 
                 std::int32_t 
                 signal_sequence_avx512_u6x(const float         * __restrict__,
-                                           am_bb_cmplx_cosinc_signal_pdf_params_t &,
-                                           am_bb_cmplx_cosinc_signal_rand_distr,
+                                           am_bb_cmplx_sinc_signal_pdf_params_t &,
+                                           am_bb_cmplx_sinc_signal_rand_distr,
                                            const float          * __restrict__,
                                            std::int32_t * __restrict__,
                                            const std::uint32_t);
@@ -245,7 +245,7 @@ namespace radiolocation
 
             auto 
              operator<<(std::ostream &,
-                        const am_bb_cmplx_cosinc_signal_sequence_t &)->std::ostream &;
+                        const am_bb_cmplx_sinc_signal_sequence_t &)->std::ostream &;
 
 }
 
@@ -268,4 +268,4 @@ namespace radiolocation
 
 
 
-#endif /*__GMS_AM_BB_CMPLX_COSINC_SEQUENCE_H__*/
+#endif /*__GMS_AM_BB_CMPLX_SINC_SEQUENCE_H__*/

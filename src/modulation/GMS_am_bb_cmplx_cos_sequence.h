@@ -48,6 +48,29 @@ namespace file_info
 #define AM_BB_CMPLX_COS_SEQUENCE_SOFT_PREFETCH 1 
 #endif
 
+// Enable for the basic PMC tracing (wall-clock) readout (not statistically rigorous)!!
+// *** Warning *** -- An access for the PM hardware counters must be enabled for the user-mode space!!
+// 
+#if !defined (AM_BB_CMPLX_COS_SEQUENCE_USE_PMC_INSTRUMENTATION)
+#define AM_BB_CMPLX_COS_SEQUENCE_USE_PMC_INSTRUMENTATION 0
+#endif 
+
+#if (AM_BB_CMPLX_COS_SEQUENCE_USE_PMC_INSTRUMENTATION) == 1
+#include "GMS_hw_perf_macros.h"
+
+#define PMC_VARS                      \
+uint64_t prog_counters_start[4] = {}; \
+uint64_t prog_counters_stop[4]  = {}; \
+uint64_t tsc_start,tsc_stop;          \
+uint64_t act_cyc_start,act_cyc_stop;  \
+uint64_t ref_cyc_start,ref_cyc_stop;  \
+[[maybe_unused]] uint64_t dummy1;     \
+[[maybe_unused]] uint64_t dummy2;     \
+[[maybe_unused]] uint64_t dummy3;     \
+int32_t core_counter_width;           \
+double utilization,nom_ghz,avg_ghz;
+#endif 
+
 namespace gms 
 {
 
@@ -100,6 +123,12 @@ namespace radiolocation
                                    low arithemtic-to-load-store operations
                                    ratio.
                 */
+
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif                
                   std::int32_t 
                 signal_sequence_sse42_u16x(const float         * __restrict__,
                                            am_bb_cmplx_cos_signal_pdf_params_t &,
@@ -108,6 +137,11 @@ namespace radiolocation
                                            std::int32_t * __restrict__,
                                            const std::uint32_t);                                                   
 
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif 
                 std::int32_t 
                 signal_sequence_sse42_u10x(const float         * __restrict__,
                                            am_bb_cmplx_cos_signal_pdf_params_t &,
@@ -116,6 +150,11 @@ namespace radiolocation
                                            std::int32_t * __restrict__,
                                            const std::uint32_t);                                                   
 
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif 
                 std::int32_t 
                 signal_sequence_sse42_u6x(const float         * __restrict__,
                                           am_bb_cmplx_cos_signal_pdf_params_t &,
@@ -124,6 +163,11 @@ namespace radiolocation
                                           std::int32_t * __restrict__,
                                           const std::uint32_t);
 
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif 
                 std::int32_t 
                 signal_sequence_avx_u16x(const float         * __restrict__,
                                          am_bb_cmplx_cos_signal_pdf_params_t &,
@@ -132,6 +176,11 @@ namespace radiolocation
                                          std::int32_t * __restrict__,
                                          const std::uint32_t);                                                   
 
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif 
                 std::int32_t 
                 signal_sequence_avx_u10x(const float         * __restrict__,
                                          am_bb_cmplx_cos_signal_pdf_params_t &,
@@ -140,6 +189,11 @@ namespace radiolocation
                                          std::int32_t * __restrict__,
                                          const std::uint32_t);                                                   
 
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif 
                 std::int32_t 
                 signal_sequence_avx_u6x(const float         * __restrict__,
                                         am_bb_cmplx_cos_signal_pdf_params_t &,
@@ -148,6 +202,11 @@ namespace radiolocation
                                         std::int32_t * __restrict__,
                                         const std::uint32_t);
 
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif 
                 std::int32_t 
                 signal_sequence_avx512_u16x(const float         * __restrict__,
                                             am_bb_cmplx_cos_signal_pdf_params_t &,
@@ -156,6 +215,11 @@ namespace radiolocation
                                             std::int32_t * __restrict__,
                                             const std::uint32_t);                                                   
 
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif 
                 std::int32_t 
                 signal_sequence_avx512_u10x(const float         * __restrict__,
                                             am_bb_cmplx_cos_signal_pdf_params_t &,
@@ -164,6 +228,11 @@ namespace radiolocation
                                             std::int32_t * __restrict__,
                                             const std::uint32_t);                                                   
 
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif 
                 std::int32_t 
                 signal_sequence_avx512_u6x(const float         * __restrict__,
                                            am_bb_cmplx_cos_signal_pdf_params_t &,
