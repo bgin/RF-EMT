@@ -41,8 +41,10 @@ namespace file_info
 #include <iostream>
 #include <thread>
 #include <vector>
+#include <random>
 #include "GMS_config.h"
 #include "GMS_dyn_array.h"
+#include "GMS_sse_memset.h"
 
 // Enable non-temporal stores for this class only( used with free-standing operators)
 // defaulted to 0.
@@ -169,7 +171,7 @@ namespace radiolocation
            {
                   std::size_t     m_nsamples;
                   std::size_t     m_I_ch_nsamples; // I-channel i.e. rect wave number of samples
-                  std::size_t     m_Q_ch_nsamples; // Q-channel i.e. rec wave number of samples
+                  std::size_t     m_Q_ch_nsamples; // Q-channel i.e. rect wave number of samples
                   float           m_A_I; // I channel amplitude
                   float           m_A_Q; // Q channel amplitude
                   float           m_T;   // period
@@ -209,7 +211,67 @@ namespace radiolocation
                   sinusoidal_weighted_oqpsk_t &
                              operator=(sinusoidal_weighted_oqpsk_t &&) noexcept(true);
 
-                                               
+       
+                  __ATTR_ALWAYS_INLINE__
+                  inline 
+                  void clear_I_bitstream() noexcept(true)
+                  {
+#if (INIT_BY_STD_FILL) == 0
+                      using namespace gms::common;
+	                  sse_memset_unroll8x_ps(this->m_I_bitstream.m_data,0.0f,this->m_I_ch_nsamples);
+#else 
+                      std::fill(this->m_I_bitstream.m_data,this->m_I_bitstream.m_data+this->m_I_ch_nsamples,0.0f);
+#endif
+                  }
+
+
+                  __ATTR_ALWAYS_INLINE__
+                  inline
+                  void clear_Q_bitstream() noexcept(true)
+                  {
+#if (INIT_BY_STD_FILL) == 0
+                      using namespace gms::common;
+	                  sse_memset_unroll8x_ps(this->m_Q_bitstream.m_data,0.0f,this->m_Q_ch_nsamples);
+#else 
+                      std::fill(this->m_Q_bitstream.m_data,this->m_Q_bitstream.m_data+this->m_I_ch_nsamples,0.0f);
+#endif                      
+                  }
+
+                  __ATTR_ALWAYS_INLINE__
+                  inline
+                  void clear_I_channel()   noexcept(true)
+                  {
+#if (INIT_BY_STD_FILL) == 0
+                      using namespace gms::common;
+	                  sse_memset_unroll8x_ps(this->m_I_channel.m_data,0.0f,this->m_nsamples);
+#else 
+                      std::fill(this->m_I_channel.m_data,this->m_I_channel.m_data+this->m_nsamples,0.0f);
+#endif                  
+                  }
+
+                  __ATTR_ALWAYS_INLINE__
+                  inline
+                  void clear_Q_channel()   noexcept(true)
+                  {
+#if (INIT_BY_STD_FILL) == 0
+                      using namespace gms::common;
+	                  sse_memset_unroll8x_ps(this->m_Q_channel.m_data,0.0f,this->m_nsamples);
+#else 
+                      std::fill(this->m_Q_channel.m_data,this->m_Q_channel.m_data+this->m_nsamples,0.0f);
+#endif                      
+                  }
+
+                  __ATTR_ALWAYS_INLINE__
+                  inline
+                  void clear_msk_signal()  noexcept(true)
+                  {
+#if (INIT_BY_STD_FILL) == 0
+                      using namespace gms::common;
+	                  sse_memset_unroll8x_ps(this->m_msk_signal.m_data,0.0f,this->m_nsamples);
+#else 
+                      std::fill(this->m_msk_signal.m_data,this->m_msk_signal.m_data+this->m_nsamples,0.0f);
+#endif 
+                  }                           
 
                   static void create_signal_plot( const std::uint32_t,
                                                    const float * __restrict,
@@ -258,13 +320,14 @@ namespace radiolocation
                                                       const float ph0,      // user passed
                                                       const float sample_rate)
                   {
+                       using namespace gms::math;
                        std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
                        if(__builtin_expect(this->m_I_ch_nsamples!=total_samples,0)) { return (-1);} 
                        const std::size_t i_duration{static_cast<std::size_t>(duration)};
                        const float inv_sr{1.0f/sample_rate};
                        constexpr std::size_t max_buf_size{100ull};
                        constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
-                       if(__builtin_expect(duration<=max_buf_size,0))
+                       if(__builtin_expect(i_duration<=max_buf_size,0))
                        {
                             __ATTR_ALIGN__(16)
                             float cos_rand_true_seq[max_buf_size];
@@ -285,11 +348,14 @@ namespace radiolocation
                                         j = i%i_duration;
                                         cos_r_t = cos_rand_true_seq[j];
                                         cos_r_f = cos_rand_false_seq[j];
+                                        
                                     }
                                     const float t_i{static_cast<float>(i*inv_sr)};
 #if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
                                     const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_i));
-                                    this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?cos_val*cos_r_t:cos_val*cos_r_f;
+                                    //this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?cos_val*cos_r_t:cos_val*cos_r_f;
+                                    this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?cos_r_t:cos_r_f;
+                                    //this->m_I_bitstream.m_data[i] = (cos_val>0.0f)? +1.0f : -1.0f;
 #else 
                                     const float cos_val = std::_cos(ph0+(C6283185307179586476925286766559*w0*t_i));
                                     this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?cos_val*cos_r_t:cos_val*cos_r_f;
@@ -341,13 +407,14 @@ namespace radiolocation
                                                       const float ph0,      // user passed
                                                       const float sample_rate)
                   {
+                       using namespace gms::math;
                        std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
                        if(__builtin_expect(this->m_Q_ch_nsamples!=total_samples,0)) { return (-1);} 
                        const std::size_t i_duration{static_cast<std::size_t>(duration)};
                        const float inv_sr{1.0f/sample_rate};
                        constexpr std::size_t max_buf_size{100ull};
                        constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
-                       if(__builtin_expect(duration<=max_buf_size,0))
+                       if(__builtin_expect(i_duration<=max_buf_size,0))
                        {
                             __ATTR_ALIGN__(16)
                             float sin_rand_true_seq[max_buf_size];
@@ -425,6 +492,7 @@ namespace radiolocation
                                                const float ph0,      // user passed
                                                const float sample_rate)
                   {
+                        using namespace gms::math;
                         std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
                         if(__builtin_expect(this->m_I_ch_nsamples!=total_samples,0)) { return (-1);}
                         constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
@@ -529,6 +597,7 @@ namespace radiolocation
                                                const float ph0,      // user passed
                                                const float sample_rate)
                   {
+                        using namespace gms::math;
                         std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
                         if(__builtin_expect(this->m_Q_ch_nsamples!=total_samples,0)) { return (-1);}
                         constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};

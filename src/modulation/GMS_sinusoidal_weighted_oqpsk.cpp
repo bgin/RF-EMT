@@ -1,9 +1,8 @@
 
 #include <fstream>
 #include <iomanip>
-#include <random>
 #include "GMS_sinusoidal_weighted_oqpsk.h"
-#include "GMS_sse_memset.h"
+
 
 
 gms::radiolocation 
@@ -43,7 +42,7 @@ gms::radiolocation
 ::sinusoidal_weighted_oqpsk_t
 ::sinusoidal_weighted_oqpsk_t(const sinusoidal_weighted_oqpsk_t &other) noexcept(false) 
 : 
-m_nsamples{other.m_nsamplex},
+m_nsamples{other.m_nsamples},
 m_I_ch_nsamples{other.m_I_ch_nsamples},
 m_Q_ch_nsamples{other.m_Q_ch_nsamples},
 m_A_I{other.m_A_I},
@@ -67,7 +66,7 @@ gms::radiolocation
 ::sinusoidal_weighted_oqpsk_t
 ::sinusoidal_weighted_oqpsk_t(sinusoidal_weighted_oqpsk_t &&other) noexcept(true) 
 : 
-m_nsamples{std::move(other.m_nsamplex)},
+m_nsamples{std::move(other.m_nsamples)},
 m_I_ch_nsamples{std::move(other.m_I_ch_nsamples)},
 m_Q_ch_nsamples{std::move(other.m_Q_ch_nsamples)},
 m_A_I{std::move(other.m_A_I)},
@@ -100,7 +99,7 @@ gms::radiolocation
 ::sinusoidal_weighted_oqpsk_t
 ::operator=(const sinusoidal_weighted_oqpsk_t &other) noexcept(false) 
 {
-      if(__builtin_expect(this==&other,0)) {return (*this)};
+      if(__builtin_expect(this==&other,0)) {return (*this);}
       this->m_nsamples         = other.m_nsamples;
       this->m_I_ch_nsamples    = other.m_I_ch_nsamples;
       this->m_Q_ch_nsamples    = other.m_Q_ch_nsamples;
@@ -126,7 +125,7 @@ gms::radiolocation
 ::sinusoidal_weighted_oqpsk_t
 ::operator=(sinusoidal_weighted_oqpsk_t &&other) noexcept(true) 
 {
-      if(__builtin_expect(this==&other,0)) {return (*this)};
+      if(__builtin_expect(this==&other,0)) {return (*this);}
       this->m_nsamples      = std::move(other.m_nsamples);
       this->m_I_ch_nsamples = std::move(other.m_I_ch_nsamples);
       this->m_Q_ch_nsamples = std::move(other.m_Q_ch_nsamples);
@@ -220,6 +219,7 @@ gms::radiolocation
                          const float Q_ph0,      // user passed
                          const float Q_sample_rate)
 {
+      using namespace gms::math;
       std::int32_t I_ch_bitstream_stat{1};
       std::int32_t Q_ch_bitstream_stat{1};
       if(seq_or_rand_bitstream == 0)
@@ -413,6 +413,7 @@ gms::radiolocation
                                        sinusoidal_weighted_oqpsk_pdf_params_t & pdf_params,
                                        sinusoidal_weighted_oqpsk_rand_distr rd_enum)
 {
+      using namespace gms::math;
       std::int32_t I_ch_bitstream_stat{1};
       std::int32_t Q_ch_bitstream_stat{1};
       if(seq_or_rand_bitstream == 0)
@@ -1622,5 +1623,50 @@ gms::radiolocation
       return (0);
 }
 
-
+auto
+gms::radiolocation
+::operator<<(std::ostream &os,
+             gms::radiolocation::sinusoidal_weighted_oqpsk_t &rhs)->std::ostream &
+{
+    std::cout << typeid(rhs).name() << "Begin: object state dump." << std::endl;
+    std::cout << "m_nsamples         : "      << rhs.m_nsamples       << std::endl;
+    std::cout << "m_I_ch_nsamples    : "      << rhs.m_I_ch_nsamples  << std::endl;
+    std::cout << "m_Q_ch_nsamples    : "      << rhs.m_Q_ch_nsamples  << std::endl;
+    std::cout << "m_A_I              : "      << std::fixed << std::setprecision(7) << rhs.m_A_I << std::endl;
+    std::cout << "m_A_Q              : "      << std::fixed << std::setprecision(7) << rhs.m_A_Q << std::endl;
+    std::cout << "m_cw0              : "      << std::fixed << std::setprecision(7) << rhs.m_cw0 << std::endl;
+    std::cout << "m_sw0              : "      << std::fixed << std::setprecision(7) << rhs.m_sw0 << std::endl;
+    std::cout << "m_cph0             : "      << std::fixed << std::setprecision(7) << rhs.m_cph0 << std::endl;
+    std::cout << "m_sph0             : "      << std::fixed << std::setprecision(7) << rhs.m_sph0 << std::endl;
+    std::cout << std::boolalpha << std::endl;
+    std::cout << "m_have_msk_samples : "      << rhs.m_have_msk_samples << std::endl;    
+    std::cout << "OQPSK[MSK] -- Samples:" << "\n\n";
+    for(std::size_t i{0ull}; i != rhs.m_nsamples; ++i)
+    {
+        os << std::fixed << std::setprecision(7) << rhs.m_msk_signal.m_data[i] << std::endl;
+    
+    }
+    std::cout << "I-Bitstream -- Samples:" << "\n\n";
+    for(std::size_t i{0ull}; i != rhs.m_I_ch_nsamples; ++i) 
+    {
+       os << std::fixed << std::setprecision(7) << rhs.m_I_bitstream.m_data[i] << std::endl;
+    }
+    std::cout << "Q-Bitstream -- Samples:" << "\n\n";
+    for(std::size_t i{0ull}; i != rhs.m_Q_ch_nsamples; ++i) 
+    {
+       os << std::fixed << std::setprecision(7) << rhs.m_Q_bitstream.m_data[i] << std::endl;
+    }
+    std::cout << "I-Channel -- Samples:" << "\n\n";
+    for(std::size_t i{0ull}; i != rhs.m_nsamples; ++i) 
+    {
+       os << std::fixed << std::setprecision(7) << rhs.m_I_channel.m_data[i] << std::endl;
+    }
+    std::cout << "Q-Channel -- Samples:" << "\n\n";
+    for(std::size_t i{0ull}; i != rhs.m_nsamples; ++i) 
+    {
+       os << std::fixed << std::setprecision(7) << rhs.m_Q_channel.m_data[i] << std::endl;
+    }
+    std::cout << typeid(rhs).name() << "End: object state dump." << std::endl;
+    return (os);
+}
                               
