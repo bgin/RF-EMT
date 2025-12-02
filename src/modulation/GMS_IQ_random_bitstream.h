@@ -120,7 +120,7 @@ namespace radiolocation
                  darray_r4_t m_I_bitstream;
                  darray_r4_t m_Q_bitstream;
 
-                 iq_random_bitstream_t() = delete;
+                 iq_random_bitstream_t() = default;
 
                  iq_random_bitstream_t(const float,
                                        const float,
@@ -205,39 +205,36 @@ namespace radiolocation
                       return (uni_noise_sample);
                   }
 
-                  template<typename std::size_t N> 
-                  std::int32_t generate_channel_I_random_bitstream() 
+                 
+                  std::int32_t generate_channel_I_random_bitstream(const float lo,
+                                                                   const float hi,
+                                                                   const std::int32_t generate_random) 
                   {
                        using namespace gms::math;
-                       static constexpr std::size_t current_buf_size = N;
-                       constexpr std::size_t max_stat_buf_size{1024ull};
                        constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
-                       const std::size_t i_duration{static_cast<std::size_t>(this->m_I_duration)};
                        const float inv_sample_rate{1.0f/this->m_I_sample_rate};
-
-                       if constexpr (current_buf_size <= max_stat_buf_size) 
+                       switch (generate_random)
                        {
-                            __ATTR_ALIGN__(16)
-                            float cos_rand_true_seq[current_buf_size];
-                            __ATTR_ALIGN__(16) 
-                            float cos_rand_false_seq[current_buf_size];
-                            std::size_t i,j;
-                            float cos_r_t{0.0f};
-                            float cos_r_f{0.0f};
-                            for(i=0ull; i != current_buf_size; ++i) 
-                            {
-                                cos_rand_true_seq[i]  = channel_I_uniform_sample_n1_0_1(-1.0f,+1.0f);
-                                cos_rand_false_seq[i] = channel_I_uniform_sample_n1_0_1(-1.0f,+1.0f);
-                            }
-                            for(i = 0ull; i != this->m_I_nsamples; ++i) 
-                            {
-                                    if(i>=0ull && i<=i_duration)
-                                    {
-                                        j = i%i_duration;
-                                        cos_r_t = cos_rand_true_seq[j];
-                                        cos_r_f = cos_rand_false_seq[j];
-                                        
-                                    }
+                          case 0 : // non-random
+                              for(std::size_t i = 0ull; i != this->m_I_nsamples; ++i) 
+                              {
+                                    
+                                    const float t_i{static_cast<float>(i*inv_sample_rate)};
+#if (IQ_RANDOM_BITSTREAM_USE_CEPHES) == 1 
+                                    const float cos_val = ceph_cosf(this->m_I_ph0+(C6283185307179586476925286766559*this->m_I_w0*t_i));
+                                    this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                    const float cos_val = std::cos(this->m_I_ph0+(C6283185307179586476925286766559*this->m_I_w0*t_i));
+                                    this->m_I_bitstream.m_data[i] = (cos_val>0.0f)?+1.0f:-1.0f;
+#endif
+                              }
+                           break;
+                           case 1 : // random
+                              for(std::size_t i = 0ull; i != this->m_I_nsamples; ++i) 
+                              {
+                                    const float cos_r_t{channel_Q_uniform_sample_n1_0_1(lo,hi)};
+                                    const float cos_r_f{channel_Q_uniform_sample_n1_0_1(lo,hi)};
                                     const float t_i{static_cast<float>(i*inv_sample_rate)};
 #if (IQ_RANDOM_BITSTREAM_USE_CEPHES) == 1 
                                     const float cos_val = ceph_cosf(this->m_I_ph0+(C6283185307179586476925286766559*this->m_I_w0*t_i));
@@ -245,126 +242,65 @@ namespace radiolocation
                                     
 #else 
                                     const float cos_val = std::cos(this->m_I_ph0+(C6283185307179586476925286766559*this->m_I_w0*t_i));
-                                    this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?cos_r_t:cos_r_f;
+                                    this->m_I_bitstream.m_data[i] = (cos_val>0.0f)?cos_r_t:cos_r_f;
 #endif
-                            }
+                              }
+                           break;
+                           default :
+                              return (-1);
                        }
-                       else 
-                       {
-                            std::valarray<float> cos_rand_true_seq  = std::valarray<float>(i_duration);
-                            std::valarray<float> cos_rand_false_seq = std::valarray<float>(i_duration);
-                            std::size_t i,j;
-                            float cos_r_t{0.0f};
-                            float cos_r_f{0.0f};
-                            for(i=0ull; i != i_duration; ++i) 
-                            {
-                                cos_rand_true_seq.operator[](i)  = channel_I_uniform_sample_n1_0_1(-1.0f,+1.0f);
-                                cos_rand_false_seq.operator[](i) = channel_I_uniform_sample_n1_0_1(-1.0f,+1.0f);
-                            }
-                            for(i = 0ull; i != this->m_I_nsamples; ++i) 
-                            {
-                                    if(i>=0ull && i<=i_duration)
-                                    {
-                                        j = i%i_duration;
-                                        cos_r_t = cos_rand_true_seq.operator[](j);
-                                        cos_r_f = cos_rand_false_seq.operator[](j);
-                                        
-                                    }
-                                    const float t_i{static_cast<float>(i*inv_sample_rate)};
-#if (IQ_RANDOM_BITSTREAM_USE_CEPHES) == 1 
-                                    const float cos_val = ceph_cosf(this->m_I_ph0+(C6283185307179586476925286766559*this->m_I_w0*t_i));
-                                    this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?cos_r_t:cos_r_f;
-                                    
-#else 
-                                    const float cos_val = std::cos(this->m_I_ph0+(C6283185307179586476925286766559*this->m_I_w0*t_i));
-                                    this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?cos_val*cos_r_t:cos_val*cos_r_f;
-#endif
-                            }
-                       }
-
+                                          
                        return (0);
                   } 
 
-                  template<typename std::size_t N> 
-                  std::int32_t generate_channel_Q_random_bitstream() 
+                                   
+                  std::int32_t generate_channel_Q_random_bitstream(const float lo, 
+                                                                   const float hi,
+                                                                   const std::int32_t generate_random) 
                   {
                        using namespace gms::math;
-                       static constexpr std::size_t current_buf_size = N;
-                       constexpr std::size_t max_stat_buf_size{1024ull};
                        constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
-                       const std::size_t i_duration{static_cast<std::size_t>(this->m_Q_duration)};
-                       const float inv_sample_rate{1.0f/this->m_Q_sample_rate};
-
-                       if constexpr (current_buf_size <= max_stat_buf_size) 
-                       {
-                            __ATTR_ALIGN__(16)
-                            float sin_rand_true_seq[current_buf_size];
-                            __ATTR_ALIGN__(16) 
-                            float sin_rand_false_seq[current_buf_size];
-                            std::size_t i,j;
-                            float sin_r_t{0.0f};
-                            float sin_r_f{0.0f};
-                            for(i=0ull; i != current_buf_size; ++i) 
-                            {
-                                sin_rand_true_seq[i]  = channel_Q_uniform_sample_n1_0_1(-1.0f,+1.0f);
-                                sin_rand_false_seq[i] = channel_Q_uniform_sample_n1_0_1(-1.0f,+1.0f);
-                            }
-                            for(i = 0ull; i != this->m_Q_nsamples; ++i) 
-                            {
-                                    if(i>=0ull && i<=i_duration)
-                                    {
-                                        j = i%i_duration;
-                                        sin_r_t = sin_rand_true_seq[j];
-                                        sin_r_f = sin_rand_false_seq[j];
-                                        
-                                    }
+                       const float inv_sample_rate{1.0f/this->m_Q_sample_rate};  
+                       switch (generate_random)
+                       {     
+                          case 0 : // non-random
+                              for(std::size_t i = 0ull; i != this->m_Q_nsamples; ++i) 
+                              {
                                     const float t_i{static_cast<float>(i*inv_sample_rate)};
 #if (IQ_RANDOM_BITSTREAM_USE_CEPHES) == 1 
                                     const float sin_val = ceph_sinf(this->m_Q_ph0+(C6283185307179586476925286766559*this->m_Q_w0*t_i));
-                                    this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?sin_r_t:sin_r_f;
+                                    this->m_Q_bitstream.m_data[i] = (sin_val>0.0f)?+1.0f:-1.0f;
                                     
 #else 
                                     const float sin_val = std::sin(this->m_Q_ph0+(C6283185307179586476925286766559*this->m_Q_w0*t_i));
-                                    this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?sin_r_t:sin_r_f;
+                                    this->m_Q_bitstream.m_data[i] = (sin_val>0.0f)?+1.0f:-1.0f;
 #endif
-                            }
-                       }
-                       else 
-                       {
-                            std::valarray<float> sin_rand_true_seq  = std::valarray<float>(i_duration);
-                            std::valarray<float> sin_rand_false_seq = std::valarray<float>(i_duration);
-                            std::size_t i,j;
-                            float sin_r_t{0.0f};
-                            float sin_r_f{0.0f};
-                            for(i=0ull; i != i_duration; ++i) 
-                            {
-                                sin_rand_true_seq.operator[](i)  = channel_Q_uniform_sample_n1_0_1(-1.0f,+1.0f);
-                                sin_rand_false_seq.operator[](i) = channel_Q_uniform_sample_n1_0_1(-1.0f,+1.0f);
-                            }
-                            for(i = 0ull; i != this->m_Q_nsamples; ++i) 
-                            {
-                                    if(i>=0ull && i<=i_duration)
-                                    {
-                                        j = i%i_duration;
-                                        sin_r_t = sin_rand_true_seq.operator[](j);
-                                        sin_r_f = sin_rand_false_seq.operator[](j);
-                                        
-                                    }
+                              }
+                          break;
+                          case 1 : // random 
+                              for(std::size_t i = 0ull; i != this->m_Q_nsamples; ++i) 
+                              {
+                                    const float sin_r_t{channel_Q_uniform_sample_n1_0_1(lo,hi)};
+                                    const float sin_r_f{channel_Q_uniform_sample_n1_0_1(lo,hi)};
                                     const float t_i{static_cast<float>(i*inv_sample_rate)};
 #if (IQ_RANDOM_BITSTREAM_USE_CEPHES) == 1 
                                     const float sin_val = ceph_sinf(this->m_Q_ph0+(C6283185307179586476925286766559*this->m_Q_w0*t_i));
-                                    this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?sin_r_t:sin_r_f;
+                                    this->m_Q_bitstream.m_data[i] = (sin_val>0.0f)?sin_r_t:sin_r_f;
                                     
 #else 
                                     const float sin_val = std::sin(this->m_Q_ph0+(C6283185307179586476925286766559*this->m_Q_w0*t_i));
-                                    this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?sin_r_t:sin_r_f;
+                                    this->m_Q_bitstream.m_data[i] = (sin_val>0.0f)?sin_r_t:sin_r_f;
 #endif
-                            }
+                              }
+                          break;
+                          default : 
+                              return (-1);
+                       }
+                            return (0);
                        }
 
-                       return (0);
-                  } 
-
+                       
+                    
 
           };
 
@@ -374,21 +310,6 @@ namespace radiolocation
 }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

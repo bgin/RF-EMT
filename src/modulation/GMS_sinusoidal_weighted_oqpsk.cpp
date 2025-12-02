@@ -209,8 +209,7 @@ gms::radiolocation
 std::int32_t 
 gms::radiolocation
 ::sinusoidal_weighted_oqpsk_t
-::generate_oqpsk_signal( const std::int32_t seq_or_rand_bitstream, // generate sequential [1,-1] if arg=0, or random if arg=1
-                         const float I_duration, // user passed
+::generate_oqpsk_signal( const float I_duration, // user passed
                          const float I_w0,       // user passed
                          const float I_ph0,      // user passed
                          const float I_sample_rate,
@@ -222,20 +221,10 @@ gms::radiolocation
       using namespace gms::math;
       std::int32_t I_ch_bitstream_stat{1};
       std::int32_t Q_ch_bitstream_stat{1};
-      if(seq_or_rand_bitstream == 0)
-      {
-         I_ch_bitstream_stat = this->generate_I_channel_bitstream(I_duration,I_w0,I_ph0,I_sample_rate);
-         if(I_ch_bitstream_stat < 0) { return (-1);}
-         Q_ch_bitstream_stat = this->generate_Q_channel_bitstream(Q_duration,Q_w0,Q_ph0,Q_sample_rate); 
-         if(Q_ch_bitstream_stat < 0) {return (-2);}
-      }
-      else if(seq_or_rand_bitstream == 1) 
-      {
-             I_ch_bitstream_stat = this->generate_I_channel_random_bitstream(I_duration,I_w0,I_ph0,I_sample_rate);
-             if(I_ch_bitstream_stat < 0) { return (-1);}
-             Q_ch_bitstream_stat = this->generate_Q_channel_random_bitstream(Q_duration,Q_w0,Q_ph0,Q_sample_rate); 
-             if(Q_ch_bitstream_stat < 0) {return (-2);}
-      }
+      I_ch_bitstream_stat = this->generate_I_channel_bitstream(I_duration,I_w0,I_ph0,I_sample_rate);
+      if(I_ch_bitstream_stat < 0) { return (-1);}
+      Q_ch_bitstream_stat = this->generate_Q_channel_bitstream(Q_duration,Q_w0,Q_ph0,Q_sample_rate); 
+      if(Q_ch_bitstream_stat < 0) {return (-2);}           
       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
       constexpr float C314159265358979323846264338328{3.14159265358979323846264338328f};
       std::size_t i,j;
@@ -401,8 +390,7 @@ gms::radiolocation
 std::int32_t 
 gms::radiolocation 
 ::sinusoidal_weighted_oqpsk_t
-::generate_oqpsk_signal_additive_noise(const std::int32_t seq_or_rand_bitstream, // generate sequential [1,-1] if arg=0, or random if arg=1
-                                       const float I_duration, // user passed
+::generate_oqpsk_signal_additive_noise(const float I_duration, // user passed
                                        const float I_w0,       // user passed
                                        const float I_ph0,      // user passed
                                        const float I_sample_rate,
@@ -416,20 +404,10 @@ gms::radiolocation
       using namespace gms::math;
       std::int32_t I_ch_bitstream_stat{1};
       std::int32_t Q_ch_bitstream_stat{1};
-      if(seq_or_rand_bitstream == 0)
-      {
-         I_ch_bitstream_stat = this->generate_I_channel_bitstream(I_duration,I_w0,I_ph0,I_sample_rate);
-         if(I_ch_bitstream_stat < 0) { return (-1);}
-         Q_ch_bitstream_stat = this->generate_Q_channel_bitstream(Q_duration,Q_w0,Q_ph0,Q_sample_rate); 
-         if(Q_ch_bitstream_stat < 0) {return (-2);}
-      }
-      else if(seq_or_rand_bitstream == 1) 
-      {
-             I_ch_bitstream_stat = this->generate_I_channel_random_bitstream(I_duration,I_w0,I_ph0,I_sample_rate);
-             if(I_ch_bitstream_stat < 0) { return (-1);}
-             Q_ch_bitstream_stat = this->generate_Q_channel_random_bitstream(Q_duration,Q_w0,Q_ph0,Q_sample_rate); 
-             if(Q_ch_bitstream_stat < 0) {return (-2);}
-      }
+      I_ch_bitstream_stat = this->generate_I_channel_bitstream(I_duration,I_w0,I_ph0,I_sample_rate);
+      if(I_ch_bitstream_stat < 0) { return (-1);}
+      Q_ch_bitstream_stat = this->generate_Q_channel_bitstream(Q_duration,Q_w0,Q_ph0,Q_sample_rate); 
+      if(Q_ch_bitstream_stat < 0) {return (-2);}    
       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
       constexpr float C314159265358979323846264338328{3.14159265358979323846264338328f};
       const float invTc{1.0f/this->m_T};

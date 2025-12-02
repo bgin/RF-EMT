@@ -40,7 +40,7 @@ namespace file_info
 #include <string>
 #include <iostream>
 #include <thread>
-#include <vector>
+#include <immintrin.h>
 #include <random>
 #include "GMS_config.h"
 #include "GMS_dyn_array.h"
@@ -233,7 +233,7 @@ namespace radiolocation
                       using namespace gms::common;
 	                  sse_memset_unroll8x_ps(this->m_Q_bitstream.m_data,0.0f,this->m_Q_ch_nsamples);
 #else 
-                      std::fill(this->m_Q_bitstream.m_data,this->m_Q_bitstream.m_data+this->m_I_ch_nsamples,0.0f);
+                      std::fill(this->m_Q_bitstream.m_data,this->m_Q_bitstream.m_data+this->m_Q_ch_nsamples,0.0f);
 #endif                      
                   }
 
@@ -315,182 +315,167 @@ namespace radiolocation
                   __ATTR_ALWAYS_INLINE__
                   inline 
                   std::int32_t 
-                  generate_I_channel_random_bitstream(const float duration, // user passed
-                                                      const float w0,       // user passed
-                                                      const float ph0,      // user passed
-                                                      const float sample_rate)
+                  generate_I_channel_bitstream(const float duration, // user passed
+                                               const float w0,       // user passed
+                                               const float ph0,      // user passed
+                                               const float sample_rate) // user passed                                                    
                   {
                        using namespace gms::math;
                        std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
                        if(__builtin_expect(this->m_I_ch_nsamples!=total_samples,0)) { return (-1);} 
-                       const std::size_t i_duration{static_cast<std::size_t>(duration)};
                        const float inv_sr{1.0f/sample_rate};
-                       constexpr std::size_t max_buf_size{100ull};
                        constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
-                       if(__builtin_expect(i_duration<=max_buf_size,0))
+                       for(std::size_t i = 0ull; i != this->m_I_ch_nsamples; ++i) 
                        {
-                            __ATTR_ALIGN__(16)
-                            float cos_rand_true_seq[max_buf_size];
-                            __ATTR_ALIGN__(16) 
-                            float cos_rand_false_seq[max_buf_size];
-                            std::size_t i,j;
-                            float cos_r_t{0.0f};
-                            float cos_r_f{0.0f};
-                            for(i=0ull; i != max_buf_size; ++i) 
-                            {
-                                cos_rand_true_seq[i]  = channel_I_sample_noise_n1_0_1(-1.0f,+1.0f);
-                                cos_rand_false_seq[i] = channel_I_sample_noise_n1_0_1(-1.0f,+1.0f);
-                            }
-                            for(i = 0ull; i != this->m_I_ch_nsamples; ++i) 
-                            {
-                                    if(i>=0ull && i<=i_duration)
-                                    {
-                                        j = i%i_duration;
-                                        cos_r_t = cos_rand_true_seq[j];
-                                        cos_r_f = cos_rand_false_seq[j];
-                                        
-                                    }
-                                    const float t_i{static_cast<float>(i*inv_sr)};
+                            const float t_i{static_cast<float>(i*inv_sr)};
 #if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
-                                    const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_i));
-                                    //this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?cos_val*cos_r_t:cos_val*cos_r_f;
-                                    this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?cos_r_t:cos_r_f;
-                                    //this->m_I_bitstream.m_data[i] = (cos_val>0.0f)? +1.0f : -1.0f;
+                            const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_i));
+                            this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                    
 #else 
-                                    const float cos_val = std::_cos(ph0+(C6283185307179586476925286766559*w0*t_i));
-                                    this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?cos_val*cos_r_t:cos_val*cos_r_f;
+                            const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_i));
+                            this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
 #endif
-                            }
                        }
-                       else 
-                       {
-                           std::vector<float> cos_rand_true_seq;
-                           std::vector<float> cos_rand_false_seq;
-                           std::size_t i,j;
-                           float cos_r_t{0.0f};
-                           float cos_r_f{0.0f};
-                           cos_rand_true_seq.reserve(i_duration);
-                           cos_rand_false_seq.reserve(i_duration);
-                           for(i=0ull; i != i_duration; ++i) 
-                           {
-                                cos_rand_true_seq[i]  = channel_I_sample_noise_n1_0_1(-1.0f,+1.0f);
-                                cos_rand_false_seq[i] = channel_I_sample_noise_n1_0_1(-1.0f,+1.0f);
-                           }
-                           for(i = 0ull; i != this->m_I_ch_nsamples; ++i) 
-                           {
-                                    if(i>=0ull && i<=i_duration)
-                                    {
-                                        j = i%i_duration;
-                                        cos_r_t = cos_rand_true_seq[j];
-                                        cos_r_f = cos_rand_false_seq[j];
-                                    }
-                                    const float t_i{static_cast<float>(i*inv_sr)};
-#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
-                                    const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_i));
-                                    this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?cos_val*cos_r_t:cos_val*cos_r_f;
-#else 
-                                    const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_i));
-                                    this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?cos_val*cos_r_t:cos_val*cos_r_f;
-#endif
-                            }
-                       }
-
+                      
                        return (0);
                   }
-
 
                   __ATTR_ALWAYS_INLINE__
                   inline 
                   std::int32_t 
-                  generate_Q_channel_random_bitstream(const float duration, // user passed
-                                                      const float w0,       // user passed
-                                                      const float ph0,      // user passed
-                                                      const float sample_rate)
+                  generate_Q_channel_bitstream(const float duration, // user passed
+                                               const float w0,       // user passed
+                                               const float ph0,      // user passed
+                                               const float sample_rate) // user passed
                   {
                        using namespace gms::math;
                        std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
                        if(__builtin_expect(this->m_Q_ch_nsamples!=total_samples,0)) { return (-1);} 
-                       const std::size_t i_duration{static_cast<std::size_t>(duration)};
                        const float inv_sr{1.0f/sample_rate};
-                       constexpr std::size_t max_buf_size{100ull};
                        constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
-                       if(__builtin_expect(i_duration<=max_buf_size,0))
+                       for(std::size_t i = 0ull; i != this->m_Q_ch_nsamples; ++i) 
                        {
-                            __ATTR_ALIGN__(16)
-                            float sin_rand_true_seq[max_buf_size];
-                            __ATTR_ALIGN__(16) 
-                            float sin_rand_false_seq[max_buf_size];
-                            std::size_t i,j;
-                            float sin_r_t{0.0f};
-                            float sin_r_f{0.0f};
-                            for(i=0ull; i != max_buf_size; ++i) 
-                            {
-                                sin_rand_true_seq[i]  = channel_Q_sample_noise_n1_0_1(-1.0f,+1.0f);
-                                sin_rand_false_seq[i] = channel_Q_sample_noise_n1_0_1(-1.0f,+1.0f);
-                            }
-                            for(i = 0ull; i != this->m_Q_ch_nsamples; ++i) 
-                            {
-                                    if(i>=0ull && i<=i_duration)
-                                    {
-                                        j = i%i_duration;
-                                        sin_r_t = sin_rand_true_seq[j];
-                                        sin_r_f = sin_rand_false_seq[j];
-                                    }
-                                    const float t_i{static_cast<float>(i*inv_sr)};
+                            const float t_i{static_cast<float>(i*inv_sr)};
 #if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
-                                    const float sin_val = ceph_sinf(ph0+(C6283185307179586476925286766559*w0*t_i));
-                                    this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?sin_val*sin_r_t:sin_val*sin_r_f;
+                            const float sin_val = ceph_sinf(ph0+(C6283185307179586476925286766559*w0*t_i));
+                            this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?+1.0f:-1.0f;
 #else 
-                                    const float sin_val = std::sin(ph0+(C6283185307179586476925286766559*w0*t_i));
-                                    this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?sin_val*sin_r_t:sin_val*sin_r_f;
+                            const float sin_val = std::sin(ph0+(C6283185307179586476925286766559*w0*t_i));
+                            this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?+1.0f:-1.0f;
 #endif
-                            }
                        }
-                       else 
-                       {
-                           std::vector<float> sin_rand_true_seq;
-                           std::vector<float> sin_rand_false_seq;
-                           std::size_t i,j;
-                           float sin_r_t{0.0f};
-                           float sin_r_f{0.0f};
-                           sin_rand_true_seq.reserve(i_duration);
-                           sin_rand_false_seq.reserve(i_duration);
-                           for(i=0ull; i != i_duration; ++i) 
-                           {
-                                sin_rand_true_seq[i]  = channel_Q_sample_noise_n1_0_1(-1.0f,+1.0f);
-                                sin_rand_false_seq[i] = channel_Q_sample_noise_n1_0_1(-1.0f,+1.0f);
-                           }
-                           for(i = 0ull; i != this->m_Q_ch_nsamples; ++i) 
-                           {
-                                    if(i>=0ull && i<=i_duration)
-                                    {
-                                        j = i%i_duration;
-                                        sin_r_t = sin_rand_true_seq[j];
-                                        sin_r_f = sin_rand_false_seq[j];
-                                    }
-                                    const float t_i{static_cast<float>(i*inv_sr)};
-#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
-                                    const float sin_val = ceph_sinf(ph0+(C6283185307179586476925286766559*w0*t_i));
-                                    this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?sin_val*sin_r_t:sin_val*sin_r_f;
-#else 
-                                    const float sin_val = std::sin(ph0+(C6283185307179586476925286766559*w0*t_i));
-                                    this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?sin_val*sin_r_t:sin_val*sin_r_f;
-#endif
-                            }
-                       }
-
+                      
                        return (0);
                   }
 
+
+                   __ATTR_ALWAYS_INLINE__
+                  inline 
+                  std::int32_t 
+                  generate_I_channel_bitstream_sse(const float duration, // user passed
+                                                   const float w0,       // user passed
+                                                   const float ph0,      // user passed
+                                                   const float sample_rate) // user passed                                                    
+                  {
+                       using namespace gms::math;
+                       std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
+                       if(__builtin_expect(this->m_I_ch_nsamples!=total_samples,0)) { return (-1);} 
+                       std::size_t i,j;
+                       const float inv_sr{1.0f/sample_rate};
+                       const __m128 vinv_sr{_mm_set1_ps(inv_sr)};
+                       const __m128 vw0{_mm_set1_ps(w0)};
+                       const __m128 vph0{_mm_set1_ps(ph0)};
+                       const __m128 v2pi{_mm_set1_ps(6.283185307179586476925286766559f)};
+                       const __m128 vzero{_mm_setzero_ps()};
+                       const __m128 vpone{_mm_set1_ps(+1.0f)};
+                       const __m128 vnone{_mm_set1_ps(-1.0f)};
+                       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+
+                       for(i = 0ull; i != ROUND_TO_FOUR(this->m_I_ch_nsamples,4ull); i += 4ull) 
+                       {
+                           const __m128 vt_i{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                                                         static_cast<float>((i+1ull)*inv_sr),
+                                                         static_cast<float>((i+2ull)*inv_sr),
+                                                         static_cast<float>((i+3ull)*inv_sr))};
+                           const __m128 vcos_val    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i),vph0));
+                           const __mmask8 vcos_ge_0 = _mm_cmp_ps_mask(vcos_val,vzero,_CMP_GE_OQ);
+                           _mm_store_ps(&this->m_I_bitstream.m_data[i], _mm_mask_blend_ps(vcos_ge_0,vnone,vpone));   
+                       }
+                       
+                       for(j = i; j != this->m_I_ch_nsamples; ++j) 
+                       {
+                            const float t_i{static_cast<float>(i*inv_sr)};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                            const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_i));
+                            this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                            const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_i));
+                            this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                       }
+                      
+                       return (0);
+                  }
+
+                  __ATTR_ALWAYS_INLINE__
+                  inline 
+                  std::int32_t 
+                  generate_Q_channel_bitstream_sse(const float duration, // user passed
+                                                   const float w0,       // user passed
+                                                   const float ph0,      // user passed
+                                                   const float sample_rate) // user passed                                                    
+                  {
+                       using namespace gms::math;
+                       std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
+                       if(__builtin_expect(this->m_Q_ch_nsamples!=total_samples,0)) { return (-1);} 
+                       std::size_t i,j;
+                       const float inv_sr{1.0f/sample_rate};
+                       const __m128 vinv_sr{_mm_set1_ps(inv_sr)};
+                       const __m128 vw0{_mm_set1_ps(w0)};
+                       const __m128 vph0{_mm_set1_ps(ph0)};
+                       const __m128 v2pi{_mm_set1_ps(6.283185307179586476925286766559f)};
+                       const __m128 vzero{_mm_setzero_ps()};
+                       const __m128 vpone{_mm_set1_ps(+1.0f)};
+                       const __m128 vnone{_mm_set1_ps(-1.0f)};
+                       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+
+                       for(i = 0ull; i != ROUND_TO_FOUR(this->m_Q_ch_nsamples,4ull); i += 4ull) 
+                       {
+                           const __m128 vt_i{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                                                         static_cast<float>((i+1ull)*inv_sr),
+                                                         static_cast<float>((i+2ull)*inv_sr),
+                                                         static_cast<float>((i+3ull)*inv_sr))};
+                           const __m128 vcos_val    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i),vph0));
+                           const __mmask8 vcos_ge_0 = _mm_cmp_ps_mask(vcos_val,vzero,_CMP_GE_OQ);
+                           _mm_store_ps(&this->m_Q_bitstream.m_data[i], _mm_mask_blend_ps(vcos_ge_0,vnone,vpone));   
+                       }
+                       
+                       for(j = i; j != this->m_Q_ch_nsamples; ++j) 
+                       {
+                            const float t_i{static_cast<float>(i*inv_sr)};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                            const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_i));
+                            this->m_Q_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                            const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_i));
+                            this->m_Q_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                       }
+                      
+                       return (0);
+                  }
                  
 
                   __ATTR_ALWAYS_INLINE__
                   inline 
                   std::int32_t 
-                  generate_I_channel_bitstream(const float duration, // user passed
-                                               const float w0,       // user passed
-                                               const float ph0,      // user passed
-                                               const float sample_rate)
+                  generate_I_channel_bitstream_unroll4x(const float duration, // user passed
+                                                        const float w0,       // user passed
+                                                        const float ph0,      // user passed
+                                                        const float sample_rate)
                   {
                         using namespace gms::math;
                         std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
@@ -592,10 +577,10 @@ namespace radiolocation
                    __ATTR_ALWAYS_INLINE__
                   inline 
                   std::int32_t 
-                  generate_Q_channel_bitstream(const float duration, // user passed
-                                               const float w0,       // user passed
-                                               const float ph0,      // user passed
-                                               const float sample_rate)
+                  generate_Q_channel_bitstream_unroll4x(const float duration, // user passed
+                                                        const float w0,       // user passed
+                                                        const float ph0,      // user passed
+                                                        const float sample_rate)
                   {
                         using namespace gms::math;
                         std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
@@ -704,8 +689,7 @@ namespace radiolocation
           __ATTR_OPTIMIZE_03__
 #endif 
                   std::int32_t 
-                  generate_oqpsk_signal( const std::int32_t,
-                                         const float, // user passed
+                  generate_oqpsk_signal( const float, // user passed
                                          const float,       // user passed
                                          const float,      // user passed
                                          const float,      // user passed
@@ -720,8 +704,7 @@ namespace radiolocation
           __ATTR_OPTIMIZE_03__
 #endif 
                   std::int32_t 
-                  generate_oqpsk_signal_additive_noise(const std::int32_t,
-                                                       const float,
+                  generate_oqpsk_signal_additive_noise(const float,
                                                        const float,
                                                        const float, // user passed
                                                        const float,       // user passed
