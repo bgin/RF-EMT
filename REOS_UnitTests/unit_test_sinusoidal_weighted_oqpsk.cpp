@@ -16,11 +16,11 @@
 
 __attribute__((hot))
 __attribute__((noinline))
-std::int32_t 
-unit_test_generate_I_channel_random_bitstream();
+void 
+unit_test_generate_I_Q_channel_bitstream();
 
-std::int32_t 
-unit_test_generate_I_channel_random_bitstream()
+void  
+unit_test_generate_I_Q_channel_bitstream()
 {
       using namespace gms::radiolocation;
       using namespace gms;
@@ -39,6 +39,10 @@ unit_test_generate_I_channel_random_bitstream()
       constexpr float I_sample_rate{200.0f};
       constexpr float I_w0{10.0f};
       constexpr float I_ph0{0.78539816339744830961566084582f};
+      constexpr float Q_duration{I_duration};
+      constexpr float Q_sample_rate{I_sample_rate};
+      constexpr float Q_w0{I_w0};
+      constexpr float Q_ph0{I_ph0};
       int32_t status{};
       printf("[UNIT_TEST]: function=%s -- **START**\n", __PRETTY_FUNCTION__);
       // For breaking into gdb
@@ -57,34 +61,121 @@ unit_test_generate_I_channel_random_bitstream()
           if(ctor_name != NULL) gms::common::gms_mm_free(ctor_name);
       }   
 
-      std::printf("[UNIT-TEST]: -- Calling: I-channel user data random bitstream generator\n");
-      const std::int32_t ret_status = OQPSK_signal.generate_I_channel_random_bitstream(I_duration,I_w0,I_ph0,I_sample_rate);
-      if(ret_status<0)
       {
-          std::printf("[UNIT-TEST]: -- generate_I_channel_random_bitstream -- **FAILED**, status=%d\n",ret_status);
-          return (ret_status);
+          std::printf("[UNIT-TEST]: -- Calling: I-channel user data bitstream generator\n");
+          const std::int32_t ret_status = OQPSK_signal.generate_I_channel_bitstream(I_duration,I_w0,I_ph0,I_sample_rate);
+          if(ret_status<0)
+          {
+             std::printf("[UNIT-TEST]: -- generate_I_channel_bitstream -- **FAILED**, status=%d\n",ret_status);
+             return;
+          }
+          std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n");
+          sinusoidal_weighted_oqpsk_t::create_signal_plot(static_cast<std::uint32_t>(OQPSK_signal.m_I_ch_nsamples),OQPSK_signal.m_I_bitstream.m_data,
+                                                                                 nullptr,"generate_I_channel_bitstream_test_5_",
+                                                                                 "I-Channel bitstream",false);
       }
-      std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n");
-      sinusoidal_weighted_oqpsk_t::create_signal_plot(static_cast<std::uint32_t>(OQPSK_signal.m_I_ch_nsamples),OQPSK_signal.m_I_bitstream.m_data,
-                                                                                 nullptr,"generate_I_channel_random_bitstream_test_4_",
-                                                                                 "I-Channel random bitstream",false);
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      {
+         std::printf("[UNIT-TEST]: -- Calling: Q-channel user data bitstream generator\n");
+         const std::int32_t ret_status = OQPSK_signal.generate_Q_channel_bitstream(Q_duration,Q_w0,Q_ph0,Q_sample_rate);
+         if(ret_status<0)
+         {
+             std::printf("[UNIT-TEST]: -- generate_Q_channel_bitstream -- **FAILED**, status=%d\n",ret_status);
+             return;
+         }
+         std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n");
+         sinusoidal_weighted_oqpsk_t::create_signal_plot(static_cast<std::uint32_t>(OQPSK_signal.m_Q_ch_nsamples),OQPSK_signal.m_Q_bitstream.m_data,
+                                                                                 nullptr,"generate_Q_channel_bitstream_test_1_",
+                                                                                 "Q-Channel bitstream",false);
+      }
       printf("[UNIT_TEST]: function=%s -- **END**\n", __PRETTY_FUNCTION__);
-      return (0);
+     
 }
+
+
+__attribute__((hot))
+__attribute__((noinline))
+void 
+unit_test_generate_I_Q_channel_bitstream_sse();
+
+void  
+unit_test_generate_I_Q_channel_bitstream_sse()
+{
+      using namespace gms::radiolocation;
+      using namespace gms;
+      constexpr std::size_t nsamples{10ull*200ull}; // 10 periods of 200 samples each
+      constexpr std::size_t I_nsamples{nsamples};
+      constexpr std::size_t Q_nsamples{nsamples};
+      constexpr float A_I{1.0f};
+      constexpr float A_Q{1.0f};
+      constexpr float T{10.0f};
+      constexpr float sw0{9000.0f};
+      constexpr float cw0{9000.0f};
+      constexpr float cph0{0.78539816339744830961566084582f};
+      constexpr float sph0{1.57079632679489661923132169164f};
+      // same for both I/Q channels
+      constexpr float I_duration{10.0f};
+      constexpr float I_sample_rate{200.0f};
+      constexpr float I_w0{10.0f};
+      constexpr float I_ph0{0.78539816339744830961566084582f};
+      constexpr float Q_duration{I_duration};
+      constexpr float Q_sample_rate{I_sample_rate};
+      constexpr float Q_w0{I_w0};
+      constexpr float Q_ph0{I_ph0};
+      int32_t status{};
+      printf("[UNIT_TEST]: function=%s -- **START**\n", __PRETTY_FUNCTION__);
+      // For breaking into gdb
+      //__asm__ ("int3");
+      sinusoidal_weighted_oqpsk_t OQPSK_signal = sinusoidal_weighted_oqpsk_t(nsamples,I_nsamples,Q_nsamples,
+                                                                             A_I,A_Q,T,cw0,sw0,cph0,sph0);
+      char * ctor_name{gms::common::demangle(typeid(OQPSK_signal).name(),status)};
+      if(status==0 && ctor_name != NULL)
+      {
+          printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", ctor_name);
+          gms::common::gms_mm_free(ctor_name);
+      }
+      else
+      {
+          printf("[UNIT-TEST]: Instantiation of object Constructor of type: %s\n\n", typeid(OQPSK_signal).name());
+          if(ctor_name != NULL) gms::common::gms_mm_free(ctor_name);
+      }   
+
+      {
+          std::printf("[UNIT-TEST]: -- Calling: I-channel user data bitstream generator\n");
+          const std::int32_t ret_status = OQPSK_signal.generate_I_channel_bitstream_sse(I_duration,I_w0,I_ph0,I_sample_rate);
+          if(ret_status<0)
+          {
+             std::printf("[UNIT-TEST]: -- generate_I_channel_bitstream_sse -- **FAILED**, status=%d\n",ret_status);
+             return;
+          }
+          std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n");
+          sinusoidal_weighted_oqpsk_t::create_signal_plot(static_cast<std::uint32_t>(OQPSK_signal.m_I_ch_nsamples),OQPSK_signal.m_I_bitstream.m_data,
+                                                                                 nullptr,"generate_I_channel_bitstream_sse_test_1_",
+                                                                                 "I-Channel rectwave bitstream",false);
+      }
+      /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      {
+         std::printf("[UNIT-TEST]: -- Calling: Q-channel user data  bitstream generator\n");
+         const std::int32_t ret_status = OQPSK_signal.generate_Q_channel_bitstream_sse(Q_duration,Q_w0,Q_ph0,Q_sample_rate);
+         if(ret_status<0)
+         {
+             std::printf("[UNIT-TEST]: -- generate_Q_channel_bitstream_sse -- **FAILED**, status=%d\n",ret_status);
+             return;
+         }
+         std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n");
+         sinusoidal_weighted_oqpsk_t::create_signal_plot(static_cast<std::uint32_t>(OQPSK_signal.m_Q_ch_nsamples),OQPSK_signal.m_Q_bitstream.m_data,
+                                                                                 nullptr,"generate_Q_channel_bitstream_sse_test_1_",
+                                                                                 "Q-Channel rectwave bitstream",false);
+      }
+      printf("[UNIT_TEST]: function=%s -- **END**\n", __PRETTY_FUNCTION__);
+     
+}
+
 
 
 int main()
 {
-    std::int32_t status_generate_I_channel_random_bitstream = unit_test_generate_I_channel_random_bitstream();
-    if(status_generate_I_channel_random_bitstream==0)
-    {
-         //std::printf( ANSI_COLOR_GREEN "[UNIT-TEST-- generate_I_channel_random_bitstream]: PASSED!!" ANSI_RESET_ALL "\n");
-         std::printf("[UNIT-TEST-- generate_I_channel_random_bitstream]: PASSED!! \n");
-    }
-    else 
-    {
-         //std::printf( ANSI_COLOR_RED "[UNIT-TEST-- generate_I_channel_random_bitstream]: FAILED!!" ANSI_RESET_ALL "\n");
-         std::printf("[UNIT-TEST-- generate_I_channel_random_bitstream]: FAILED!! \n");
-    }
+    unit_test_generate_I_Q_channel_random_bitstream();
+    unit_test_generate_I_Q_channel_bitstream_sse();
     return 0;
 }
