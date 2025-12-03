@@ -45,6 +45,7 @@ namespace file_info
 #include "GMS_config.h"
 #include "GMS_dyn_array.h"
 #include "GMS_sse_memset.h"
+#include "GMS_loop_indices_LUT.h"
 
 // Enable non-temporal stores for this class only( used with free-standing operators)
 // defaulted to 0.
@@ -391,33 +392,263 @@ namespace radiolocation
                        const __m128 vpone{_mm_set1_ps(+1.0f)};
                        const __m128 vnone{_mm_set1_ps(-1.0f)};
                        constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
-
-                       for(i = 0ull; i != ROUND_TO_FOUR(this->m_I_ch_nsamples,4ull); i += 4ull) 
+                       constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+                       if(this->m_I_ch_nsamples>LUT_loop_idx_threshold)
                        {
-                           const __m128 vt_i{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                            for(i = 0ull; i != ROUND_TO_FOUR(this->m_I_ch_nsamples,4ull); i += 4ull) 
+                            {
+                               const __m128 vt_i{_mm_setr_ps(static_cast<float>(i*inv_sr),
                                                          static_cast<float>((i+1ull)*inv_sr),
                                                          static_cast<float>((i+2ull)*inv_sr),
                                                          static_cast<float>((i+3ull)*inv_sr))};
-                           const __m128 vcos_val    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i),vph0));
-                           const __mmask8 vcos_ge_0 = _mm_cmp_ps_mask(vcos_val,vzero,_CMP_GE_OQ);
-                           _mm_store_ps(&this->m_I_bitstream.m_data[i], _mm_mask_blend_ps(vcos_ge_0,vnone,vpone));   
-                       }
+                               const __m128 vcos_val    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i),vph0));
+                               const __mmask8 vcos_ge_0 = _mm_cmp_ps_mask(vcos_val,vzero,_CMP_GE_OQ);
+                               _mm_store_ps(&this->m_I_bitstream.m_data[i], _mm_mask_blend_ps(vcos_ge_0,vnone,vpone));   
+                           }
                        
-                       for(j = i; j != this->m_I_ch_nsamples; ++j) 
-                       {
-                            const float t_i{static_cast<float>(i*inv_sr)};
+                           for(j = i; j != this->m_I_ch_nsamples; ++j) 
+                           {
+                                const float t_j{static_cast<float>(j*inv_sr)};
 #if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
-                            const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_i));
-                            this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                this->m_I_bitstream.m_data[j] = (cos_val>=0.0f)?+1.0f:-1.0f;
                                     
 #else 
-                            const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_i));
-                            this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                this->m_I_bitstream.m_data[j] = (cos_val>=0.0f)?+1.0f:-1.0f;
 #endif
+                           }
                        }
-                      
+                       else 
+                       {
+                       
+                           for(i = 0ull; i != ROUND_TO_FOUR(this->m_I_ch_nsamples,4ull); i += 4ull) 
+                           {
+                               //const __m128 vt_i{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                               //                          static_cast<float>((i+1ull)*inv_sr),
+                               //                          static_cast<float>((i+2ull)*inv_sr),
+                               //                          static_cast<float>((i+3ull)*inv_sr))};
+                               _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i],_MM_HINT_T0);
+                               const __m128 vt_i{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i]),vinv_sr)};
+                               const __m128 vcos_val    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i),vph0));
+                               const __mmask8 vcos_ge_0 = _mm_cmp_ps_mask(vcos_val,vzero,_CMP_GE_OQ);
+                               _mm_store_ps(&this->m_I_bitstream.m_data[i], _mm_mask_blend_ps(vcos_ge_0,vnone,vpone));   
+                           }
+                       
+                           for(j = i; j != this->m_I_ch_nsamples; ++j) 
+                           {
+                                //const float t_j{static_cast<float>(j*inv_sr)};
+                                const float t_j{gms::math::LUT_loop_indices_2257_align16[j]*inv_sr};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                this->m_I_bitstream.m_data[j] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                this->m_I_bitstream.m_data[j] = (cos_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                           }
+
+                       }
                        return (0);
                   }
+
+                   /*
+                     SSE-version unrolled four times.
+                 */
+                   __ATTR_ALWAYS_INLINE__
+                  inline 
+                  std::int32_t 
+                  generate_I_channel_bitstream_sse_u4x(const float duration, // user passed
+                                                       const float w0,       // user passed
+                                                       const float ph0,      // user passed
+                                                       const float sample_rate) // user passed                                                    
+                  {
+                       using namespace gms::math;
+                       std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
+                       if(__builtin_expect(this->m_I_ch_nsamples!=total_samples,0)) { return (-1);} 
+                       std::size_t i;
+                       const float inv_sr{1.0f/sample_rate};
+                       const __m128 vinv_sr{_mm_set1_ps(inv_sr)};
+                       const __m128 vw0{_mm_set1_ps(w0)};
+                       const __m128 vph0{_mm_set1_ps(ph0)};
+                       const __m128 v2pi{_mm_set1_ps(6.283185307179586476925286766559f)};
+                       const __m128 vzero{_mm_setzero_ps()};
+                       const __m128 vpone{_mm_set1_ps(+1.0f)};
+                       const __m128 vnone{_mm_set1_ps(-1.0f)};
+                       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+                       constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+                       if(this->m_I_ch_nsamples>LUT_loop_idx_threshold)
+                       {
+                             for(i = 0ull; (i+15ull) < this->m_I_ch_nsamples; i += 16ull) 
+                             {
+                                   const __m128 vt_i_0{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                                                         static_cast<float>((i+1ull)*inv_sr),
+                                                         static_cast<float>((i+2ull)*inv_sr),
+                                                         static_cast<float>((i+3ull)*inv_sr))};
+                                   const __m128 vcos_val_0    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask8 vcos_ge_0_0 = _mm_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                                   const __m128 vt_i_1{_mm_setr_ps(static_cast<float>((i+4ull)*inv_sr),
+                                                         static_cast<float>((i+5ull)*inv_sr),
+                                                         static_cast<float>((i+6ull)*inv_sr),
+                                                         static_cast<float>((i+7ull)*inv_sr))};
+                                   const __m128 vcos_val_1    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_1),vph0));
+                                   const __mmask8 vcos_ge_0_1 = _mm_cmp_ps_mask(vcos_val_1,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_I_bitstream.m_data[i+4ull], _mm_mask_blend_ps(vcos_ge_0_1,vnone,vpone));
+                                   const __m128 vt_i_2{_mm_setr_ps(static_cast<float>((i+8ull)*inv_sr),
+                                                         static_cast<float>((i+9ull)*inv_sr),
+                                                         static_cast<float>((i+10ull)*inv_sr),
+                                                         static_cast<float>((i+11ull)*inv_sr))};
+                                   const __m128 vcos_val_2    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_2),vph0));
+                                   const __mmask8 vcos_ge_0_2 = _mm_cmp_ps_mask(vcos_val_2,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_I_bitstream.m_data[i+8ull], _mm_mask_blend_ps(vcos_ge_0_2,vnone,vpone));
+                                   const __m128 vt_i_3{_mm_setr_ps(static_cast<float>((i+12ull)*inv_sr),
+                                                         static_cast<float>((i+13ull)*inv_sr),
+                                                         static_cast<float>((i+14ull)*inv_sr),
+                                                         static_cast<float>((i+15ull)*inv_sr))};
+                                   const __m128 vcos_val_3    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_3),vph0));
+                                   const __mmask8 vcos_ge_0_3 = _mm_cmp_ps_mask(vcos_val_3,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_I_bitstream.m_data[i+12ull], _mm_mask_blend_ps(vcos_ge_0_3,vnone,vpone));
+                              }
+
+                              for(; (i+7ull) < this->m_I_ch_nsamples; i += 8ull) 
+                              {
+                                    const __m128 vt_i_0{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                                                         static_cast<float>((i+1ull)*inv_sr),
+                                                         static_cast<float>((i+2ull)*inv_sr),
+                                                         static_cast<float>((i+3ull)*inv_sr))};
+                                    const __m128 vcos_val_0    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_0),vph0));
+                                    const __mmask8 vcos_ge_0_0 = _mm_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                                    _mm_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                                    const __m128 vt_i_1{_mm_setr_ps(static_cast<float>((i+4ull)*inv_sr),
+                                                         static_cast<float>((i+5ull)*inv_sr),
+                                                         static_cast<float>((i+6ull)*inv_sr),
+                                                         static_cast<float>((i+7ull)*inv_sr))};
+                                    const __m128 vcos_val_1    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_1),vph0));
+                                    const __mmask8 vcos_ge_0_1 = _mm_cmp_ps_mask(vcos_val_1,vzero,_CMP_GE_OQ);
+                                    _mm_store_ps(&this->m_I_bitstream.m_data[i+4ull], _mm_mask_blend_ps(vcos_ge_0_1,vnone,vpone));
+                          
+                              }
+
+                              for(; (i+3ull) < this->m_I_ch_nsamples; i += 4ull) 
+                              {
+                                    const __m128 vt_i_0{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                                                         static_cast<float>((i+1ull)*inv_sr),
+                                                         static_cast<float>((i+2ull)*inv_sr),
+                                                         static_cast<float>((i+3ull)*inv_sr))};
+                                    const __m128 vcos_val_0    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_0),vph0));
+                                    const __mmask8 vcos_ge_0_0 = _mm_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                                    _mm_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                               }
+                                            
+                              for(; (i+0ull) < this->m_I_ch_nsamples; i += 1ull) 
+                              {
+                                      const float t_i{static_cast<float>(i*inv_sr)};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                      const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                      this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                      const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                      this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                               }
+                       }
+                       else 
+                       {
+                       
+                            for(i = 0ull; (i+15ull) < this->m_I_ch_nsamples; i += 16ull) 
+                            {
+                                 //const __m128 vt_i_0{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                                 //                        static_cast<float>((i+1ull)*inv_sr),
+                                 //                        static_cast<float>((i+2ull)*inv_sr),
+                                 //                        static_cast<float>((i+3ull)*inv_sr))};
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
+                                 const __m128 vt_i_0{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinv_sr)};
+                                 const __m128 vcos_val_0    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_0),vph0));
+                                 const __mmask8 vcos_ge_0_0 = _mm_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                                 _mm_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                                 //const __m128 vt_i_1{_mm_setr_ps(static_cast<float>((i+4ull)*inv_sr),
+                                 //                        static_cast<float>((i+5ull)*inv_sr),
+                                 //                        static_cast<float>((i+6ull)*inv_sr),
+                                 //                        static_cast<float>((i+7ull)*inv_sr))};
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+4ull],_MM_HINT_T0);
+                                 const __m128 vt_i_1{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]),vinv_sr)};
+                                 const __m128 vcos_val_1    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_1),vph0));
+                                 const __mmask8 vcos_ge_0_1 = _mm_cmp_ps_mask(vcos_val_1,vzero,_CMP_GE_OQ);
+                                 _mm_store_ps(&this->m_I_bitstream.m_data[i+4ull], _mm_mask_blend_ps(vcos_ge_0_1,vnone,vpone));
+                                 //const __m128 vt_i_2{_mm_setr_ps(static_cast<float>((i+8ull)*inv_sr),
+                                 //                        static_cast<float>((i+9ull)*inv_sr),
+                                 //                        static_cast<float>((i+10ull)*inv_sr),
+                                 //                        static_cast<float>((i+11ull)*inv_sr))};
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+8ull],_MM_HINT_T0);
+                                 const __m128 vt_i_2{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]),vinv_sr)};
+                                 const __m128 vcos_val_2    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_2),vph0));
+                                 const __mmask8 vcos_ge_0_2 = _mm_cmp_ps_mask(vcos_val_2,vzero,_CMP_GE_OQ);
+                                 _mm_store_ps(&this->m_I_bitstream.m_data[i+8ull], _mm_mask_blend_ps(vcos_ge_0_2,vnone,vpone));
+                                 //const __m128 vt_i_3{_mm_setr_ps(static_cast<float>((i+12ull)*inv_sr),
+                                 //                        static_cast<float>((i+13ull)*inv_sr),
+                                 //                        static_cast<float>((i+14ull)*inv_sr),
+                                 //                        static_cast<float>((i+15ull)*inv_sr))};
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+12ull],_MM_HINT_T0);
+                                 const __m128 vt_i_3{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+12ull]),vinv_sr)};
+                                 const __m128 vcos_val_3    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_3),vph0));
+                                 const __mmask8 vcos_ge_0_3 = _mm_cmp_ps_mask(vcos_val_3,vzero,_CMP_GE_OQ);
+                                 _mm_store_ps(&this->m_I_bitstream.m_data[i+12ull], _mm_mask_blend_ps(vcos_ge_0_3,vnone,vpone));
+                           }
+
+                           for(; (i+7ull) < this->m_I_ch_nsamples; i += 8ull) 
+                           {
+                           //const __m128 vt_i_0{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                           //                              static_cast<float>((i+1ull)*inv_sr),
+                           //                              static_cast<float>((i+2ull)*inv_sr),
+                           //                              static_cast<float>((i+3ull)*inv_sr))};
+                                 const __m128 vt_i_0{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinv_sr)};
+                                 const __m128 vcos_val_0    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_0),vph0));
+                                 const __mmask8 vcos_ge_0_0 = _mm_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                                 _mm_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                           //const __m128 vt_i_1{_mm_setr_ps(static_cast<float>((i+4ull)*inv_sr),
+                           //                              static_cast<float>((i+5ull)*inv_sr),
+                           //                              static_cast<float>((i+6ull)*inv_sr),
+                           //                              static_cast<float>((i+7ull)*inv_sr))};
+                                 const __m128 vt_i_1{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]),vinv_sr)};
+                                 const __m128 vcos_val_1    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_1),vph0));
+                                 const __mmask8 vcos_ge_0_1 = _mm_cmp_ps_mask(vcos_val_1,vzero,_CMP_GE_OQ);
+                                 _mm_store_ps(&this->m_I_bitstream.m_data[i+4ull], _mm_mask_blend_ps(vcos_ge_0_1,vnone,vpone));
+                          
+                           }
+
+                           for(; (i+3ull) < this->m_I_ch_nsamples; i += 4ull) 
+                           {
+                           //const __m128 vt_i_0{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                           //                              static_cast<float>((i+1ull)*inv_sr),
+                           //                              static_cast<float>((i+2ull)*inv_sr),
+                           //                              static_cast<float>((i+3ull)*inv_sr))};
+                               const __m128 vt_i_0{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinv_sr)};
+                               const __m128 vcos_val_0    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_0),vph0));
+                               const __mmask8 vcos_ge_0_0 = _mm_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                               _mm_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                           }
+                      
+                       
+                           for(; (i+0ull) < this->m_I_ch_nsamples; i += 1ull) 
+                           {
+                            //const float t_i{static_cast<float>(i*inv_sr)};
+                                    const float t_i{gms::math::LUT_loop_indices_2257_align16[i]*inv_sr};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                    const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                    this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                    const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                    this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                           }
+                       }
+                       return (0);
+                  }
+
 
                   __ATTR_ALWAYS_INLINE__
                   inline 
@@ -440,33 +671,1208 @@ namespace radiolocation
                        const __m128 vpone{_mm_set1_ps(+1.0f)};
                        const __m128 vnone{_mm_set1_ps(-1.0f)};
                        constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
-
-                       for(i = 0ull; i != ROUND_TO_FOUR(this->m_Q_ch_nsamples,4ull); i += 4ull) 
+                       constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+                       if(this->m_Q_ch_nsamples>LUT_loop_idx_threshold)
                        {
-                           const __m128 vt_i{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                            for(i = 0ull; i != ROUND_TO_FOUR(this->m_Q_ch_nsamples,4ull); i += 4ull) 
+                            {
+                                const __m128 vt_i{_mm_setr_ps(static_cast<float>(i*inv_sr),
                                                          static_cast<float>((i+1ull)*inv_sr),
                                                          static_cast<float>((i+2ull)*inv_sr),
                                                          static_cast<float>((i+3ull)*inv_sr))};
-                           const __m128 vcos_val    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i),vph0));
-                           const __mmask8 vcos_ge_0 = _mm_cmp_ps_mask(vcos_val,vzero,_CMP_GE_OQ);
-                           _mm_store_ps(&this->m_Q_bitstream.m_data[i], _mm_mask_blend_ps(vcos_ge_0,vnone,vpone));   
-                       }
+                                const __m128 vsin_val    = _mm_sin_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i),vph0));
+                                const __mmask8 vsin_ge_0 = _mm_cmp_ps_mask(vsin_val,vzero,_CMP_GE_OQ);
+                                _mm_store_ps(&this->m_Q_bitstream.m_data[i], _mm_mask_blend_ps(vsin_ge_0,vnone,vpone));   
+                            }
                        
-                       for(j = i; j != this->m_Q_ch_nsamples; ++j) 
-                       {
-                            const float t_i{static_cast<float>(i*inv_sr)};
+                            for(j = i; j != this->m_Q_ch_nsamples; ++j) 
+                            {
+                                  const float t_j{static_cast<float>(j*inv_sr)};
 #if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
-                            const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_i));
-                            this->m_Q_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                  const float sin_val = ceph_sinf(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                  this->m_Q_bitstream.m_data[j] = (sin_val>=0.0f)?+1.0f:-1.0f;
                                     
 #else 
-                            const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_i));
-                            this->m_Q_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                  const float sin_val = std::sin(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                  this->m_Q_bitstream.m_data[j] = (sin_val>=0.0f)?+1.0f:-1.0f;
 #endif
+                            }
                        }
+                       else 
+                       {
+                             for(i = 0ull; i != ROUND_TO_FOUR(this->m_Q_ch_nsamples,4ull); i += 4ull) 
+                             {
+                                   //const __m128 vt_i{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                                     //                    static_cast<float>((i+1ull)*inv_sr),
+                                    //                     static_cast<float>((i+2ull)*inv_sr),
+                                    //                     static_cast<float>((i+3ull)*inv_sr))};
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i],_MM_HINT_T0);
+                                 const __m128 vt_i{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i]),vinv_sr)};
+                                 const __m128 vsin_val    = _mm_sin_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i),vph0));
+                                 const __mmask8 vsin_ge_0 = _mm_cmp_ps_mask(vsin_val,vzero,_CMP_GE_OQ);
+                                 _mm_store_ps(&this->m_Q_bitstream.m_data[i], _mm_mask_blend_ps(vsin_ge_0,vnone,vpone));   
+                             }
+                       
+                             for(j = i; j != this->m_Q_ch_nsamples; ++j) 
+                             {
+                                   //const float t_j{static_cast<float>(j*inv_sr)};
+                                   const float t_j{gms::math::LUT_loop_indices_2257_align16[j]*inv_sr};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                   const float sin_val = ceph_sinf(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                   this->m_Q_bitstream.m_data[j] = (sin_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                   const float sin_val = std::sin(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                   this->m_Q_bitstream.m_data[j] = (sin_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                             }
+                       }
+                      
                       
                        return (0);
                   }
+
+                 /*
+                     SSE-version unrolled four times.
+                 */
+                   __ATTR_ALWAYS_INLINE__
+                  inline 
+                  std::int32_t 
+                  generate_Q_channel_bitstream_sse_u4x(const float duration, // user passed
+                                                       const float w0,       // user passed
+                                                       const float ph0,      // user passed
+                                                       const float sample_rate) // user passed                                                    
+                  {
+                       using namespace gms::math;
+                       std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
+                       if(__builtin_expect(this->m_Q_ch_nsamples!=total_samples,0)) { return (-1);} 
+                       std::size_t i;
+                       const float inv_sr{1.0f/sample_rate};
+                       const __m128 vinv_sr{_mm_set1_ps(inv_sr)};
+                       const __m128 vw0{_mm_set1_ps(w0)};
+                       const __m128 vph0{_mm_set1_ps(ph0)};
+                       const __m128 v2pi{_mm_set1_ps(6.283185307179586476925286766559f)};
+                       const __m128 vzero{_mm_setzero_ps()};
+                       const __m128 vpone{_mm_set1_ps(+1.0f)};
+                       const __m128 vnone{_mm_set1_ps(-1.0f)};
+                       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+                       constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+                       if(this->m_Q_ch_nsamples>LUT_loop_idx_threshold)
+                       {
+                             for(i = 0ull; (i+15ull) < this->m_Q_ch_nsamples; i += 16ull) 
+                             {
+                                   const __m128 vt_i_0{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                                                         static_cast<float>((i+1ull)*inv_sr),
+                                                         static_cast<float>((i+2ull)*inv_sr),
+                                                         static_cast<float>((i+3ull)*inv_sr))};
+                                   const __m128 vsin_val_0    = _mm_sin_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask8 vsin_ge_0_0 = _mm_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_Q_bitstream.m_data[i+0ull], _mm_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                                   const __m128 vt_i_1{_mm_setr_ps(static_cast<float>((i+4ull)*inv_sr),
+                                                         static_cast<float>((i+5ull)*inv_sr),
+                                                         static_cast<float>((i+6ull)*inv_sr),
+                                                         static_cast<float>((i+7ull)*inv_sr))};
+                                   const __m128 vsin_val_1    = _mm_sin_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_1),vph0));
+                                   const __mmask8 vsin_ge_0_1 = _mm_cmp_ps_mask(vsin_val_1,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_Q_bitstream.m_data[i+4ull], _mm_mask_blend_ps(vsin_ge_0_1,vnone,vpone));
+                                   const __m128 vt_i_2{_mm_setr_ps(static_cast<float>((i+8ull)*inv_sr),
+                                                         static_cast<float>((i+9ull)*inv_sr),
+                                                         static_cast<float>((i+10ull)*inv_sr),
+                                                         static_cast<float>((i+11ull)*inv_sr))};
+                                   const __m128 vsin_val_2    = _mm_sin_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_2),vph0));
+                                   const __mmask8 vsin_ge_0_2 = _mm_cmp_ps_mask(vsin_val_2,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_Q_bitstream.m_data[i+8ull], _mm_mask_blend_ps(vsin_ge_0_2,vnone,vpone));
+                                   const __m128 vt_i_3{_mm_setr_ps(static_cast<float>((i+12ull)*inv_sr),
+                                                         static_cast<float>((i+13ull)*inv_sr),
+                                                         static_cast<float>((i+14ull)*inv_sr),
+                                                         static_cast<float>((i+15ull)*inv_sr))};
+                                   const __m128 vsin_val_3    = _mm_sin_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_3),vph0));
+                                   const __mmask8 vsin_ge_0_3 = _mm_cmp_ps_mask(vsin_val_3,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_Q_bitstream.m_data[i+12ull], _mm_mask_blend_ps(vsin_ge_0_3,vnone,vpone));
+                             }
+
+                             for(; (i+7ul) < this->m_Q_ch_nsamples; i += 8ull) 
+                             {
+                                   const __m128 vt_i_0{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                                                         static_cast<float>((i+1ull)*inv_sr),
+                                                         static_cast<float>((i+2ull)*inv_sr),
+                                                         static_cast<float>((i+3ull)*inv_sr))};
+                                   const __m128 vsin_val_0    = _mm_sin_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask8 vsin_ge_0_0 = _mm_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_Q_bitstream.m_data[i+0ull], _mm_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                                   const __m128 vt_i_1{_mm_setr_ps(static_cast<float>((i+4ull)*inv_sr),
+                                                         static_cast<float>((i+5ull)*inv_sr),
+                                                         static_cast<float>((i+6ull)*inv_sr),
+                                                         static_cast<float>((i+7ull)*inv_sr))};
+                                   const __m128 vsin_val_1    = _mm_sin_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_1),vph0));
+                                   const __mmask8 vsin_ge_0_1 = _mm_cmp_ps_mask(vsin_val_1,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_Q_bitstream.m_data[i+4ull], _mm_mask_blend_ps(vsin_ge_0_1,vnone,vpone));
+                          
+                             }
+
+                             for(; (i+3ull) < this->m_Q_ch_nsamples; i += 4ull) 
+                             {
+                                   const __m128 vt_i_0{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                                                         static_cast<float>((i+1ull)*inv_sr),
+                                                         static_cast<float>((i+2ull)*inv_sr),
+                                                         static_cast<float>((i+3ull)*inv_sr))};
+                                   const __m128 vsin_val_0    = _mm_sin_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask8 vsin_ge_0_0 = _mm_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_Q_bitstream.m_data[i+0ull], _mm_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                             }
+                      
+                       
+                             for(; (i+0ull) < this->m_Q_ch_nsamples; i += 1ull) 
+                             {
+                                   const float t_i{static_cast<float>(i*inv_sr)};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                   const float sin_val = ceph_sinf(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                   this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                   const float sin_val = std::sin(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                   this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                             }
+                       }
+                       else 
+                       {
+                             for(i = 0ull; (i+15ull) < this->m_Q_ch_nsamples; i += 16ull) 
+                             {
+                                   //const __m128 vt_i_0{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                                   //                      static_cast<float>((i+1ull)*inv_sr),
+                                   //                      static_cast<float>((i+2ull)*inv_sr),
+                                   //                      static_cast<float>((i+3ull)*inv_sr))};
+                                   _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
+                                   const __m128 vt_i_0{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinv_sr)};
+                                   const __m128 vsin_val_0    = _mm_sin_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask8 vsin_ge_0_0 = _mm_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_Q_bitstream.m_data[i+0ull], _mm_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                                   //const __m128 vt_i_1{_mm_setr_ps(static_cast<float>((i+4ull)*inv_sr),
+                                   //                      static_cast<float>((i+5ull)*inv_sr),
+                                   //                      static_cast<float>((i+6ull)*inv_sr),
+                                   //                      static_cast<float>((i+7ull)*inv_sr))};
+                                   _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+4ull],_MM_HINT_T0);
+                                   const __m128 vt_i_1{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]),vinv_sr)}; 
+                                   const __m128 vsin_val_1    = _mm_sin_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_1),vph0));
+                                   const __mmask8 vsin_ge_0_1 = _mm_cmp_ps_mask(vsin_val_1,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_Q_bitstream.m_data[i+4ull], _mm_mask_blend_ps(vsin_ge_0_1,vnone,vpone));
+                                   //const __m128 vt_i_2{_mm_setr_ps(static_cast<float>((i+8ull)*inv_sr),
+                                   //                      static_cast<float>((i+9ull)*inv_sr),
+                                   //                      static_cast<float>((i+10ull)*inv_sr),
+                                   
+                                    _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+8ull],_MM_HINT_T0);
+                                   const __m128 vt_i_2{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]),vinv_sr)};//                      static_cast<float>((i+11ull)*inv_sr))};
+                                   const __m128 vsin_val_2    = _mm_sin_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_2),vph0));
+                                   const __mmask8 vsin_ge_0_2 = _mm_cmp_ps_mask(vsin_val_2,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_Q_bitstream.m_data[i+8ull], _mm_mask_blend_ps(vsin_ge_0_2,vnone,vpone));
+                                   //const __m128 vt_i_3{_mm_setr_ps(static_cast<float>((i+12ull)*inv_sr),
+                                   //                      static_cast<float>((i+13ull)*inv_sr),
+                                   //                      static_cast<float>((i+14ull)*inv_sr),
+                                   //                      static_cast<float>((i+15ull)*inv_sr))};
+                                    _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+12ull],_MM_HINT_T0);
+                                   const __m128 vt_i_3{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+12ull]),vinv_sr)};
+                                   const __m128 vsin_val_3    = _mm_sin_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_3),vph0));
+                                   const __mmask8 vsin_ge_0_3 = _mm_cmp_ps_mask(vsin_val_3,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_Q_bitstream.m_data[i+12ull], _mm_mask_blend_ps(vsin_ge_0_3,vnone,vpone));
+                              }
+
+                              for(; (i+7ul) < this->m_Q_ch_nsamples; i += 8ull) 
+                              {
+                                     _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
+                                   const __m128 vt_i_0{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinv_sr)};
+                                   const __m128 vsin_val_0    = _mm_sin_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask8 vsin_ge_0_0 = _mm_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_Q_bitstream.m_data[i+0ull], _mm_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                                   
+                                   _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+4ull],_MM_HINT_T0);
+                                   const __m128 vt_i_1{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]),vinv_sr)}; 
+                                   const __m128 vsin_val_1    = _mm_sin_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_1),vph0));
+                                   const __mmask8 vsin_ge_0_1 = _mm_cmp_ps_mask(vsin_val_1,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_Q_bitstream.m_data[i+4ull], _mm_mask_blend_ps(vsin_ge_0_1,vnone,vpone));
+                                   
+                              }
+
+                              for(; (i+3ull) < this->m_Q_ch_nsamples; i += 4ull) 
+                              {
+                                   _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
+                                   const __m128 vt_i_0{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinv_sr)};
+                                   const __m128 vsin_val_0    = _mm_sin_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask8 vsin_ge_0_0 = _mm_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                   _mm_store_ps(&this->m_Q_bitstream.m_data[i+0ull], _mm_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                              }
+                      
+                              for(; (i+0ull) < this->m_Q_ch_nsamples; i += 1ull) 
+                              {
+                                   //const float t_i{static_cast<float>(i*inv_sr)};
+                                   const float t_j{gms::math::LUT_loop_indices_2257_align16[j]*inv_sr};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                   const float sin_val = ceph_sinf(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                   this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                   const float sin_val = std::sin(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                   this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                              }
+                       }
+                      
+                      
+                       return (0);
+                  }
+
+                  
+                  __ATTR_ALWAYS_INLINE__
+                  inline 
+                  std::int32_t 
+                  generate_I_channel_bitstream_avx(const float duration, // user passed
+                                                   const float w0,       // user passed
+                                                   const float ph0,      // user passed
+                                                   const float sample_rate) // user passed                                                    
+                  {
+                       using namespace gms::math;
+                       std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
+                       if(__builtin_expect(this->m_I_ch_nsamples!=total_samples,0)) { return (-1);} 
+                       std::size_t i,j;
+                       const float inv_sr{1.0f/sample_rate};
+                       const __m256 vinv_sr{_mm256_set1_ps(inv_sr)};
+                       const __m256 vw0{_mm256_set1_ps(w0)};
+                       const __m256 vph0{_mm256_set1_ps(ph0)};
+                       const __m256 v2pi{_mm256_set1_ps(6.283185307179586476925286766559f)};
+                       const __m256 vzero{_mm256_setzero_ps()};
+                       const __m256 vpone{_mm256_set1_ps(+1.0f)};
+                       const __m256 vnone{_mm256_set1_ps(-1.0f)};
+                       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+                       constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+                       if(this->m_I_ch_nsamples>LUT_loop_idx_threshold)
+                       {
+                            for(i = 0ull; i != ROUND_TO_EIGHT(this->m_I_ch_nsamples,8ull); i += 8ull) 
+                            {
+                               const __m256 vt_i{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                                                             static_cast<float>((i+1ull)*inv_sr),
+                                                             static_cast<float>((i+2ull)*inv_sr),
+                                                             static_cast<float>((i+3ull)*inv_sr),
+                                                             static_cast<float>((i+4ull)*inv_sr),
+                                                             static_cast<float>((i+5ull)*inv_sr),
+                                                             static_cast<float>((i+6ull)*inv_sr),
+                                                             static_cast<float>((i+7ull)*inv_sr) )};
+                               const __m256 vcos_val    = _mm256_cos_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i),vph0));
+                               const __mmask8 vcos_ge_0 = _mm256_cmp_ps_mask(vcos_val,vzero,_CMP_GE_OQ);
+                               _mm256_store_ps(&this->m_I_bitstream.m_data[i], _mm256_mask_blend_ps(vcos_ge_0,vnone,vpone));   
+                           }
+                       
+                           for(j = i; j != this->m_I_ch_nsamples; ++j) 
+                           {
+                                const float t_j{static_cast<float>(j*inv_sr)};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                this->m_I_bitstream.m_data[j] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                this->m_I_bitstream.m_data[j] = (cos_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                           }
+                       }
+                       else 
+                       {
+                       
+                           for(i = 0ull; i != ROUND_TO_EIGHT(this->m_I_ch_nsamples,8ull); i += 8ull) 
+                           {
+                               //const __m128 vt_i{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                               //                          static_cast<float>((i+1ull)*inv_sr),
+                               //                          static_cast<float>((i+2ull)*inv_sr),
+                               //                          static_cast<float>((i+3ull)*inv_sr))};
+                               _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i],_MM_HINT_T0);
+                               const __m256 vt_i{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i]),vinv_sr)};
+                               const __m256 vcos_val    = _mm256_cos_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i),vph0));
+                               const __mmask8 vcos_ge_0 = _mm256_cmp_ps_mask(vcos_val,vzero,_CMP_GE_OQ);
+                               _mm256_store_ps(&this->m_I_bitstream.m_data[i], _mm256_mask_blend_ps(vcos_ge_0,vnone,vpone));   
+                           }
+                       
+                           for(j = i; j != this->m_I_ch_nsamples; ++j) 
+                           {
+                                //const float t_j{static_cast<float>(j*inv_sr)};
+                                const float t_j{gms::math::LUT_loop_indices_2257_align16[j]*inv_sr};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                this->m_I_bitstream.m_data[j] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                this->m_I_bitstream.m_data[j] = (cos_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                           }
+
+                       }
+                       return (0);
+                  }
+
+
+                  __ATTR_ALWAYS_INLINE__
+                  inline 
+                  std::int32_t 
+                  generate_I_channel_bitstream_avx_u4x(const float duration, // user passed
+                                                       const float w0,       // user passed
+                                                       const float ph0,      // user passed
+                                                       const float sample_rate) // user passed                                                    
+                  {
+                       using namespace gms::math;
+                       std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
+                       if(__builtin_expect(this->m_I_ch_nsamples!=total_samples,0)) { return (-1);} 
+                       std::size_t i;
+                       const float inv_sr{1.0f/sample_rate};
+                       const __m256 vinv_sr{_mm256_set1_ps(inv_sr)};
+                       const __m256 vw0{_mm256_set1_ps(w0)};
+                       const __m256 vph0{_mm256_set1_ps(ph0)};
+                       const __m256 v2pi{_mm256_set1_ps(6.283185307179586476925286766559f)};
+                       const __m256 vzero{_mm256_setzero_ps()};
+                       const __m256 vpone{_mm256_set1_ps(+1.0f)};
+                       const __m256 vnone{_mm256_set1_ps(-1.0f)};
+                       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+                       constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+                       if(this->m_I_ch_nsamples>LUT_loop_idx_threshold)
+                       {
+                             for(i = 0ull; (i+31ull) < this->m_I_ch_nsamples; i += 32ull) 
+                             {
+                                   const __m256 vt_i_0{_mm256_setr_ps(static_cast<float>(i*inv_sr),
+                                                         static_cast<float>((i+1ull)*inv_sr),
+                                                         static_cast<float>((i+2ull)*inv_sr),
+                                                         static_cast<float>((i+3ull)*inv_sr),
+                                                         static_cast<float>((i+4ull)*inv_sr),
+                                                         static_cast<float>((i+5ull)*inv_sr),
+                                                         static_cast<float>((i+6ull)*inv_sr),
+                                                         static_cast<float>((i+7ull)*inv_sr))};
+                                   const __m256 vcos_val_0    = _mm256_cos_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask8 vcos_ge_0_0 = _mm256_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                                   _mm256_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm256_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                                   const __m256 vt_i_1{_mm256_setr_ps(static_cast<float>((i+8ull)*inv_sr),
+                                                         static_cast<float>((i+9ull)*inv_sr),
+                                                         static_cast<float>((i+10ull)*inv_sr),
+                                                         static_cast<float>((i+11ull)*inv_sr),
+                                                         static_cast<float>((i+12ull)*inv_sr),
+                                                         static_cast<float>((i+13ull)*inv_sr),
+                                                         static_cast<float>((i+14ull)*inv_sr),
+                                                         static_cast<float>((i+15ull)*inv_sr))};
+                                   const __m256 vcos_val_1    = _mm256_cos_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_1),vph0));
+                                   const __mmask8 vcos_ge_0_1 = _mm256_cmp_ps_mask(vcos_val_1,vzero,_CMP_GE_OQ);
+                                   _mm256_store_ps(&this->m_I_bitstream.m_data[i+8ull], _mm256_mask_blend_ps(vcos_ge_0_1,vnone,vpone));
+                                   const __m256 vt_i_2{_mm256_setr_ps(static_cast<float>((i+16ull)*inv_sr),
+                                                         static_cast<float>((i+17ull)*inv_sr),
+                                                         static_cast<float>((i+18ull)*inv_sr),
+                                                         static_cast<float>((i+19ull)*inv_sr),
+                                                         static_cast<float>((i+20ull)*inv_sr),
+                                                         static_cast<float>((i+21ull)*inv_sr),
+                                                         static_cast<float>((i+22ull)*inv_sr),
+                                                         static_cast<float>((i+23ull)*inv_sr))};
+                                   const __m256 vcos_val_2    = _mm256_cos_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_2),vph0));
+                                   const __mmask8 vcos_ge_0_2 = _mm256_cmp_ps_mask(vcos_val_2,vzero,_CMP_GE_OQ);
+                                   _mm256_store_ps(&this->m_I_bitstream.m_data[i+16ull], _mm256_mask_blend_ps(vcos_ge_0_2,vnone,vpone));
+                                   const __m256 vt_i_3{_mm256_setr_ps(static_cast<float>((i+24ull)*inv_sr),
+                                                         static_cast<float>((i+25ull)*inv_sr),
+                                                         static_cast<float>((i+26ull)*inv_sr),
+                                                         static_cast<float>((i+27ull)*inv_sr),
+                                                         static_cast<float>((i+28ull)*inv_sr),
+                                                         static_cast<float>((i+29ull)*inv_sr),
+                                                         static_cast<float>((i+30ull)*inv_sr),
+                                                         static_cast<float>((i+31ull)*inv_sr))};
+                                   const __m256 vcos_val_3    = _mm256_cos_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_3),vph0));
+                                   const __mmask8 vcos_ge_0_3 = _mm256_cmp_ps_mask(vcos_val_3,vzero,_CMP_GE_OQ);
+                                   _mm256_store_ps(&this->m_I_bitstream.m_data[i+24ull], _mm256_mask_blend_ps(vcos_ge_0_3,vnone,vpone));
+                              }
+
+                              for(; (i+15ull) < this->m_I_ch_nsamples; i += 16ull) 
+                              {  
+                                   const __m256 vt_i_0{_mm256_setr_ps(static_cast<float>(i*inv_sr),
+                                                         static_cast<float>((i+1ull)*inv_sr),
+                                                         static_cast<float>((i+2ull)*inv_sr),
+                                                         static_cast<float>((i+3ull)*inv_sr),
+                                                         static_cast<float>((i+4ull)*inv_sr),
+                                                         static_cast<float>((i+5ull)*inv_sr),
+                                                         static_cast<float>((i+6ull)*inv_sr),
+                                                         static_cast<float>((i+7ull)*inv_sr))};
+                                   const __m256 vcos_val_0    = _mm256_cos_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask8 vcos_ge_0_0 = _mm256_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                                   _mm256_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm256_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                                   const __m256 vt_i_1{_mm256_setr_ps(static_cast<float>((i+8ull)*inv_sr),
+                                                         static_cast<float>((i+9ull)*inv_sr),
+                                                         static_cast<float>((i+10ull)*inv_sr),
+                                                         static_cast<float>((i+11ull)*inv_sr),
+                                                         static_cast<float>((i+12ull)*inv_sr),
+                                                         static_cast<float>((i+13ull)*inv_sr),
+                                                         static_cast<float>((i+14ull)*inv_sr),
+                                                         static_cast<float>((i+15ull)*inv_sr))};
+                                   const __m256 vcos_val_1    = _mm256_cos_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_1),vph0));
+                                   const __mmask8 vcos_ge_0_1 = _mm256_cmp_ps_mask(vcos_val_1,vzero,_CMP_GE_OQ);
+                                   _mm256_store_ps(&this->m_I_bitstream.m_data[i+8ull], _mm256_mask_blend_ps(vcos_ge_0_1,vnone,vpone));
+                              }
+
+                              for(; (i+7ull) < this->m_I_ch_nsamples; i += 8ull) 
+                              {
+                                    const __m256 vt_i_0{_mm256_setr_ps(static_cast<float>(i*inv_sr),
+                                                         static_cast<float>((i+1ull)*inv_sr),
+                                                         static_cast<float>((i+2ull)*inv_sr),
+                                                         static_cast<float>((i+3ull)*inv_sr),
+                                                         static_cast<float>((i+4ull)*inv_sr),
+                                                         static_cast<float>((i+5ull)*inv_sr),
+                                                         static_cast<float>((i+6ull)*inv_sr),
+                                                         static_cast<float>((i+7ull)*inv_sr))};
+                                   const __m256 vcos_val_0    = _mm256_cos_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask8 vcos_ge_0_0 = _mm256_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                                   _mm256_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm256_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                              }
+                                            
+                              for(; (i+0ull) < this->m_I_ch_nsamples; i += 1ull) 
+                              {
+                                      const float t_i{static_cast<float>(i*inv_sr)};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                      const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                      this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                      const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                      this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                               }
+                       }
+                       else 
+                       {
+                       
+                            for(i = 0ull; (i+31ull) < this->m_I_ch_nsamples; i += 32ull) 
+                            {
+                                 //const __m128 vt_i_0{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                                 //                        static_cast<float>((i+1ull)*inv_sr),
+                                 //                        static_cast<float>((i+2ull)*inv_sr),
+                                 //                        static_cast<float>((i+3ull)*inv_sr))};
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+0ull],_MM_HINT_T0);
+                                 const __m256 vt_i_0{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+0ull]),vinv_sr)};
+                                 const __m256 vcos_val_0    = _mm256_cos_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_0),vph0));
+                                 const __mmask8 vcos_ge_0_0 = _mm256_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                                 _mm256_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm256_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                                 //const __m128 vt_i_1{_mm_setr_ps(static_cast<float>((i+4ull)*inv_sr),
+                                 //                        static_cast<float>((i+5ull)*inv_sr),
+                                 //                        static_cast<float>((i+6ull)*inv_sr),
+                                 //                        static_cast<float>((i+7ull)*inv_sr))};
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+8ull],_MM_HINT_T0);
+                                 const __m256 vt_i_1{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+8ull]),vinv_sr)};
+                                 const __m256 vcos_val_1    = _mm256_cos_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_1),vph0));
+                                 const __mmask8 vcos_ge_0_1 = _mm256_cmp_ps_mask(vcos_val_1,vzero,_CMP_GE_OQ);
+                                 _mm256_store_ps(&this->m_I_bitstream.m_data[i+8ull], _mm256_mask_blend_ps(vcos_ge_0_1,vnone,vpone));
+                                 //const __m128 vt_i_2{_mm_setr_ps(static_cast<float>((i+8ull)*inv_sr),
+                                 //                        static_cast<float>((i+9ull)*inv_sr),
+                                 //                        static_cast<float>((i+10ull)*inv_sr),
+                                 //                        static_cast<float>((i+11ull)*inv_sr))};
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+16ull],_MM_HINT_T0);
+                                 const __m256 vt_i_2{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+8ull]),vinv_sr)};
+                                 const __m256 vcos_val_2    = _mm256_cos_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_2),vph0));
+                                 const __mmask8 vcos_ge_0_2 = _mm256_cmp_ps_mask(vcos_val_2,vzero,_CMP_GE_OQ);
+                                 _mm256_store_ps(&this->m_I_bitstream.m_data[i+16ull], _mm256_mask_blend_ps(vcos_ge_0_2,vnone,vpone));
+                                 //const __m128 vt_i_3{_mm_setr_ps(static_cast<float>((i+12ull)*inv_sr),
+                                 //                        static_cast<float>((i+13ull)*inv_sr),
+                                 //                        static_cast<float>((i+14ull)*inv_sr),
+                                 //                        static_cast<float>((i+15ull)*inv_sr))};
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+24ull],_MM_HINT_T0);
+                                 const __m256 vt_i_3{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+24ull]),vinv_sr)};
+                                 const __m256 vcos_val_3    = _mm256_cos_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_3),vph0));
+                                 const __mmask8 vcos_ge_0_3 = _mm256_cmp_ps_mask(vcos_val_3,vzero,_CMP_GE_OQ);
+                                 _mm256_store_ps(&this->m_I_bitstream.m_data[i+24ull], _mm256_mask_blend_ps(vcos_ge_0_3,vnone,vpone));
+                           }
+
+                           for(; (i+15ull) < this->m_I_ch_nsamples; i += 16ull) 
+                           {         
+                                _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+0ull],_MM_HINT_T0);
+                                 const __m256 vt_i_0{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+0ull]),vinv_sr)};
+                                 const __m256 vcos_val_0    = _mm256_cos_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_0),vph0));
+                                 const __mmask8 vcos_ge_0_0 = _mm256_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                                 _mm256_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm256_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                                
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+8ull],_MM_HINT_T0);
+                                 const __m256 vt_i_1{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+8ull]),vinv_sr)};
+                                 const __m256 vcos_val_1    = _mm256_cos_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_1),vph0));
+                                 const __mmask8 vcos_ge_0_1 = _mm256_cmp_ps_mask(vcos_val_1,vzero,_CMP_GE_OQ);
+                                 _mm256_store_ps(&this->m_I_bitstream.m_data[i+8ull], _mm256_mask_blend_ps(vcos_ge_0_1,vnone,vpone));
+                          
+                           }
+
+                           for(; (i+7ull) < this->m_I_ch_nsamples; i += 8ull) 
+                           {
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+0ull],_MM_HINT_T0);
+                                 const __m256 vt_i_0{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+0ull]),vinv_sr)};
+                                 const __m256 vcos_val_0    = _mm256_cos_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_0),vph0));
+                                 const __mmask8 vcos_ge_0_0 = _mm256_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                                 _mm256_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm256_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                           }
+                      
+                       
+                           for(; (i+0ull) < this->m_I_ch_nsamples; i += 1ull) 
+                           {
+                            //const float t_i{static_cast<float>(i*inv_sr)};
+                                    const float t_i{gms::math::LUT_loop_indices_2257_align32[i]*inv_sr};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                    const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                    this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                    const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                    this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                           }
+                       }
+                       return (0);
+                  }
+
+
+                    __ATTR_ALWAYS_INLINE__
+                  inline 
+                  std::int32_t 
+                  generate_Q_channel_bitstream_avx(const float duration, // user passed
+                                                   const float w0,       // user passed
+                                                   const float ph0,      // user passed
+                                                   const float sample_rate) // user passed                                                    
+                  {
+                       using namespace gms::math;
+                       std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
+                       if(__builtin_expect(this->m_Q_ch_nsamples!=total_samples,0)) { return (-1);} 
+                       std::size_t i,j;
+                       const float inv_sr{1.0f/sample_rate};
+                       const __m256 vinv_sr{_mm256_set1_ps(inv_sr)};
+                       const __m256 vw0{_mm256_set1_ps(w0)};
+                       const __m256 vph0{_mm256_set1_ps(ph0)};
+                       const __m256 v2pi{_mm256_set1_ps(6.283185307179586476925286766559f)};
+                       const __m256 vzero{_mm256_setzero_ps()};
+                       const __m256 vpone{_mm256_set1_ps(+1.0f)};
+                       const __m256 vnone{_mm256_set1_ps(-1.0f)};
+                       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+                       constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+                       if(this->m_Q_ch_nsamples>LUT_loop_idx_threshold)
+                       {
+                            for(i = 0ull; i != ROUND_TO_EIGHT(this->m_Q_ch_nsamples,8ull); i += 8ull) 
+                            {
+                               const __m256 vt_i{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                                                             static_cast<float>((i+1ull)*inv_sr),
+                                                             static_cast<float>((i+2ull)*inv_sr),
+                                                             static_cast<float>((i+3ull)*inv_sr),
+                                                             static_cast<float>((i+4ull)*inv_sr),
+                                                             static_cast<float>((i+5ull)*inv_sr),
+                                                             static_cast<float>((i+6ull)*inv_sr),
+                                                             static_cast<float>((i+7ull)*inv_sr) )};
+                               const __m256 vsin_val    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i),vph0));
+                               const __mmask8 vsin_ge_0 = _mm256_cmp_ps_mask(vsin_val,vzero,_CMP_GE_OQ);
+                               _mm256_store_ps(&this->m_Q_bitstream.m_data[i], _mm256_mask_blend_ps(vsin_ge_0,vnone,vpone));   
+                           }
+                       
+                           for(j = i; j != this->m_Q_ch_nsamples; ++j) 
+                           {
+                                const float t_j{static_cast<float>(j*inv_sr)};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                const float sin_val = ceph_sinf(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                this->m_Q_bitstream.m_data[j] = (sin_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                const float sin_val = std::sin(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                this->m_Q_bitstream.m_data[j] = (sin_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                           }
+                       }
+                       else 
+                       {
+                       
+                           for(i = 0ull; i != ROUND_TO_EIGHT(this->m_Q_ch_nsamples,8ull); i += 8ull) 
+                           {
+                               //const __m128 vt_i{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                               //                          static_cast<float>((i+1ull)*inv_sr),
+                               //                          static_cast<float>((i+2ull)*inv_sr),
+                               //                          static_cast<float>((i+3ull)*inv_sr))};
+                               _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i],_MM_HINT_T0);
+                               const __m256 vt_i{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i]),vinv_sr)};
+                               const __m256 vsin_val    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i),vph0));
+                               const __mmask8 vsin_ge_0 = _mm256_cmp_ps_mask(vsin_val,vzero,_CMP_GE_OQ);
+                               _mm256_store_ps(&this->m_Q_bitstream.m_data[i], _mm256_mask_blend_ps(vsin_ge_0,vnone,vpone));   
+                           }
+                       
+                           for(j = i; j != this->m_Q_ch_nsamples; ++j) 
+                           {
+                                //const float t_j{static_cast<float>(j*inv_sr)};
+                                const float t_j{gms::math::LUT_loop_indices_2257_align32[j]*inv_sr};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                const float sin_val = ceph_sinf(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                this->m_Q_bitstream.m_data[j] = (sin_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                const float sin_val = std::sin(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                this->m_Q_bitstream.m_data[j] = (sin_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                           }
+
+                       }
+                       return (0);
+                  }
+
+
+                  __ATTR_ALWAYS_INLINE__
+                  inline 
+                  std::int32_t 
+                  generate_Q_channel_bitstream_avx_u4x(const float duration, // user passed
+                                                       const float w0,       // user passed
+                                                       const float ph0,      // user passed
+                                                       const float sample_rate) // user passed                                                    
+                  {
+                       using namespace gms::math;
+                       std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
+                       if(__builtin_expect(this->m_Q_ch_nsamples!=total_samples,0)) { return (-1);} 
+                       std::size_t i;
+                       const float inv_sr{1.0f/sample_rate};
+                       const __m256 vinv_sr{_mm256_set1_ps(inv_sr)};
+                       const __m256 vw0{_mm256_set1_ps(w0)};
+                       const __m256 vph0{_mm256_set1_ps(ph0)};
+                       const __m256 v2pi{_mm256_set1_ps(6.283185307179586476925286766559f)};
+                       const __m256 vzero{_mm256_setzero_ps()};
+                       const __m256 vpone{_mm256_set1_ps(+1.0f)};
+                       const __m256 vnone{_mm256_set1_ps(-1.0f)};
+                       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+                       constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+                       if(this->m_Q_ch_nsamples>LUT_loop_idx_threshold)
+                       {
+                             for(i = 0ull; (i+31ull) < this->m_Q_ch_nsamples; i += 32ull) 
+                             {
+                                   const __m256 vt_i_0{_mm256_setr_ps(static_cast<float>(i*inv_sr),
+                                                         static_cast<float>((i+1ull)*inv_sr),
+                                                         static_cast<float>((i+2ull)*inv_sr),
+                                                         static_cast<float>((i+3ull)*inv_sr),
+                                                         static_cast<float>((i+4ull)*inv_sr),
+                                                         static_cast<float>((i+5ull)*inv_sr),
+                                                         static_cast<float>((i+6ull)*inv_sr),
+                                                         static_cast<float>((i+7ull)*inv_sr))};
+                                   const __m256 vsin_val_0    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask8 vsin_ge_0_0 = _mm256_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                   _mm256_store_ps(&this->m_Q_bitstream.m_data[i+0ull], _mm256_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                                   const __m256 vt_i_1{_mm256_setr_ps(static_cast<float>((i+8ull)*inv_sr),
+                                                         static_cast<float>((i+9ull)*inv_sr),
+                                                         static_cast<float>((i+10ull)*inv_sr),
+                                                         static_cast<float>((i+11ull)*inv_sr),
+                                                         static_cast<float>((i+12ull)*inv_sr),
+                                                         static_cast<float>((i+13ull)*inv_sr),
+                                                         static_cast<float>((i+14ull)*inv_sr),
+                                                         static_cast<float>((i+15ull)*inv_sr))};
+                                   const __m256 vsin_val_1    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_1),vph0));
+                                   const __mmask8 vsin_ge_0_1 = _mm256_cmp_ps_mask(vsin_val_1,vzero,_CMP_GE_OQ);
+                                   _mm256_store_ps(&this->m_Q_bitstream.m_data[i+8ull], _mm256_mask_blend_ps(vsin_ge_0_1,vnone,vpone));
+                                   const __m256 vt_i_2{_mm256_setr_ps(static_cast<float>((i+16ull)*inv_sr),
+                                                         static_cast<float>((i+17ull)*inv_sr),
+                                                         static_cast<float>((i+18ull)*inv_sr),
+                                                         static_cast<float>((i+19ull)*inv_sr),
+                                                         static_cast<float>((i+20ull)*inv_sr),
+                                                         static_cast<float>((i+21ull)*inv_sr),
+                                                         static_cast<float>((i+22ull)*inv_sr),
+                                                         static_cast<float>((i+23ull)*inv_sr))};
+                                   const __m256 vsin_val_2    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_2),vph0));
+                                   const __mmask8 vsin_ge_0_2 = _mm256_cmp_ps_mask(vsin_val_2,vzero,_CMP_GE_OQ);
+                                   _mm256_store_ps(&this->m_Q_bitstream.m_data[i+16ull], _mm256_mask_blend_ps(vsin_ge_0_2,vnone,vpone));
+                                   const __m256 vt_i_3{_mm256_setr_ps(static_cast<float>((i+24ull)*inv_sr),
+                                                         static_cast<float>((i+25ull)*inv_sr),
+                                                         static_cast<float>((i+26ull)*inv_sr),
+                                                         static_cast<float>((i+27ull)*inv_sr),
+                                                         static_cast<float>((i+28ull)*inv_sr),
+                                                         static_cast<float>((i+29ull)*inv_sr),
+                                                         static_cast<float>((i+30ull)*inv_sr),
+                                                         static_cast<float>((i+31ull)*inv_sr))};
+                                   const __m256 vsin_val_3    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_3),vph0));
+                                   const __mmask8 vsin_ge_0_3 = _mm256_cmp_ps_mask(vsin_val_3,vzero,_CMP_GE_OQ);
+                                   _mm256_store_ps(&this->m_Q_bitstream.m_data[i+24ull], _mm256_mask_blend_ps(vsin_ge_0_3,vnone,vpone));
+                              }
+
+                              for(; (i+15ull) < this->m_Q_ch_nsamples; i += 16ull) 
+                              {  
+                                   const __m256 vt_i_0{_mm256_setr_ps(static_cast<float>(i*inv_sr),
+                                                         static_cast<float>((i+1ull)*inv_sr),
+                                                         static_cast<float>((i+2ull)*inv_sr),
+                                                         static_cast<float>((i+3ull)*inv_sr),
+                                                         static_cast<float>((i+4ull)*inv_sr),
+                                                         static_cast<float>((i+5ull)*inv_sr),
+                                                         static_cast<float>((i+6ull)*inv_sr),
+                                                         static_cast<float>((i+7ull)*inv_sr))};
+                                   const __m256 vsin_val_0    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask8 vsin_ge_0_0 = _mm256_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                   _mm256_store_ps(&this->m_Q_bitstream.m_data[i+0ull], _mm256_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                                   const __m256 vt_i_1{_mm256_setr_ps(static_cast<float>((i+8ull)*inv_sr),
+                                                         static_cast<float>((i+9ull)*inv_sr),
+                                                         static_cast<float>((i+10ull)*inv_sr),
+                                                         static_cast<float>((i+11ull)*inv_sr),
+                                                         static_cast<float>((i+12ull)*inv_sr),
+                                                         static_cast<float>((i+13ull)*inv_sr),
+                                                         static_cast<float>((i+14ull)*inv_sr),
+                                                         static_cast<float>((i+15ull)*inv_sr))};
+                                   const __m256 vsin_val_1    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_1),vph0));
+                                   const __mmask8 vsin_ge_0_1 = _mm256_cmp_ps_mask(vsin_val_1,vzero,_CMP_GE_OQ);
+                                   _mm256_store_ps(&this->m_Q_bitstream.m_data[i+8ull], _mm256_mask_blend_ps(vsin_ge_0_1,vnone,vpone));
+                              }
+
+                              for(; (i+7ull) < this->m_Q_ch_nsamples; i += 8ull) 
+                              {
+                                    const __m256 vt_i_0{_mm256_setr_ps(static_cast<float>(i*inv_sr),
+                                                         static_cast<float>((i+1ull)*inv_sr),
+                                                         static_cast<float>((i+2ull)*inv_sr),
+                                                         static_cast<float>((i+3ull)*inv_sr),
+                                                         static_cast<float>((i+4ull)*inv_sr),
+                                                         static_cast<float>((i+5ull)*inv_sr),
+                                                         static_cast<float>((i+6ull)*inv_sr),
+                                                         static_cast<float>((i+7ull)*inv_sr))};
+                                   const __m256 vsin_val_0    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask8 vsin_ge_0_0 = _mm256_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                   _mm256_store_ps(&this->m_Q_bitstream.m_data[i+0ull], _mm256_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                              }
+                                            
+                              for(; (i+0ull) < this->m_Q_ch_nsamples; i += 1ull) 
+                              {
+                                      const float t_i{static_cast<float>(i*inv_sr)};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                      const float sin_val = ceph_sinf(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                      this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                      const float sin_val = std::sin(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                      this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                               }
+                       }
+                       else 
+                       {
+                       
+                            for(i = 0ull; (i+31ull) < this->m_Q_ch_nsamples; i += 32ull) 
+                            {
+                                 //const __m128 vt_i_0{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                                 //                        static_cast<float>((i+1ull)*inv_sr),
+                                 //                        static_cast<float>((i+2ull)*inv_sr),
+                                 //                        static_cast<float>((i+3ull)*inv_sr))};
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+0ull],_MM_HINT_T0);
+                                 const __m256 vt_i_0{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+0ull]),vinv_sr)};
+                                 const __m256 vsin_val_0    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_0),vph0));
+                                 const __mmask8 vsin_ge_0_0 = _mm256_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                 _mm256_store_ps(&this->m_Q_bitstream.m_data[i+0ull], _mm256_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                                 //const __m128 vt_i_1{_mm_setr_ps(static_cast<float>((i+4ull)*inv_sr),
+                                 //                        static_cast<float>((i+5ull)*inv_sr),
+                                 //                        static_cast<float>((i+6ull)*inv_sr),
+                                 //                        static_cast<float>((i+7ull)*inv_sr))};
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+8ull],_MM_HINT_T0);
+                                 const __m256 vt_i_1{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+8ull]),vinv_sr)};
+                                 const __m256 vsin_val_1    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_1),vph0));
+                                 const __mmask8 vsin_ge_0_1 = _mm256_cmp_ps_mask(vsin_val_1,vzero,_CMP_GE_OQ);
+                                 _mm256_store_ps(&this->m_Q_bitstream.m_data[i+8ull], _mm256_mask_blend_ps(vsin_ge_0_1,vnone,vpone));
+                                 //const __m128 vt_i_2{_mm_setr_ps(static_cast<float>((i+8ull)*inv_sr),
+                                 //                        static_cast<float>((i+9ull)*inv_sr),
+                                 //                        static_cast<float>((i+10ull)*inv_sr),
+                                 //                        static_cast<float>((i+11ull)*inv_sr))};
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+16ull],_MM_HINT_T0);
+                                 const __m256 vt_i_2{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+8ull]),vinv_sr)};
+                                 const __m256 vsin_val_2    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_2),vph0));
+                                 const __mmask8 vsin_ge_0_2 = _mm256_cmp_ps_mask(vcos_val_2,vzero,_CMP_GE_OQ);
+                                 _mm256_store_ps(&this->m_Q_bitstream.m_data[i+16ull], _mm256_mask_blend_ps(vsin_ge_0_2,vnone,vpone));
+                                 //const __m128 vt_i_3{_mm_setr_ps(static_cast<float>((i+12ull)*inv_sr),
+                                 //                        static_cast<float>((i+13ull)*inv_sr),
+                                 //                        static_cast<float>((i+14ull)*inv_sr),
+                                 //                        static_cast<float>((i+15ull)*inv_sr))};
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+24ull],_MM_HINT_T0);
+                                 const __m256 vt_i_3{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+24ull]),vinv_sr)};
+                                 const __m256 vsin_val_3    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_3),vph0));
+                                 const __mmask8 vsin_ge_0_3 = _mm256_cmp_ps_mask(vsin_val_3,vzero,_CMP_GE_OQ);
+                                 _mm256_store_ps(&this->m_Q_bitstream.m_data[i+24ull], _mm256_mask_blend_ps(vsin_ge_0_3,vnone,vpone));
+                           }
+
+                           for(; (i+15ull) < this->m_Q_ch_nsamples; i += 16ull) 
+                           {         
+                                _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+0ull],_MM_HINT_T0);
+                                 const __m256 vt_i_0{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+0ull]),vinv_sr)};
+                                 const __m256 vsin_val_0    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_0),vph0));
+                                 const __mmask8 vsin_ge_0_0 = _mm256_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                 _mm256_store_ps(&this->m_Q_bitstream.m_data[i+0ull], _mm256_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                                
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+8ull],_MM_HINT_T0);
+                                 const __m256 vt_i_1{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+8ull]),vinv_sr)};
+                                 const __m256 vsin_val_1    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_1),vph0));
+                                 const __mmask8 vsin_ge_0_1 = _mm256_cmp_ps_mask(vsin_val_1,vzero,_CMP_GE_OQ);
+                                 _mm256_store_ps(&this->m_Q_bitstream.m_data[i+8ull], _mm256_mask_blend_ps(vsin_ge_0_1,vnone,vpone));
+                          
+                           }
+
+                           for(; (i+7ull) < this->m_Q_ch_nsamples; i += 8ull) 
+                           {
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+0ull],_MM_HINT_T0);
+                                 const __m256 vt_i_0{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+0ull]),vinv_sr)};
+                                 const __m256 vsin_val_0    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_0),vph0));
+                                 const __mmask8 vsin_ge_0_0 = _mm256_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                 _mm256_store_ps(&this->m_Q_bitstream.m_data[i+0ull], _mm256_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                           }
+                      
+                       
+                           for(; (i+0ull) < this->m_Q_ch_nsamples; i += 1ull) 
+                           {
+                            //const float t_i{static_cast<float>(i*inv_sr)};
+                                    const float t_i{gms::math::LUT_loop_indices_2257_align32[i]*inv_sr};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                    const float sin_val = ceph_sinf(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                    this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                    const float sin_val = std::sin(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                    this->m_Q_bitstream.m_data[i] = (sin_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                           }
+                       }
+                       return (0);
+                  }
+
+                  
+                   __ATTR_ALWAYS_INLINE__
+                  inline 
+                  std::int32_t 
+                  generate_I_channel_bitstream_avx512(const float duration, // user passed
+                                                      const float w0,       // user passed
+                                                      const float ph0,      // user passed
+                                                      const float sample_rate) // user passed                                                    
+                  {
+                       using namespace gms::math;
+                       std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
+                       if(__builtin_expect(this->m_I_ch_nsamples!=total_samples,0)) { return (-1);} 
+                       std::size_t i,j;
+                       const float inv_sr{1.0f/sample_rate};
+                       const __m512 vinv_sr{_mm512_set1_ps(inv_sr)};
+                       const __m512 vw0{_mm512_set1_ps(w0)};
+                       const __m512 vph0{_mm511_set1_ps(ph0)};
+                       const __m512 v2pi{_mm512_set1_ps(6.283185307179586476925286766559f)};
+                       const __m512 vzero{_mm512_setzero_ps()};
+                       const __m512 vpone{_mm512_set1_ps(+1.0f)};
+                       const __m512 vnone{_mm512_set1_ps(-1.0f)};
+                       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+                       constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+                       if(this->m_I_ch_nsamples>LUT_loop_idx_threshold)
+                       {
+                            for(i = 0ull; i != ROUND_TO_SIXTEEN(this->m_I_ch_nsamples,16ull); i += 16ull) 
+                            {
+                               const __m512 vt_i{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                                                             static_cast<float>((i+1ull)*inv_sr),
+                                                             static_cast<float>((i+2ull)*inv_sr),
+                                                             static_cast<float>((i+3ull)*inv_sr),
+                                                             static_cast<float>((i+4ull)*inv_sr),
+                                                             static_cast<float>((i+5ull)*inv_sr),
+                                                             static_cast<float>((i+6ull)*inv_sr),
+                                                             static_cast<float>((i+7ull)*inv_sr),
+                                                             static_cast<float>((i+8ULL)*inv_sr),
+                                                             static_cast<float>((i+9ull)*inv_sr),
+                                                             static_cast<float>((i+10ull)*inv_sr),
+                                                             static_cast<float>((i+11ull)*inv_sr),
+                                                             static_cast<float>((i+12ull)*inv_sr),
+                                                             static_cast<float>((i+13ull)*inv_sr),
+                                                             static_cast<float>((i+14ull)*inv_sr),
+                                                             static_cast<float>((i+15ull)*inv_sr), )};
+                               const __m512 vcos_val    = _mm512_cos_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i),vph0));
+                               const __mmask16 vcos_ge_0 = _mm512_cmp_ps_mask(vcos_val,vzero,_CMP_GE_OQ);
+                               _mm512_store_ps(&this->m_I_bitstream.m_data[i], _mm512_mask_blend_ps(vcos_ge_0,vnone,vpone));   
+                           }
+                       
+                           for(j = i; j != this->m_I_ch_nsamples; ++j) 
+                           {
+                                const float t_j{static_cast<float>(j*inv_sr)};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                this->m_I_bitstream.m_data[j] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                this->m_I_bitstream.m_data[j] = (cos_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                           }
+                       }
+                       else 
+                       {
+                       
+                           for(i = 0ull; i != ROUND_TO_SIXTEEN(this->m_I_ch_nsamples,16ull); i += 16ull) 
+                           {
+                               //const __m128 vt_i{_mm_setr_ps(static_cast<float>(i*inv_sr),
+                               //                          static_cast<float>((i+1ull)*inv_sr),
+                               //                          static_cast<float>((i+2ull)*inv_sr),
+                               //                          static_cast<float>((i+3ull)*inv_sr))};
+                               _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align64[i],_MM_HINT_T0);
+                               const __m512 vt_i{_mm512_mul_ps(_mm512_load_ps(&gms::math::LUT_loop_indices_2257_align64[i]),vinv_sr)};
+                               const __m512 vcos_val    = _mm512_cos_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i),vph0));
+                               const __mmask16 vcos_ge_0 = _mm512_cmp_ps_mask(vcos_val,vzero,_CMP_GE_OQ);
+                               _mm512_store_ps(&this->m_I_bitstream.m_data[i], _mm512_mask_blend_ps(vcos_ge_0,vnone,vpone));   
+                           }
+                       
+                           for(j = i; j != this->m_I_ch_nsamples; ++j) 
+                           {
+                                //const float t_j{static_cast<float>(j*inv_sr)};
+                                const float t_j{gms::math::LUT_loop_indices_2257_align16[j]*inv_sr};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                this->m_I_bitstream.m_data[j] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_j));
+                                this->m_I_bitstream.m_data[j] = (cos_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                           }
+
+                       }
+                       return (0);
+                  }
+
+                  __ATTR_ALWAYS_INLINE__
+                  inline 
+                  std::int32_t 
+                  generate_I_channel_bitstream_avx512_u4x(const float duration, // user passed
+                                                          const float w0,       // user passed
+                                                          const float ph0,      // user passed
+                                                          const float sample_rate) // user passed                                                    
+                  {
+                       using namespace gms::math;
+                       std::size_t total_samples{static_cast<std::size_t>(duration*sample_rate)};
+                       if(__builtin_expect(this->m_I_ch_nsamples!=total_samples,0)) { return (-1);} 
+                       std::size_t i;
+                       const float inv_sr{1.0f/sample_rate};
+                       const __m512 vinv_sr{_mm512_set1_ps(inv_sr)};
+                       const __m512 vw0{_mm512_set1_ps(w0)};
+                       const __m512 vph0{_mm512_set1_ps(ph0)};
+                       const __m512 v2pi{_mm512_set1_ps(6.283185307179586476925286766559f)};
+                       const __m512 vzero{_mm512_setzero_ps()};
+                       const __m512 vpone{_mm512_set1_ps(+1.0f)};
+                       const __m512 vnone{_mm512_set1_ps(-1.0f)};
+                       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+                       constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+                       if(this->m_I_ch_nsamples>LUT_loop_idx_threshold)
+                       {
+                             for(i = 0ull; (i+63ull) < this->m_I_ch_nsamples; i += 64ull) 
+                             {
+                                   const __m512 vt_i_0{_mm512_setr_ps(static_cast<float>(i*inv_sr),
+                                                         static_cast<float>((i+1ull)*inv_sr),
+                                                         static_cast<float>((i+2ull)*inv_sr),
+                                                         static_cast<float>((i+3ull)*inv_sr),
+                                                         static_cast<float>((i+4ull)*inv_sr),
+                                                         static_cast<float>((i+5ull)*inv_sr),
+                                                         static_cast<float>((i+6ull)*inv_sr),
+                                                         static_cast<float>((i+7ull)*inv_sr),
+                                                         static_cast<float>((i+8ull)*inv_sr),
+                                                         static_cast<float>((i+9ull)*inv_sr),
+                                                         static_cast<float>((i+10ull)*inv_sr),
+                                                         static_cast<float>((i+11ull)*inv_sr),
+                                                         static_cast<float>((i+12ull)*inv_sr),
+                                                         static_cast<float>((i+13ull)*inv_sr),
+                                                         static_cast<float>((i+14ull)*inv_sr),
+                                                         static_cast<float>((i+15ull)*inv_sr))};
+                                   const __m512 vcos_val_0    = _mm512_cos_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask16 vcos_ge_0_0 = _mm512_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                                   _mm512_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm512_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                                   const __m512 vt_i_1{_mm512_setr_ps(static_cast<float>((i+16ull)*inv_sr),
+                                                         static_cast<float>((i+17ull)*inv_sr),
+                                                         static_cast<float>((i+18ull)*inv_sr),
+                                                         static_cast<float>((i+19ull)*inv_sr),
+                                                         static_cast<float>((i+20ull)*inv_sr),
+                                                         static_cast<float>((i+21ull)*inv_sr),
+                                                         static_cast<float>((i+22ull)*inv_sr),
+                                                         static_cast<float>((i+23ull)*inv_sr),
+                                                         static_cast<float>((i+24ull)*inv_sr),
+                                                         static_cast<float>((i+25ull)*inv_sr),
+                                                         static_cast<float>((i+26ull)*inv_sr),
+                                                         static_cast<float>((i+27ull)*inv_sr),
+                                                         static_cast<float>((i+28ull)*inv_sr),
+                                                         static_cast<float>((i+29ull)*inv_sr),
+                                                         static_cast<float>((i+30ull)*inv_sr),
+                                                         static_cast<float>((i+31ull)*inv_sr),)};
+                                   const __m512 vcos_val_1    = _mm512_cos_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_1),vph0));
+                                   const __mmask16 vcos_ge_0_1 = _mm512_cmp_ps_mask(vcos_val_1,vzero,_CMP_GE_OQ);
+                                   _mm512_store_ps(&this->m_I_bitstream.m_data[i+16ull], _mm512_mask_blend_ps(vcos_ge_0_1,vnone,vpone));
+                                   const __m256 vt_i_2{_mm256_setr_ps(static_cast<float>((i+32ull)*inv_sr),
+                                                         static_cast<float>((i+33ull)*inv_sr),
+                                                         static_cast<float>((i+34ull)*inv_sr),
+                                                         static_cast<float>((i+35ull)*inv_sr),
+                                                         static_cast<float>((i+36ull)*inv_sr),
+                                                         static_cast<float>((i+37ull)*inv_sr),
+                                                         static_cast<float>((i+38ull)*inv_sr),
+                                                         static_cast<float>((i+39ull)*inv_sr),
+                                                         static_cast<float>((i+40ull)*inv_sr),
+                                                         static_cast<float>((i+41ull)*inv_sr),
+                                                         static_cast<float>((i+42ull)*inv_sr),
+                                                         static_cast<float>((i+43ull)*inv_sr),
+                                                         static_cast<float>((i+44ull)*inv_sr),
+                                                         static_cast<float>((i+45ull)*inv_sr),
+                                                         static_cast<float>((i+46ull)*inv_sr),
+                                                         static_cast<float>((i+47ull)*inv_sr),)};
+                                   const __m512 vcos_val_2    = _mm512_cos_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_2),vph0));
+                                   const __mmask16 vcos_ge_0_2 = _mm512_cmp_ps_mask(vcos_val_2,vzero,_CMP_GE_OQ);
+                                   _mm512_store_ps(&this->m_I_bitstream.m_data[i+32ull], _mm512_mask_blend_ps(vcos_ge_0_2,vnone,vpone));
+                                   const __m512 vt_i_3{_mm256_setr_ps(static_cast<float>((i+48ull)*inv_sr),
+                                                         static_cast<float>((i+49ull)*inv_sr),
+                                                         static_cast<float>((i+50ull)*inv_sr),
+                                                         static_cast<float>((i+51ull)*inv_sr),
+                                                         static_cast<float>((i+52ull)*inv_sr),
+                                                         static_cast<float>((i+53ull)*inv_sr),
+                                                         static_cast<float>((i+54ull)*inv_sr),
+                                                         static_cast<float>((i+55ull)*inv_sr),
+                                                         static_cast<float>((i+56ull)*inv_sr),
+                                                         static_cast<float>((i+57ull)*inv_sr),
+                                                         static_cast<float>((i+58ull)*inv_sr),
+                                                         static_cast<float>((i+59ull)*inv_sr),
+                                                         static_cast<float>((i+60ull)*inv_sr),
+                                                         static_cast<float>((i+61ull)*inv_sr),
+                                                         static_cast<float>((i+62ull)*inv_sr),
+                                                         static_cast<float>((i+63ull)*inv_sr),)};
+                                   const __m512 vcos_val_3    = _mm512_cos_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_3),vph0));
+                                   const __mmask16 vcos_ge_0_3 = _mm512_cmp_ps_mask(vcos_val_3,vzero,_CMP_GE_OQ);
+                                   _mm512_store_ps(&this->m_I_bitstream.m_data[i+48ull], _mm512_mask_blend_ps(vcos_ge_0_3,vnone,vpone));
+                              }
+
+                              for(; (i+31ull) < this->m_I_ch_nsamples; i += 32ull) 
+                              {  
+                                    const __m512 vt_i_0{_mm512_setr_ps(static_cast<float>(i*inv_sr),
+                                                         static_cast<float>((i+1ull)*inv_sr),
+                                                         static_cast<float>((i+2ull)*inv_sr),
+                                                         static_cast<float>((i+3ull)*inv_sr),
+                                                         static_cast<float>((i+4ull)*inv_sr),
+                                                         static_cast<float>((i+5ull)*inv_sr),
+                                                         static_cast<float>((i+6ull)*inv_sr),
+                                                         static_cast<float>((i+7ull)*inv_sr),
+                                                         static_cast<float>((i+8ull)*inv_sr),
+                                                         static_cast<float>((i+9ull)*inv_sr),
+                                                         static_cast<float>((i+10ull)*inv_sr),
+                                                         static_cast<float>((i+11ull)*inv_sr),
+                                                         static_cast<float>((i+12ull)*inv_sr),
+                                                         static_cast<float>((i+13ull)*inv_sr),
+                                                         static_cast<float>((i+14ull)*inv_sr),
+                                                         static_cast<float>((i+15ull)*inv_sr))};
+                                   const __m512 vcos_val_0    = _mm512_cos_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask16 vcos_ge_0_0 = _mm512_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                                   _mm512_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm512_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                                   const __m512 vt_i_1{_mm512_setr_ps(static_cast<float>((i+16ull)*inv_sr),
+                                                         static_cast<float>((i+17ull)*inv_sr),
+                                                         static_cast<float>((i+18ull)*inv_sr),
+                                                         static_cast<float>((i+19ull)*inv_sr),
+                                                         static_cast<float>((i+20ull)*inv_sr),
+                                                         static_cast<float>((i+21ull)*inv_sr),
+                                                         static_cast<float>((i+22ull)*inv_sr),
+                                                         static_cast<float>((i+23ull)*inv_sr),
+                                                         static_cast<float>((i+24ull)*inv_sr),
+                                                         static_cast<float>((i+25ull)*inv_sr),
+                                                         static_cast<float>((i+26ull)*inv_sr),
+                                                         static_cast<float>((i+27ull)*inv_sr),
+                                                         static_cast<float>((i+28ull)*inv_sr),
+                                                         static_cast<float>((i+29ull)*inv_sr),
+                                                         static_cast<float>((i+30ull)*inv_sr),
+                                                         static_cast<float>((i+31ull)*inv_sr),)};
+                                   const __m512 vcos_val_1    = _mm512_cos_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_1),vph0));
+                                   const __mmask16 vcos_ge_0_1 = _mm512_cmp_ps_mask(vcos_val_1,vzero,_CMP_GE_OQ);
+                                   _mm512_store_ps(&this->m_I_bitstream.m_data[i+16ull], _mm512_mask_blend_ps(vcos_ge_0_1,vnone,vpone));
+                              }
+
+                              for(; (i+15ull) < this->m_I_ch_nsamples; i += 16ull) 
+                              {
+                                     const __m512 vt_i_0{_mm512_setr_ps(static_cast<float>(i*inv_sr),
+                                                         static_cast<float>((i+1ull)*inv_sr),
+                                                         static_cast<float>((i+2ull)*inv_sr),
+                                                         static_cast<float>((i+3ull)*inv_sr),
+                                                         static_cast<float>((i+4ull)*inv_sr),
+                                                         static_cast<float>((i+5ull)*inv_sr),
+                                                         static_cast<float>((i+6ull)*inv_sr),
+                                                         static_cast<float>((i+7ull)*inv_sr),
+                                                         static_cast<float>((i+8ull)*inv_sr),
+                                                         static_cast<float>((i+9ull)*inv_sr),
+                                                         static_cast<float>((i+10ull)*inv_sr),
+                                                         static_cast<float>((i+11ull)*inv_sr),
+                                                         static_cast<float>((i+12ull)*inv_sr),
+                                                         static_cast<float>((i+13ull)*inv_sr),
+                                                         static_cast<float>((i+14ull)*inv_sr),
+                                                         static_cast<float>((i+15ull)*inv_sr))};
+                                   const __m512 vcos_val_0    = _mm512_cos_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask16 vcos_ge_0_0 = _mm512_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                                   _mm512_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm512_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                              }
+                                            
+                              for(; (i+0ull) < this->m_I_ch_nsamples; i += 1ull) 
+                              {
+                                      const float t_i{static_cast<float>(i*inv_sr)};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                      const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                      this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                      const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                      this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                               }
+                       }
+                       else 
+                       {
+                       
+                            for(i = 0ull; (i+63ull) < this->m_I_ch_nsamples; i += 64ull) 
+                            {
+                                 
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align64[i+0ull],_MM_HINT_T0);
+                                 const __m512 vt_i_0{_mm512_mul_ps(_mm512_load_ps(&gms::math::LUT_loop_indices_2257_align64[i+0ull]),vinv_sr)};
+                                 const __m512 vcos_val_0    = _mm512_cos_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_0),vph0));
+                                 const __mmask16 vcos_ge_0_0 = _mm512_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                                 _mm512_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm512_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                                
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align64[i+16ull],_MM_HINT_T0);
+                                 const __m512 vt_i_1{_mm512_mul_ps(_mm512_load_ps(&gms::math::LUT_loop_indices_2257_align64[i+16ull]),vinv_sr)};
+                                 const __m512 vcos_val_1    = _mm512_cos_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_1),vph0));
+                                 const __mmask16 vcos_ge_0_1 = _mm512_cmp_ps_mask(vcos_val_1,vzero,_CMP_GE_OQ);
+                                 _mm512_store_ps(&this->m_I_bitstream.m_data[i+16ull], _mm512_mask_blend_ps(vcos_ge_0_1,vnone,vpone));
+                                 
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align64[i+32ull],_MM_HINT_T0);
+                                 const __m512 vt_i_2{_mm512_mul_ps(_mm512_load_ps(&gms::math::LUT_loop_indices_2257_align64[i+32ull]),vinv_sr)};
+                                 const __m512 vcos_val_2    = _mm512_cos_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_2),vph0));
+                                 const __mmask16 vcos_ge_0_2 = _mm512_cmp_ps_mask(vcos_val_2,vzero,_CMP_GE_OQ);
+                                 _mm512_store_ps(&this->m_I_bitstream.m_data[i+32ull], _mm512_mask_blend_ps(vcos_ge_0_2,vnone,vpone));
+                                 
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align64[i+48ull],_MM_HINT_T0);
+                                 const __m512 vt_i_3{_mm512_mul_ps(_mm512_load_ps(&gms::math::LUT_loop_indices_2257_align64[i+48ull]),vinv_sr)};
+                                 const __m512 vcos_val_3    = _mm512_cos_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_3),vph0));
+                                 const __mmask16 vcos_ge_0_3 = _mm512_cmp_ps_mask(vcos_val_3,vzero,_CMP_GE_OQ);
+                                 _mm512_store_ps(&this->m_I_bitstream.m_data[i+48ull], _mm512_mask_blend_ps(vcos_ge_0_3,vnone,vpone));
+                           }
+
+                           for(; (i+31ull) < this->m_I_ch_nsamples; i += 32ull) 
+                           {         
+                                _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align64[i+0ull],_MM_HINT_T0);
+                                 const __m512 vt_i_0{_mm512_mul_ps(_mm512_load_ps(&gms::math::LUT_loop_indices_2257_align64[i+0ull]),vinv_sr)};
+                                 const __m512 vcos_val_0    = _mm512_cos_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_0),vph0));
+                                 const __mmask16 vcos_ge_0_0 = _mm512_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                                 _mm512_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm512_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                                
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align64[i+16ull],_MM_HINT_T0);
+                                 const __m512 vt_i_1{_mm512_mul_ps(_mm512_load_ps(&gms::math::LUT_loop_indices_2257_align64[i+16ull]),vinv_sr)};
+                                 const __m512 vcos_val_1    = _mm512_cos_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_1),vph0));
+                                 const __mmask16 vcos_ge_0_1 = _mm512_cmp_ps_mask(vcos_val_1,vzero,_CMP_GE_OQ);
+                                 _mm512_store_ps(&this->m_I_bitstream.m_data[i+16ull], _mm512_mask_blend_ps(vcos_ge_0_1,vnone,vpone));
+                          
+                           }
+
+                           for(; (i+15ull) < this->m_I_ch_nsamples; i += 16ull) 
+                           {
+                                _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align64[i+0ull],_MM_HINT_T0);
+                                 const __m512 vt_i_0{_mm512_mul_ps(_mm512_load_ps(&gms::math::LUT_loop_indices_2257_align64[i+0ull]),vinv_sr)};
+                                 const __m512 vcos_val_0    = _mm512_cos_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_0),vph0));
+                                 const __mmask16 vcos_ge_0_0 = _mm512_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
+                                 _mm512_store_ps(&this->m_I_bitstream.m_data[i+0ull], _mm512_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
+                           }
+                      
+                       
+                           for(; (i+0ull) < this->m_I_ch_nsamples; i += 1ull) 
+                           {
+                            //const float t_i{static_cast<float>(i*inv_sr)};
+                                    const float t_i{gms::math::LUT_loop_indices_2257_align32[i]*inv_sr};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+                                    const float cos_val = ceph_cosf(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                    this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                    const float cos_val = std::cos(ph0+(C6283185307179586476925286766559*w0*t_i));
+                                    this->m_I_bitstream.m_data[i] = (cos_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                           }
+                       }
+                       return (0);
+                  }
+
+
                  
 
                   __ATTR_ALWAYS_INLINE__
