@@ -2133,7 +2133,7 @@ constexpr float LUT_sin_1_1_4096[4096] = {
   * https://github.com/ppelikan/drlut
   **/
 // Formula: sin(2*pi*t/T) 
-const float_t lut[4096] = {
+
 0x0000000000000000p+0,0x1.921FAAEE6472Dp-10,
 0x01.921F8BECCA4BAp-9,0x01.2D97822F996BCp-8,
 0x01.921F0FE670071p-8,0x01.F6A65F9A2A3C5p-8,
