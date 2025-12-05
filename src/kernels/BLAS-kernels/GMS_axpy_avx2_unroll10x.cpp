@@ -4,7 +4,7 @@
 /*
      This version is based on BLIS framework original implementation.
      Few changes were introduced in order to more easily adapt it 
-     to 'Guided Missile Simulation' project.
+     to 'RF-EMT' project.
      
    The original authors license
    BLIS
