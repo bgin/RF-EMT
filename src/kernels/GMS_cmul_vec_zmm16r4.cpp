@@ -49,10 +49,10 @@ SOFTWARE.
                          int32_t i;
 
                          for(i = 0; (i+191) < n; i += 192) {
-                            _mm_prefetch((const char *)&xre[i+48],_MM_HINT_T0);
-                            _mm_prefetch((const char *)&yre[i+48],_MM_HINT_T0);
-                            _mm_prefetch((const char *)&xim[i+48],_MM_HINT_T0);
-                            _mm_prefetch((const char *)&yim[i+48],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&xre[i+0],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yre[i+0],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&xim[i+0],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yim[i+0],_MM_HINT_T0);
                              zmm0  = _mm512_loadu_ps(&xre[i+0]);
                              zmm1  = _mm512_loadu_ps(&yre[i+0]);
                              zmm2  = _mm512_loadu_ps(&xim[i+0]);
@@ -60,9 +60,13 @@ SOFTWARE.
                              zmm4  = _mm512_sub_ps(_mm512_mul_ps(zmm0,zmm1),
                                                                         _mm512_mul_ps(zmm2,zmm3));
                             _mm512_storeu_ps(&zre[i+0], zmm4);
-                             zmm5  = _mm512_mul_ps(_mm512_mul_ps(zmm2,zmm1),
+                             zmm5  = _mm512_add_ps(_mm512_mul_ps(zmm2,zmm1),
                                                                         _mm512_mul_ps(zmm0,zmm3));
                             _mm512_storeu_ps(&zim[i+0], zmm5);
+                            _mm_prefetch((const char *)&xre[i+16],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yre[i+16],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&xim[i+16],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yim[i+16],_MM_HINT_T0);
                              zmm6  = _mm512_loadu_ps(&xre[i+16]);
                              zmm7  = _mm512_loadu_ps(&yre[i+16]);
                              zmm8  = _mm512_loadu_ps(&xim[i+16]);
@@ -70,9 +74,13 @@ SOFTWARE.
                              zmm10 = _mm512_sub_ps(_mm512_mul_ps(zmm6,zmm7),
                                                                         _mm512_mul_ps(zmm8,zmm9));
                             _mm512_storeu_ps(&zre[i+16], zmm10);
-                            zmm11 = _mm512_mul_ps(_mm512_mul_ps(zmm8,zmm7),
+                            zmm11 = _mm512_add_ps(_mm512_mul_ps(zmm8,zmm7),
                                                                         _mm512_mul_ps(zmm6,zmm9));
                             _mm512_storeu_ps(&zim[i+16], zmm11);
+                            _mm_prefetch((const char *)&xre[i+32],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yre[i+32],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&xim[i+32],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yim[i+32],_MM_HINT_T0);
                              zmm12 = _mm512_loadu_ps(&xre[i+32]);
                              zmm13 = _mm512_loadu_ps(&yre[i+32]);
                              zmm14 = _mm512_loadu_ps(&xim[i+32]);
@@ -80,13 +88,13 @@ SOFTWARE.
                              zmm16 = _mm512_sub_ps(_mm512_mul_ps(zmm12,zmm13),
                                                                         _mm512_mul_ps(zmm14,zmm15));
                             _mm512_storeu_ps(&zre[i+32], zmm16);
-                             zmm17  = _mm512_mul_ps(_mm512_mul_ps(zmm14,zmm13),
+                             zmm17  = _mm512_add_ps(_mm512_mul_ps(zmm14,zmm13),
                                                                         _mm512_mul_ps(zmm12,zmm15));
                             _mm512_storeu_ps(&zim[i+32], zmm17);
-                            _mm_prefetch((const char *)&xre[i+96],_MM_HINT_T0);
-                            _mm_prefetch((const char *)&yre[i+96],_MM_HINT_T0);
-                            _mm_prefetch((const char *)&xim[i+96],_MM_HINT_T0);
-                            _mm_prefetch((const char *)&yim[i+96],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&xre[i+48],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yre[i+48],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&xim[i+48],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yim[i+48],_MM_HINT_T0);
                              zmm18 = _mm512_loadu_ps(&xre[i+48]);
                              zmm19 = _mm512_loadu_ps(&yre[i+48]);
                              zmm20 = _mm512_loadu_ps(&xim[i+48]);
@@ -94,9 +102,13 @@ SOFTWARE.
                              zmm22 = _mm512_sub_ps(_mm512_mul_ps(zmm18,zmm19),
                                                                         _mm512_mul_ps(zmm20,zmm21));
                             _mm512_storeu_ps(&zre[i+48], zmm22);
-                             zmm23  = _mm512_mul_ps(_mm512_mul_ps(zmm20,zmm19),
+                             zmm23  = _mm512_add_ps(_mm512_mul_ps(zmm20,zmm19),
                                                                         _mm512_mul_ps(zmm18,zmm21));
                             _mm512_storeu_ps(&zim[i+48], zmm23);
+                            _mm_prefetch((const char *)&xre[i+64],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yre[i+64],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&xim[i+64],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yim[i+64],_MM_HINT_T0);
                              zmm24 = _mm512_loadu_ps(&xre[i+64]);
                              zmm25 = _mm512_loadu_ps(&yre[i+64]);
                              zmm26 = _mm512_loadu_ps(&xim[i+64]);
@@ -104,9 +116,13 @@ SOFTWARE.
                              zmm28 = _mm512_sub_ps(_mm512_mul_ps(zmm24,zmm25),
                                                                         _mm512_mul_ps(zmm26,zmm27));
                             _mm512_storeu_ps(&zre[i+64], zmm28);
-                             zmm29  = _mm512_mul_ps(_mm512_mul_ps(zmm26,zmm25),
+                             zmm29  = _mm512_add_ps(_mm512_mul_ps(zmm26,zmm25),
                                                                         _mm512_mul_ps(zmm24,zmm27));
                             _mm512_storeu_ps(&zim[i+64], zmm29);
+                            _mm_prefetch((const char *)&xre[i+80],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yre[i+80],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&xim[i+80],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yim[i+80],_MM_HINT_T0);
                             zmm1 = _mm512_loadu_ps(&xre[i+80]);
                             zmm2 = _mm512_loadu_ps(&yre[i+80]);
                             zmm3 = _mm512_loadu_ps(&xim[i+80]);
@@ -114,13 +130,13 @@ SOFTWARE.
                             zmm5 = _mm512_sub_ps(_mm512_mul_ps(zmm1,zmm2),
                                                        _mm512_mul_ps(zmm3,zmm4));
                             _mm512_storeu_ps(&zre[i+80], zmm5);
-                             zmm6  = _mm512_mul_ps(_mm512_mul_ps(zmm3,zmm2),
+                             zmm6  = _mm512_add_ps(_mm512_mul_ps(zmm3,zmm2),
                                                            _mm512_mul_ps(zmm1,zmm4));
                             _mm512_storeu_ps(&zim[i+80], zmm6);
-                            _mm_prefetch((const char *)&xre[i+144],_MM_HINT_T0);
-                            _mm_prefetch((const char *)&yre[i+144],_MM_HINT_T0);
-                            _mm_prefetch((const char *)&xim[i+144],_MM_HINT_T0);
-                            _mm_prefetch((const char *)&yim[i+144],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&xre[i+96],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yre[i+96],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&xim[i+96],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yim[i+96],_MM_HINT_T0);
                             zmm7 = _mm512_loadu_ps(&xre[i+96]);
                             zmm8 = _mm512_loadu_ps(&yre[i+96]);
                             zmm9 = _mm512_loadu_ps(&xim[i+96]);
@@ -128,19 +144,27 @@ SOFTWARE.
                             zmm11= _mm512_sub_ps(_mm512_mul_ps(zmm7,zmm8),
                                                        _mm512_mul_ps(zmm9,zmm10));
                             _mm512_storeu_ps(&zre[i+96], zmm11);
-                             zmm12  = _mm512_mul_ps(_mm512_mul_ps(zmm9,zmm8),
+                             zmm12  = _mm512_add_ps(_mm512_mul_ps(zmm9,zmm8),
                                                            _mm512_mul_ps(zmm7,zmm10));
                             _mm512_storeu_ps(&zim[i+96], zmm12);
+                            _mm_prefetch((const char *)&xre[i+112],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yre[i+112],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&xim[i+112],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yim[i+112],_MM_HINT_T0);
                             zmm13 = _mm512_loadu_ps(&xre[i+112]);
                             zmm14 = _mm512_loadu_ps(&yre[i+112]);
                             zmm15 = _mm512_loadu_ps(&xim[i+112]);
                             zmm16 = _mm512_loadu_ps(&yim[i+112]);
                             zmm17 = _mm512_sub_ps(_mm512_mul_ps(zmm13,zmm14),
                                                        _mm512_mul_ps(zmm15,zmm16));
-                            _mm512_storeu_ps(&zre[i+112], zmm17;
-                             zmm18  = _mm512_mul_ps(_mm512_mul_ps(zmm15,zmm14),
+                            _mm512_storeu_ps(&zre[i+112], zmm17);
+                             zmm18  = _mm512_add_ps(_mm512_mul_ps(zmm15,zmm14),
                                                            _mm512_mul_ps(zmm13,zmm16));
                             _mm512_storeu_ps(&zim[i+112], zmm18);
+                            _mm_prefetch((const char *)&xre[i+128],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yre[i+128],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&xim[i+128],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yim[i+128],_MM_HINT_T0);
                             zmm19 = _mm512_loadu_ps(&xre[i+128]);
                             zmm20 = _mm512_loadu_ps(&yre[i+128]);
                             zmm21 = _mm512_loadu_ps(&xim[i+128]);
@@ -148,13 +172,13 @@ SOFTWARE.
                             zmm23 = _mm512_sub_ps(_mm512_mul_ps(zmm19,zmm20),
                                                        _mm512_mul_ps(zmm21,zmm22));
                             _mm512_storeu_ps(&zre[i+128], zmm23);
-                             zmm24  = _mm512_mul_ps(_mm512_mul_ps(zmm21,zmm20),
+                             zmm24  = _mm512_add_ps(_mm512_mul_ps(zmm21,zmm20),
                                                            _mm512_mul_ps(zmm19,zmm22));
                             _mm512_storeu_ps(&zim[i+128], zmm24);
-                            _mm_prefetch((const char *)&xre[i+192],_MM_HINT_T0);
-                            _mm_prefetch((const char *)&yre[i+192],_MM_HINT_T0);
-                            _mm_prefetch((const char *)&xim[i+192],_MM_HINT_T0);
-                            _mm_prefetch((const char *)&yim[i+192],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&xre[i+144],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yre[i+144],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&xim[i+144],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yim[i+144],_MM_HINT_T0);
                             zmm25 = _mm512_loadu_ps(&xre[i+144]);
                             zmm26 = _mm512_loadu_ps(&yre[i+144]);
                             zmm27 = _mm512_loadu_ps(&xim[i+144]);
@@ -162,9 +186,13 @@ SOFTWARE.
                             zmm29 = _mm512_sub_ps(_mm512_mul_ps(zmm25,zmm26),
                                                        _mm512_mul_ps(zmm27,zmm28));
                             _mm512_storeu_ps(&zre[i+144], zmm29);
-                             zmm1  = _mm512_mul_ps(_mm512_mul_ps(zmm27,zmm26),
+                             zmm1  = _mm512_add_ps(_mm512_mul_ps(zmm27,zmm26),
                                                            _mm512_mul_ps(zmm25,zmm28));
                             _mm512_storeu_ps(&zim[i+144], zmm1);
+                            _mm_prefetch((const char *)&xre[i+160],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yre[i+160],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&xim[i+160],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yim[i+160],_MM_HINT_T0);
                             zmm2 = _mm512_loadu_ps(&xre[i+160]);
                             zmm3 = _mm512_loadu_ps(&yre[i+160]);
                             zmm4 = _mm512_loadu_ps(&xim[i+160]);
@@ -172,9 +200,13 @@ SOFTWARE.
                             zmm6 = _mm512_sub_ps(_mm512_mul_ps(zmm2,zmm3),
                                                        _mm512_mul_ps(zmm4,zmm5));
                             _mm512_storeu_ps(&zre[i+160], zmm6);
-                             zmm7  = _mm512_mul_ps(_mm512_mul_ps(zmm4,zmm3),
+                             zmm7  = _mm512_add_ps(_mm512_mul_ps(zmm4,zmm3),
                                                            _mm512_mul_ps(zmm2,zmm5));
                             _mm512_storeu_ps(&zim[i+160], zmm7);
+                            _mm_prefetch((const char *)&xre[i+176],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yre[i+176],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&xim[i+176],_MM_HINT_T0);
+                            _mm_prefetch((const char *)&yim[i+176],_MM_HINT_T0);
                             zmm8 = _mm512_loadu_ps(&xre[i+176]);
                             zmm9 = _mm512_loadu_ps(&yre[i+176]);
                             zmm10= _mm512_loadu_ps(&xim[i+176]);
@@ -182,13 +214,14 @@ SOFTWARE.
                             zmm12= _mm512_sub_ps(_mm512_mul_ps(zmm8,zmm9),
                                                        _mm512_mul_ps(zmm10,zmm11));
                             _mm512_storeu_ps(&zre[i+176], zmm12);
-                             zmm13 = _mm512_mul_ps(_mm512_mul_ps(zmm10,zmm9),
+                             zmm13 = _mm512_add_ps(_mm512_mul_ps(zmm10,zmm9),
                                                            _mm512_mul_ps(zmm8,zmm11));
                             _mm512_storeu_ps(&zim[i+176], zmm13);
 
                          }
 
                       for(; (i+159) < n; i += 160) {
+                           
                              zmm0  = _mm512_loadu_ps(&xre[i+0]);
                              zmm1  = _mm512_loadu_ps(&yre[i+0]);
                              zmm2  = _mm512_loadu_ps(&xim[i+0]);
@@ -196,9 +229,10 @@ SOFTWARE.
                              zmm4  = _mm512_sub_ps(_mm512_mul_ps(zmm0,zmm1),
                                                                         _mm512_mul_ps(zmm2,zmm3));
                             _mm512_storeu_ps(&zre[i+0], zmm4);
-                             zmm5  = _mm512_mul_ps(_mm512_mul_ps(zmm2,zmm1),
+                             zmm5  = _mm512_add_ps(_mm512_mul_ps(zmm2,zmm1),
                                                                         _mm512_mul_ps(zmm0,zmm3));
                             _mm512_storeu_ps(&zim[i+0], zmm5);
+                           
                              zmm6  = _mm512_loadu_ps(&xre[i+16]);
                              zmm7  = _mm512_loadu_ps(&yre[i+16]);
                              zmm8  = _mm512_loadu_ps(&xim[i+16]);
@@ -206,9 +240,10 @@ SOFTWARE.
                              zmm10 = _mm512_sub_ps(_mm512_mul_ps(zmm6,zmm7),
                                                                         _mm512_mul_ps(zmm8,zmm9));
                             _mm512_storeu_ps(&zre[i+16], zmm10);
-                            zmm11 = _mm512_mul_ps(_mm512_mul_ps(zmm8,zmm7),
+                            zmm11 = _mm512_add_ps(_mm512_mul_ps(zmm8,zmm7),
                                                                         _mm512_mul_ps(zmm6,zmm9));
                             _mm512_storeu_ps(&zim[i+16], zmm11);
+                           
                              zmm12 = _mm512_loadu_ps(&xre[i+32]);
                              zmm13 = _mm512_loadu_ps(&yre[i+32]);
                              zmm14 = _mm512_loadu_ps(&xim[i+32]);
@@ -216,9 +251,10 @@ SOFTWARE.
                              zmm16 = _mm512_sub_ps(_mm512_mul_ps(zmm12,zmm13),
                                                                         _mm512_mul_ps(zmm14,zmm15));
                             _mm512_storeu_ps(&zre[i+32], zmm16);
-                             zmm17  = _mm512_mul_ps(_mm512_mul_ps(zmm14,zmm13),
+                             zmm17  = _mm512_add_ps(_mm512_mul_ps(zmm14,zmm13),
                                                                         _mm512_mul_ps(zmm12,zmm15));
                             _mm512_storeu_ps(&zim[i+32], zmm17);
+                           
                              zmm18 = _mm512_loadu_ps(&xre[i+48]);
                              zmm19 = _mm512_loadu_ps(&yre[i+48]);
                              zmm20 = _mm512_loadu_ps(&xim[i+48]);
@@ -226,9 +262,10 @@ SOFTWARE.
                              zmm22 = _mm512_sub_ps(_mm512_mul_ps(zmm18,zmm19),
                                                                         _mm512_mul_ps(zmm20,zmm21));
                             _mm512_storeu_ps(&zre[i+48], zmm22);
-                             zmm23  = _mm512_mul_ps(_mm512_mul_ps(zmm20,zmm19),
+                             zmm23  = _mm512_add_ps(_mm512_mul_ps(zmm20,zmm19),
                                                                         _mm512_mul_ps(zmm18,zmm21));
                             _mm512_storeu_ps(&zim[i+48], zmm23);
+                          
                              zmm24 = _mm512_loadu_ps(&xre[i+64]);
                              zmm25 = _mm512_loadu_ps(&yre[i+64]);
                              zmm26 = _mm512_loadu_ps(&xim[i+64]);
@@ -236,9 +273,10 @@ SOFTWARE.
                              zmm28 = _mm512_sub_ps(_mm512_mul_ps(zmm24,zmm25),
                                                                         _mm512_mul_ps(zmm26,zmm27));
                             _mm512_storeu_ps(&zre[i+64], zmm28);
-                             zmm29  = _mm512_mul_ps(_mm512_mul_ps(zmm26,zmm25),
+                             zmm29  = _mm512_add_ps(_mm512_mul_ps(zmm26,zmm25),
                                                                         _mm512_mul_ps(zmm24,zmm27));
                             _mm512_storeu_ps(&zim[i+64], zmm29);
+                           
                             zmm1 = _mm512_loadu_ps(&xre[i+80]);
                             zmm2 = _mm512_loadu_ps(&yre[i+80]);
                             zmm3 = _mm512_loadu_ps(&xim[i+80]);
@@ -246,9 +284,10 @@ SOFTWARE.
                             zmm5 = _mm512_sub_ps(_mm512_mul_ps(zmm1,zmm2),
                                                        _mm512_mul_ps(zmm3,zmm4));
                             _mm512_storeu_ps(&zre[i+80], zmm5);
-                             zmm6  = _mm512_mul_ps(_mm512_mul_ps(zmm3,zmm2),
+                             zmm6  = _mm512_add_ps(_mm512_mul_ps(zmm3,zmm2),
                                                            _mm512_mul_ps(zmm1,zmm4));
                             _mm512_storeu_ps(&zim[i+80], zmm6);
+                           
                             zmm7 = _mm512_loadu_ps(&xre[i+96]);
                             zmm8 = _mm512_loadu_ps(&yre[i+96]);
                             zmm9 = _mm512_loadu_ps(&xim[i+96]);
@@ -256,19 +295,21 @@ SOFTWARE.
                             zmm11= _mm512_sub_ps(_mm512_mul_ps(zmm7,zmm8),
                                                        _mm512_mul_ps(zmm9,zmm10));
                             _mm512_storeu_ps(&zre[i+96], zmm11);
-                             zmm12  = _mm512_mul_ps(_mm512_mul_ps(zmm9,zmm8),
+                             zmm12  = _mm512_add_ps(_mm512_mul_ps(zmm9,zmm8),
                                                            _mm512_mul_ps(zmm7,zmm10));
                             _mm512_storeu_ps(&zim[i+96], zmm12);
+                           
                             zmm13 = _mm512_loadu_ps(&xre[i+112]);
                             zmm14 = _mm512_loadu_ps(&yre[i+112]);
                             zmm15 = _mm512_loadu_ps(&xim[i+112]);
                             zmm16 = _mm512_loadu_ps(&yim[i+112]);
                             zmm17 = _mm512_sub_ps(_mm512_mul_ps(zmm13,zmm14),
                                                        _mm512_mul_ps(zmm15,zmm16));
-                            _mm512_storeu_ps(&zre[i+112], zmm17;
-                             zmm18  = _mm512_mul_ps(_mm512_mul_ps(zmm15,zmm14),
+                            _mm512_storeu_ps(&zre[i+112], zmm17);
+                             zmm18  = _mm512_add_ps(_mm512_mul_ps(zmm15,zmm14),
                                                            _mm512_mul_ps(zmm13,zmm16));
                             _mm512_storeu_ps(&zim[i+112], zmm18);
+                            
                             zmm19 = _mm512_loadu_ps(&xre[i+128]);
                             zmm20 = _mm512_loadu_ps(&yre[i+128]);
                             zmm21 = _mm512_loadu_ps(&xim[i+128]);
@@ -276,9 +317,10 @@ SOFTWARE.
                             zmm23 = _mm512_sub_ps(_mm512_mul_ps(zmm19,zmm20),
                                                        _mm512_mul_ps(zmm21,zmm22));
                             _mm512_storeu_ps(&zre[i+128], zmm23);
-                             zmm24  = _mm512_mul_ps(_mm512_mul_ps(zmm21,zmm20),
+                             zmm24  = _mm512_add_ps(_mm512_mul_ps(zmm21,zmm20),
                                                            _mm512_mul_ps(zmm19,zmm22));
                             _mm512_storeu_ps(&zim[i+128], zmm24);
+                           
                             zmm25 = _mm512_loadu_ps(&xre[i+144]);
                             zmm26 = _mm512_loadu_ps(&yre[i+144]);
                             zmm27 = _mm512_loadu_ps(&xim[i+144]);
@@ -286,10 +328,9 @@ SOFTWARE.
                             zmm29 = _mm512_sub_ps(_mm512_mul_ps(zmm25,zmm26),
                                                        _mm512_mul_ps(zmm27,zmm28));
                             _mm512_storeu_ps(&zre[i+144], zmm29);
-                             zmm1  = _mm512_mul_ps(_mm512_mul_ps(zmm27,zmm26),
+                             zmm1  = _mm512_add_ps(_mm512_mul_ps(zmm27,zmm26),
                                                            _mm512_mul_ps(zmm25,zmm28));
                             _mm512_storeu_ps(&zim[i+144], zmm1);
-
                       }
 
                     for(; (i+127) < n; i += 128) {
@@ -300,7 +341,7 @@ SOFTWARE.
                              zmm4  = _mm512_sub_ps(_mm512_mul_ps(zmm0,zmm1),
                                                                         _mm512_mul_ps(zmm2,zmm3));
                             _mm512_storeu_ps(&zre[i+0], zmm4);
-                             zmm5  = _mm512_mul_ps(_mm512_mul_ps(zmm2,zmm1),
+                             zmm5  = _mm512_add_ps(_mm512_mul_ps(zmm2,zmm1),
                                                                         _mm512_mul_ps(zmm0,zmm3));
                             _mm512_storeu_ps(&zim[i+0], zmm5);
                              zmm6  = _mm512_loadu_ps(&xre[i+16]);
@@ -310,7 +351,7 @@ SOFTWARE.
                              zmm10 = _mm512_sub_ps(_mm512_mul_ps(zmm6,zmm7),
                                                                         _mm512_mul_ps(zmm8,zmm9));
                             _mm512_storeu_ps(&zre[i+16], zmm10);
-                            zmm11 = _mm512_mul_ps(_mm512_mul_ps(zmm8,zmm7),
+                            zmm11 = _mm512_add_ps(_mm512_mul_ps(zmm8,zmm7),
                                                                         _mm512_mul_ps(zmm6,zmm9));
                             _mm512_storeu_ps(&zim[i+16], zmm11);
                              zmm12 = _mm512_loadu_ps(&xre[i+32]);
@@ -320,7 +361,7 @@ SOFTWARE.
                              zmm16 = _mm512_sub_ps(_mm512_mul_ps(zmm12,zmm13),
                                                                         _mm512_mul_ps(zmm14,zmm15));
                             _mm512_storeu_ps(&zre[i+32], zmm16);
-                             zmm17  = _mm512_mul_ps(_mm512_mul_ps(zmm14,zmm13),
+                             zmm17  = _mm512_add_ps(_mm512_mul_ps(zmm14,zmm13),
                                                                         _mm512_mul_ps(zmm12,zmm15));
                             _mm512_storeu_ps(&zim[i+32], zmm17);
                              zmm18 = _mm512_loadu_ps(&xre[i+48]);
@@ -330,7 +371,7 @@ SOFTWARE.
                              zmm22 = _mm512_sub_ps(_mm512_mul_ps(zmm18,zmm19),
                                                                         _mm512_mul_ps(zmm20,zmm21));
                             _mm512_storeu_ps(&zre[i+48], zmm22);
-                             zmm23  = _mm512_mul_ps(_mm512_mul_ps(zmm20,zmm19),
+                             zmm23  = _mm512_add_ps(_mm512_mul_ps(zmm20,zmm19),
                                                                         _mm512_mul_ps(zmm18,zmm21));
                             _mm512_storeu_ps(&zim[i+48], zmm23);
                              zmm24 = _mm512_loadu_ps(&xre[i+64]);
@@ -340,7 +381,7 @@ SOFTWARE.
                              zmm28 = _mm512_sub_ps(_mm512_mul_ps(zmm24,zmm25),
                                                                         _mm512_mul_ps(zmm26,zmm27));
                             _mm512_storeu_ps(&zre[i+64], zmm28);
-                             zmm29  = _mm512_mul_ps(_mm512_mul_ps(zmm26,zmm25),
+                             zmm29  = _mm512_add_ps(_mm512_mul_ps(zmm26,zmm25),
                                                                         _mm512_mul_ps(zmm24,zmm27));
                             _mm512_storeu_ps(&zim[i+64], zmm29);
                             zmm1 = _mm512_loadu_ps(&xre[i+80]);
@@ -350,7 +391,7 @@ SOFTWARE.
                             zmm5 = _mm512_sub_ps(_mm512_mul_ps(zmm1,zmm2),
                                                        _mm512_mul_ps(zmm3,zmm4));
                             _mm512_storeu_ps(&zre[i+80], zmm5);
-                             zmm6  = _mm512_mul_ps(_mm512_mul_ps(zmm3,zmm2),
+                             zmm6  = _mm512_add_ps(_mm512_mul_ps(zmm3,zmm2),
                                                            _mm512_mul_ps(zmm1,zmm4));
                             _mm512_storeu_ps(&zim[i+80], zmm6);
                             zmm7 = _mm512_loadu_ps(&xre[i+96]);
@@ -360,7 +401,7 @@ SOFTWARE.
                             zmm11= _mm512_sub_ps(_mm512_mul_ps(zmm7,zmm8),
                                                        _mm512_mul_ps(zmm9,zmm10));
                             _mm512_storeu_ps(&zre[i+96], zmm11);
-                             zmm12  = _mm512_mul_ps(_mm512_mul_ps(zmm9,zmm8),
+                             zmm12  = _mm512_add_ps(_mm512_mul_ps(zmm9,zmm8),
                                                            _mm512_mul_ps(zmm7,zmm10));
                             _mm512_storeu_ps(&zim[i+96], zmm12);
                             zmm13 = _mm512_loadu_ps(&xre[i+112]);
@@ -369,8 +410,8 @@ SOFTWARE.
                             zmm16 = _mm512_loadu_ps(&yim[i+112]);
                             zmm17 = _mm512_sub_ps(_mm512_mul_ps(zmm13,zmm14),
                                                        _mm512_mul_ps(zmm15,zmm16));
-                            _mm512_storeu_ps(&zre[i+112], zmm17;
-                             zmm18  = _mm512_mul_ps(_mm512_mul_ps(zmm15,zmm14),
+                            _mm512_storeu_ps(&zre[i+112], zmm17);
+                             zmm18  = _mm512_add_ps(_mm512_mul_ps(zmm15,zmm14),
                                                            _mm512_mul_ps(zmm13,zmm16));
                             _mm512_storeu_ps(&zim[i+112], zmm18);
 
@@ -384,7 +425,7 @@ SOFTWARE.
                              zmm4  = _mm512_sub_ps(_mm512_mul_ps(zmm0,zmm1),
                                                                         _mm512_mul_ps(zmm2,zmm3));
                             _mm512_storeu_ps(&zre[i+0], zmm4);
-                             zmm5  = _mm512_mul_ps(_mm512_mul_ps(zmm2,zmm1),
+                             zmm5  = _mm512_add_ps(_mm512_mul_ps(zmm2,zmm1),
                                                                         _mm512_mul_ps(zmm0,zmm3));
                             _mm512_storeu_ps(&zim[i+0], zmm5);
                              zmm6  = _mm512_loadu_ps(&xre[i+16]);
@@ -394,7 +435,7 @@ SOFTWARE.
                              zmm10 = _mm512_sub_ps(_mm512_mul_ps(zmm6,zmm7),
                                                                         _mm512_mul_ps(zmm8,zmm9));
                             _mm512_storeu_ps(&zre[i+16], zmm10);
-                            zmm11 = _mm512_mul_ps(_mm512_mul_ps(zmm8,zmm7),
+                            zmm11 = _mm512_add_ps(_mm512_mul_ps(zmm8,zmm7),
                                                                         _mm512_mul_ps(zmm6,zmm9));
                             _mm512_storeu_ps(&zim[i+16], zmm11);
                              zmm12 = _mm512_loadu_ps(&xre[i+32]);
@@ -404,7 +445,7 @@ SOFTWARE.
                              zmm16 = _mm512_sub_ps(_mm512_mul_ps(zmm12,zmm13),
                                                                         _mm512_mul_ps(zmm14,zmm15));
                             _mm512_storeu_ps(&zre[i+32], zmm16);
-                             zmm17  = _mm512_mul_ps(_mm512_mul_ps(zmm14,zmm13),
+                             zmm17  = _mm512_add_ps(_mm512_mul_ps(zmm14,zmm13),
                                                                         _mm512_mul_ps(zmm12,zmm15));
                             _mm512_storeu_ps(&zim[i+32], zmm17);
                              zmm18 = _mm512_loadu_ps(&xre[i+48]);
@@ -414,7 +455,7 @@ SOFTWARE.
                              zmm22 = _mm512_sub_ps(_mm512_mul_ps(zmm18,zmm19),
                                                                         _mm512_mul_ps(zmm20,zmm21));
                             _mm512_storeu_ps(&zre[i+48], zmm22);
-                             zmm23  = _mm512_mul_ps(_mm512_mul_ps(zmm20,zmm19),
+                             zmm23  = _mm512_add_ps(_mm512_mul_ps(zmm20,zmm19),
                                                                         _mm512_mul_ps(zmm18,zmm21));
                             _mm512_storeu_ps(&zim[i+48], zmm23);
                              zmm24 = _mm512_loadu_ps(&xre[i+64]);
@@ -424,7 +465,7 @@ SOFTWARE.
                              zmm28 = _mm512_sub_ps(_mm512_mul_ps(zmm24,zmm25),
                                                                         _mm512_mul_ps(zmm26,zmm27));
                             _mm512_storeu_ps(&zre[i+64], zmm28);
-                             zmm29  = _mm512_mul_ps(_mm512_mul_ps(zmm26,zmm25),
+                             zmm29  = _mm512_add_ps(_mm512_mul_ps(zmm26,zmm25),
                                                                         _mm512_mul_ps(zmm24,zmm27));
                             _mm512_storeu_ps(&zim[i+64], zmm29);
                             zmm1 = _mm512_loadu_ps(&xre[i+80]);
@@ -434,7 +475,7 @@ SOFTWARE.
                             zmm5 = _mm512_sub_ps(_mm512_mul_ps(zmm1,zmm2),
                                                        _mm512_mul_ps(zmm3,zmm4));
                             _mm512_storeu_ps(&zre[i+80], zmm5);
-                             zmm6  = _mm512_mul_ps(_mm512_mul_ps(zmm3,zmm2),
+                             zmm6  = _mm512_add_ps(_mm512_mul_ps(zmm3,zmm2),
                                                            _mm512_mul_ps(zmm1,zmm4));
                             _mm512_storeu_ps(&zim[i+80], zmm6);
                    }
@@ -447,7 +488,7 @@ SOFTWARE.
                              zmm4  = _mm512_sub_ps(_mm512_mul_ps(zmm0,zmm1),
                                                                         _mm512_mul_ps(zmm2,zmm3));
                             _mm512_storeu_ps(&zre[i+0], zmm4);
-                             zmm5  = _mm512_mul_ps(_mm512_mul_ps(zmm2,zmm1),
+                             zmm5  = _mm512_add_ps(_mm512_mul_ps(zmm2,zmm1),
                                                                         _mm512_mul_ps(zmm0,zmm3));
                             _mm512_storeu_ps(&zim[i+0], zmm5);
                              zmm6  = _mm512_loadu_ps(&xre[i+16]);
@@ -457,7 +498,7 @@ SOFTWARE.
                              zmm10 = _mm512_sub_ps(_mm512_mul_ps(zmm6,zmm7),
                                                                         _mm512_mul_ps(zmm8,zmm9));
                             _mm512_storeu_ps(&zre[i+16], zmm10);
-                            zmm11 = _mm512_mul_ps(_mm512_mul_ps(zmm8,zmm7),
+                            zmm11 = _mm512_add_ps(_mm512_mul_ps(zmm8,zmm7),
                                                                         _mm512_mul_ps(zmm6,zmm9));
                             _mm512_storeu_ps(&zim[i+16], zmm11);
                              zmm12 = _mm512_loadu_ps(&xre[i+32]);
@@ -467,7 +508,7 @@ SOFTWARE.
                              zmm16 = _mm512_sub_ps(_mm512_mul_ps(zmm12,zmm13),
                                                                         _mm512_mul_ps(zmm14,zmm15));
                             _mm512_storeu_ps(&zre[i+32], zmm16);
-                             zmm17  = _mm512_mul_ps(_mm512_mul_ps(zmm14,zmm13),
+                             zmm17  = _mm512_add_ps(_mm512_mul_ps(zmm14,zmm13),
                                                                         _mm512_mul_ps(zmm12,zmm15));
                             _mm512_storeu_ps(&zim[i+32], zmm17);
                              zmm18 = _mm512_loadu_ps(&xre[i+48]);
@@ -477,7 +518,7 @@ SOFTWARE.
                              zmm22 = _mm512_sub_ps(_mm512_mul_ps(zmm18,zmm19),
                                                                         _mm512_mul_ps(zmm20,zmm21));
                             _mm512_storeu_ps(&zre[i+48], zmm22);
-                             zmm23  = _mm512_mul_ps(_mm512_mul_ps(zmm20,zmm19),
+                             zmm23  = _mm512_add_ps(_mm512_mul_ps(zmm20,zmm19),
                                                                         _mm512_mul_ps(zmm18,zmm21));
                             _mm512_storeu_ps(&zim[i+48], zmm23);
 
@@ -491,7 +532,7 @@ SOFTWARE.
                              zmm4  = _mm512_sub_ps(_mm512_mul_ps(zmm0,zmm1),
                                                                         _mm512_mul_ps(zmm2,zmm3));
                             _mm512_storeu_ps(&zre[i+0], zmm4);
-                             zmm5  = _mm512_mul_ps(_mm512_mul_ps(zmm2,zmm1),
+                             zmm5  = _mm512_add_ps(_mm512_mul_ps(zmm2,zmm1),
                                                                         _mm512_mul_ps(zmm0,zmm3));
                             _mm512_storeu_ps(&zim[i+0], zmm5);
                              zmm6  = _mm512_loadu_ps(&xre[i+16]);
@@ -501,7 +542,7 @@ SOFTWARE.
                              zmm10 = _mm512_sub_ps(_mm512_mul_ps(zmm6,zmm7),
                                                                         _mm512_mul_ps(zmm8,zmm9));
                             _mm512_storeu_ps(&zre[i+16], zmm10);
-                            zmm11 = _mm512_mul_ps(_mm512_mul_ps(zmm8,zmm7),
+                            zmm11 = _mm512_add_ps(_mm512_mul_ps(zmm8,zmm7),
                                                                         _mm512_mul_ps(zmm6,zmm9));
                             _mm512_storeu_ps(&zim[i+16], zmm11);
                     }
@@ -514,7 +555,7 @@ SOFTWARE.
                              zmm4  = _mm512_sub_ps(_mm512_mul_ps(zmm0,zmm1),
                                                                         _mm512_mul_ps(zmm2,zmm3));
                             _mm512_storeu_ps(&zre[i+0], zmm4);
-                             zmm5  = _mm512_mul_ps(_mm512_mul_ps(zmm2,zmm1),
+                             zmm5  = _mm512_add_ps(_mm512_mul_ps(zmm2,zmm1),
                                                                         _mm512_mul_ps(zmm0,zmm3));
                             _mm512_storeu_ps(&zim[i+0], zmm5);
 
@@ -522,7 +563,7 @@ SOFTWARE.
 
                     for(; (i+0) < n; i += 1) {
                          zre[i] = (xre[i] * yre[i]) - (xim[i] * yim[i]);
-		         zim[i] = (xim[i] * yre[i]) + (xre[i] * yim[i]);
+		             zim[i] = (xim[i] * yre[i]) + (xre[i] * yim[i]);
                     }
                }
 
