@@ -3,8 +3,9 @@
 #define __GMS_CEPHES_SIN_COS_H__ 061220250824
 
 #include <immintrin.h>
+#include <limits>
 #include "GMS_config.h"
-#include "GMS_simd_utils.h"
+
 
 namespace gms
 {
@@ -212,6 +213,15 @@ return( y);
 
 ///////////// SIMD Kernels /////////////////
 
+ __ATTR_ALWAYS_INLINE__		    
+static inline 
+__m128
+negate_xmm4r4(const __m128 v) 
+{
+    const __m128  NZ128SP = _mm_set1_ps(-0.0F);
+	return (_mm_xor_ps(v,NZ128SP));
+}
+
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m128 _mm_ceph_cosf_ps(const __m128 xx) 
@@ -258,10 +268,11 @@ __m128 _mm_ceph_cosf_ps(const __m128 xx)
 	__m128  y_false;
 	__m128i  neg_sign;
 	__m128i j;
+	__m128i j_and_1;
     __m128i sign;
 	__mmask8 x_lt_0{};
 	__mmask8 x_gt_T24M1{};
-	__mmask8 j_and_1{};
+	__mmask8 mask_j_and_1{};
 	__mmask8 j_gt_3{};
 	__mmask8 j_gt_1{};
 	__mmask8 x_gt_lossth{};
@@ -270,21 +281,22 @@ __m128 _mm_ceph_cosf_ps(const __m128 xx)
 	__mmask8 sign_lt_0;
 	sign       = _mm_set1_epi32(1);
 	x          = xx;
-	neg_sign   = _mm_sub_ps(i_0,sign);
+	neg_sign   = _mm_sub_epi32(i_0,sign);
     x_lt_0     = _mm_cmp_ps_mask(x,zero,_CMP_LT_OQ);
 	x          = _mm_mask_blend_ps(x_lt_0,x,negate_xmm4r4(x));
     x_gt_T24M1 = _mm_cmp_ps_mask(x,T24M1,_CMP_GT_OQ);
 	if(__builtin_expect(x_gt_T24M1==0xFF,0)) {return infinity;}
-    j          = _mm_castpd_si128(_mm_mul_ps(FOPI,x));
-    y          = _mm_castsi128_ps(j);
+    j          = _mm_cvtps_epi32(_mm_mul_ps(FOPI,x));
+    y          = _mm_cvtepi32_ps(j);
     j_and_1    = _mm_and_si128(j,i_one);
-    j          = _mm_mask_blend_epi32(j_and_1,j,_mm_add_epi32(j,i_one));
-	y          = _mm_mask_blend_ps(j_and_1,y,_mm_add_ps(y,f_one));
-    j          = _mm_and_epi32(j,i_7);
-    j_gt_3     = _mm_cmp_epi32_mask(j,i_3,_CMP_GT_OQ);
+	mask_j_and_1= _mm_cmp_epi32_mask(j_and_1,i_0,_MM_CMPINT_NE);
+    j          = _mm_mask_blend_epi32(mask_j_and_1,j,_mm_add_epi32(j,i_one));
+	y          = _mm_mask_blend_ps(mask_j_and_1,y,_mm_add_ps(y,f_one));
+    j          = _mm_and_si128(j,i_7);
+    j_gt_3     = _mm_cmp_epi32_mask(j,i_3,_MM_CMPINT_GT);
 	j          = _mm_mask_blend_epi32(j_gt_3,j,_mm_sub_epi32(j,i_4));
 	sign       = _mm_mask_blend_epi32(j_gt_3,sign,neg_sign);
-    j_gt_1     = _mm_cmp_epi32_mask(j,i_1,_CMP_GT_OQ);
+    j_gt_1     = _mm_cmp_epi32_mask(j,i_one,_MM_CMPINT_GT);
     sign       = _mm_mask_blend_epi32(j_gt_1,sign,neg_sign);
 	x_gt_lossth= _mm_cmp_ps_mask(x,lossth,_CMP_GT_OQ);
 	x_true     = _mm_sub_ps(x,_mm_mul_ps(y,PIO4F));
@@ -292,16 +304,16 @@ __m128 _mm_ceph_cosf_ps(const __m128 xx)
 	x_false    = _mm_sub_ps(_mm_sub_ps(_mm_sub_ps(x,_mm_mul_ps(y,DP1)),_mm_mul_ps(y,DP2)),_mm_mul_ps(y,DP3));
 	x          = _mm_mask_blend_ps(x_gt_lossth,x_false,x_true);
     z          = _mm_mul_ps(x,x);
-    j_eq_1     = _mm_cmp_epi32_mask(j,i_one,_CMP_EQ_OQ);
-	j_eq_2     = _mm_cmp_epi32_mask(j,i_2,_CMP_EQ_OQ);
+    j_eq_1     = _mm_cmp_epi32_mask(j,i_one,_MM_CMPINT_EQ);
+	j_eq_2     = _mm_cmp_epi32_mask(j,i_2,_MM_CMPINT_EQ);
 	const __mmask8 j_eq1_or_j_eq_2{_kor_mask8(j_eq_1,j_eq_2)};
     y_true     = _mm_fmadd_ps(_mm_mul_ps(_mm_fmsub_ps(_mm_fmadd_ps(C19515295891E4,z,C83321608736E3),z,C16666654611E1),z),x,x);
 	y_false    = _mm_mul_ps(_mm_mul_ps(_mm_fmadd_ps(_mm_fmsub_ps(C2443315711809948E005,z,C1388731625493765E003),z,C4166664568298827E002),z),z);
 	y_false    = _mm_sub_ps(y_false,_mm_mul_ps(C05,z));
 	y_false    = _mm_add_ps(y_false,f_one);
 	y          = _mm_mask_blend_ps(j_eq1_or_j_eq_2,y_false,y_true);
-    sign_lt_0  = _mm_cmp_epi32_mask(sign,i_0,_CMP_LT_OQ);
-	y          = _mm_mask_blend_ps(sign_lt_0,y,xmm4r4_abs(y));
+    sign_lt_0  = _mm_cmp_epi32_mask(sign,i_0,_MM_CMPINT_LT);
+	y          = _mm_mask_blend_ps(sign_lt_0,y,negate_xmm4r4(y));
 	return (y);
 }
 
