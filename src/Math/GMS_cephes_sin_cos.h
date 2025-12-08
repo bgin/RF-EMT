@@ -1,8 +1,34 @@
 
+
+/*
+Cephes Math Library Release 2.2:  June, 1992
+Copyright 1984, 1987, 1989 by Stephen L. Moshier
+Direct inquiries to 30 Frost Street, Cambridge, MA 02140
+*/
+
+/*MIT License
+!Copyright (c) 2020 Bernard Gingold
+!Permission is hereby granted, free of charge, to any person obtaining a copy
+!of this software and associated documentation files (the "Software"), to deal
+!in the Software without restriction, including without limitation the rights
+!to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+!copies of the Software, and to permit persons to whom the Software is
+!furnished to do so, subject to the following conditions:
+!The above copyright notice and this permission notice shall be included in all
+!copies or substantial portions of the Software.
+!THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+!IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+!FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+!AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+!LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+!OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+!SOFTWARE.
+*/
+
 #ifndef __GMS_CEPHES_SIN_COS_H__
 #define __GMS_CEPHES_SIN_COS_H__ 061220250824
 
-#include <immintrin.h>
+
 #include <limits>
 #include "GMS_config.h"
 
@@ -211,111 +237,6 @@ if(sign < 0)
 return( y);
 }
 
-///////////// SIMD Kernels /////////////////
-
- __ATTR_ALWAYS_INLINE__		    
-static inline 
-__m128
-negate_xmm4r4(const __m128 v) 
-{
-    const __m128  NZ128SP = _mm_set1_ps(-0.0F);
-	return (_mm_xor_ps(v,NZ128SP));
-}
-
-__ATTR_ALWAYS_INLINE__
-static inline 
-__m128 _mm_ceph_cosf_ps(const __m128 xx) 
-{
-	
-	    /* These are for a 24-bit significand: 
-           constexpr float PIO4F =  0.7853981633974483096f;
-           constexpr float FOPI  = 1.27323954473516f;
-           constexpr float DP1 = 0.78515625f;
-           constexpr float DP2 = 2.4187564849853515625e-4f;
-           constexpr float DP3 = 3.77489497744594108e-8f;
-           constexpr float lossth = 8192.f;
-           constexpr float T24M1 = 16777215.f;
-	     */
-	const __m128 PIO4F{ _mm_set1_ps(0.7853981633974483096f)};
-	const __m128 FOPI{  _mm_set1_ps(1.27323954473516f)};
-	const __m128 DP1{   _mm_set1_ps(0.78515625f)};
-	const __m128 DP2{   _mm_set1_ps(2.4187564849853515625e-4f)};
-	const __m128 DP3{   _mm_set1_ps(3.77489497744594108e-8f)};
-	const __m128 lossth{_mm_set1_ps(8192.0f)};
-	const __m128 T24M1{ _mm_set1_ps(16777215.0f)};
-	const __m128 C19515295891E4{_mm_set1_ps(-1.9515295891E-4)};
-	const __m128 C83321608736E3{_mm_set1_ps(8.3321608736E-3)};
-	const __m128 C16666654611E1{_mm_set1_ps(1.6666654611E-1)};
-	const __m128 C2443315711809948E005{_mm_set1_ps(2.443315711809948E-005)};
-	const __m128 C1388731625493765E003{_mm_set1_ps(1.388731625493765E-003)};
-	const __m128 C4166664568298827E002{_mm_set1_ps(4.166664568298827E-002)};
-	const __m128 C05{                  _mm_set1_ps(0.5f)};
-	const __m128 zero{  _mm_setzero_ps()};
-	const __m128 infinity{_mm_set1_ps(std::numeric_limits<float>::infinity())};
-	const __m128i i_one{_mm_set1_epi32(1)};
-    const __m128  f_one{_mm_set1_ps(1.0f)};
-	const __m128i  i_7{  _mm_set1_epi32(7)};
-	const __m128i  i_3{  _mm_set1_epi32(3)};
-	const __m128i  i_4{  _mm_set1_epi32(4)};
-	const __m128i  i_0{  _mm_set1_epi32(0)};
-	const __m128i  i_2{  _mm_set1_epi32(2)};
-    __m128  x;
-	__m128  y;
-	__m128  z;
-	__m128  x_true;
-	__m128  x_false;
-	__m128  y_true;
-	__m128  y_false;
-	__m128i  neg_sign;
-	__m128i j;
-	__m128i j_and_1;
-    __m128i sign;
-	__mmask8 x_lt_0{};
-	__mmask8 x_gt_T24M1{};
-	__mmask8 mask_j_and_1{};
-	__mmask8 j_gt_3{};
-	__mmask8 j_gt_1{};
-	__mmask8 x_gt_lossth{};
-	__mmask8 j_eq_1{};
-	__mmask8 j_eq_2{};
-	__mmask8 sign_lt_0;
-	sign       = _mm_set1_epi32(1);
-	x          = xx;
-	neg_sign   = _mm_sub_epi32(i_0,sign);
-    x_lt_0     = _mm_cmp_ps_mask(x,zero,_CMP_LT_OQ);
-	x          = _mm_mask_blend_ps(x_lt_0,x,negate_xmm4r4(x));
-    x_gt_T24M1 = _mm_cmp_ps_mask(x,T24M1,_CMP_GT_OQ);
-	if(__builtin_expect(x_gt_T24M1==0xFF,0)) {return infinity;}
-    j          = _mm_cvtps_epi32(_mm_mul_ps(FOPI,x));
-    y          = _mm_cvtepi32_ps(j);
-    j_and_1    = _mm_and_si128(j,i_one);
-	mask_j_and_1= _mm_cmp_epi32_mask(j_and_1,i_0,_MM_CMPINT_NE);
-    j          = _mm_mask_blend_epi32(mask_j_and_1,j,_mm_add_epi32(j,i_one));
-	y          = _mm_mask_blend_ps(mask_j_and_1,y,_mm_add_ps(y,f_one));
-    j          = _mm_and_si128(j,i_7);
-    j_gt_3     = _mm_cmp_epi32_mask(j,i_3,_MM_CMPINT_GT);
-	j          = _mm_mask_blend_epi32(j_gt_3,j,_mm_sub_epi32(j,i_4));
-	sign       = _mm_mask_blend_epi32(j_gt_3,sign,neg_sign);
-    j_gt_1     = _mm_cmp_epi32_mask(j,i_one,_MM_CMPINT_GT);
-    sign       = _mm_mask_blend_epi32(j_gt_1,sign,neg_sign);
-	x_gt_lossth= _mm_cmp_ps_mask(x,lossth,_CMP_GT_OQ);
-	x_true     = _mm_sub_ps(x,_mm_mul_ps(y,PIO4F));
-	//x_false  = ((x-y*DP1)-y*DP2)-y*DP3;
-	x_false    = _mm_sub_ps(_mm_sub_ps(_mm_sub_ps(x,_mm_mul_ps(y,DP1)),_mm_mul_ps(y,DP2)),_mm_mul_ps(y,DP3));
-	x          = _mm_mask_blend_ps(x_gt_lossth,x_false,x_true);
-    z          = _mm_mul_ps(x,x);
-    j_eq_1     = _mm_cmp_epi32_mask(j,i_one,_MM_CMPINT_EQ);
-	j_eq_2     = _mm_cmp_epi32_mask(j,i_2,_MM_CMPINT_EQ);
-	const __mmask8 j_eq1_or_j_eq_2{_kor_mask8(j_eq_1,j_eq_2)};
-    y_true     = _mm_fmadd_ps(_mm_mul_ps(_mm_fmsub_ps(_mm_fmadd_ps(C19515295891E4,z,C83321608736E3),z,C16666654611E1),z),x,x);
-	y_false    = _mm_mul_ps(_mm_mul_ps(_mm_fmadd_ps(_mm_fmsub_ps(C2443315711809948E005,z,C1388731625493765E003),z,C4166664568298827E002),z),z);
-	y_false    = _mm_sub_ps(y_false,_mm_mul_ps(C05,z));
-	y_false    = _mm_add_ps(y_false,f_one);
-	y          = _mm_mask_blend_ps(j_eq1_or_j_eq_2,y_false,y_true);
-    sign_lt_0  = _mm_cmp_epi32_mask(sign,i_0,_MM_CMPINT_LT);
-	y          = _mm_mask_blend_ps(sign_lt_0,y,negate_xmm4r4(y));
-	return (y);
-}
 
 __ATTR_ALWAYS_INLINE__
 static inline
