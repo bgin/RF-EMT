@@ -173,6 +173,7 @@ namespace radiolocation
                   std::size_t     m_nsamples;
                   std::size_t     m_I_ch_nsamples; // I-channel i.e. rect wave number of samples
                   std::size_t     m_Q_ch_nsamples; // Q-channel i.e. rect wave number of samples
+                  std::size_t     m_nfrequencies;  // Number of frequencies for FT caluclation
                   float           m_A_I; // I channel amplitude
                   float           m_A_Q; // Q channel amplitude
                   float           m_T;   // period
@@ -185,11 +186,13 @@ namespace radiolocation
                   darray_r4_t     m_Q_bitstream; //user data, i.e. [-1,1]
                   darray_r4_t     m_I_channel;
                   darray_r4_t     m_Q_channel;
+                  darray_r4_t     m_Psi_f; //Fourier-Transform (analytical formula) of pulse shaping I/Q functions
                   darray_r4_t     m_msk_signal; // summed waveform of I/Q channels
                   
-                  sinusoidal_weighted_oqpsk_t() = delete;
+                  sinusoidal_weighted_oqpsk_t() = default;
 
                   sinusoidal_weighted_oqpsk_t(const std::size_t,
+                                              const std::size_t,
                                               const std::size_t,
                                               const std::size_t,
                                               const float,
@@ -2042,7 +2045,16 @@ namespace radiolocation
                                                        sinusoidal_weighted_oqpsk_pdf_params_t &,
                                                        sinusoidal_weighted_oqpsk_rand_distr);
 
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif 
+                  std::int32_t 
+                  fourier_transform_iq_shape_pulse_u4x(const darray_r4_t &);
 
+
+                                                       
                             
            };
 

@@ -10,6 +10,7 @@ gms::radiolocation
 ::sinusoidal_weighted_oqpsk_t(const std::size_t nsamples,
                               const std::size_t I_ch_nsamples,
                               const std::size_t Q_ch_nsamples,
+                              const std::size_t nfrequencies,
                               const float A_I,
                               const float A_Q,
                               const float T,
@@ -21,6 +22,7 @@ gms::radiolocation
 m_nsamples{nsamples},
 m_I_ch_nsamples{I_ch_nsamples},
 m_Q_ch_nsamples{Q_ch_nsamples},
+m_nfrequencies{nfrequencies},
 m_A_I{A_I},
 m_A_Q{A_Q},
 m_T{T},
@@ -33,6 +35,7 @@ m_I_bitstream{darray_r4_t(this->m_I_ch_nsamples)},
 m_Q_bitstream{darray_r4_t(this->m_Q_ch_nsamples)},
 m_I_channel{darray_r4_t(this->m_nsamples)},
 m_Q_channel{darray_r4_t(this->m_nsamples)},
+m_Psi_f{darray_r4_t(this->m_nfrequencies)},
 m_msk_signal{darray_r4_t(this->m_nsamples)} 
 {
 
@@ -45,6 +48,7 @@ gms::radiolocation
 m_nsamples{other.m_nsamples},
 m_I_ch_nsamples{other.m_I_ch_nsamples},
 m_Q_ch_nsamples{other.m_Q_ch_nsamples},
+m_nfrequencies{other.m_nfrequencies},
 m_A_I{other.m_A_I},
 m_A_Q{other.m_A_Q},
 m_T{other.m_T},
@@ -57,6 +61,7 @@ m_I_bitstream{other.m_I_bitstream},
 m_Q_bitstream{other.m_Q_bitstream},
 m_I_channel{other.m_I_channel},
 m_Q_channel{other.m_Q_channel},
+m_Psi_f{other.m_Psi_f},
 m_msk_signal{other.m_msk_signal} 
 {
 
@@ -69,6 +74,7 @@ gms::radiolocation
 m_nsamples{std::move(other.m_nsamples)},
 m_I_ch_nsamples{std::move(other.m_I_ch_nsamples)},
 m_Q_ch_nsamples{std::move(other.m_Q_ch_nsamples)},
+m_nfrequencies{std::move(other.m_nfrequencies)},
 m_A_I{std::move(other.m_A_I)},
 m_A_Q{std::move(other.m_A_Q)},
 m_T{std::move(other.m_T)},
@@ -81,6 +87,7 @@ m_I_bitstream{std::move(other.m_I_bitstream)},
 m_Q_bitstream{std::move(other.m_Q_bitstream)},
 m_I_channel{std::move(other.m_I_channel)},
 m_Q_channel{std::move(other.m_Q_channel)},
+m_Psi_f{std::move(other.m_Psi_f)},
 m_msk_signal{std::move(other.m_msk_signal)} 
 {
 
@@ -103,6 +110,7 @@ gms::radiolocation
       this->m_nsamples         = other.m_nsamples;
       this->m_I_ch_nsamples    = other.m_I_ch_nsamples;
       this->m_Q_ch_nsamples    = other.m_Q_ch_nsamples;
+      this->m_nfrequencies     = other.m_nfrequencies;
       this->m_A_I              = other.m_A_I;
       this->m_A_Q              = other.m_A_Q;
       this->m_T                = other.m_T;
@@ -115,6 +123,7 @@ gms::radiolocation
       this->m_Q_bitstream.operator=(other.m_Q_bitstream);
       this->m_I_channel.operator=(other.m_I_channel);
       this->m_Q_channel.operator=(other.m_Q_channel);
+      this->m_Psi_f.operator=(other.m_Psi_f);
       this->m_msk_signal.operator=(other.m_msk_signal);
       return (*this);
 }
@@ -129,6 +138,7 @@ gms::radiolocation
       this->m_nsamples      = std::move(other.m_nsamples);
       this->m_I_ch_nsamples = std::move(other.m_I_ch_nsamples);
       this->m_Q_ch_nsamples = std::move(other.m_Q_ch_nsamples);
+      this->m_nfrequencies  = std::move(other.m_nfrequencies);
       this->m_A_I           = std::move(other.m_A_I);
       this->m_A_Q           = std::move(other.m_A_Q);
       this->m_T             = std::move(other.m_T);
@@ -141,6 +151,7 @@ gms::radiolocation
       this->m_Q_bitstream.operator=(std::move(other.m_Q_bitstream));
       this->m_I_channel.operator=(std::move(other.m_I_channel));
       this->m_Q_channel.operator=(std::move(other.m_Q_channel));
+      this->m_Psi_f.operator=(std::move(other.m_Psi_f));
       this->m_msk_signal.operator=(std::move(other.m_msk_signal));
       return (*this);
 }
@@ -1601,6 +1612,86 @@ gms::radiolocation
       return (0);
 }
 
+std::int32_t 
+gms::radiolocation
+::sinusoidal_weighted_oqpsk_t
+::fourier_transform_iq_shape_pulse_u4x(const darray_r4_t &frequencies)                            
+{
+      using namespace gms::math;
+      if(__builtin_expect(frequencies.mnx!=this->m_nfrequencies,0)) { return (-1);}
+      constexpr float C010132118364233777144387946321{0.10132118364233777144387946321f};
+      constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+      const     float fourT{4.0f*this->m_T};
+      const     float sqrA{this->m_A_I*this->m_A_I}; //same for both channels
+      const     float lead_term{16.0f*sqrA*this->m_T*C010132118364233777144387946321};
+      const     std::size_t n_freqs{frequencies.mnx};
+      std::size_t i,j;
+      for(i = 0ull; i != ROUND_TO_FOUR(n_freqs,4ull); i += 4ull) 
+      {
+          const float freq_sample0{frequencies.m_data[i+0ull]};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+          const float cos_sample0{ceph_cosf(C6283185307179586476925286766559*this->m_T*freq_sample0)};
+#else 
+          const float cos_sample0{std::cos(C6283185307179586476925286766559*this->m_T*freq_sample0)};
+#endif 
+          const float t0{fourT*freq_sample0};
+          const float denom0{1.0f-(t0*t0)};
+          const float cos_term0{cos_sample0/denom0};
+          const float FT_sample0{lead_term*(cos_term0*cos_term0)};
+          this->m_Psi_f.m_data[i+0ull] = FT_sample0;
+          const float freq_sample1{frequencies.m_data[i+1ull]};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+          const float cos_sample1{ceph_cosf(C6283185307179586476925286766559*this->m_T*freq_sample1)};
+#else 
+          const float cos_sample1{std::cos(C6283185307179586476925286766559*this->m_T*freq_sample1)};
+#endif 
+          const float t1{fourT*freq_sample1};
+          const float denom1{1.0f-(t1*t1)};
+          const float cos_term1{cos_sample1/denom1};
+          const float FT_sample1{lead_term*(cos_term1*cos_term1)};
+          this->m_Psi_f.m_data[i+1ull] = FT_sample1;
+          const float freq_sample2{frequencies.m_data[i+2ull]};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+          const float cos_sample2{ceph_cosf(C6283185307179586476925286766559*this->m_T*freq_sample2)};
+#else 
+          const float cos_sample2{std::cos(C6283185307179586476925286766559*this->m_T*freq_sample2)};
+#endif 
+          const float t2{fourT*freq_sample2};
+          const float denom2{1.0f-(t0*t0)};
+          const float cos_term2{cos_sample2/denom2};
+          const float FT_sample2{lead_term*(cos_term2*cos_term2)};
+          this->m_Psi_f.m_data[i+2ull] = FT_sample2;
+          const float freq_sample3{frequencies.m_data[i+3ull]};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+          const float cos_sample3{ceph_cosf(C6283185307179586476925286766559*this->m_T*freq_sample3)};
+#else 
+          const float cos_sample3{std::cos(C6283185307179586476925286766559*this->m_T*freq_sample3)};
+#endif 
+          const float t3{fourT*freq_sample3};
+          const float denom3{1.0f-(t3*t3)};
+          const float cos_term3{cos_sample3/denom3};
+          const float FT_sample3{lead_term*(cos_term3*cos_term3)};
+          this->m_Psi_f.m_data[i+3ull] = FT_sample3;
+      }
+
+      for(j = i; j != n_freqs; ++j)  
+      {
+          const float freq_sample0{frequencies.m_data[j]};
+#if (SINUSOIDAL_WEIGHTED_OQPSK_USE_CEPHES) == 1 
+          const float cos_sample0{ceph_cosf(C6283185307179586476925286766559*this->m_T*freq_sample0)};
+#else 
+          const float cos_sample0{std::cos(C6283185307179586476925286766559*this->m_T*freq_sample0)};
+#endif 
+          const float t0{fourT*freq_sample0};
+          const float denom0{1.0f-(t0*t0)};
+          const float cos_term0{cos_sample0/denom0};
+          const float FT_sample0{lead_term*(cos_term0*cos_term0)};
+          this->m_Psi_f.m_data[j] = FT_sample0; 
+      }
+
+      return (0);
+} 
+
 auto
 gms::radiolocation
 ::operator<<(std::ostream &os,
@@ -1610,6 +1701,7 @@ gms::radiolocation
     std::cout << "m_nsamples         : "      << rhs.m_nsamples       << std::endl;
     std::cout << "m_I_ch_nsamples    : "      << rhs.m_I_ch_nsamples  << std::endl;
     std::cout << "m_Q_ch_nsamples    : "      << rhs.m_Q_ch_nsamples  << std::endl;
+    std::cout << "m_nfrequencies     : "      << rhs.m_nfrequencies   << std::endl;
     std::cout << "m_A_I              : "      << std::fixed << std::setprecision(7) << rhs.m_A_I << std::endl;
     std::cout << "m_A_Q              : "      << std::fixed << std::setprecision(7) << rhs.m_A_Q << std::endl;
     std::cout << "m_cw0              : "      << std::fixed << std::setprecision(7) << rhs.m_cw0 << std::endl;
@@ -1643,6 +1735,11 @@ gms::radiolocation
     for(std::size_t i{0ull}; i != rhs.m_nsamples; ++i) 
     {
        os << std::fixed << std::setprecision(7) << rhs.m_Q_channel.m_data[i] << std::endl;
+    }
+    std::cout << "Fourier-Transform -- I/Q shaping pulses:" << "\n\n";
+    for(std::size_t i{0ull}; i != rhs.m_nsamples; ++i) 
+    {
+       os << std::fixed << std::setprecision(7) << rhs.m_Psi_f.m_data[i] << std::endl;
     }
     std::cout << typeid(rhs).name() << "End: object state dump." << std::endl;
     return (os);
