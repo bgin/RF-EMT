@@ -27,6 +27,7 @@ unit_test_generate_I_Q_channel_bitstream()
       constexpr std::size_t nsamples{10ull*200ull}; // 10 periods of 200 samples each
       constexpr std::size_t I_nsamples{nsamples};
       constexpr std::size_t Q_nsamples{nsamples};
+      constexpr std::size_t nfreqs{120ull};
       constexpr float A_I{1.0f};
       constexpr float A_Q{1.0f};
       constexpr float T{10.0f};
@@ -48,7 +49,7 @@ unit_test_generate_I_Q_channel_bitstream()
       // For breaking into gdb
       //__asm__ ("int3");
       sinusoidal_weighted_oqpsk_t OQPSK_signal = sinusoidal_weighted_oqpsk_t(nsamples,I_nsamples,Q_nsamples,
-                                                                             A_I,A_Q,T,cw0,sw0,cph0,sph0);
+                                                                             nfreqs,A_Q,T,cw0,sw0,cph0,sph0);
       char * ctor_name{gms::common::demangle(typeid(OQPSK_signal).name(),status)};
       if(status==0 && ctor_name != NULL)
       {
@@ -106,6 +107,7 @@ unit_test_generate_I_Q_channel_bitstream_sse()
       constexpr std::size_t nsamples{10ull*200ull}; // 10 periods of 200 samples each
       constexpr std::size_t I_nsamples{nsamples};
       constexpr std::size_t Q_nsamples{nsamples};
+      constexpr std::size_t nfreqs{120ull};
       constexpr float A_I{1.0f};
       constexpr float A_Q{1.0f};
       constexpr float T{10.0f};
@@ -127,7 +129,7 @@ unit_test_generate_I_Q_channel_bitstream_sse()
       // For breaking into gdb
       //__asm__ ("int3");
       sinusoidal_weighted_oqpsk_t OQPSK_signal = sinusoidal_weighted_oqpsk_t(nsamples,I_nsamples,Q_nsamples,
-                                                                             A_I,A_Q,T,cw0,sw0,cph0,sph0);
+                                                                             nfreqs,A_Q,T,cw0,sw0,cph0,sph0);
       char * ctor_name{gms::common::demangle(typeid(OQPSK_signal).name(),status)};
       if(status==0 && ctor_name != NULL)
       {
@@ -184,6 +186,7 @@ unit_test_generate_I_Q_channel_bitstream_avx()
       constexpr std::size_t nsamples{10ull*200ull}; // 10 periods of 200 samples each
       constexpr std::size_t I_nsamples{nsamples};
       constexpr std::size_t Q_nsamples{nsamples};
+      constexpr std::size_t nfreqs{120ull};
       constexpr float A_I{1.0f};
       constexpr float A_Q{1.0f};
       constexpr float T{10.0f};
@@ -205,7 +208,7 @@ unit_test_generate_I_Q_channel_bitstream_avx()
       // For breaking into gdb
       //__asm__ ("int3");
       sinusoidal_weighted_oqpsk_t OQPSK_signal = sinusoidal_weighted_oqpsk_t(nsamples,I_nsamples,Q_nsamples,
-                                                                             A_I,A_Q,T,cw0,sw0,cph0,sph0);
+                                                                             nfreqs,A_I,A_Q,T,cw0,sw0,cph0,sph0);
       char * ctor_name{gms::common::demangle(typeid(OQPSK_signal).name(),status)};
       if(status==0 && ctor_name != NULL)
       {
@@ -264,6 +267,7 @@ unit_test_generate_I_Q_channel_bitstream_sse_u4x()
       constexpr std::size_t nsamples{10ull*300ull}; // exceeds the LUT indices storage.
       constexpr std::size_t I_nsamples{nsamples};
       constexpr std::size_t Q_nsamples{nsamples};
+      constexpr std::size_t nfreqs{120ull};
       constexpr float A_I{1.0f};
       constexpr float A_Q{1.0f};
       constexpr float T{10.0f};
@@ -285,7 +289,7 @@ unit_test_generate_I_Q_channel_bitstream_sse_u4x()
       // For breaking into gdb
       //__asm__ ("int3");
       sinusoidal_weighted_oqpsk_t OQPSK_signal = sinusoidal_weighted_oqpsk_t(nsamples,I_nsamples,Q_nsamples,
-                                                                             A_I,A_Q,T,cw0,sw0,cph0,sph0);
+                                                                             nfreqs,A_I,A_Q,T,cw0,sw0,cph0,sph0);
       char * ctor_name{gms::common::demangle(typeid(OQPSK_signal).name(),status)};
       if(status==0 && ctor_name != NULL)
       {
@@ -327,26 +331,6 @@ unit_test_generate_I_Q_channel_bitstream_sse_u4x()
       }
       printf("[UNIT_TEST]: function=%s -- **END**\n", __PRETTY_FUNCTION__);
      
-}
-
-void create_LUT_loop_indices();
-
-void create_LUT_loop_indices()
-{
-     const char * fname{"GMS_loop_indices_huge_LUT.cpp"};
-     FILE * fp{NULL};
-     fp = fopen(fname,"w+");
-     if(!fp)
-     {
-           std::perror("fopen failed to open a file -- TERMINATING!!");
-           std::exit(EXIT_FAILURE);
-     }
-     for(std::size_t i{0}; i != 1000000ull; ++i)
-     {
-           fprintf(fp,"%.7ff,\n", static_cast<float>(i));
-    }
-    if(fp) fclose(fp);
-    return;
 }
 
 
