@@ -425,10 +425,6 @@ namespace radiolocation
                        
                            for(i = 0ull; i != ROUND_TO_FOUR(this->m_I_ch_nsamples,4ull); i += 4ull) 
                            {
-                               //const __m128 vt_i{_mm_setr_ps(static_cast<float>(i*inv_sr),
-                               //                          static_cast<float>((i+1ull)*inv_sr),
-                               //                          static_cast<float>((i+2ull)*inv_sr),
-                               //                          static_cast<float>((i+3ull)*inv_sr))};
                                _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i],_MM_HINT_T0);
                                const __m128 vt_i{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i]),vinv_sr)};
                                const __m128 vcos_val    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i),vph0));
@@ -484,10 +480,7 @@ namespace radiolocation
                        {
                              for(i = 0ull,j = 0.0f; (i+15ull) < this->m_I_ch_nsamples; i += 16ull,j += 16.0f) 
                              {
-                                   //const __m128 vt_i_0{_mm_setr_ps(static_cast<float>(i*inv_sr),
-                                   //                      static_cast<float>((i+1ull)*inv_sr),
-                                   //                      static_cast<float>((i+2ull)*inv_sr),
-                                   //                      static_cast<float>((i+3ull)*inv_sr))};
+                                  
                                    const __m128 vt_i_0{_mm_setr_ps(j*inv_sr,(j+1.0f)*inv_sr,(j+2.0f)*inv_sr,(j+3.0f)*inv_sr)};
                                    const __m128 vcos_val_0    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vw0,vt_i_0),vph0));
                                    const __mmask8 vcos_ge_0_0 = _mm_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
