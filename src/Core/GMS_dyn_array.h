@@ -94,7 +94,7 @@ namespace gms
                // Used mainly for the baseband/narrowband signal representation and henceforth processing.
                //using namespace half_float;
 
-               struct alignas(32) darray_c2_t final 
+               struct alignas(16) darray_c2_t final 
                {
                       
                       std::complex<half_float::half> * __restrict m_data;
@@ -302,7 +302,7 @@ namespace gms
                       
                };
 
-               struct alignas(32) darray_c4_t final 
+               struct alignas(16) darray_c4_t final 
                {
                       
                       std::complex<float> * __restrict m_data;
@@ -519,7 +519,7 @@ namespace gms
                };
 
 
-               struct alignas(32) darray_c8_t final 
+               struct alignas(16) darray_c8_t final 
                {
                       
                       std::complex<double> * __restrict m_data;
@@ -735,7 +735,7 @@ namespace gms
                };
 
 
-                struct alignas(32) darray_r2_t final 
+                struct alignas(16) darray_r2_t final 
                 {
                       
                       half_float::half * __restrict    m_data;
@@ -954,7 +954,7 @@ namespace gms
                       
                };
 
-               struct alignas(32) darray_r4_t final 
+               struct alignas(16) darray_r4_t final 
                {
                       
                       float * __restrict               m_data;
@@ -1176,7 +1176,7 @@ namespace gms
                };
 
 
-               struct alignas(32) darray_r8_t final 
+               struct alignas(16) darray_r8_t final 
                {
                       
                       double * __restrict              m_data;
