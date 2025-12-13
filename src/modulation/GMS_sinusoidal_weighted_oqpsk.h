@@ -1025,7 +1025,7 @@ namespace radiolocation
                                  _mm256_store_ps(&this->m_I_bitstream.m_data[i+8ull], _mm256_mask_blend_ps(vcos_ge_0_1,vnone,vpone));
                                 
                                  _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+16ull],_MM_HINT_T0);
-                                 const __m256 vt_i_2{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+8ull]),vinv_sr)};
+                                 const __m256 vt_i_2{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+16ull]),vinv_sr)};
                                  const __m256 vcos_val_2    = _mm256_cos_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_2),vph0));
                                  const __mmask8 vcos_ge_0_2 = _mm256_cmp_ps_mask(vcos_val_2,vzero,_CMP_GE_OQ);
                                  _mm256_store_ps(&this->m_I_bitstream.m_data[i+16ull], _mm256_mask_blend_ps(vcos_ge_0_2,vnone,vpone));
