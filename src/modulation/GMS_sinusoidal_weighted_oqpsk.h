@@ -1795,7 +1795,7 @@ namespace radiolocation
                   __ATTR_ALWAYS_INLINE__
                   inline 
                   std::int32_t 
-                  generate_I_channel_bitstream_unroll4x(const float duration, // user passed
+                  generate_I_channel_bitstream_unroll8x(const float duration, // user passed
                                                         const float w0,       // user passed
                                                         const float ph0,      // user passed
                                                         const float sample_rate)
@@ -1900,7 +1900,7 @@ namespace radiolocation
                    __ATTR_ALWAYS_INLINE__
                   inline 
                   std::int32_t 
-                  generate_Q_channel_bitstream_unroll4x(const float duration, // user passed
+                  generate_Q_channel_bitstream_unroll8x(const float duration, // user passed
                                                         const float w0,       // user passed
                                                         const float ph0,      // user passed
                                                         const float sample_rate)
