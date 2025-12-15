@@ -205,6 +205,14 @@ namespace radiolocation
                         vector_avx512_path
                  };
 
+                 enum class pulse_shaping_function_optimized_path : int32_t 
+                 {
+                        default_scalar_path,
+                        vector_sse_path,
+                        vector_avx_path,
+                        vector_avx512_path
+                 };    
+
                    sinusoidal_fsk_t() noexcept(true);
 
                    sinusoidal_fsk_t(const std::size_t,
@@ -1355,7 +1363,6 @@ namespace radiolocation
                                  const __mmask8 vsin_ge_0_0 = _mm256_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
                                  _mm256_store_ps(&this->m_Q_ch_bitstream.m_data[i+0ull], _mm256_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
                                 
-                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+8ull],_MM_HINT_T0);
                                  const __m256 vt_i_1{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+8ull]),vinv_sr)};
                                  const __m256 vsin_val_1    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_1),vph0));
                                  const __mmask8 vsin_ge_0_1 = _mm256_cmp_ps_mask(vsin_val_1,vzero,_CMP_GE_OQ);
@@ -1367,7 +1374,6 @@ namespace radiolocation
                                  const __mmask8 vsin_ge_0_2 = _mm256_cmp_ps_mask(vsin_val_2,vzero,_CMP_GE_OQ);
                                  _mm256_store_ps(&this->m_Q_ch_bitstream.m_data[i+16ull], _mm256_mask_blend_ps(vsin_ge_0_2,vnone,vpone));
                                
-                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+24ull],_MM_HINT_T0);
                                  const __m256 vt_i_3{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+24ull]),vinv_sr)};
                                  const __m256 vsin_val_3    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_3),vph0));
                                  const __mmask8 vsin_ge_0_3 = _mm256_cmp_ps_mask(vsin_val_3,vzero,_CMP_GE_OQ);
@@ -1382,7 +1388,6 @@ namespace radiolocation
                                  const __mmask8 vsin_ge_0_0 = _mm256_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
                                  _mm256_store_ps(&this->m_Q_ch_bitstream.m_data[i+0ull], _mm256_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
                                 
-                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+8ull],_MM_HINT_T0);
                                  const __m256 vt_i_1{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+8ull]),vinv_sr)};
                                  const __m256 vsin_val_1    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_1),vph0));
                                  const __mmask8 vsin_ge_0_1 = _mm256_cmp_ps_mask(vsin_val_1,vzero,_CMP_GE_OQ);
@@ -1392,7 +1397,6 @@ namespace radiolocation
 
                            for(; (i+7ull) < this->m_Q_ch_nsamples; i += 8ull) 
                            {
-                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+0ull],_MM_HINT_T0);
                                  const __m256 vt_i_0{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align32[i+0ull]),vinv_sr)};
                                  const __m256 vsin_val_0    = _mm256_sin_ps(_mm256_fmadd_ps(v2pi,_mm256_mul_ps(vw0,vt_i_0),vph0));
                                  const __mmask8 vsin_ge_0_0 = _mm256_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
@@ -1721,6 +1725,356 @@ namespace radiolocation
                   }
 
 
+                  __ATTR_ALWAYS_INLINE__
+                  inline 
+                  std::int32_t 
+                  generate_Q_channel_bitstream_avx512(const bool do_constants_prefetch)                                                   
+                  {
+                       using namespace gms::math;
+                      
+                       const float inv_sr{1.0f/this->m_Q_ch_nsamples};
+                       const __m512 vinv_sr{_mm512_set1_ps(inv_sr)};
+                       const __m512 vw0{_mm512_set1_ps(this->m_Q_fc)};
+                       const __m512 vph0{_mm512_set1_ps(this->m_Q_ph0)};
+                       __m512 c0_15,v2pi;
+                       __m512 vzero,vpone;
+                       __m512 vnone;
+                       if(!do_constants_prefetch)
+                       {
+                            c0_15 = _mm512_setr_ps(0.0f,1.0f,2.0f,3.0f,4.0f,5.0f,6.0f,7.0f,8.0f,9.0f,10.0f,11.0f,12.0f,13.0f,14.0f,15.0f);
+                            v2pi  = _mm512_set1_ps(6.283185307179586476925286766559f);
+                            vzero = _mm512_setzero_ps();
+                            vpone = _mm512_set1_ps(+1.0f);
+                            vnone = _mm512_set1_ps(-1.0f);
+                       }
+                       else 
+                       {
+                            __ATTR_ALIGN__(64) const float prefetched_constants[80] = {
+                                                0.0f,1.0f,2.0f,3.0f,4.0f,5.0f,6.0f,7.0f,8.0f,9.0f,10.0f,11.0f,12.0f,13.0f,14.0f,15.0f,
+                                                6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                                6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                                6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                                6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                                6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                                6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                                6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                                6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                                0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
+                                                +1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,
+                                                -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f}; 
+
+                              _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+                              _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+                              _mm_prefetch((const char*)&prefetched_constants[32],_MM_HINT_T0);
+                              _mm_prefetch((const char*)&prefetched_constants[48],_MM_HINT_T0);
+                              _mm_prefetch((const char*)&prefetched_constants[64],_MM_HINT_T0);
+                              c0_15 = _mm512_load_ps(&prefetched_constants[0]); 
+                              v2pi  = _mm512_load_ps(&prefetched_constants[16]);
+                              vzero = _mm512_load_ps(&prefetched_constants[32]);
+                              vpone = _mm512_load_ps(&prefetched_constants[48]);
+                              vnone = _mm512_load_ps(&prefetched_constants[64]);
+                       }
+                       
+                       std::size_t i,j;
+                       float jj;
+                       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+                       constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+                       if(this->m_Q_ch_nsamples>LUT_loop_idx_threshold)
+                       {
+                            for(i = 0ull,jj = 0.0f; i != ROUND_TO_SIXTEEN(this->m_Q_ch_nsamples,16ull); i += 16ull,jj += 16.0f) 
+                            {
+                               const __m512 vt_i{_mm512_mul_ps(_mm512_add_ps(_mm512_set1_ps(jj),c0_15),vinv_sr)};
+                               const __m512 vsin_val    = _mm512_sin_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i),vph0));
+                               const __mmask16 vsin_ge_0 = _mm512_cmp_ps_mask(vsin_val,vzero,_CMP_GE_OQ);
+                               _mm512_store_ps(&this->m_Q_ch_bitstream.m_data[i], _mm512_mask_blend_ps(vsin_ge_0,vnone,vpone));   
+                           }
+                       
+                           for(j = i; j != this->m_Q_ch_nsamples; ++j) 
+                           {
+                                const float t_j{static_cast<float>(j*inv_sr)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+                                const float sin_val = ceph_sinf(this->m_Q_ph0+(C6283185307179586476925286766559*this->m_Q_fc*t_j));
+                                this->m_Q_ch_bitstream.m_data[j] = (sin_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                const float sin_val = std::sin(this->m_Q_ph0+(C6283185307179586476925286766559*this->m_Q_fc*t_j));
+                                this->m_Q_ch_bitstream.m_data[j] = (sin_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                           }
+                       }
+                       else 
+                       {
+                       
+                           for(i = 0ull; i != ROUND_TO_SIXTEEN(this->m_Q_ch_nsamples,16ull); i += 16ull) 
+                           {
+                               
+                               _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align64[i],_MM_HINT_T0);
+                               const __m512 vt_i{_mm512_mul_ps(_mm512_load_ps(&gms::math::LUT_loop_indices_2257_align64[i]),vinv_sr)};
+                               const __m512 vsin_val    = _mm512_sin_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i),vph0));
+                               const __mmask16 vsin_ge_0 = _mm512_cmp_ps_mask(vsin_val,vzero,_CMP_GE_OQ);
+                               _mm512_store_ps(&this->m_Q_ch_bitstream.m_data[i], _mm512_mask_blend_ps(vsin_ge_0,vnone,vpone));   
+                           }
+                       
+                           for(j = i; j != this->m_Q_ch_nsamples; ++j) 
+                           {
+                                
+                                const float t_j{gms::math::LUT_loop_indices_2257_align64[j]*inv_sr};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+                                const float sin_val = ceph_sinf(this->m_Q_ph0+(C6283185307179586476925286766559*this->m_Q_fc*t_j));
+                                this->m_Q_ch_bitstream.m_data[j] = (sin_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                const float sin_val = std::sin(this->m_Q_ph0+(C6283185307179586476925286766559*this->m_Q_fc*t_j));
+                                this->m_Q_ch_bitstream.m_data[j] = (sin_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                           }
+
+                       }
+                       return (0);
+                  }
+
+
+                  __ATTR_ALWAYS_INLINE__
+                  inline 
+                  std::int32_t 
+                  generate_Q_channel_bitstream_avx512_u4x(const boo do_prefetch_constants)                                                 
+                  {
+                       using namespace gms::math;                                           
+                       const float inv_sr{1.0f/this->m_Q_ch_nsamples};
+                       const __m512 vinv_sr{_mm512_set1_ps(inv_sr)};
+                       const __m512 vw0{_mm512_set1_ps(this->m_Q_fc)};
+                       const __m512 vph0{_mm512_set1_ps(this->m_Q_ph0)};
+                       __m512 c0_15,c16_31;
+                       __m512 c32_47,c48_63;
+                       __m512 v2pi,vzero;
+                       __m512 vpone,vnone;
+                       if(!do_prefetch_constants)
+                       {
+                             c0_15 = _mm512_setr_ps(0.0f,1.0f,2.0f,3.0f,4.0f,5.0f,6.0f,7.0f,8.0f,9.0f,10.0f,11.0f,12.0f,13.0f,14.0f,15.0f);
+                             c16_31= _mm512_setr_ps(16.0f,17.0f,18.0f,19.0f,20.0f,21.0f,22.0f,23.0f,24.0f,25.0f,26.0f,27.0f,28.0f,29.0f,30.0f,31.0f);
+                             c32_47= _mm512_setr_ps(32.0f,33.0f,34.0f,35.0f,36.0f,37.0f,38.0f,39.0f,40.0f,41.0f,42.0f,43.0f,44.0f,45.0f,46.0f,47.0f);
+                             c48_63= _mm512_setr_ps(48.0f,49.0f,50.0f,51.0f,52.0f,53.0f,54.0f,55.0f,56.0f,57.0f,58.0f,59.0f,60.0f,61.0f,62.0f,63.0f);
+                             v2pi  = _mm512_set1_ps(6.283185307179586476925286766559f);
+                             vzero = _mm512_setzero_ps();
+                             vpone = _mm512_set1_ps(+1.0f);
+                             vnone = _mm512_set1_ps(-1.0f);
+                       }
+                       else 
+                       {
+                             __ATTR_ALIGN__(64) const float prefetched_constants[128] = {
+                                                            0.0f,1.0f,2.0f,3.0f,4.0f,5.0f,6.0f,7.0f,8.0f,9.0f,10.0f,11.0f,12.0f,13.0f,14.0f,15.0f,
+                                                            16.0f,17.0f,18.0f,19.0f,20.0f,21.0f,22.0f,23.0f,24.0f,25.0f,26.0f,27.0f,28.0f,29.0f,30.0f,31.0f,
+                                                            32.0f,33.0f,34.0f,35.0f,36.0f,37.0f,38.0f,39.0f,40.0f,41.0f,42.0f,43.0f,44.0f,45.0f,46.0f,47.0f,
+                                                            48.0f,49.0f,50.0f,51.0f,52.0f,53.0f,54.0f,55.0f,56.0f,57.0f,58.0f,59.0f,60.0f,61.0f,62.0f,63.0f,
+                                                            6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                                            6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                                            6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                                            6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                                            6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                                            6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                                            6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                                            6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                                            0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
+                                                            +1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,
+                                                           -1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f,-1.0f}; 
+                              
+                              _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+                              _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+                              _mm_prefetch((const char*)&prefetched_constants[32],_MM_HINT_T0);
+                              _mm_prefetch((const char*)&prefetched_constants[48],_MM_HINT_T0);
+                              _mm_prefetch((const char*)&prefetched_constants[64],_MM_HINT_T0);
+                              _mm_prefetch((const char*)&prefetched_constants[80],_MM_HINT_T0);
+                              _mm_prefetch((const char*)&prefetched_constants[96],_MM_HINT_T0);
+                              _mm_prefetch((const char*)&prefetched_constants[112],_MM_HINT_T0);
+                              c0_15 = _mm512_load_ps(&prefetched_constants[0]);
+                              c16_31= _mm512_load_ps(&prefetched_constants[16]);
+                              c32_47= _mm512_load_ps(&prefetched_constants[32]);
+                              c48_63= _mm512_load_ps(&prefetched_constants[48]);
+                              v2pi  = _mm512_load_ps(&prefetched_constants[64]);
+                              vzero = _mm512_load_ps(&prefetched_constants[80]);
+                              vpone = _mm512_load_ps(&prefetched_constants[96]);
+                              vnone = _mm512_load_ps(&prefetched_constants[112]);
+                       }
+                       
+                       std::size_t i;
+                       float j;
+                       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+                       constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+                       if(this->m_Q_ch_nsamples>LUT_loop_idx_threshold)
+                       {
+                             for(i = 0ull,j = 0.0f; (i+63ull) < this->m_Q_ch_nsamples; i += 64ull,j += 64.0f) 
+                             {
+                                   const __m512 vt_i_0{_mm512_mul_ps(_mm512_add_ps(_mm512_set1_ps(j),c0_15),vinv_sr)};
+                                   const __m512 vsin_val_0    = _mm512_sin_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask16 vsin_ge_0_0 = _mm512_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                   _mm512_store_ps(&this->m_Q_ch_bitstream.m_data[i+0ull], _mm512_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                                   const __m512 vt_i_1{_mm512_mul_ps(_mm512_add_ps(_mm512_set1_ps(j),c16_31),vinv_sr)};
+                                   const __m512 vsin_val_1    = _mm512_sin_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_1),vph0));
+                                   const __mmask16 vsin_ge_0_1 = _mm512_cmp_ps_mask(vsin_val_1,vzero,_CMP_GE_OQ);
+                                   _mm512_store_ps(&this->m_Q_ch_bitstream.m_data[i+16ull], _mm512_mask_blend_ps(vsin_ge_0_1,vnone,vpone));
+                                   const __m512 vt_i_2{_mm512_mul_ps(_mm512_add_ps(_mm512_set1_ps(j),c32_47),vinv_sr)};
+                                   const __m512 vsin_val_2    = _mm512_sin_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_2),vph0));
+                                   const __mmask16 vsin_ge_0_2 = _mm512_cmp_ps_mask(vsin_val_2,vzero,_CMP_GE_OQ);
+                                   _mm512_store_ps(&this->m_Q_ch_bitstream.m_data[i+32ull], _mm512_mask_blend_ps(vsin_ge_0_2,vnone,vpone));
+                                   const __m512 vt_i_3{_mm512_mul_ps(_mm512_add_ps(_mm512_set1_ps(j),c48_63),vinv_sr)};
+                                   const __m512 vsin_val_3    = _mm512_sin_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_3),vph0));
+                                   const __mmask16 vsin_ge_0_3 = _mm512_cmp_ps_mask(vsin_val_3,vzero,_CMP_GE_OQ);
+                                   _mm512_store_ps(&this->m_Q_ch_bitstream.m_data[i+48ull], _mm512_mask_blend_ps(vsin_ge_0_3,vnone,vpone));
+                              }
+
+                              for(; (i+31ull) < this->m_Q_ch_nsamples; i += 32ull,j += 32.0f) 
+                              {  
+                                   const __m512 vt_i_0{_mm512_mul_ps(_mm512_add_ps(_mm512_set1_ps(j),c0_15),vinv_sr)};
+                                   const __m512 vsin_val_0    = _mm512_sin_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask16 vsin_ge_0_0 = _mm512_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                   _mm512_store_ps(&this->m_Q_ch_bitstream.m_data[i+0ull], _mm512_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                                    const __m512 vt_i_1{_mm512_mul_ps(_mm512_add_ps(_mm512_set1_ps(j),c16_31),vinv_sr)};
+                                   const __m512 vsin_val_1    = _mm512_sin_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_1),vph0));
+                                   const __mmask16 vsin_ge_0_1 = _mm512_cmp_ps_mask(vsin_val_1,vzero,_CMP_GE_OQ);
+                                   _mm512_store_ps(&this->m_Q_ch_bitstream.m_data[i+16ull], _mm512_mask_blend_ps(vsin_ge_0_1,vnone,vpone));
+                              }
+
+                              for(; (i+15ull) < this->m_Q_ch_nsamples; i += 16ull,j += 16.0f) 
+                              {
+                                   const __m512 vt_i_0{_mm512_mul_ps(_mm512_add_ps(_mm512_set1_ps(j),c0_15),vinv_sr)};
+                                   const __m512 vsin_val_0    = _mm512_sin_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_0),vph0));
+                                   const __mmask16 vcos_ge_0_0 = _mm512_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                   _mm512_store_ps(&this->m_Q_ch_bitstream.m_data[i+0ull], _mm512_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                              }
+                                            
+                              for(; (i+0ull) < this->m_Q_ch_nsamples; i += 1ull,j += 1.0f) 
+                              {
+                                      const float t_i{j*inv_sr};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+                                      const float sin_val = ceph_sinf(this->m_Q_ph0+(C6283185307179586476925286766559*this->m_Q_fc*t_i));
+                                      this->m_Q_ch_bitstream.m_data[i] = (sin_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                      const float sin_val = std::sin(this->m_Q_ph0+(C6283185307179586476925286766559*this->m_Q_fc*t_i));
+                                      this->m_Q_ch_bitstream.m_data[i] = (sin_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                               }
+                       }
+                       else 
+                       {
+                       
+                            for(i = 0ull; (i+63ull) < this->m_Q_ch_nsamples; i += 64ull) 
+                            {
+                                 
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align64[i+0ull],_MM_HINT_T0);
+                                 const __m512 vt_i_0{_mm512_mul_ps(_mm512_load_ps(&gms::math::LUT_loop_indices_2257_align64[i+0ull]),vinv_sr)};
+                                 const __m512 vsin_val_0    = _mm512_sin_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_0),vph0));
+                                 const __mmask16 vsin_ge_0_0 = _mm512_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                 _mm512_store_ps(&this->m_Q_ch_bitstream.m_data[i+0ull], _mm512_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                                
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align64[i+16ull],_MM_HINT_T0);
+                                 const __m512 vt_i_1{_mm512_mul_ps(_mm512_load_ps(&gms::math::LUT_loop_indices_2257_align64[i+16ull]),vinv_sr)};
+                                 const __m512 vsin_val_1    = _mm512_sin_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_1),vph0));
+                                 const __mmask16 vsin_ge_0_1 = _mm512_cmp_ps_mask(vsin_val_1,vzero,_CMP_GE_OQ);
+                                 _mm512_store_ps(&this->m_Q_ch_bitstream.m_data[i+16ull], _mm512_mask_blend_ps(vsin_ge_0_1,vnone,vpone));
+                                 
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align64[i+32ull],_MM_HINT_T0);
+                                 const __m512 vt_i_2{_mm512_mul_ps(_mm512_load_ps(&gms::math::LUT_loop_indices_2257_align64[i+32ull]),vinv_sr)};
+                                 const __m512 vsin_val_2    = _mm512_sin_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_2),vph0));
+                                 const __mmask16 vsin_ge_0_2 = _mm512_cmp_ps_mask(vsin_val_2,vzero,_CMP_GE_OQ);
+                                 _mm512_store_ps(&this->m_Q_ch_bitstream.m_data[i+32ull], _mm512_mask_blend_ps(vsin_ge_0_2,vnone,vpone));
+                                 
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align64[i+48ull],_MM_HINT_T0);
+                                 const __m512 vt_i_3{_mm512_mul_ps(_mm512_load_ps(&gms::math::LUT_loop_indices_2257_align64[i+48ull]),vinv_sr)};
+                                 const __m512 vsin_val_3    = _mm512_sin_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_3),vph0));
+                                 const __mmask16 vsin_ge_0_3 = _mm512_cmp_ps_mask(vsin_val_3,vzero,_CMP_GE_OQ);
+                                 _mm512_store_ps(&this->m_Q_ch_bitstream.m_data[i+48ull], _mm512_mask_blend_ps(vsin_ge_0_3,vnone,vpone));
+                           }
+
+                           for(; (i+31ull) < this->m_Q_ch_nsamples; i += 32ull) 
+                           {         
+                                _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align64[i+0ull],_MM_HINT_T0);
+                                 const __m512 vt_i_0{_mm512_mul_ps(_mm512_load_ps(&gms::math::LUT_loop_indices_2257_align64[i+0ull]),vinv_sr)};
+                                 const __m512 vsin_val_0    = _mm512_sin_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_0),vph0));
+                                 const __mmask16 vsin_ge_0_0 = _mm512_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                 _mm512_store_ps(&this->m_Q_ch_bitstream.m_data[i+0ull], _mm512_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                                
+                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align64[i+16ull],_MM_HINT_T0);
+                                 const __m512 vt_i_1{_mm512_mul_ps(_mm512_load_ps(&gms::math::LUT_loop_indices_2257_align64[i+16ull]),vinv_sr)};
+                                 const __m512 vsin_val_1    = _mm512_sin_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_1),vph0));
+                                 const __mmask16 vsin_ge_0_1 = _mm512_cmp_ps_mask(vsin_val_1,vzero,_CMP_GE_OQ);
+                                 _mm512_store_ps(&this->m_Q_ch_bitstream.m_data[i+16ull], _mm512_mask_blend_ps(vsin_ge_0_1,vnone,vpone));
+                          
+                           }
+
+                           for(; (i+15ull) < this->m_Q_ch_nsamples; i += 16ull) 
+                           {
+                                _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align64[i+0ull],_MM_HINT_T0);
+                                 const __m512 vt_i_0{_mm512_mul_ps(_mm512_load_ps(&gms::math::LUT_loop_indices_2257_align64[i+0ull]),vinv_sr)};
+                                 const __m512 vsin_val_0    = _mm512_sin_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_0),vph0));
+                                 const __mmask16 vsin_ge_0_0 = _mm512_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                 _mm512_store_ps(&this->m_Q_ch_bitstream.m_data[i+0ull], _mm512_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
+                           }
+                      
+                       
+                           for(; (i+0ull) < this->m_Q_ch_nsamples; i += 1ull) 
+                           {
+                            
+                                    const float t_i{gms::math::LUT_loop_indices_2257_align64[i]*inv_sr};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+                                    const float sin_val = ceph_sinf(this->m_Q_ph0+(C6283185307179586476925286766559*this->m_Q_fc*t_i));
+                                    this->m_Q_ch_bitstream.m_data[i] = (sin_val>=0.0f)?+1.0f:-1.0f;
+                                    
+#else 
+                                    const float sin_val = std::sin(this->m_Q_ph0+(C6283185307179586476925286766559*this->m_Q_fc*t_i));
+                                    this->m_Q_ch_bitstream.m_data[i] = (sin_val>=0.0f)?+1.0f:-1.0f;
+#endif
+                           }
+                       }
+                       return (0);
+                  }
+
+                  __ATTR_ALWAYS_INLINE__
+                  inline 
+                  float pulse_shaping_function_value(const float t) const 
+                  {
+                        
+                        using namespace gms::math; 
+                        constexpr float C314159265358979323846264338328{3.14159265358979323846264338328f};
+                        constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+                        const     float inv2T{1.0f/(2.0f*this->m_T)};
+                        const     float invT{1.0/this->m_T};
+                        float           psf_value{0.0f};
+                        const float     cos_arg = C314159265358979323846264338328*t*inv2T;
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1
+                        const float sin_arg = 0.25f*ceph_sinf(C6283185307179586476925286766559*t*invT);
+                        psf_value           = ceph_cosf(cos_arg-sin_arg);
+#else 
+                        const float sin_arg = 0.25f*std:sin(C6283185307179586476925286766559*t*invT);
+                        psf_value           = ceph_cosf(cos_arg-sin_arg);
+#endif 
+                        return (psf_value);
+                  }
+
+
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif                   
+                  std::int32_t 
+                  generate_pulse_shaping_function_u8x();
+
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif     
+                  std::int32_t 
+                  generate_pulse_shaping_function_sse_u4x(const bool);
+
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif     
+                  std::int32_t 
+                  generate_pulse_shaping_function_avx_u4x(const bool);     
 
             };
 
