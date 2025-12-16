@@ -277,9 +277,9 @@ namespace radiolocation
                    {
 #if (INIT_BY_STD_FILL) == 0
                       using namespace gms::common;
-	                    sse_memset_unroll8x_ps(this->m_sfsk.m_data,0.0f,this->m_sfsk_nsamples);
+	                    sse_memset_unroll8x_ps(this->m_sfsk_signal.m_data,0.0f,this->m_sfsk_nsamples);
 #else 
-                      std::fill(this->m_sfsk.m_data,this->m_sfsk.m_data+this->m_sfsk_nsamples,0.0f);
+                      std::fill(this->m_sfsk_signal.m_data,this->m_sfsk_signal.m_data+this->m_sfsk_nsamples,0.0f);
 #endif                       
                    }
 
@@ -1532,7 +1532,7 @@ namespace radiolocation
                    __ATTR_ALWAYS_INLINE__
                   inline 
                   std::int32_t 
-                  generate_I_channel_bitstream_avx512_u4x(const boo do_prefetch_constants)                                                 
+                  generate_I_channel_bitstream_avx512_u4x(const bool do_prefetch_constants)                                                 
                   {
                        using namespace gms::math;                                           
                        const float inv_sr{1.0f/this->m_I_ch_nsamples};
@@ -1837,7 +1837,7 @@ namespace radiolocation
                   __ATTR_ALWAYS_INLINE__
                   inline 
                   std::int32_t 
-                  generate_Q_channel_bitstream_avx512_u4x(const boo do_prefetch_constants)                                                 
+                  generate_Q_channel_bitstream_avx512_u4x(const bool do_prefetch_constants)                                                 
                   {
                        using namespace gms::math;                                           
                        const float inv_sr{1.0f/this->m_Q_ch_nsamples};
@@ -1938,7 +1938,7 @@ namespace radiolocation
                               {
                                    const __m512 vt_i_0{_mm512_mul_ps(_mm512_add_ps(_mm512_set1_ps(j),c0_15),vinv_sr)};
                                    const __m512 vsin_val_0    = _mm512_sin_ps(_mm512_fmadd_ps(v2pi,_mm512_mul_ps(vw0,vt_i_0),vph0));
-                                   const __mmask16 vcos_ge_0_0 = _mm512_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
+                                   const __mmask16 vsin_ge_0_0 = _mm512_cmp_ps_mask(vsin_val_0,vzero,_CMP_GE_OQ);
                                    _mm512_store_ps(&this->m_Q_ch_bitstream.m_data[i+0ull], _mm512_mask_blend_ps(vsin_ge_0_0,vnone,vpone));
                               }
                                             
@@ -2074,7 +2074,17 @@ namespace radiolocation
           __ATTR_OPTIMIZE_03__
 #endif     
                   std::int32_t 
-                  generate_pulse_shaping_function_avx_u4x(const bool);     
+                  generate_pulse_shaping_function_avx_u4x(const bool);   
+
+
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif     
+                  std::int32_t 
+                  generate_pulse_shaping_function_avx512_u4x(const bool); 
+
 
             };
 
