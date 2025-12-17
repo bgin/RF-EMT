@@ -1135,6 +1135,412 @@ gms::radiolocation
      return (0);
 }
 
+std::int32_t 
+gms::radiolocation
+::sinusoidal_fsk_t
+::generate_fsk_signal_u8x(sinusoidal_fsk_t::I_channel_bitstream_optimized_path I_ch_optim_path,
+                          sinusoidal_fsk_t::Q_channel_bitstream_optimized_path Q_ch_optim_path,
+                          sinusoidal_fsk_t::pulse_shaping_function_optimized_path psfunc_optim_path,
+                          const std::int32_t I_ch_samples_len,
+                          const std::int32_t Q_ch_samples_len,
+                          const bool I_ch_do_const_prefetch,
+                          const bool Q_ch_do_const_prefetch,
+                          const bool psfunc_do_const_prefetch)
+{
+     using namespace gms::math;
+     switch(I_ch_optim_path)
+     {
+          case I_channel_bitstream_optimized_path::default_scalar_path : 
+               std::int32_t ret_stat_scalar = this->generate_I_channel_bitstream(I_ch_samples_len);
+               if(__builtin_expect(ret_stat_scalar<0,0)) { return (-1);}
+          break;
+          case I_channel_bitstream_optimized_path::vector_sse_path : 
+               std::int32_t ret_stat_sse    = this->generate_I_channel_bitstream_sse();
+               if(__builtin_expect(ret_stat_sse<0,0))    { return (-2);}
+          break;
+          case I_channel_bitstream_optimized_path::vector_sse_u4x_path : 
+               std::int32_t ret_stat_sse_u4x = this->generate_I_channel_bitstream_sse_u4x();
+               if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-3);}
+          break;
+          case I_channel_bitstream_optimized_path::vector_avx_path     : 
+               std::int32_t ret_stat_avx     = this->generate_I_channel_bitstream_avx(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx<0,0))     {return (-4);}
+          break;
+          case I_channel_bitstream_optimized_path::vector_avx_u4x_path : 
+               std::int32_t ret_stat_avx_u4x = this->generate_I_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-5);}
+          break;
+          case I_channel_bitstream_optimized_path::vector_avx512_path  : 
+               std::int32_t ret_stat_avx512  = this->generate_I_channel_bitstream_avx512(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx512<0,0))  { return (-6);}
+          break;
+          case I_channel_bitstream_optimized_path::vector_avx512_u4x_path :
+               std::int32_t ret_stat_avx512_u4x= this->generate_I_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-7);}
+          break;
+          default : 
+               return (-9999);
+     }
+
+     switch(Q_ch_optim_path)
+     {
+          case Q_channel_bitstream_optimized_path::default_scalar_path : 
+               std::int32_t ret_stat_scalar = this->generate_Q_channel_bitstream(Q_ch_samples_len);
+               if(__builtin_expect(ret_stat_scalar<0,0)) { return (-8);}
+          break;
+          case Q_channel_bitstream_optimized_path::vector_sse_path : 
+               std::int32_t ret_stat_sse    = this->generate_Q_channel_bitstream_sse();
+               if(__builtin_expect(ret_stat_sse<0,0))    { return (-9);}
+          break;
+          case Q_channel_bitstream_optimized_path::vector_sse_u4x_path : 
+               std::int32_t ret_stat_sse_u4x = this->generate_Q_channel_bitstream_sse_u4x();
+               if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-10);}
+          break;
+          case Q_channel_bitstream_optimized_path::vector_avx_path     : 
+               std::int32_t ret_stat_avx     = this->generate_Q_channel_bitstream_avx(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx<0,0))     {return (-11);}
+          break;
+          case Q_channel_bitstream_optimized_path::vector_avx_u4x_path : 
+               std::int32_t ret_stat_avx_u4x = this->generate_Q_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-12);}
+          break;
+          case Q_channel_bitstream_optimized_path::vector_avx512_path  : 
+               std::int32_t ret_stat_avx512  = this->generate_Q_channel_bitstream_avx512(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx512<0,0))  { return (-13);}
+          break;
+          case Q_channel_bitstream_optimized_path::vector_avx512_u4x_path :
+               std::int32_t ret_stat_avx512_u4x= this->generate_Q_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-14);}
+          break;
+          default : 
+               return (-9999);
+     }
+
+     switch(psfunc_optim_path)
+     {
+          case pulse_shaping_function_optimized_path::default_scalar_path : 
+               std::int32_t ret_stat_scalar = this->generate_pulse_shaping_function_u8x();
+               if(__builtin_expect(ret_stat_scalar<0,0)) { return (-15);}
+          break;
+          case pulse_shaping_function_optimized_path::vector_sse_path     :
+               std::int32_t ret_stat_sse    = this->generate_pulse_shaping_function_sse_u4x(psfunc_do_const_prefetch);
+               if(__builtin_expect(ret_stat_sse<0,0))    { return (-16);}
+          break;
+          case pulse_shaping_function_optimized_path::vector_avx_path     :
+               std::int32_t ret_stat_avx    = this->generate_pulse_shaping_function_avx_u4x(psfunc_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx<0,0))    { return (-17);}
+          break;
+          case pulse_shaping_function_optimized_path::vector_avx512_path  : 
+               std::int32_t ret_stat_avx512 = this->generate_pulse_shaping_function_avx512_u4x(psfunc_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx512<0,0))  { return (-18);}
+          break;
+          default : 
+               return (-9999);
+     }
+     constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+     constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+     constexpr float C314159265358979323846264338328{3.14159265358979323846264338328f};
+     std::size_t i,j;
+     if(this->m_sfsk_nsamples>LUT_loop_idx_threshold)
+     {
+          for(i = 0ull; i != ROUND_TO_EIGHT(this->m_sfsk_nsamples,8ull); i += 8ull) 
+          {
+               _mm_prefetch((const char*)&this->m_I_ch_bitstream.m_data[i],_MM_HINT_T0);
+               _mm_prefetch((const char*)&this->m_Q_ch_bitstream.m_data[i],_MM_HINT_T0);
+               const float ik_0{this->m_I_ch_bitstream.m_data[i+0ull]};
+               const float qk_0{this->m_Q_ch_bitstream.m_data[i+0ull]};
+               const float dk_0{-ik_0*qk_0};
+               _mm_prefetch((const char*)&this->m_psfunc.m_data[i],_MM_HINT_T0);
+               const float t_i_0{static_cast<float>(i)};
+               const float psfunc_0{this->m_psfunc.m_data[i+0ull]};
+               const float Phik_0{ik_0==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_0{C6283185307179586476925286766559*t_i_0};
+               const float carrier_term2_0{std::fma(dk_0,psfunc_0,Phik_0)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_0{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_0+carrier_term2_0)};
+#else 
+               const float sfsk_sample_0{this->m_Ac*std::cos(this->m_ph0+carrier_term1_0+carrier_term2_0)};
+#endif 
+               this->m_sfsk_signal.m_data[i+0ull] = sfsk_sample_0;
+
+               const float ik_1{this->m_I_ch_bitstream.m_data[i+1ull]};
+               const float qk_1{this->m_Q_ch_bitstream.m_data[i+1ull]};
+               const float dk_1{-ik_1*qk_1};
+               const float t_i_1{static_cast<float>(i+1ull)};
+               const float psfunc_1{this->m_psfunc.m_data[i+1ull]};
+               const float Phik_1{ik_1==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_1{C6283185307179586476925286766559*t_i_1};
+               const float carrier_term2_1{std::fma(dk_1,psfunc_1,Phik_1)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_1{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_1+carrier_term2_1)};
+#else 
+               const float sfsk_sample_1{this->m_Ac*std::cos(this->m_ph0+carrier_term1_1+carrier_term2_1)};
+#endif 
+               this->m_sfsk_signal.m_data[i+1ull] = sfsk_sample_1; 
+
+               const float ik_2{this->m_I_ch_bitstream.m_data[i+2ull]};
+               const float qk_2{this->m_Q_ch_bitstream.m_data[i+2ull]};
+               const float dk_2{-ik_2*qk_2};
+               const float t_i_2{static_cast<float>(i+2ull)};
+               const float psfunc_2{this->m_psfunc.m_data[i+2ull]};
+               const float Phik_2{ik_2==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_2{C6283185307179586476925286766559*t_i_2};
+               const float carrier_term2_2{std::fma(dk_2,psfunc_2,Phik_2)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_2{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_2+carrier_term2_2)};
+#else 
+               const float sfsk_sample_2{this->m_Ac*std::cos(this->m_ph0+carrier_term1_2+carrier_term2_2)};
+#endif 
+               this->m_sfsk_signal.m_data[i+2ull] = sfsk_sample_2;
+
+               const float ik_3{this->m_I_ch_bitstream.m_data[i+3ull]};
+               const float qk_3{this->m_Q_ch_bitstream.m_data[i+3ull]};
+               const float dk_3{-ik_3*qk_3};
+               const float t_i_3{static_cast<float>(i+3ull)};
+               const float psfunc_3{this->m_psfunc.m_data[i+3ull]};
+               const float Phik_3{ik_3==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_3{C6283185307179586476925286766559*t_i_3};
+               const float carrier_term2_3{std::fma(dk_3,psfunc_3,Phik_3)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_3{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_3+carrier_term2_3)};
+#else 
+               const float sfsk_sample_3{this->m_Ac*std::cos(this->m_ph0+carrier_term1_3+carrier_term2_3)};
+#endif 
+               this->m_sfsk_signal.m_data[i+3ull] = sfsk_sample_3;
+
+               const float ik_4{this->m_I_ch_bitstream.m_data[i+4ull]};
+               const float qk_4{this->m_Q_ch_bitstream.m_data[i+4ull]};
+               const float dk_4{-ik_4*qk_4};
+               const float t_i_4{static_cast<float>(i+4ull)};
+               const float psfunc_4{this->m_psfunc.m_data[i+4ull]};
+               const float Phik_4{ik_4==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_4{C6283185307179586476925286766559*t_i_4};
+               const float carrier_term2_4{std::fma(dk_4,psfunc_4,Phik_4)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_4{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_4+carrier_term2_4)};
+#else 
+               const float sfsk_sample_4{this->m_Ac*std::cos(this->m_ph0+carrier_term1_4+carrier_term2_4)};
+#endif 
+               this->m_sfsk_signal.m_data[i+4ull] = sfsk_sample_4;
+
+               const float ik_5{this->m_I_ch_bitstream.m_data[i+5ull]};
+               const float qk_5{this->m_Q_ch_bitstream.m_data[i+5ull]};
+               const float dk_5{-ik_5*qk_5};
+               const float t_i_5{static_cast<float>(i+5ull)};
+               const float psfunc_5{this->m_psfunc.m_data[i+5ull]};
+               const float Phik_5{ik_5==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_5{C6283185307179586476925286766559*t_i_5};
+               const float carrier_term2_5{std::fma(dk_5,psfunc_5,Phik_5)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_5{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_5+carrier_term2_5)};
+#else 
+               const float sfsk_sample_5{this->m_Ac*std::cos(this->m_ph0+carrier_term1_5+carrier_term2_5)};
+#endif 
+               this->m_sfsk_signal.m_data[i+5ull] = sfsk_sample_5;
+
+               const float ik_6{this->m_I_ch_bitstream.m_data[i+6ull]};
+               const float qk_6{this->m_Q_ch_bitstream.m_data[i+6ull]};
+               const float dk_6{-ik_6*qk_6};
+               const float t_i_6{static_cast<float>(i+6ull)};
+               const float psfunc_6{this->m_psfunc.m_data[i+6ull]};
+               const float Phik_6{ik_6==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_6{C6283185307179586476925286766559*t_i_6};
+               const float carrier_term2_6{std::fma(dk_6,psfunc_6,Phik_6)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_6{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_6+carrier_term2_6)};
+#else 
+               const float sfsk_sample_1{this->m_Ac*std::cos(this->m_ph0+carrier_term1_6+carrier_term2_6)};
+#endif 
+               this->m_sfsk_signal.m_data[i+6ull] = sfsk_sample_6;
+
+               const float ik_7{this->m_I_ch_bitstream.m_data[i+7ull]};
+               const float qk_7{this->m_Q_ch_bitstream.m_data[i+7ull]};
+               const float dk_7{-ik_7*qk_7};
+               const float t_i_7{static_cast<float>(i+7ull)};
+               const float psfunc_7{this->m_psfunc.m_data[i+7ull]};
+               const float Phik_7{ik_7==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_7{C6283185307179586476925286766559*t_i_7};
+               const float carrier_term2_7{std::fma(dk_7,psfunc_7,Phik_7)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_7{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_7+carrier_term2_7)};
+#else 
+               const float sfsk_sample_7{this->m_Ac*std::cos(this->m_ph0+carrier_term1_7+carrier_term2_7)};
+#endif 
+               this->m_sfsk_signal.m_data[i+7ull] = sfsk_sample_7;
+          }
+
+          for(j = i; j != this->m_sfsk_nsamples; ++j)  
+          {
+               const float ik_1{this->m_I_ch_bitstream.m_data[j]};
+               const float qk_1{this->m_Q_ch_bitstream.m_data[j]};
+               const float dk_1{-ik_1*qk_1};
+               const float t_i_1{static_cast<float>(j)};
+               const float psfunc_1{this->m_psfunc.m_data[i+1ull]};
+               const float Phik_1{ik_1==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_1{C6283185307179586476925286766559*t_i_1};
+               const float carrier_term2_1{std::fma(dk_1,psfunc_1,Phik_1)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_1{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_1+carrier_term2_1)};
+#else 
+               const float sfsk_sample_1{this->m_Ac*std::cos(this->m_ph0+carrier_term1_1+carrier_term2_1)};
+#endif 
+               this->m_sfsk_signal.m_data[j] = sfsk_sample_1; 
+
+          }
+     }
+     else 
+     {
+          for(i = 0ull; i != ROUND_TO_EIGHT(this->m_sfsk_nsamples,8ull); i += 8ull) 
+          {
+               _mm_prefetch((const char*)&this->m_I_ch_bitstream.m_data[i],_MM_HINT_T0);
+               _mm_prefetch((const char*)&this->m_Q_ch_bitstream.m_data[i],_MM_HINT_T0);
+               const float ik_0{this->m_I_ch_bitstream.m_data[i+0ull]};
+               const float qk_0{this->m_Q_ch_bitstream.m_data[i+0ull]};
+               _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i],_MM_HINT_T0);
+               const float dk_0{-ik_0*qk_0};
+               _mm_prefetch((const char*)&this->m_psfunc.m_data[i],_MM_HINT_T0);
+               const float t_i_0{gms::math::LUT_loop_indices_2257_align16[i+0ull]};
+               const float psfunc_0{this->m_psfunc.m_data[i+0ull]};
+               const float Phik_0{ik_0==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_0{C6283185307179586476925286766559*t_i_0};
+               const float carrier_term2_0{std::fma(dk_0,psfunc_0,Phik_0)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_0{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_0+carrier_term2_0)};
+#else 
+               const float sfsk_sample_0{this->m_Ac*std::cos(this->m_ph0+carrier_term1_0+carrier_term2_0)};
+#endif 
+               this->m_sfsk_signal.m_data[i+0ull] = sfsk_sample_0;
+
+               const float ik_1{this->m_I_ch_bitstream.m_data[i+1ull]};
+               const float qk_1{this->m_Q_ch_bitstream.m_data[i+1ull]};
+               const float dk_1{-ik_1*qk_1};
+               const float t_i_1{gms::math::LUT_loop_indices_2257_align16[i+1ull]};
+               const float psfunc_1{this->m_psfunc.m_data[i+1ull]};
+               const float Phik_1{ik_1==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_1{C6283185307179586476925286766559*t_i_1};
+               const float carrier_term2_1{std::fma(dk_1,psfunc_1,Phik_1)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_1{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_1+carrier_term2_1)};
+#else 
+               const float sfsk_sample_1{this->m_Ac*std::cos(this->m_ph0+carrier_term1_1+carrier_term2_1)};
+#endif 
+               this->m_sfsk_signal.m_data[i+1ull] = sfsk_sample_1; 
+
+               const float ik_2{this->m_I_ch_bitstream.m_data[i+2ull]};
+               const float qk_2{this->m_Q_ch_bitstream.m_data[i+2ull]};
+               const float dk_2{-ik_2*qk_2};
+               const float t_i_2{gms::math::LUT_loop_indices_2257_align16[i+2ull]};
+               const float psfunc_2{this->m_psfunc.m_data[i+2ull]};
+               const float Phik_2{ik_2==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_2{C6283185307179586476925286766559*t_i_2};
+               const float carrier_term2_2{std::fma(dk_2,psfunc_2,Phik_2)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_2{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_2+carrier_term2_2)};
+#else 
+               const float sfsk_sample_2{this->m_Ac*std::cos(this->m_ph0+carrier_term1_2+carrier_term2_2)};
+#endif 
+               this->m_sfsk_signal.m_data[i+2ull] = sfsk_sample_2;
+
+               const float ik_3{this->m_I_ch_bitstream.m_data[i+3ull]};
+               const float qk_3{this->m_Q_ch_bitstream.m_data[i+3ull]};
+               const float dk_3{-ik_3*qk_3};
+               const float t_i_3{gms::math::LUT_loop_indices_2257_align16[i+3ull]};
+               const float psfunc_3{this->m_psfunc.m_data[i+3ull]};
+               const float Phik_3{ik_3==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_3{C6283185307179586476925286766559*t_i_3};
+               const float carrier_term2_3{std::fma(dk_3,psfunc_3,Phik_3)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_3{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_3+carrier_term2_3)};
+#else 
+               const float sfsk_sample_3{this->m_Ac*std::cos(this->m_ph0+carrier_term1_3+carrier_term2_3)};
+#endif 
+               this->m_sfsk_signal.m_data[i+3ull] = sfsk_sample_3;
+
+               const float ik_4{this->m_I_ch_bitstream.m_data[i+4ull]};
+               const float qk_4{this->m_Q_ch_bitstream.m_data[i+4ull]};
+               const float dk_4{-ik_4*qk_4};
+               const float t_i_4{gms::math::LUT_loop_indices_2257_align16[i+4ull]};
+               const float psfunc_4{this->m_psfunc.m_data[i+4ull]};
+               const float Phik_4{ik_4==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_4{C6283185307179586476925286766559*t_i_4};
+               const float carrier_term2_4{std::fma(dk_4,psfunc_4,Phik_4)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_4{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_4+carrier_term2_4)};
+#else 
+               const float sfsk_sample_4{this->m_Ac*std::cos(this->m_ph0+carrier_term1_4+carrier_term2_4)};
+#endif 
+               this->m_sfsk_signal.m_data[i+4ull] = sfsk_sample_4;
+
+               const float ik_5{this->m_I_ch_bitstream.m_data[i+5ull]};
+               const float qk_5{this->m_Q_ch_bitstream.m_data[i+5ull]};
+               const float dk_5{-ik_5*qk_5};
+               const float t_i_5{gms::math::LUT_loop_indices_2257_align16[i+5ull]};
+               const float psfunc_5{this->m_psfunc.m_data[i+5ull]};
+               const float Phik_5{ik_5==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_5{C6283185307179586476925286766559*t_i_5};
+               const float carrier_term2_5{std::fma(dk_5,psfunc_5,Phik_5)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_5{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_5+carrier_term2_5)};
+#else 
+               const float sfsk_sample_5{this->m_Ac*std::cos(this->m_ph0+carrier_term1_5+carrier_term2_5)};
+#endif 
+               this->m_sfsk_signal.m_data[i+5ull] = sfsk_sample_5;
+
+               const float ik_6{this->m_I_ch_bitstream.m_data[i+6ull]};
+               const float qk_6{this->m_Q_ch_bitstream.m_data[i+6ull]};
+               const float dk_6{-ik_6*qk_6};
+               const float t_i_6{gms::math::LUT_loop_indices_2257_align16[i+6ull]};
+               const float psfunc_6{this->m_psfunc.m_data[i+6ull]};
+               const float Phik_6{ik_6==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_6{C6283185307179586476925286766559*t_i_6};
+               const float carrier_term2_6{std::fma(dk_6,psfunc_6,Phik_6)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_6{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_6+carrier_term2_6)};
+#else 
+               const float sfsk_sample_1{this->m_Ac*std::cos(this->m_ph0+carrier_term1_6+carrier_term2_6)};
+#endif 
+               this->m_sfsk_signal.m_data[i+6ull] = sfsk_sample_6;
+
+               const float ik_7{this->m_I_ch_bitstream.m_data[i+7ull]};
+               const float qk_7{this->m_Q_ch_bitstream.m_data[i+7ull]};
+               const float dk_7{-ik_7*qk_7};
+               const float t_i_7{gms::math::LUT_loop_indices_2257_align16[i+7ull]};
+               const float psfunc_7{this->m_psfunc.m_data[i+7ull]};
+               const float Phik_7{ik_7==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_7{C6283185307179586476925286766559*t_i_7};
+               const float carrier_term2_7{std::fma(dk_7,psfunc_7,Phik_7)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_7{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_7+carrier_term2_7)};
+#else 
+               const float sfsk_sample_7{this->m_Ac*std::cos(this->m_ph0+carrier_term1_7+carrier_term2_7)};
+#endif 
+               this->m_sfsk_signal.m_data[i+7ull] = sfsk_sample_7;
+          }
+
+          for(j = i; j != this->m_sfsk_nsamples; ++j)  
+          {
+               const float ik_1{this->m_I_ch_bitstream.m_data[j]};
+               const float qk_1{this->m_Q_ch_bitstream.m_data[j]};
+               const float dk_1{-ik_1*qk_1};
+               const float t_i_1{gms::math::LUT_loop_indices_2257_align16[j]};
+               const float psfunc_1{this->m_psfunc.m_data[i+1ull]};
+               const float Phik_1{ik_1==1.0f?0.0f:C314159265358979323846264338328};
+               const float carrier_term1_1{C6283185307179586476925286766559*t_i_1};
+               const float carrier_term2_1{std::fma(dk_1,psfunc_1,Phik_1)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_1{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_1+carrier_term2_1)};
+#else 
+               const float sfsk_sample_1{this->m_Ac*std::cos(this->m_ph0+carrier_term1_1+carrier_term2_1)};
+#endif 
+               this->m_sfsk_signal.m_data[j] = sfsk_sample_1; 
+
+          }
+     }
+     
+     return (0);
+
+}
+
 auto 
 gms::radiolocation 
 ::operator<<(std::ostream &os, 
