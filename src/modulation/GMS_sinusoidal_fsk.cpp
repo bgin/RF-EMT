@@ -1541,6 +1541,507 @@ gms::radiolocation
 
 }
 
+namespace 
+{
+
+__ATTR_ALWAYS_INLINE__		    
+static inline 
+__m128
+_mm_negate_ps(const __m128 v) 
+{
+    const __m128 nvzero{_mm_set1_ps(-0.0f)};
+	return (_mm_xor_ps(v,nvzero));
+}
+
+__ATTR_ALWAYS_INLINE__		    
+static inline 
+__m256
+_mm256_negate_ps(const __m256 v) 
+{
+    const __m256 nvzero{_mm256_set1_ps(-0.0f)};
+	return (_mm256_xor_ps(v,nvzero));
+}
+
+__ATTR_ALWAYS_INLINE__		    
+static inline 
+__m512
+_mm512_negate_ps(const __m512 v) 
+{
+    const __m512 nvzero{_mm512_set1_ps(-0.0f)};
+	return (_mm512_xor_ps(v,nvzero));
+}
+
+}
+
+std::int32_t 
+gms::radiolocation
+::sinusoidal_fsk_t
+::generate_fsk_signal_sse_u4x(sinusoidal_fsk_t::I_channel_bitstream_optimized_path I_ch_optim_path,
+                              sinusoidal_fsk_t::Q_channel_bitstream_optimized_path Q_ch_optim_path,
+                              sinusoidal_fsk_t::pulse_shaping_function_optimized_path psfunc_optim_path,
+                              const std::int32_t I_ch_samples_len,
+                              const std::int32_t Q_ch_samples_len,
+                              const bool I_ch_do_const_prefetch,
+                              const bool Q_ch_do_const_prefetch,
+                              const bool psfunc_do_const_prefetch,
+                              const bool do_const_prefetch)
+{
+     using namespace gms::math;
+     switch(I_ch_optim_path)
+     {
+          case I_channel_bitstream_optimized_path::default_scalar_path : 
+               std::int32_t ret_stat_scalar = this->generate_I_channel_bitstream(I_ch_samples_len);
+               if(__builtin_expect(ret_stat_scalar<0,0)) { return (-1);}
+          break;
+          case I_channel_bitstream_optimized_path::vector_sse_path : 
+               std::int32_t ret_stat_sse    = this->generate_I_channel_bitstream_sse();
+               if(__builtin_expect(ret_stat_sse<0,0))    { return (-2);}
+          break;
+          case I_channel_bitstream_optimized_path::vector_sse_u4x_path : 
+               std::int32_t ret_stat_sse_u4x = this->generate_I_channel_bitstream_sse_u4x();
+               if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-3);}
+          break;
+          case I_channel_bitstream_optimized_path::vector_avx_path     : 
+               std::int32_t ret_stat_avx     = this->generate_I_channel_bitstream_avx(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx<0,0))     {return (-4);}
+          break;
+          case I_channel_bitstream_optimized_path::vector_avx_u4x_path : 
+               std::int32_t ret_stat_avx_u4x = this->generate_I_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-5);}
+          break;
+          case I_channel_bitstream_optimized_path::vector_avx512_path  : 
+               std::int32_t ret_stat_avx512  = this->generate_I_channel_bitstream_avx512(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx512<0,0))  { return (-6);}
+          break;
+          case I_channel_bitstream_optimized_path::vector_avx512_u4x_path :
+               std::int32_t ret_stat_avx512_u4x= this->generate_I_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-7);}
+          break;
+          default : 
+               return (-9999);
+     }
+
+     switch(Q_ch_optim_path)
+     {
+          case Q_channel_bitstream_optimized_path::default_scalar_path : 
+               std::int32_t ret_stat_scalar = this->generate_Q_channel_bitstream(Q_ch_samples_len);
+               if(__builtin_expect(ret_stat_scalar<0,0)) { return (-8);}
+          break;
+          case Q_channel_bitstream_optimized_path::vector_sse_path : 
+               std::int32_t ret_stat_sse    = this->generate_Q_channel_bitstream_sse();
+               if(__builtin_expect(ret_stat_sse<0,0))    { return (-9);}
+          break;
+          case Q_channel_bitstream_optimized_path::vector_sse_u4x_path : 
+               std::int32_t ret_stat_sse_u4x = this->generate_Q_channel_bitstream_sse_u4x();
+               if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-10);}
+          break;
+          case Q_channel_bitstream_optimized_path::vector_avx_path     : 
+               std::int32_t ret_stat_avx     = this->generate_Q_channel_bitstream_avx(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx<0,0))     {return (-11);}
+          break;
+          case Q_channel_bitstream_optimized_path::vector_avx_u4x_path : 
+               std::int32_t ret_stat_avx_u4x = this->generate_Q_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-12);}
+          break;
+          case Q_channel_bitstream_optimized_path::vector_avx512_path  : 
+               std::int32_t ret_stat_avx512  = this->generate_Q_channel_bitstream_avx512(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx512<0,0))  { return (-13);}
+          break;
+          case Q_channel_bitstream_optimized_path::vector_avx512_u4x_path :
+               std::int32_t ret_stat_avx512_u4x= this->generate_Q_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-14);}
+          break;
+          default : 
+               return (-9999);
+     }
+
+     switch(psfunc_optim_path)
+     {
+          case pulse_shaping_function_optimized_path::default_scalar_path : 
+               std::int32_t ret_stat_scalar = this->generate_pulse_shaping_function_u8x();
+               if(__builtin_expect(ret_stat_scalar<0,0)) { return (-15);}
+          break;
+          case pulse_shaping_function_optimized_path::vector_sse_path     :
+               std::int32_t ret_stat_sse    = this->generate_pulse_shaping_function_sse_u4x(psfunc_do_const_prefetch);
+               if(__builtin_expect(ret_stat_sse<0,0))    { return (-16);}
+          break;
+          case pulse_shaping_function_optimized_path::vector_avx_path     :
+               std::int32_t ret_stat_avx    = this->generate_pulse_shaping_function_avx_u4x(psfunc_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx<0,0))    { return (-17);}
+          break;
+          case pulse_shaping_function_optimized_path::vector_avx512_path  : 
+               std::int32_t ret_stat_avx512 = this->generate_pulse_shaping_function_avx512_u4x(psfunc_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx512<0,0))  { return (-18);}
+          break;
+          default : 
+               return (-9999);
+     }
+     constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+     const __m128 vk{_mm_set1_ps(this->m_k)};
+     const __m128 vAc{_mm_set1_ps(this->m_Ac)};
+     const __m128 vph0{_mm_set1_ps(this->m_ph0)};
+     __m128 c0_3,c4_7;
+     __m128 c8_11,c12_15;
+     __m128 vpi,v2pi;
+     __m128 vzero,vone;  
+     std::size_t i;
+     float j;
+     if(!do_const_prefetch)
+     {
+          c0_3  = _mm_setr_ps(0.0f,1.0f,2.0f,3.0f);
+          c4_7  = _mm_setr_ps(4.0f,5.0f,6.0f,7.0f);
+          c8_11 = _mm_setr_ps(8.0f,9.0f,10.0f,11.0f);
+          c12_15= _mm_setr_ps(12.0f,13.0f,14.0f,15.0f);
+          vpi   = _mm_set1_ps(3.14159265358979323846264338328f);
+          v2pi  = _mm_set1_ps(6.283185307179586476925286766559f);
+          vzero = _mm_setzero_ps();
+          vone  = _mm_set1_ps(1.0f);
+     }
+     else 
+     {
+          __ATTR_ALIGN__(16) const float prefetched_constants[32] = {
+                                        0.0f,1.0f,2.0f,3.0f,4.0f,5.0f,6.0f,7.0f,
+                                        8.0f,9.0f,10.0f,11.0f,12.0f,13.0f,14.0f,15.0f,
+                                        3.14159265358979323846264338328f,
+                                        3.14159265358979323846264338328f,
+                                        3.14159265358979323846264338328f,
+                                        3.14159265358979323846264338328f,
+                                        6.283185307179586476925286766559f,
+                                        6.283185307179586476925286766559f,
+                                        6.283185307179586476925286766559f,
+                                        6.283185307179586476925286766559f,  
+                                        0.0f,0.0f,0.0f,0.0f,1.0f,1.0f,1.0f,1.0f};        
+          _mm_prefetch((const char*)&prefetched_constants[0], _MM_HINT_T0);
+          _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+          c0_3  = _mm_load_ps(&prefetched_constants[0]);
+          c4_7  = _mm_load_ps(&prefetched_constants[4]);
+          c8_11 = _mm_load_ps(&prefetched_constants[8]);
+          c12_15= _mm_load_ps(&prefetched_constants[12]);
+          vpi   = _mm_load_ps(&prefetched_constants[16]);
+          v2pi  = _mm_load_ps(&prefetched_constants[20]);
+          vzero = _mm_load_ps(&prefetched_constants[24]);
+          vone  = _mm_load_ps(&prefetched_constants[28]);
+     }
+     if(this->m_sfsk_nsamples>LUT_loop_idx_threshold)
+     {
+          for(i = 0ull,j = 0.0f; (i+15ull) < this->m_sfsk_nsamples; i += 16ull,j += 16.0f) 
+          {
+               _mm_prefetch((const char*)&this->m_I_ch_bitstream.m_data[i],_MM_HINT_T0);
+               const __m128 vt_i_0{_mm_add_ps(_mm_set1_ps(j),c0_3)};
+               _mm_prefetch((const char*)&this->m_Q_ch_bitstream.m_data[i],_MM_HINT_T0);
+               const __m128 vik_0{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+0ull])};
+               const __m128 vqk_0{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+0ull])};
+               _mm_prefetch((const char*)&this->m_psfunc.m_data[i+0ull],_MM_HINT_T0);
+               const __m128 vdk_0{_mm_mul_ps(_mm_negate_ps(vik_0),vqk_0)};
+               const __m128 vpsfunc_0{_mm_load_ps(&this->m_psfunc.m_data[i+0ull])};
+               const __mmask8 vik_eq_1_0{_mm_cmp_ps_mask(vik_0,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_0{_mm_mask_blend_ps(vik_eq_1_0,vzero,vpi)};
+               const __m128 vcarrier_term1_0{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_0))};
+               const __m128 vcarrier_term2_0{_mm_fmadd_ps(vdk_0,vpsfunc_0,vPhik_0)};
+               const __m128 vsfsk_sample_0{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_0,vcarrier_term2_0))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+0ull],vsfsk_sample_0);
+               //////////////////////////////////////////////////////////////////
+               const __m128 vt_i_1{_mm_add_ps(_mm_set1_ps(j),c4_7)};
+               const __m128 vik_1{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+4ull])};
+               const __m128 vqk_1{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+4ull])};
+               const __m128 vdk_1{_mm_mul_ps(_mm_negate_ps(vik_1),vqk_1)};
+               const __m128 vpsfunc_1{_mm_load_ps(&this->m_psfunc.m_data[i+4ull])};
+               const __mmask8 vik_eq_1_1{_mm_cmp_ps_mask(vik_1,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_1{_mm_mask_blend_ps(vik_eq_1_1,vzero,vpi)};
+               const __m128 vcarrier_term1_1{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_1))};
+               const __m128 vcarrier_term2_1{_mm_fmadd_ps(vdk_1,vpsfunc_1,vPhik_1)};
+               const __m128 vsfsk_sample_1{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_1,vcarrier_term2_1))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+4ull],vsfsk_sample_1);
+               /////////////////////////////////////////////////////////////////////
+               const __m128 vt_i_2{_mm_add_ps(_mm_set1_ps(j),c8_11)};
+               const __m128 vik_2{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+8ull])};
+               const __m128 vqk_2{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+8ull])};
+               const __m128 vdk_2{_mm_mul_ps(_mm_negate_ps(vik_2),vqk_2)};
+               const __m128 vpsfunc_2{_mm_load_ps(&this->m_psfunc.m_data[i+8ull])};
+               const __mmask8 vik_eq_1_2{_mm_cmp_ps_mask(vik_2,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_2{_mm_mask_blend_ps(vik_eq_1_2,vzero,vpi)};
+               const __m128 vcarrier_term1_2{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_2))};
+               const __m128 vcarrier_term2_2{_mm_fmadd_ps(vdk_2,vpsfunc_2,vPhik_2)};
+               const __m128 vsfsk_sample_2{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_2,vcarrier_term2_2))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+8ull],vsfsk_sample_2);
+               //////////////////////////////////////////////////////////////////////
+               const __m128 vt_i_3{_mm_add_ps(_mm_set1_ps(j),c12_15)};
+               const __m128 vik_3{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+12ull])};
+               const __m128 vqk_3{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+12ull])};
+               const __m128 vdk_3{_mm_mul_ps(_mm_negate_ps(vik_3),vqk_3)};
+               const __m128 vpsfunc_3{_mm_load_ps(&this->m_psfunc.m_data[i+12ull])};
+               const __mmask8 vik_eq_1_3{_mm_cmp_ps_mask(vik_3,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_3{_mm_mask_blend_ps(vik_eq_1_3,vzero,vpi)};
+               const __m128 vcarrier_term1_3{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_3))};
+               const __m128 vcarrier_term2_3{_mm_fmadd_ps(vdk_3,vpsfunc_3,vPhik_3)};
+               const __m128 vsfsk_sample_3{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_3,vcarrier_term2_3))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+12ull],vsfsk_sample_3);
+          }
+
+          for(; (i+11ull) < this->m_sfsk_nsamples; i += 12ull,j += 12.0f) 
+          {
+               
+               const __m128 vt_i_0{_mm_add_ps(_mm_set1_ps(j),c0_3)};
+               const __m128 vik_0{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+0ull])};
+               const __m128 vqk_0{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+0ull])};
+               const __m128 vdk_0{_mm_mul_ps(_mm_negate_ps(vik_0),vqk_0)};
+               const __m128 vpsfunc_0{_mm_load_ps(&this->m_psfunc.m_data[i+0ull])};
+               const __mmask8 vik_eq_1_0{_mm_cmp_ps_mask(vik_0,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_0{_mm_mask_blend_ps(vik_eq_1_0,vzero,vpi)};
+               const __m128 vcarrier_term1_0{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_0))};
+               const __m128 vcarrier_term2_0{_mm_fmadd_ps(vdk_0,vpsfunc_0,vPhik_0)};
+               const __m128 vsfsk_sample_0{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_0,vcarrier_term2_0))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+0ull],vsfsk_sample_0);
+               //////////////////////////////////////////////////////////////////
+               const __m128 vt_i_1{_mm_add_ps(_mm_set1_ps(j),c4_7)};
+               const __m128 vik_1{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+4ull])};
+               const __m128 vqk_1{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+4ull])};
+               const __m128 vdk_1{_mm_mul_ps(_mm_negate_ps(vik_1),vqk_1)};
+               const __m128 vpsfunc_1{_mm_load_ps(&this->m_psfunc.m_data[i+4ull])};
+               const __mmask8 vik_eq_1_1{_mm_cmp_ps_mask(vik_1,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_1{_mm_mask_blend_ps(vik_eq_1_1,vzero,vpi)};
+               const __m128 vcarrier_term1_1{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_1))};
+               const __m128 vcarrier_term2_1{_mm_fmadd_ps(vdk_1,vpsfunc_1,vPhik_1)};
+               const __m128 vsfsk_sample_1{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_1,vcarrier_term2_1))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+4ull],vsfsk_sample_1);
+               /////////////////////////////////////////////////////////////////////
+               const __m128 vt_i_2{_mm_add_ps(_mm_set1_ps(j),c8_11)};
+               const __m128 vik_2{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+8ull])};
+               const __m128 vqk_2{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+8ull])};
+               const __m128 vdk_2{_mm_mul_ps(_mm_negate_ps(vik_2),vqk_2)};
+               const __m128 vpsfunc_2{_mm_load_ps(&this->m_psfunc.m_data[i+8ull])};
+               const __mmask8 vik_eq_1_2{_mm_cmp_ps_mask(vik_2,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_2{_mm_mask_blend_ps(vik_eq_1_2,vzero,vpi)};
+               const __m128 vcarrier_term1_2{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_2))};
+               const __m128 vcarrier_term2_2{_mm_fmadd_ps(vdk_2,vpsfunc_2,vPhik_2)};
+               const __m128 vsfsk_sample_2{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_2,vcarrier_term2_2))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+8ull],vsfsk_sample_2);
+          }
+
+          for(; (i+7ull) < this->m_sfsk_nsamples; i += 8ull,j += 8.0f) 
+          {
+                
+               const __m128 vt_i_0{_mm_add_ps(_mm_set1_ps(j),c0_3)};
+               const __m128 vik_0{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+0ull])};
+               const __m128 vqk_0{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+0ull])};
+               const __m128 vdk_0{_mm_mul_ps(_mm_negate_ps(vik_0),vqk_0)};
+               const __m128 vpsfunc_0{_mm_load_ps(&this->m_psfunc.m_data[i+0ull])};
+               const __mmask8 vik_eq_1_0{_mm_cmp_ps_mask(vik_0,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_0{_mm_mask_blend_ps(vik_eq_1_0,vzero,vpi)};
+               const __m128 vcarrier_term1_0{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_0))};
+               const __m128 vcarrier_term2_0{_mm_fmadd_ps(vdk_0,vpsfunc_0,vPhik_0)};
+               const __m128 vsfsk_sample_0{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_0,vcarrier_term2_0))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+0ull],vsfsk_sample_0);
+               //////////////////////////////////////////////////////////////////
+               const __m128 vt_i_1{_mm_add_ps(_mm_set1_ps(j),c4_7)};
+               const __m128 vik_1{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+4ull])};
+               const __m128 vqk_1{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+4ull])};
+               const __m128 vdk_1{_mm_mul_ps(_mm_negate_ps(vik_1),vqk_1)};
+               const __m128 vpsfunc_1{_mm_load_ps(&this->m_psfunc.m_data[i+4ull])};
+               const __mmask8 vik_eq_1_1{_mm_cmp_ps_mask(vik_1,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_1{_mm_mask_blend_ps(vik_eq_1_1,vzero,vpi)};
+               const __m128 vcarrier_term1_1{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_1))};
+               const __m128 vcarrier_term2_1{_mm_fmadd_ps(vdk_1,vpsfunc_1,vPhik_1)};
+               const __m128 vsfsk_sample_1{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_1,vcarrier_term2_1))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+4ull],vsfsk_sample_1);
+          }
+
+          for(; (i+3ull) < this->m_sfsk_nsamples; i += 4ull,j += 4.0f) 
+          {
+               const __m128 vt_i_0{_mm_add_ps(_mm_set1_ps(j),c0_3)};
+               const __m128 vik_0{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+0ull])};
+               const __m128 vqk_0{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+0ull])};
+               const __m128 vdk_0{_mm_mul_ps(_mm_negate_ps(vik_0),vqk_0)};
+               const __m128 vpsfunc_0{_mm_load_ps(&this->m_psfunc.m_data[i+0ull])};
+               const __mmask8 vik_eq_1_0{_mm_cmp_ps_mask(vik_0,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_0{_mm_mask_blend_ps(vik_eq_1_0,vzero,vpi)};
+               const __m128 vcarrier_term1_0{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_0))};
+               const __m128 vcarrier_term2_0{_mm_fmadd_ps(vdk_0,vpsfunc_0,vPhik_0)};
+               const __m128 vsfsk_sample_0{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_0,vcarrier_term2_0))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+0ull],vsfsk_sample_0); 
+          }
+
+          for(; (i+0ull) < this->m_sfsk_nsamples; i += 1ull,j += 1.0f) 
+          {
+               const float ik_1{this->m_I_ch_bitstream.m_data[i]};
+               const float qk_1{this->m_Q_ch_bitstream.m_data[i]};
+               const float dk_1{-ik_1*qk_1};
+               const float psfunc_1{this->m_psfunc.m_data[i+1ull]};
+               const float Phik_1{ik_1==1.0f?0.0f:3.14159265358979323846264338328};
+               const float carrier_term1_1{this->m_k*6.283185307179586476925286766559*j};
+               const float carrier_term2_1{std::fma(dk_1,psfunc_1,Phik_1)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_1{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_1+carrier_term2_1)};
+#else 
+               const float sfsk_sample_1{this->m_Ac*std::cos(this->m_ph0+carrier_term1_1+carrier_term2_1)};
+#endif 
+               this->m_sfsk_signal.m_data[i] = sfsk_sample_1; 
+          }
+     }
+     else 
+     {
+          for(i = 0ull; (i+15ull) < this->m_sfsk_nsamples; i += 16ull) 
+          {
+               _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i],_MM_HINT_T0);
+               _mm_prefetch((const char*)&this->m_I_ch_bitstream.m_data[i],_MM_HINT_T0);
+               const __m128 vt_i_0{_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull])};
+               _mm_prefetch((const char*)&this->m_Q_ch_bitstream.m_data[i],_MM_HINT_T0);
+               const __m128 vik_0{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+0ull])};
+               const __m128 vqk_0{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+0ull])};
+               _mm_prefetch((const char*)&this->m_psfunc.m_data[i+0ull],_MM_HINT_T0);
+               const __m128 vdk_0{_mm_mul_ps(_mm_negate_ps(vik_0),vqk_0)};
+               const __m128 vpsfunc_0{_mm_load_ps(&this->m_psfunc.m_data[i+0ull])};
+               const __mmask8 vik_eq_1_0{_mm_cmp_ps_mask(vik_0,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_0{_mm_mask_blend_ps(vik_eq_1_0,vzero,vpi)};
+               const __m128 vcarrier_term1_0{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_0))};
+               const __m128 vcarrier_term2_0{_mm_fmadd_ps(vdk_0,vpsfunc_0,vPhik_0)};
+               const __m128 vsfsk_sample_0{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_0,vcarrier_term2_0))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+0ull],vsfsk_sample_0);
+               //////////////////////////////////////////////////////////////////
+               const __m128 vt_i_1{_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull])};
+               const __m128 vik_1{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+4ull])};
+               const __m128 vqk_1{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+4ull])};
+               const __m128 vdk_1{_mm_mul_ps(_mm_negate_ps(vik_1),vqk_1)};
+               const __m128 vpsfunc_1{_mm_load_ps(&this->m_psfunc.m_data[i+4ull])};
+               const __mmask8 vik_eq_1_1{_mm_cmp_ps_mask(vik_1,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_1{_mm_mask_blend_ps(vik_eq_1_1,vzero,vpi)};
+               const __m128 vcarrier_term1_1{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_1))};
+               const __m128 vcarrier_term2_1{_mm_fmadd_ps(vdk_1,vpsfunc_1,vPhik_1)};
+               const __m128 vsfsk_sample_1{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_1,vcarrier_term2_1))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+4ull],vsfsk_sample_1);
+               /////////////////////////////////////////////////////////////////////
+               const __m128 vt_i_2{_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull])};
+               const __m128 vik_2{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+8ull])};
+               const __m128 vqk_2{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+8ull])};
+               const __m128 vdk_2{_mm_mul_ps(_mm_negate_ps(vik_2),vqk_2)};
+               const __m128 vpsfunc_2{_mm_load_ps(&this->m_psfunc.m_data[i+8ull])};
+               const __mmask8 vik_eq_1_2{_mm_cmp_ps_mask(vik_2,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_2{_mm_mask_blend_ps(vik_eq_1_2,vzero,vpi)};
+               const __m128 vcarrier_term1_2{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_2))};
+               const __m128 vcarrier_term2_2{_mm_fmadd_ps(vdk_2,vpsfunc_2,vPhik_2)};
+               const __m128 vsfsk_sample_2{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_2,vcarrier_term2_2))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+8ull],vsfsk_sample_2);
+               //////////////////////////////////////////////////////////////////////
+               const __m128 vt_i_3{_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+12ull])};
+               const __m128 vik_3{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+12ull])};
+               const __m128 vqk_3{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+12ull])};
+               const __m128 vdk_3{_mm_mul_ps(_mm_negate_ps(vik_3),vqk_3)};
+               const __m128 vpsfunc_3{_mm_load_ps(&this->m_psfunc.m_data[i+12ull])};
+               const __mmask8 vik_eq_1_3{_mm_cmp_ps_mask(vik_3,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_3{_mm_mask_blend_ps(vik_eq_1_3,vzero,vpi)};
+               const __m128 vcarrier_term1_3{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_3))};
+               const __m128 vcarrier_term2_3{_mm_fmadd_ps(vdk_3,vpsfunc_3,vPhik_3)};
+               const __m128 vsfsk_sample_3{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_3,vcarrier_term2_3))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+12ull],vsfsk_sample_3);
+          }
+
+          for(; (i+11ull) < this->m_sfsk_nsamples; i += 12ull) 
+          {
+               
+               const __m128 vt_i_0{_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull])};
+               const __m128 vik_0{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+0ull])};
+               const __m128 vqk_0{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+0ull])};
+               const __m128 vdk_0{_mm_mul_ps(_mm_negate_ps(vik_0),vqk_0)};
+               const __m128 vpsfunc_0{_mm_load_ps(&this->m_psfunc.m_data[i+0ull])};
+               const __mmask8 vik_eq_1_0{_mm_cmp_ps_mask(vik_0,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_0{_mm_mask_blend_ps(vik_eq_1_0,vzero,vpi)};
+               const __m128 vcarrier_term1_0{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_0))};
+               const __m128 vcarrier_term2_0{_mm_fmadd_ps(vdk_0,vpsfunc_0,vPhik_0)};
+               const __m128 vsfsk_sample_0{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_0,vcarrier_term2_0))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+0ull],vsfsk_sample_0);
+               //////////////////////////////////////////////////////////////////
+               const __m128 vt_i_1{_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull])};
+               const __m128 vik_1{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+4ull])};
+               const __m128 vqk_1{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+4ull])};
+               const __m128 vdk_1{_mm_mul_ps(_mm_negate_ps(vik_1),vqk_1)};
+               const __m128 vpsfunc_1{_mm_load_ps(&this->m_psfunc.m_data[i+4ull])};
+               const __mmask8 vik_eq_1_1{_mm_cmp_ps_mask(vik_1,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_1{_mm_mask_blend_ps(vik_eq_1_1,vzero,vpi)};
+               const __m128 vcarrier_term1_1{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_1))};
+               const __m128 vcarrier_term2_1{_mm_fmadd_ps(vdk_1,vpsfunc_1,vPhik_1)};
+               const __m128 vsfsk_sample_1{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_1,vcarrier_term2_1))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+4ull],vsfsk_sample_1);
+               /////////////////////////////////////////////////////////////////////
+               const __m128 vt_i_2{_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull])};
+               const __m128 vik_2{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+8ull])};
+               const __m128 vqk_2{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+8ull])};
+               const __m128 vdk_2{_mm_mul_ps(_mm_negate_ps(vik_2),vqk_2)};
+               const __m128 vpsfunc_2{_mm_load_ps(&this->m_psfunc.m_data[i+8ull])};
+               const __mmask8 vik_eq_1_2{_mm_cmp_ps_mask(vik_2,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_2{_mm_mask_blend_ps(vik_eq_1_2,vzero,vpi)};
+               const __m128 vcarrier_term1_2{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_2))};
+               const __m128 vcarrier_term2_2{_mm_fmadd_ps(vdk_2,vpsfunc_2,vPhik_2)};
+               const __m128 vsfsk_sample_2{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_2,vcarrier_term2_2))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+8ull],vsfsk_sample_2);
+          }
+
+          for(; (i+7ull) < this->m_sfsk_nsamples; i += 8ull) 
+          {
+                
+               const __m128 vt_i_0{_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull])};
+               const __m128 vik_0{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+0ull])};
+               const __m128 vqk_0{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+0ull])};
+               const __m128 vdk_0{_mm_mul_ps(_mm_negate_ps(vik_0),vqk_0)};
+               const __m128 vpsfunc_0{_mm_load_ps(&this->m_psfunc.m_data[i+0ull])};
+               const __mmask8 vik_eq_1_0{_mm_cmp_ps_mask(vik_0,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_0{_mm_mask_blend_ps(vik_eq_1_0,vzero,vpi)};
+               const __m128 vcarrier_term1_0{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_0))};
+               const __m128 vcarrier_term2_0{_mm_fmadd_ps(vdk_0,vpsfunc_0,vPhik_0)};
+               const __m128 vsfsk_sample_0{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_0,vcarrier_term2_0))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+0ull],vsfsk_sample_0);
+               //////////////////////////////////////////////////////////////////
+               const __m128 vt_i_1{_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull])};
+               const __m128 vik_1{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+4ull])};
+               const __m128 vqk_1{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+4ull])};
+               const __m128 vdk_1{_mm_mul_ps(_mm_negate_ps(vik_1),vqk_1)};
+               const __m128 vpsfunc_1{_mm_load_ps(&this->m_psfunc.m_data[i+4ull])};
+               const __mmask8 vik_eq_1_1{_mm_cmp_ps_mask(vik_1,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_1{_mm_mask_blend_ps(vik_eq_1_1,vzero,vpi)};
+               const __m128 vcarrier_term1_1{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_1))};
+               const __m128 vcarrier_term2_1{_mm_fmadd_ps(vdk_1,vpsfunc_1,vPhik_1)};
+               const __m128 vsfsk_sample_1{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_1,vcarrier_term2_1))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+4ull],vsfsk_sample_1);
+          }
+
+          for(; (i+3ull) < this->m_sfsk_nsamples; i += 4ull) 
+          {
+               const __m128 vt_i_0{_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull])};
+               const __m128 vik_0{_mm_load_ps(&this->m_I_ch_bitstream.m_data[i+0ull])};
+               const __m128 vqk_0{_mm_load_ps(&this->m_Q_ch_bitstream.m_data[i+0ull])};
+               const __m128 vdk_0{_mm_mul_ps(_mm_negate_ps(vik_0),vqk_0)};
+               const __m128 vpsfunc_0{_mm_load_ps(&this->m_psfunc.m_data[i+0ull])};
+               const __mmask8 vik_eq_1_0{_mm_cmp_ps_mask(vik_0,vone,_CMP_EQ_OQ)};
+               const __m128 vPhik_0{_mm_mask_blend_ps(vik_eq_1_0,vzero,vpi)};
+               const __m128 vcarrier_term1_0{_mm_mul_ps(vk,_mm_mul_ps(v2pi,vt_i_0))};
+               const __m128 vcarrier_term2_0{_mm_fmadd_ps(vdk_0,vpsfunc_0,vPhik_0)};
+               const __m128 vsfsk_sample_0{_mm_mul_ps(vAc,_mm_sin_ps(_mm_add_ps(vph0,_mm_add_ps(vcarrier_term1_0,vcarrier_term2_0))))};
+               _mm_store_ps(&this->m_sfsk_signal.m_data[i+0ull],vsfsk_sample_0); 
+          }
+
+          for(; (i+0ull) < this->m_sfsk_nsamples; i += 1ull) 
+          {
+               const float t_i{gms::math::LUT_loop_indices_2257_align16[i]};
+               const float ik_1{this->m_I_ch_bitstream.m_data[i]};
+               const float qk_1{this->m_Q_ch_bitstream.m_data[i]};
+               const float dk_1{-ik_1*qk_1};
+               const float psfunc_1{this->m_psfunc.m_data[i+1ull]};
+               const float Phik_1{ik_1==1.0f?0.0f:3.14159265358979323846264338328};
+               const float carrier_term1_1{this->m_k*6.283185307179586476925286766559*t_i};
+               const float carrier_term2_1{std::fma(dk_1,psfunc_1,Phik_1)};
+#if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
+               const float sfsk_sample_1{this->m_Ac*ceph_cosf(this->m_ph0+carrier_term1_1+carrier_term2_1)};
+#else 
+               const float sfsk_sample_1{this->m_Ac*std::cos(this->m_ph0+carrier_term1_1+carrier_term2_1)};
+#endif 
+               this->m_sfsk_signal.m_data[i] = sfsk_sample_1; 
+          }
+     }
+
+     return (0);
+}
+
+
+
 auto 
 gms::radiolocation 
 ::operator<<(std::ostream &os, 

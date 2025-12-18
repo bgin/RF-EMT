@@ -2105,6 +2105,23 @@ namespace radiolocation
                                           const bool,
                                           const bool,
                                           const bool);
+                                          
+
+          __ATTR_HOT__
+          __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+          __ATTR_OPTIMIZE_03__
+#endif     
+                  std::int32_t 
+                  generate_fsk_signal_sse_u4x(I_channel_bitstream_optimized_path,
+                                              Q_channel_bitstream_optimized_path,
+                                              pulse_shaping_function_optimized_path,
+                                              const std::int32_t,
+                                              const std::int32_t,
+                                              const bool,
+                                              const bool,
+                                              const bool,
+                                              const bool); 
 
 
             };
