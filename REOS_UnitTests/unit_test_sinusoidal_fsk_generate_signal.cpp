@@ -59,10 +59,10 @@ unit_test_generate_fsk_signal_u8x()
 
       
           std::printf("[UNIT-TEST]: -- Calling: generate_fsk_signal_u8x\n");
-          const std::int32_t ret_status = SFSK_signal.generate_fsk_signal_u8x(sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx_u4x_path,
-                                                                              sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx_u4x_path,
-                                                                              sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path,
-                                                                              1,1,true,true,true);
+          const std::int32_t ret_status = 
+          SFSK_signal.generate_fsk_signal_u8x<sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx512_u4x_path,
+                                                     sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx512_u4x_path, 
+                                                     sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx512_path>(1,1,true,true,true);
           if(ret_status<0)
           {
              std::printf("[UNIT-TEST]: -- generate_fsk_signal_u8x -- **FAILED**, status=%d\n",ret_status);
@@ -121,10 +121,10 @@ unit_test_generate_fsk_signal_sse_u4x()
 
       
           std::printf("[UNIT-TEST]: -- Calling: generate_fsk_signal_sse_u4x\n");
-          const std::int32_t ret_status = SFSK_signal.generate_fsk_signal_sse_u4x(sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx_u4x_path,
-                                                                              sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx_u4x_path,
-                                                                              sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path,
-                                                                              1,1,true,true,true,true);
+          const std::int32_t ret_status = 
+          SFSK_signal.generate_fsk_signal_sse_u4x<sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_sse_u4x_path,
+                                                     sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_sse_u4x_path, 
+                                                     sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_sse_path>(1,1,true,true,true,true);
           if(ret_status<0)
           {
              std::printf("[UNIT-TEST]: -- generate_fsk_signal_sse_u4x -- **FAILED**, status=%d\n",ret_status);
@@ -183,10 +183,10 @@ unit_test_generate_fsk_signal_avx_u4x()
 
       
           std::printf("[UNIT-TEST]: -- Calling: generate_fsk_signal_avx_u4x\n");
-          const std::int32_t ret_status = SFSK_signal.generate_fsk_signal_avx_u4x(sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx_u4x_path,
-                                                                              sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx_u4x_path,
-                                                                              sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path,
-                                                                              1,1,true,true,true,true);
+          const std::int32_t ret_status = 
+          SFSK_signal.generate_fsk_signal_avx_u4x<sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx_u4x_path,
+                                                  sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx_u4x_path, 
+                                                  sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path>(1,1,true,true,true,true);
           if(ret_status<0)
           {
              std::printf("[UNIT-TEST]: -- generate_fsk_signal_avx_u4x -- **FAILED**, status=%d\n",ret_status);
@@ -269,9 +269,9 @@ unit_test_generate_fsk_signal_avx512_u4x()
 
 int main()
 {
-    //unit_test_generate_fsk_signal_u8x();
-    //unit_test_generate_fsk_signal_sse_u4x();
-    //unit_test_generate_fsk_signal_avx_u4x();
+    unit_test_generate_fsk_signal_u8x();
+    unit_test_generate_fsk_signal_sse_u4x();
+    unit_test_generate_fsk_signal_avx_u4x();
     unit_test_generate_fsk_signal_avx512_u4x();
     return 0;
 }
