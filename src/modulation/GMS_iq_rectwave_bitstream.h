@@ -213,7 +213,7 @@ namespace radiolocation
                     __ATTR_OPTIMIZE_03__
 #endif     
                      std::int32_t
-                     generate_I_channel_bitstream_avx();
+                     generate_I_channel_bitstream_avx(const bool);
 
                      __ATTR_HOT__
                     __ATTR_ALIGN__(32)
@@ -221,7 +221,7 @@ namespace radiolocation
                     __ATTR_OPTIMIZE_03__
 #endif     
                      std::int32_t
-                     generate_Q_channel_bitstream_avx();
+                     generate_Q_channel_bitstream_avx(const bool);
 
                      __ATTR_HOT__
                     __ATTR_ALIGN__(32)
@@ -229,7 +229,7 @@ namespace radiolocation
                     __ATTR_OPTIMIZE_03__
 #endif     
                      std::int32_t
-                     generate_I_channel_bitstream_avx_u4x();
+                     generate_I_channel_bitstream_avx_u4x(const bool);
 
                      __ATTR_HOT__
                     __ATTR_ALIGN__(32)
@@ -237,7 +237,7 @@ namespace radiolocation
                     __ATTR_OPTIMIZE_03__
 #endif     
                      std::int32_t
-                     generate_Q_channel_bitstream_avx_u4x();
+                     generate_Q_channel_bitstream_avx_u4x(const bool);
 
                      __ATTR_HOT__
                     __ATTR_ALIGN__(32)
@@ -245,7 +245,7 @@ namespace radiolocation
                     __ATTR_OPTIMIZE_03__
 #endif     
                      std::int32_t
-                     generate_I_channel_bitstream_avx512();
+                     generate_I_channel_bitstream_avx512(const bool);
 
                      __ATTR_HOT__
                     __ATTR_ALIGN__(32)
@@ -253,7 +253,7 @@ namespace radiolocation
                     __ATTR_OPTIMIZE_03__
 #endif     
                      std::int32_t
-                     generate_Q_channel_bitstream_avx512();
+                     generate_Q_channel_bitstream_avx512(const bool);
 
                      __ATTR_HOT__
                     __ATTR_ALIGN__(32)
@@ -261,7 +261,7 @@ namespace radiolocation
                     __ATTR_OPTIMIZE_03__
 #endif     
                      std::int32_t
-                     generate_I_channel_bitstream_avx512_u4x();
+                     generate_I_channel_bitstream_avx512_u4x(const bool);
 
                      __ATTR_HOT__
                     __ATTR_ALIGN__(32)
@@ -269,7 +269,7 @@ namespace radiolocation
                     __ATTR_OPTIMIZE_03__
 #endif     
                      std::int32_t
-                     generate_Q_channel_bitstream_avx512_u4x();
+                     generate_Q_channel_bitstream_avx512_u4x(const bool);
                                           
               };
 
