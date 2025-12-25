@@ -1,0 +1,528 @@
+
+#include <immintrin.h>
+#include <fstream>
+#include <iomanip>
+#include "GMS_iq_rectw_bitstream_vsequence.h"
+
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::iq_rectw_bitstream_vsequence_t() noexcept(true)
+:
+m_I_nsamples{0ull},
+m_IQ_nsignals{0ull},
+m_I_k_values{darray_r4_t()},
+m_I_T_values{darray_r4_t()},
+m_I_Ac_values{darray_r4_t()},
+m_I_fc_values{darray_r4_t()},
+m_I_ph0_values{darray_r4_t()},
+m_Q_nsamples{0ull},
+m_Q_k_values{darray_r4_t},
+m_Q_T_values{darray_r4_t},
+m_Q_Ac_values{darray_r4_t()},
+m_Q_fc_values{darray_r4_t()},
+m_Q_ph0_values{darray_r4_t()},
+m_iq_rectw_bitstreams{std::vector<iq_rectwave_bitstream_t>()},
+m_I_rw_bitstream_pdf_params{std::vector<I_rectw_bitstream_pdf_params_t>()},
+m_Q_rw_bitstream_pdf_params{std::vector<Q_rectw_bitstream_pdf_params_t>()},
+m_I_vsequence{darray_r4_t()},
+m_Q_vsequence{darray_r4_t()}
+{
+
+}
+
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::iq_rectw_bitstream_vsequence_t(const std::size_t   I_nsamples,
+                                 const std::size_t   IQ_nsignals,
+                                 const darray_r4_t & I_k_values,
+                                 const darray_r4_t & I_T_values,
+                                 const darray_r4_t & I_Ac_values,
+                                 const darray_r4_t & I_fc_values,
+                                 const darray_r4_t & I_ph0_values,
+                                 const std::size_t   Q_nsamples,
+                                 const darray_r4_t & Q_k_values,
+                                 const darray_r4_t & Q_T_values,
+                                 const darray_r4_t & Q_Ac_values,
+                                 const darray_r4_t & Q_fc_values,
+                                 const darray_r4_t & Q_ph0_values,
+                                 const std::vector<I_rectw_bitstream_pdf_params_t> & I_rw_bitstream_pdf_params,
+                                 const std::vector<Q_rectw_bitstream_pdf_params_t> & Q_rw_bitstream_pdf_params) noexcept(false)
+:
+m_I_nsamples{I_nsamples},
+m_IQ_nsignals{IQ_nsignals},
+m_I_k_values{std::move(I_k_values)},
+m_I_T_values{std::move(I_T_values)},
+m_I_Ac_values{std::move(I_Ac_values)},
+m_I_fc_values{std::move(I_fc_values)},
+m_I_ph0_values{std::move(I_ph0_values)},
+m_Q_nsamples{Q_nsamples},
+m_Q_k_values{std::move(Q_k_values)},
+m_Q_T_values{std::move(Q_T_values)},
+m_Q_Ac_values{std::move(Q_Ac_values)},
+m_Q_fc_values{std::move(Q_fc_values)},
+m_Q_ph0_values{std::move(Q_ph0_values)},
+m_iq_rectw_bitstreams{std::vector<iq_rectwave_bitstream_t>(this->m_IQ_nsignals)},
+m_I_rw_bitstream_pdf_params{std::move(I_rw_bitstream_pdf_params)},
+m_Q_rw_bitstream_pdf_params{std::move(Q_rw_bitstream_pdf_params)},
+m_I_vsequence{darray_r4_t(this->m_I_nsamples)},
+m_Q_vsequence{darray_r4_t(this->m_Q_nsamples)}
+{
+    for(std::size_t i{0ull}; i != this->m_IQ_nsignals; ++i) 
+    {
+        const float s_I_k_value{this->m_I_k_values.m_data[i]};
+        const float s_I_T_value{this->m_I_T_values.m_data[i]};
+        const float s_I_Ac_value{this->m_I_Ac_values.m_data[i]};
+        const float s_I_fc_value{this->m_I_fc_values.m_data[i]};
+        const float s_I_ph0_value{this->m_I_ph0_values.m_data[i]};
+        const float s_Q_k_value{this->m_Q_k_values.m_data[i]};
+        const float s_Q_T_value{this->m_Q_T_values.m_data[i]};
+        const float s_Q_Ac_value{this->m_Q_Ac_values.m_data[i]};
+        const float s_Q_fc_value{this->m_Q_fc_values.m_data[i]};
+        const float s_Q_ph0_value{this->m_Q_ph0_values.m_data[i]};
+        this->m_iq_rectw_bitstreams.operator[](i) = iq_rectwave_bitstream_t(s_I_k_value,s_I_T_value,
+                                                                            s_I_Ac_value,s_I_fc_value,
+                                                                            s_I_ph0_value,s_Q_k_value,
+                                                                            s_Q_T_value,s_Q_Ac_value,
+                                                                            s_Q_fc_value,s_Q_ph0_value);
+    }
+}
+
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::iq_rectw_bitstream_vsequence_t(const iq_rectw_bitstream_vsequence_t &other) noexcept(false)
+:
+m_I_nsamples{other.m_I_nsamples},
+m_IQ_nsignals{other.m_IQ_nsignals},
+m_I_k_values{other.m_I_k_values},
+m_I_T_values{other.m_I_T_values},
+m_I_Ac_values{other.m_I_Ac_values},
+m_I_fc_values{other.m_I_fc_values},
+m_I_ph0_values{other.m_I_ph0_values},
+m_Q_nsamples{other.m_Q_nsamples},
+m_Q_k_values{other.m_Q_k_values},
+m_Q_T_values{other.m_Q_T_values},
+m_Q_Ac_values{other.m_Q_Ac_values},
+m_Q_fc_values{other.m_Q_fc_values},
+m_Q_ph0_values{other.m_Q_ph0_values},
+m_iq_rectw_bitstreams{other.m_iq_rectw_bitstreams},
+m_I_rw_bitstream_pdf_params{other.m_I_rw_bitstream_pdf_params},
+m_Q_rw_bitstream_pdf_params{other.m_Q_rw_bitstream_pdf_params},
+m_I_vsequence{other.m_I_vsequence},
+m_Q_vsequence{other.m_Q_vsequence}
+{
+
+}
+
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::iq_rectw_bitstream_vsequence_t(iq_rectw_bitstream_vsequence_t &&other) noexcept(true)
+:
+m_I_nsamples{other.m_I_nsamples},
+m_IQ_nsignals{other.m_IQ_nsignals},
+m_I_k_values{std::move(other.m_I_k_values)},
+m_I_T_values{std::move(other.m_I_T_values)},
+m_I_Ac_values{std::move(other.m_I_Ac_values)},
+m_I_fc_values{std::move(other.m_I_fc_values)},
+m_I_ph0_values{std::move(other.m_I_ph0_values)},
+m_Q_nsamples{other.m_Q_nsamples},
+m_Q_k_values{std::move(other.m_Q_k_values)},
+m_Q_T_values{std::move(other.m_Q_T_values)},
+m_Q_Ac_values{std::move(other.m_Q_Ac_values)},
+m_Q_fc_values{std::move(other.m_Q_fc_values)},
+m_Q_ph0_values{std::move(other.m_Q_ph0_values)},
+m_iq_rectw_bitstreams{std::move(other.m_iq_rectw_bitstreams)},
+m_I_rw_bitstream_pdf_params{std::move(other.m_I_rw_bitstream_pdf_params)},
+m_Q_rw_bitstream_pdf_params{std::move(other.m_Q_rw_bitstream_pdf_params)},
+m_I_vsequence{std::move(other.m_I_vsequence)},
+m_Q_vsequence{std::move(other.m_Q_vsequence)}
+{
+
+}
+
+gms::radiolocation 
+::iq_rectw_bitstream_vsequence_t
+::~iq_rectw_bitstream_vsequence_t()
+{
+
+}
+
+gms::radiolocation 
+::iq_rectw_bitstream_vsequence_t &
+gms::radiolocation 
+::iq_rectw_bitstream_vsequence_t
+::operator=(const iq_rectw_bitstream_vsequence_t &other) noexcept(false)
+{
+    if(__builtin_expect(this==&other,0)) { return (*this);}
+    this->m_I_nsamples         = other.m_I_nsamples;
+    this->m_IQ_nsignals        = other.m_IQ_nsignals;
+    this->m_I_k_values.operator=(other.m_I_k_values);
+    this->m_I_T_values.operator=(other.m_I_T_values);
+    this->m_I_Ac_values.operator=(other.m_I_Ac_values);
+    this->m_I_fc_values.operator=(other.m_I_fc_values);
+    this->m_I_ph0_values.operator=(other.m_I_ph0_values);
+    this->m_Q_nsamples           = other.m_Q_nsamples;
+    this->m_Q_k_values.operator=(other.m_Q_k_values);
+    this->m_Q_T_values.operator=(other.m_Q_T_values);
+    this->m_Q_Ac_values.operator=(other.m_Q_Ac_values);
+    this->m_Q_fc_values.operator=(other.m_Q_fc_values);
+    this->m_Q_ph0_values.operator=(other.m_Q_ph0_values);
+    this->m_iq_rectw_bitstreams.operator=(other.m_iq_rectw_bitstreams);
+    this->m_I_rw_bitstream_pdf_params.operator=(other.m_I_rw_bitstream_pdf_params);
+    this->m_Q_rw_bitstream_pdf_params.operator=(other.m_Q_rw_bitstream_pdf_params);
+    this->m_I_vsequence.operator=(other.m_I_vsequence);
+    this->m_Q_vsequence.operator=(other.m_Q_vsequence);
+    return (*this);
+}
+
+gms::radiolocation 
+::iq_rectw_bitstream_vsequence_t &
+gms::radiolocation 
+::iq_rectw_bitstream_vsequence_t
+::operator=(iq_rectw_bitstream_vsequence_t &&other) noexcept(true)
+{
+    if(__builtin_expect(this==&other,0)) { return (*this);}
+    this->m_I_nsamples         = other.m_I_nsamples;
+    this->m_IQ_nsignals        = other.m_IQ_nsignals;
+    this->m_I_k_values.operator=(std::move(ther.m_I_k_values));
+    this->m_I_T_values.operator=(std::move(other.m_I_T_values));
+    this->m_I_Ac_values.operator=(std::move(other.m_I_Ac_values));
+    this->m_I_fc_values.operator=(std::move(other.m_I_fc_values));
+    this->m_I_ph0_values.operator=(std::move(other.m_I_ph0_values));
+    this->m_Q_nsamples           = other.m_Q_nsamples;
+    this->m_Q_k_values.operator=(std::move(other.m_Q_k_values));
+    this->m_Q_T_values.operator=(std::move(other.m_Q_T_values));
+    this->m_Q_Ac_values.operator=(std::move(other.m_Q_Ac_values));
+    this->m_Q_fc_values.operator=(std::move(other.m_Q_fc_values));
+    this->m_Q_ph0_values.operator=(std::move(other.m_Q_ph0_values));
+    this->m_iq_rectw_bitstreams.operator=(std::move(other.m_iq_rectw_bitstreams));
+    this->m_I_rw_bitstream_pdf_params.operator=(std::move(other.m_I_rw_bitstream_pdf_params));
+    this->m_Q_rw_bitstream_pdf_params.operator=(std::move(other.m_Q_rw_bitstream_pdf_params));
+    this->m_I_vsequence.operator=(std::move(other.m_I_vsequence));
+    this->m_Q_vsequence.operator=(std::move(other.m_Q_vsequence));
+    return (*this);
+}
+
+void 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::create_sequence_plot(const std::uint32_t n_samp,
+                       const float * __restrict sig_arg,
+                       const float * __restrict sig_val,
+                       const std::string &header,
+                       const std::string &title,
+                       const bool is_sig_arg_present)
+{
+    std::string plot_fname;
+    std::string sig_fname;
+    std::ofstream plot_unit;
+    std::ofstream sig_unit;
+    sig_fname = header+"_plot.txt";
+    sig_unit.open(sig_fname.c_str());
+    if(is_sig_arg_present==true)
+    {
+        for(std::size_t __i{0ull}; __i != n_samp; ++__i)
+        {
+            sig_unit << " " << sig_arg[__i] << " "
+                            << sig_val[__i] << "\n";
+        }
+    }
+    else
+    {
+        for(std::size_t __i{0ull}; __i != n_samp; ++__i)
+        {
+            sig_unit << " " << sig_arg[__i] << "\n";
+         
+        }
+    }
+    sig_unit.close();
+    std::cout << "Created signal data file \"" << sig_fname << "\".\n";
+    plot_fname = header+"plot_commands.txt";
+    plot_unit.open(plot_fname.c_str());
+    plot_unit << "#" << plot_fname << "\n";
+    plot_unit << "#\n";
+    plot_unit << "# Usage:\n";
+    plot_unit << "# gnuplot < " << plot_fname << "\n";
+    plot_unit << "#\n";
+    plot_unit << "set term png\n";
+    plot_unit << "set output \"" << header << ".png\"\n";
+    plot_unit << "set xlabel 't'\n";
+    plot_unit << "set ylabel 'y(t)'\n";
+    plot_unit << "set title '" << title << "'\n";
+    plot_unit << "set grid\n";
+    plot_unit << "set style data lines\n";
+    if(is_sig_arg_present==true)
+    {
+            plot_unit << "plot \"" << sig_fname << "\" using 1:2 lw 1 linecolor rgb \"red\"\n";
+    }
+    else
+    {
+            plot_unit << "plot \"" << sig_fname << "\" lw 1 linecolor rgb \"red\"\n";
+    }
+    plot_unit << "quit\n";
+    plot_unit.close();
+    std::cout << " Created signal data file \"" << plot_fname << "\"\n";
+}
+
+template<gms::radiolocation::iq_rectw_bitstream_vsequence_t
+         ::IQ_rectw_bitstreams_optim_path  optim_path,
+         std::size_t nsignals_size>
+std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse16x(const std::int32_t * ret_codes)
+{
+       if(__builtin_expect(nullptr==ret_codes,0)) { return (-1);
+       }
+#if (IQ_RECTW_BITSTREAM_VSEQUENCE_USE_PMC_INSTRUMENTATION) == 1
+           PMC_VARS
+           HW_PMC_COLLECTION_PROLOGE_BODY
+#endif 
+
+        __ATTR_ALIGN__(16) 
+        __m128 xmm0_i[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm1_i[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm2_i[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm3_i[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm4_i[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm5_i[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm6_i[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm7_i[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm8_i[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm9_i[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm10_i[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm11_i[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm12_i[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm13_i[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm14_i[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm15_i[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm0_q[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm1_q[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm2_q[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm3_q[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm4_q[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm5_q[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm6_q[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm7_q[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm8_q[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm9_q[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm10_q[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm11_q[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm12_q[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm13_q[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm14_q[nsignals_size];
+        __ATTR_ALIGN__(16) 
+        __m128 xmm15_q[nsignals_size];
+        float scal_rem_i[nsignals_size];
+        float scal_rem_q[nsignals_size];
+        __m128 vzero{_mm_setzero_ps()};
+        __m128 sum0_i{vzero};
+        __m128 sum1_i{sum0_i};
+        __m128 sum2_i{sum0_i};
+        __m128 sum3_i{sum0_i};
+        __m128 sum4_i{sum0_i};
+        __m128 sum5_i{sum0_i};
+        __m128 sum6_i{sum0_i};
+        __m128 sum7_i{sum0_i};
+        __m128 sum8_i{sum0_i};
+        __m128 sum9_i{sum0_i};
+        __m128 sum10_i{sum0_i};
+        __m128 sum11_i{sum0_i};
+        __m128 sum12_i{sum0_i};
+        __m128 sum13_i{sum0_i};
+        __m128 sum14_i{sum0_i};
+        __m128 sum15_i{sum0_i};
+        __m128 sum0_q{sum0_i};
+        __m128 sum1_q{sum0_i};
+        __m128 sum2_q{sum0_i};
+        __m128 sum3_q{sum0_i};
+        __m128 sum4_q{sum0_i};
+        __m128 sum5_q{sum0_i};
+        __m128 sum6_q{sum0_i};
+        __m128 sum7_q{sum0_i};
+        __m128 sum8_q{sum0_i};
+        __m128 sum9_q{sum0_i};
+        __m128 sum10_q{sum0_i};
+        __m128 sum11_q{sum0_i};
+        __m128 sum12_q{sum0_i};
+        __m128 sum13_q{sum0_i};
+        __m128 sum14_q{sum0_i};
+        __m128 sum15_q{sum0_i}; 
+        std::size_t i;
+        float sum_rem_i{0.0f};
+        float sum_rem_q{0.0f};
+
+        if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::SCALAR_PATH)
+        {          
+                for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
+                {
+                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_scalar();
+                }            
+        }
+        else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH)
+        {
+                for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
+                {
+                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse();
+                } 
+        }
+        else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH)
+        {
+                for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
+                {
+                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse_u4x();
+                } 
+        }
+        else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH)
+        {
+                for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
+                {
+                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx(true);
+                } 
+        }
+        else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH)
+        {
+                for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
+                {
+                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                } 
+        }
+        else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH)
+        {
+                for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
+                {
+                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                } 
+        }
+        else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH)
+        {
+                for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
+                {
+                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx512_u4x(true);
+                } 
+        }
+
+        if(this->m_I_nsamples==this->m_Q_nsamples)
+        {
+              for(i = 0ull; (i+63ull) < this->m_I_nsamples; i += 64ull) 
+              {
+                    sum0_i = vzero;
+                    sum0_q = vzero;
+                    sum1_i = vzero;
+                    sum1_q = vzero;
+                    sum2_i = vzero;
+                    sum2_q = vzero;
+                    sum3_i = vzero;
+                    sum3_q = vzero;
+                    sum4_i = vzero;
+                    sum4_q = vzero;
+                    sum5_i = vzero;
+                    sum5_q = vzero;
+                    sum6_i = vzero;
+                    sum6_q = vzero;
+                    sum7_i = vzero;
+                    sum7_q = vzero;
+                    sum8_i = vzero;
+                    sum8_q = vzero;
+                    sum9_i = vzero;
+                    sum9_q = vzero;
+                    sum10_i = vzero;
+                    sum10_q = vzero;
+                    sum11_i = vzero;
+                    sum11_q = vzero;
+                    sum12_i = vzero;
+                    sum12_q = vzero;
+                    sum13_i = vzero;
+                    sum13_q = vzero;
+                    sum14_i = vzero;
+                    sum14_q = vzero;
+                    sum15_i = vzero;
+                    sum15_q = vzero;
+                    for(std::size_t j{0ull}; j != this->m_IQ_nsignals; ++j)  
+                    {
+#if (IQ_RECTW_BITSTREAM_VSEQUENCE_SOFT_PREFETCH) == 1
+                        _mm_prefetch((const char*)&this->m_iq_rectw_bitstreams.operator[](j).m_I_ch_bitstream.m_data[i+0ull],_MM_HINT_T1);
+                        _mm_prefetch((const char*)&this->m_iq_rectw_bitstreams.operator[](j).m_Q_ch_bitstream.m_data[i+0ull],_MM_HINT_T1);
+                        _mm_prefetch((const char*)&this->m_iq_rectw_bitstreams.operator[](j).m_I_ch_bitstream.m_data[i+16ull],_MM_HINT_T1);
+                        _mm_prefetch((const char*)&this->m_iq_rectw_bitstreams.operator[](j).m_Q_ch_bitstream.m_data[i+16ull],_MM_HINT_T1);
+                        _mm_prefetch((const char*)&this->m_iq_rectw_bitstreams.operator[](j).m_I_ch_bitstream.m_data[i+32ull],_MM_HINT_T1);
+                        _mm_prefetch((const char*)&this->m_iq_rectw_bitstreams.operator[](j).m_Q_ch_bitstream.m_data[i+32ull],_MM_HINT_T1);
+                        _mm_prefetch((const char*)&this->m_iq_rectw_bitstreams.operator[](j).m_I_ch_bitstream.m_data[i+48ull],_MM_HINT_T1);
+                        _mm_prefetch((const char*)&this->m_iq_rectw_bitstreams.operator[](j).m_Q_ch_bitstream.m_data[i+48ull],_MM_HINT_T1);
+#endif 
+                        xmm0_i[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_I_ch_bitstream.m_data[i+0ull]);
+                        sum0_i    = _mm_add_ps(xmm0_i[j],sum0_i);
+                        xmm0_q[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_Q_ch_bitstream.m_data[i+0ull]);
+                        sum0_q    = _mm_load_ps(xmm0_q[j],sum0_q);
+                        xmm1_i[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_I_ch_bitstream.m_data[i+4ull]);
+                        sum1_i    = _mm_add_ps(xmm1_i[j],sum1_i);
+                        xmm1_q[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_Q_ch_bitstream.m_data[i+4ull]);
+                        sum1_q    = _mm_load_ps(xmm1_q[j],sum1_q);
+                        xmm2_i[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_I_ch_bitstream.m_data[i+8ull]);
+                        sum2_i    = _mm_add_ps(xmm2_i[j],sum2_i);
+                        xmm2_q[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_Q_ch_bitstream.m_data[i+8ull]);
+                        sum2_q    = _mm_load_ps(xmm2_q[j],sum2_q);
+                        xmm3_i[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_I_ch_bitstream.m_data[i+12ull]);
+                        sum3_i    = _mm_add_ps(xmm3_i[j],sum3_i);
+                        xmm3_q[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_Q_ch_bitstream.m_data[i+12ull]);
+                        sum3_q    = _mm_load_ps(xmm3_q[j],sum3_q);
+                        xmm4_i[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_I_ch_bitstream.m_data[i+16ull]);
+                        sum4_i    = _mm_add_ps(xmm4_i[j],sum4_i);
+                        xmm4_q[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_Q_ch_bitstream.m_data[i+16ull]);
+                        sum4_q    = _mm_load_ps(xmm4_q[j],sum4_q);
+                        xmm5_i[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_I_ch_bitstream.m_data[i+20ull]);
+                        sum5_i    = _mm_add_ps(xmm5_i[j],sum5_i);
+                        xmm5_q[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_Q_ch_bitstream.m_data[i+20ull]);
+                        sum5_q    = _mm_load_ps(xmm5_q[j],sum5_q);
+                        xmm6_i[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_I_ch_bitstream.m_data[i+24ull]);
+                        sum6_i    = _mm_add_ps(xmm6_i[j],sum6_i);
+                        xmm6_q[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_Q_ch_bitstream.m_data[i+24ull]);
+                        sum6_q    = _mm_load_ps(xmm6_q[j],sum6_q);
+                        xmm7_i[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_I_ch_bitstream.m_data[i+28ull]);
+                        sum7_i    = _mm_add_ps(xmm7_i[j],sum7_i);
+                        xmm7_q[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_Q_ch_bitstream.m_data[i+28ull]);
+                        sum7_q    = _mm_load_ps(xmm7_q[j],sum7_q);
+                        xmm8_i[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_I_ch_bitstream.m_data[i+32ull]);
+                        sum8_i    = _mm_add_ps(xmm8_i[j],sum8_i);
+                        xmm8_q[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_Q_ch_bitstream.m_data[i+32ull]);
+                        sum8_q    = _mm_load_ps(xmm8_q[j],sum8_q);
+                        xmm9_i[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_I_ch_bitstream.m_data[i+36ull]);
+                        sum9_i    = _mm_add_ps(xmm9_i[j],sum9_i);
+                        xmm9_q[j] = _mm_load_ps(&this->m_iq_rectw_bitstreams.operator[](j).m_Q_ch_bitstream.m_data[i+36ull]);
+                        sum9_q    = _mm_load_ps(xmm9_q[j],sum9_q);
+                    }
+              }
+        }
+}
+
+
+
