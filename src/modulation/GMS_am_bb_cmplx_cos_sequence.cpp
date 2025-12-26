@@ -390,36 +390,13 @@ gms::radiolocation
 #if (AM_BB_CMPLX_COS_SEQUENCE_SOFT_PREFETCH) == 1    
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+0ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+0ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+4ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+4ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+8ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+8ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+12ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+12ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+16ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+16ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+20ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+20ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+24ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+24ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+28ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+28ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+32ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+32ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+36ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+36ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+40ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+40ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+44ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+44ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+48ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+48ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+52ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+52ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+56ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+56ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+60ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+60ull],_MM_HINT_T1);
+                     
 #endif 
                       xmm0_r[j] = _mm_loadu_ps(&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+0ull]);
                       sum0_r    = _mm_add_ps(xmm0_r[j],sum0_r);
@@ -1103,25 +1080,11 @@ gms::radiolocation
 #if (AM_BB_CMPLX_COS_SEQUENCE_SOFT_PREFETCH) == 1    
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+0ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+0ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+4ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+4ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+8ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+8ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+12ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+12ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+16ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+16ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+20ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+20ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+24ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+24ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+28ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+28ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+32ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+32ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+36ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+36ull],_MM_HINT_T1);
-                     
+                  
 #endif 
                       xmm0_r[j] = _mm_loadu_ps(&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+0ull]);
                       sum0_r    = _mm_add_ps(xmm0_r[j],sum0_r);
@@ -1601,16 +1564,7 @@ gms::radiolocation
 #if (AM_BB_CMPLX_COS_SEQUENCE_SOFT_PREFETCH) == 1    
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+0ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+0ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+4ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+4ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+8ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+8ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+12ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+12ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+16ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+16ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+20ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+20ull],_MM_HINT_T1);
+                     
                       
                      
 #endif 
@@ -2045,36 +1999,21 @@ gms::radiolocation
 #if (AM_BB_CMPLX_COS_SEQUENCE_SOFT_PREFETCH) == 1    
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+0ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+0ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+8ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+8ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+16ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+16ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+24ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+24ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+32ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+32ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+40ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+40ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+48ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+48ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+56ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+56ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+64ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+64ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+72ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+72ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+80ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+80ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+88ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+88ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+96ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+96ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+104ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+104ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+112ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+112ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+120ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+120ull],_MM_HINT_T1);
+                      
 #endif 
                       ymm0_r[j] = _mm256_loadu_ps(&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+0ull]);
                       sum0_r    = _mm256_add_ps(ymm0_r[j],sum0_r);
@@ -2878,24 +2817,15 @@ gms::radiolocation
 #if (AM_BB_CMPLX_COS_SEQUENCE_SOFT_PREFETCH) == 1    
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+0ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+0ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+8ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+8ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+16ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+16ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+24ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+24ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+32ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+32ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+40ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+40ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+48ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+48ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+56ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+56ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+64ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+64ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+72ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+72ull],_MM_HINT_T1);
+                     
                     
 #endif 
                       ymm0_r[j] = _mm256_loadu_ps(&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+0ull]);
@@ -3392,16 +3322,11 @@ gms::radiolocation
 #if (AM_BB_CMPLX_COS_SEQUENCE_SOFT_PREFETCH) == 1    
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+0ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+0ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+8ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+8ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+16ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+16ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+24ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+24ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+32ull],_MM_HINT_T1);
                       _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+32ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+40ull],_MM_HINT_T1);
-                      _mm_prefetch((const char*)&this->m_bb_cmplx_cos_signals.operator[](j).get_Q_channel()[i+40ull],_MM_HINT_T1);
+                      
                                           
 #endif 
                       ymm0_r[j] = _mm256_loadu_ps(&this->m_bb_cmplx_cos_signals.operator[](j).get_I_channel()[i+0ull]);
