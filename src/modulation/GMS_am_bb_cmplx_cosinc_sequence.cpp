@@ -891,7 +891,7 @@ gms::radiolocation
               {
                    sum_rem_r = 0.0f;
                    sum_rem_i = 0.0f;
-                   for(std::size_t j{0ull}; j != this->m_nsignals/2; ++j)  
+                   for(std::size_t j{0ull}; j != this->m_nsignals; ++j)  
                    {
                        scal_rem_r[j] = this->m_bb_cmplx_cosinc_signals.operator[](j).get_I_channel()[i];
                        sum_rem_r += scal_rem_r[j];
@@ -1154,7 +1154,7 @@ gms::radiolocation
         else 
         {
              for(i = 0ull; (i+39ull) < n_samples_halved; i += 40ull) 
-        {
+            {
               sum0_r = vzero;
               sum0_i = vzero;
               sum1_r = vzero;
