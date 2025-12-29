@@ -199,7 +199,17 @@ namespace radiolocation
                   template<IQ_rectw_bitstreams_optim_path  optim_path,
                            std::size_t nsignals_size>
                   std::int32_t 
-                  generate_iq_rectw_bitstream_sequence_sse16x(const std::int32_t * __restrict__);
+                  generate_iq_rectw_bitstream_sequence_sse_u16x(const std::int32_t * __restrict__);
+
+                  template<IQ_rectw_bitstreams_optim_path  optim_path,
+                           std::size_t nsignals_size>
+                  std::int32_t 
+                  generate_iq_rectw_bitstream_sequence_sse_u10x(const std::int32_t * __restrict__);
+
+                  template<IQ_rectw_bitstreams_optim_path  optim_path,
+                           std::size_t nsignals_size>
+                  std::int32_t 
+                  generate_iq_rectw_bitstream_sequence_sse_u6x(const std::int32_t * __restrict__);
 
           };
 
