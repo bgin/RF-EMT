@@ -117,13 +117,13 @@ namespace radiolocation
           struct alignas(64) iq_rectw_bitstream_vsequence_t final 
           {
                  std::size_t                                   m_I_nsamples;
-                 std::size_t                                   m_IQ_nsignals;
+                 std::size_t                                   m_IQ_nsignals;                
                  darray_r4_t                                   m_I_k_values;
                  darray_r4_t                                   m_I_T_values;
                  darray_r4_t                                   m_I_Ac_values;
                  darray_r4_t                                   m_I_fc_values;
-                 darray_r4_t                                   m_I_ph0_values;
-                 std::size_t                                   m_Q_nsamples;
+                 darray_r4_t                                   m_I_ph0_values;   
+                 std::size_t                                   m_Q_nsamples;  
                  darray_r4_t                                   m_Q_k_values;
                  darray_r4_t                                   m_Q_T_values;
                  darray_r4_t                                   m_Q_Ac_values;
@@ -157,6 +157,17 @@ namespace radiolocation
                        AVX_U4X_VEC_PATH,
                        AVX512_VEC_PATH,
                        AVX512_U4X_VEC_PATH
+                  };
+
+                  //Optional
+                  enum class IQ_rectw_bitstream_max_signal_components : std::size_t 
+                  {
+                       MAX_SIGNAL_COMPONENTS_25  = 25ull,
+                       MAX_SIGNAL_COMPONENTS_50  = 50ull,
+                       MAX_SIGNAL_COMPONENTS_100 = 100ull,
+                       MAX_SIGNAL_COMPONENTS_150 = 150ull,
+                       MAX_SIGNAL_COMPONENTS_200 = 200ull,
+                       MAX_SIGNAL_COMPONENTS_250 = 250ull
                   };
 
                   iq_rectw_bitstream_vsequence_t() noexcept(true);
@@ -197,49 +208,50 @@ namespace radiolocation
                                                    const bool );
                   
                   template<IQ_rectw_bitstreams_optim_path  optim_path,
-                           std::size_t nsignals_size>
+                           IQ_rectw_bitstream_max_signal_components max_signals>         
                   std::int32_t 
-                  generate_iq_rectw_bitstream_sequence_sse_u16x(const std::int32_t * __restrict__);
+                  generate_iq_rectw_bitstream_sequence_sse_u16x(std::int32_t * __restrict__,
+                                                                std::int32_t * __restrict__);
 
-                  template<IQ_rectw_bitstreams_optim_path  optim_path,
-                           std::size_t nsignals_size>
+                  template<IQ_rectw_bitstreams_optim_path  optim_path>                           
                   std::int32_t 
-                  generate_iq_rectw_bitstream_sequence_sse_u10x(const std::int32_t * __restrict__);
+                  generate_iq_rectw_bitstream_sequence_sse_u10x(std::int32_t * __restrict__);
+                                                                
 
-                  template<IQ_rectw_bitstreams_optim_path  optim_path,
-                           std::size_t nsignals_size>
+                  template<IQ_rectw_bitstreams_optim_path  optim_path>                          
                   std::int32_t 
-                  generate_iq_rectw_bitstream_sequence_sse_u6x(const std::int32_t * __restrict__);
+                  generate_iq_rectw_bitstream_sequence_sse_u6x(std::int32_t * __restrict__);
+                                                              
 
-                  template<IQ_rectw_bitstreams_optim_path  optim_path,
-                           std::size_t nsignals_size>
+                  template<IQ_rectw_bitstreams_optim_path  optim_path>                          
                   std::int32_t 
-                  generate_iq_rectw_bitstream_sequence_avx_u16x(const std::int32_t * __restrict__);
+                  generate_iq_rectw_bitstream_sequence_avx_u16x(std::int32_t * __restrict__);
+                                                                
 
-                  template<IQ_rectw_bitstreams_optim_path  optim_path,
-                           std::size_t nsignals_size>
+                  template<IQ_rectw_bitstreams_optim_path  optim_path>                          
                   std::int32_t 
-                  generate_iq_rectw_bitstream_sequence_avx_u10x(const std::int32_t * __restrict__);
+                  generate_iq_rectw_bitstream_sequence_avx_u10x(std::int32_t * __restrict__);
+                                                                
 
-                  template<IQ_rectw_bitstreams_optim_path  optim_path,
-                           std::size_t nsignals_size>
+                  template<IQ_rectw_bitstreams_optim_path  optim_path>                         
                   std::int32_t 
-                  generate_iq_rectw_bitstream_sequence_avx_u6x(const std::int32_t * __restrict__);
+                  generate_iq_rectw_bitstream_sequence_avx_u6x(std::int32_t * __restrict__);
+                                                               
 
-                  template<IQ_rectw_bitstreams_optim_path  optim_path,
-                           std::size_t nsignals_size>
+                  template<IQ_rectw_bitstreams_optim_path  optim_path>                          
                   std::int32_t 
-                  generate_iq_rectw_bitstream_sequence_avx512_u16x(const std::int32_t * __restrict__);
+                  generate_iq_rectw_bitstream_sequence_avx512_u16x(std::int32_t * __restrict__);
+                                                                   
 
-                  template<IQ_rectw_bitstreams_optim_path  optim_path,
-                           std::size_t nsignals_size>
+                  template<IQ_rectw_bitstreams_optim_path  optim_path>                           
                   std::int32_t 
-                  generate_iq_rectw_bitstream_sequence_avx512_u10x(const std::int32_t * __restrict__);
+                  generate_iq_rectw_bitstream_sequence_avx512_u10x(std::int32_t * __restrict__);
+                                                                   
 
-                  template<IQ_rectw_bitstreams_optim_path  optim_path,
-                           std::size_t nsignals_size>
+                  template<IQ_rectw_bitstreams_optim_path  optim_path>                          
                   std::int32_t 
-                  generate_iq_rectw_bitstream_sequence_avx512_u6x(const std::int32_t * __restrict__);
+                  generate_iq_rectw_bitstream_sequence_avx512_u6x(std::int32_t * __restrict__);
+                                                                  
 
           };
 
