@@ -205,7 +205,7 @@ namespace gms
 #endif                  
                            this->mnx = rhs.mnx;
                            this->allocate();
-                           std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+                           std::memcpy(this->m_data,&rhs.m_data[0],sizeof(std::complex<half_float::half>)*this->mnx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -240,7 +240,7 @@ namespace gms
                            gms_mm_free(this->m_data);
                            this->mnx = rhs.mnx;
                            this->allocate();
-                           std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+                           std::memcpy(this->m_data,&rhs.m_data[0],sizeof(std::complex<half_float::half>)*this->mnx);
                            return (*this);
                      } 
                       
@@ -413,7 +413,7 @@ namespace gms
 #endif                  
                            this->mnx = rhs.mnx;
                            this->allocate();
-                           std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+                           std::memcpy(this->m_data,&rhs.m_data[0],sizeof(std::complex<float>)*this->mnx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -451,7 +451,7 @@ namespace gms
                           gms_mm_free(this->m_data);
                           this->mnx = rhs.mnx;
                           this->allocate();
-                          std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+                          std::memcpy(this->m_data,&rhs.m_data[0],sizeof(std::complex<float>)*this->mnx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -629,7 +629,7 @@ namespace gms
 #endif                  
                            this->mnx = rhs.mnx;
                            this->allocate();
-                           std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+                           std::memcpy(this->m_data,&rhs.m_data[0],sizeof(std::complex<double>)*this->mnx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -667,7 +667,7 @@ namespace gms
                             gms_mm_free(this->m_data);
                             this->mnx = rhs.mnx;
                             this->allocate();
-                            std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+                            std::memcpy(this->m_data,&rhs.m_data[0],sizeof(std::complex<double>)*this->mnx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -848,7 +848,7 @@ namespace gms
 #endif                  
                            this->mnx = rhs.mnx;
                            this->allocate();
-                           std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+                           std::memcpy(this->m_data,&rhs.m_data[0],sizeof(half_float::half)*this->mnx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -887,7 +887,7 @@ namespace gms
                            gms_mm_free(this->m_data);
                            this->mnx = rhs.mnx;
                            this->allocate();
-                           std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+                           std::memcpy(this->m_data,&rhs.m_data[0],sizeof(half_float::half)*this->mnx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -957,8 +957,9 @@ namespace gms
                struct alignas(16) darray_r4_t final 
                {
                       
-                      float * __restrict               m_data;
                       std::size_t                      mnx;
+                      float * __restrict               m_data;
+                      
                                             
                      inline darray_r4_t() noexcept(true)
                      {
@@ -1066,7 +1067,7 @@ namespace gms
 #endif                  
                            this->mnx = rhs.mnx;
                            this->allocate();
-                           std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+                           std::memcpy(&this->m_data[0],&rhs.m_data[0],this->mnx*sizeof(float));
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -1106,7 +1107,7 @@ namespace gms
                            gms_mm_free(this->m_data);
                            this->mnx = rhs.mnx;
                            this->allocate();
-                           std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+                           std::memcpy(this->m_data,&rhs.m_data[0],this->mnx*sizeof(float));
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -1250,7 +1251,7 @@ namespace gms
                              
                       
                      inline  darray_r8_t(const std::size_t nx,
-                                         const float * __restrict data) noexcept(false)
+                                         const double * __restrict data) noexcept(false)
                      {
                                  
                           using namespace gms::common;
@@ -1260,7 +1261,7 @@ namespace gms
 #endif                          
                           this->mnx = nx;
                           allocate();
-                          const std::size_t lenx = sizeof(float)*this->mnx;
+                          const std::size_t lenx = sizeof(double)*this->mnx;
                           std::memcpy(this->m_data,&data[0],lenx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
@@ -1288,7 +1289,7 @@ namespace gms
 #endif                  
                            this->mnx = rhs.mnx;
                            this->allocate();
-                           std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+                           std::memcpy(this->m_data,&rhs.m_data[0],sizeof(double)*this->mnx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -1327,7 +1328,7 @@ namespace gms
                            gms_mm_free(this->m_data);
                            this->mnx = rhs.mnx;
                            this->allocate();
-                           std::memcpy(this->m_data,&rhs.m_data[0],this->mnx);
+                           std::memcpy(this->m_data,&rhs.m_data[0],sizeof(double)*this->mnx);
 #if (DYN_ARRAY_USE_PMC_INSTRUMENTATION) == 1
                HW_PMC_COLLECTION_EPILOGE_BODY
 
@@ -1339,14 +1340,11 @@ namespace gms
                      inline darray_r8_t & operator=(darray_r8_t &&rhs) noexcept(true)
                      {
                            using namespace gms::common;
-                           if(__builtin_expect(this==&rhs,0))  {return (*this);}
-                                                                           
+                           if(__builtin_expect(this==&rhs,0))  {return (*this);}                                                                           
                            gms_swap(this->mnx,rhs.mnx);
-                           gms_swap(this->m_data,rhs.m_data);
-                        
+                           gms_swap(this->m_data,rhs.m_data);                        
                            rhs.mnx       = 0ULL;
-                           rhs.m_data    = NULL;
-                           
+                           rhs.m_data    = NULL;                          
                            return (*this);
                       }
 
