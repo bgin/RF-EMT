@@ -276,8 +276,7 @@ gms::radiolocation
 {
        if(__builtin_expect(nullptr==I_ch_ret_codes,0)) { return (-1);}
        if(__builtin_expect(nullptr==Q_ch_ret_codes,0)) { return (-2);}
-       //if(__builtin_expect(this->m_IQ_nsignals>256ull,0)) { return (-2);}
-
+       
 #if (IQ_RECTW_BITSTREAM_VSEQUENCE_USE_PMC_INSTRUMENTATION) == 1
            PMC_VARS
            HW_PMC_COLLECTION_PROLOGE_BODY
@@ -1861,62 +1860,67 @@ gms::radiolocation
 
 
 template<gms::radiolocation::iq_rectw_bitstream_vsequence_t
-         ::IQ_rectw_bitstreams_optim_path  optim_path>        
+         ::IQ_rectw_bitstreams_optim_path  optim_path,
+         gms::radiolocation::iq_rectw_bitstream_vsequence_t
+         ::IQ_rectw_bitstream_max_signal_components max_signals>        
 std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
-::generate_iq_rectw_bitstream_sequence_sse_u10x(std::int32_t * ret_codes)
+::generate_iq_rectw_bitstream_sequence_sse_u10x(std::int32_t * __restrict__ I_ch_ret_codes,
+                                                std::int32_t * __restrict__ Q_ch_ret_codes) /* Size of IQ_signals and shall not exceed the value of max_signals*/
 {
-       if(__builtin_expect(nullptr==ret_codes,0)) { return (-1);}
-       if(__builtin_expect(this->m_IQ_nsignals>256ull,0)) { return (-2);}
+       if(__builtin_expect(nullptr==I_ch_ret_codes,0)) { return (-1);}
+       if(__builtin_expect(nullptr==Q_ch_ret_codes,0)) { return (-2);}
+       
 #if (IQ_RECTW_BITSTREAM_VSEQUENCE_USE_PMC_INSTRUMENTATION) == 1
            PMC_VARS
            HW_PMC_COLLECTION_PROLOGE_BODY
 #endif 
 
-        constexpr std::size_t nsignals_size{256ull};
+        constexpr std::size_t max_signals_buff_size{static_cast<std::size_t>(max_signals)};
+        static_assert(max_signals_buff_size>0ull,"Invalid [IQ_rectw_bitstream_max_signal] Parameter!!");
         __ATTR_ALIGN__(16) 
-        __m128 xmm0_i[nsignals_size];
+        __m128 xmm0_i[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm1_i[nsignals_size];
+        __m128 xmm1_i[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm2_i[nsignals_size];
+        __m128 xmm2_i[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm3_i[nsignals_size];
+        __m128 xmm3_i[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm4_i[nsignals_size];
+        __m128 xmm4_i[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm5_i[nsignals_size];
+        __m128 xmm5_i[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm6_i[nsignals_size];
+        __m128 xmm6_i[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm7_i[nsignals_size];
+        __m128 xmm7_i[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm8_i[nsignals_size];
+        __m128 xmm8_i[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm9_i[nsignals_size];
+        __m128 xmm9_i[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm0_q[nsignals_size];
+        __m128 xmm0_q[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm1_q[nsignals_size];
+        __m128 xmm1_q[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm2_q[nsignals_size];
+        __m128 xmm2_q[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm3_q[nsignals_size];
+        __m128 xmm3_q[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm4_q[nsignals_size];
+        __m128 xmm4_q[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm5_q[nsignals_size];
+        __m128 xmm5_q[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm6_q[nsignals_size];
+        __m128 xmm6_q[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm7_q[nsignals_size];
+        __m128 xmm7_q[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm8_q[nsignals_size];
+        __m128 xmm8_q[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm9_q[nsignals_size];
-        float scal_rem_i[nsignals_size];
-        float scal_rem_q[nsignals_size];
+        __m128 xmm9_q[max_signals_buff_size];
+        float scal_rem_i[max_signals_buff_size];
+        float scal_rem_q[max_signals_buff_size];
         __m128 vzero{_mm_setzero_ps()};
         __m128 sum0_i{vzero};
         __m128 sum1_i{sum0_i};
@@ -1946,49 +1950,56 @@ gms::radiolocation
         {          
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_scalar();
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_scalar();
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_scalar();
                 }            
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse();
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse();
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_sse();
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse_u4x();
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse_u4x();
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_sse_u4x();
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx(true);
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx_u4x(true);
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx_u4x(true);
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx512_u4x(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx512_u4x(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx512_u4x(true);
                 } 
         }
 
@@ -2611,30 +2622,48 @@ gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH>(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
                                               
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH>(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
                                               
 
 template std::int32_t 
@@ -2642,7 +2671,12 @@ gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH>(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
                                               
 
 template std::int32_t 
@@ -2650,7 +2684,12 @@ gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH>(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
                                              
 
 template std::int32_t 
@@ -2658,51 +2697,500 @@ gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH>(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
                                               
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);  
+
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);  
+
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__); 
+
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__); 
+
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);                                                                                                                                                                                                                             
 
 
 template<gms::radiolocation::iq_rectw_bitstream_vsequence_t
-         ::IQ_rectw_bitstreams_optim_path  optim_path>         
+         ::IQ_rectw_bitstreams_optim_path  optim_path,
+         gms::radiolocation::iq_rectw_bitstream_vsequence_t
+         ::IQ_rectw_bitstream_max_signal_components max_signals>         
 std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
-::generate_iq_rectw_bitstream_sequence_sse_u6x(std::int32_t * ret_codes)
+::generate_iq_rectw_bitstream_sequence_sse_u6x(std::int32_t * __restrict__ I_ch_ret_codes,
+                                               std::int32_t * __restrict__ Q_ch_ret_codes)
 {
-       if(__builtin_expect(nullptr==ret_codes,0)) { return (-1);}
-       if(__builtin_expect(this->m_IQ_nsignals>256ull,0)) { return (-2);}
+       if(__builtin_expect(nullptr==I_ch_ret_codes,0)) { return (-1);}
+       if(__builtin_expect(nullptr==Q_ch_ret_codes,0)) { return (-2);}
+
 #if (IQ_RECTW_BITSTREAM_VSEQUENCE_USE_PMC_INSTRUMENTATION) == 1
            PMC_VARS
            HW_PMC_COLLECTION_PROLOGE_BODY
 #endif 
        
-       constexpr std::size_t nsignals_size{256ull};
+        constexpr std::size_t max_signals_buff_size{static_cast<std::size_t>(max_signals)};
+        static_assert(max_signals_buff_size>0ull,"Invalid [IQ_rectw_bitstream_max_signal] Parameter!!");
         __ATTR_ALIGN__(16) 
-        __m128 xmm0_i[nsignals_size];
+        __m128 xmm0_i[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm1_i[nsignals_size];
+        __m128 xmm1_i[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm2_i[nsignals_size];
+        __m128 xmm2_i[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm3_i[nsignals_size];
+        __m128 xmm3_i[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm4_i[nsignals_size];
+        __m128 xmm4_i[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm5_i[nsignals_size];
+        __m128 xmm5_i[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm0_q[nsignals_size];
+        __m128 xmm0_q[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm1_q[nsignals_size];
+        __m128 xmm1_q[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm2_q[nsignals_size];
+        __m128 xmm2_q[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm3_q[nsignals_size];
+        __m128 xmm3_q[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm4_q[nsignals_size];
+        __m128 xmm4_q[max_signals_buff_size];
         __ATTR_ALIGN__(16) 
-        __m128 xmm5_q[nsignals_size];
-        float scal_rem_i[nsignals_size];
-        float scal_rem_q[nsignals_size];
+        __m128 xmm5_q[max_signals_buff_size];
+        float scal_rem_i[max_signals_buff_size];
+        float scal_rem_q[max_signals_buff_size];
         __m128 vzero{_mm_setzero_ps()};
         __m128 sum0_i{vzero};
         __m128 sum1_i{sum0_i};
@@ -2724,49 +3212,56 @@ gms::radiolocation
         {          
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_scalar();
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_scalar();
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_scalar();
                 }            
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse();
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse();
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_sse();
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse_u4x();
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse_u4x();
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_sse_u4x();
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx(true);
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx_u4x(true);
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx_u4x(true);
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx512_u4x(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx512_u4x(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx512_u4x(true);
                 } 
         }
 
@@ -3165,7 +3660,12 @@ gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH>(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
                                              
 
 template std::int32_t 
@@ -3173,7 +3673,12 @@ gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH>(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
                                              
 
 template std::int32_t 
@@ -3181,7 +3686,12 @@ gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH>(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
                                               
 
 template std::int32_t 
@@ -3189,7 +3699,12 @@ gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH>(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
                                               
 
 template std::int32_t 
@@ -3197,7 +3712,12 @@ gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH>(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
                                               
 
 template std::int32_t 
@@ -3205,7 +3725,12 @@ gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH>(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
                                               
 
 template std::int32_t 
@@ -3213,91 +3738,554 @@ gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);  
+
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__); 
+
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_sse_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);                                                                                                                                                                                                                    
 
 
 template<gms::radiolocation::iq_rectw_bitstream_vsequence_t
-         ::IQ_rectw_bitstreams_optim_path  optim_path>         
+         ::IQ_rectw_bitstreams_optim_path  optim_path,
+         gms::radiolocation::iq_rectw_bitstream_vsequence_t
+         ::IQ_rectw_bitstream_max_signal_components max_signals>         
 std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
-::generate_iq_rectw_bitstream_sequence_avx_u16x(std::int32_t * ret_codes)
+::generate_iq_rectw_bitstream_sequence_avx_u16x(std::int32_t * __restrict__ I_ch_ret_codes,
+                                                std::int32_t * __restrict__ Q_ch_ret_codes)
 {
-       if(__builtin_expect(nullptr==ret_codes,0)) { return (-1);}
-       if(__builtin_expect(this->m_IQ_nsignals>256ull,0)) { return (-2);}
+       if(__builtin_expect(nullptr==I_ch_ret_codes,0)) { return (-1);}
+       if(__builtin_expect(nullptr==Q_ch_ret_codes,0)) { return (-2);}
 #if (IQ_RECTW_BITSTREAM_VSEQUENCE_USE_PMC_INSTRUMENTATION) == 1
            PMC_VARS
            HW_PMC_COLLECTION_PROLOGE_BODY
 #endif 
 
-        constexpr std::size_t nsignals_size{256ull};
+        constexpr std::size_t max_signals_buff_size{static_cast<std::size_t>(max_signals)};
+        static_assert(max_signals_buff_size>0ull,"Invalid [IQ_rectw_bitstream_max_signal] Parameter!!");
         __ATTR_ALIGN__(32) 
-        __m256 xmm0_i[nsignals_size];
+        __m256 xmm0_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm1_i[nsignals_size];
+        __m256 xmm1_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm2_i[nsignals_size];
+        __m256 xmm2_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm3_i[nsignals_size];
+        __m256 xmm3_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm4_i[nsignals_size];
+        __m256 xmm4_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm5_i[nsignals_size];
+        __m256 xmm5_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm6_i[nsignals_size];
+        __m256 xmm6_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm7_i[nsignals_size];
+        __m256 xmm7_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm8_i[nsignals_size];
+        __m256 xmm8_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm9_i[nsignals_size];
+        __m256 xmm9_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm10_i[nsignals_size];
+        __m256 xmm10_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm11_i[nsignals_size];
+        __m256 xmm11_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm12_i[nsignals_size];
+        __m256 xmm12_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm13_i[nsignals_size];
+        __m256 xmm13_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm14_i[nsignals_size];
+        __m256 xmm14_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm15_i[nsignals_size];
+        __m256 xmm15_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm0_q[nsignals_size];
+        __m256 xmm0_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm1_q[nsignals_size];
+        __m256 xmm1_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm2_q[nsignals_size];
+        __m256 xmm2_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm3_q[nsignals_size];
+        __m256 xmm3_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm4_q[nsignals_size];
+        __m256 xmm4_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm5_q[nsignals_size];
+        __m256 xmm5_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm6_q[nsignals_size];
+        __m256 xmm6_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm7_q[nsignals_size];
+        __m256 xmm7_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm8_q[nsignals_size];
+        __m256 xmm8_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm9_q[nsignals_size];
+        __m256 xmm9_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm10_q[nsignals_size];
+        __m256 xmm10_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm11_q[nsignals_size];
+        __m256 xmm11_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm12_q[nsignals_size];
+        __m256 xmm12_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm13_q[nsignals_size];
+        __m256 xmm13_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm14_q[nsignals_size];
+        __m256 xmm14_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm15_q[nsignals_size];
-        float scal_rem_i[nsignals_size];
-        float scal_rem_q[nsignals_size];
+        __m256 xmm15_q[max_signals_buff_size];
+        float scal_rem_i[max_signals_buff_size];
+        float scal_rem_q[max_signals_buff_size];
         __m256 vzero{_mm256_setzero_ps()};
         __m256 sum0_i{vzero};
         __m256 sum1_i{sum0_i};
@@ -3339,49 +4327,56 @@ gms::radiolocation
         {          
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_scalar();
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_scalar();
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_scalar();
                 }            
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse();
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse();
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_sse();
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse_u4x();
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse_u4x();
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_sse_u4x();
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx(true);
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx_u4x(true);
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx_u4x(true);
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx512_u4x(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx512_u4x(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx512_u4x(true);
                 } 
         }
 
@@ -4499,115 +5494,579 @@ gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+                                             
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+                                              
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+                                             
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+                                             
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+                                             
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+                                             
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH, 
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+                                             
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u16x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__, 
+                                                                        std::int32_t * __restrict__);
+
+
+
+
+
 
 
 template<gms::radiolocation::iq_rectw_bitstream_vsequence_t
-         ::IQ_rectw_bitstreams_optim_path  optim_path>        
+         ::IQ_rectw_bitstreams_optim_path  optim_path,
+         gms::radiolocation::iq_rectw_bitstream_vsequence_t
+         ::IQ_rectw_bitstream_max_signal_components max_signals>        
 std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
-::generate_iq_rectw_bitstream_sequence_avx_u10x(std::int32_t * ret_codes)
+::generate_iq_rectw_bitstream_sequence_avx_u10x(std::int32_t * __restrict__ I_ch_ret_codes,
+                                                std::int32_t * __restrict__ Q_ch_ret_codes)
 {
-       if(__builtin_expect(nullptr==ret_codes,0)) { return (-1);}
-       if(__builtin_expect(this->m_IQ_nsignals>256ull,0)) { return (-2);}
+       if(__builtin_expect(nullptr==I_ch_ret_codes,0)) { return (-1);}
+       if(__builtin_expect(nullptr==Q_ch_ret_codes,0)) { return (-2);}
 #if (IQ_RECTW_BITSTREAM_VSEQUENCE_USE_PMC_INSTRUMENTATION) == 1
            PMC_VARS
            HW_PMC_COLLECTION_PROLOGE_BODY
 #endif 
 
-        constexpr std::size_t nsignals_size{256ull};
+        constexpr std::size_t max_signals_buff_size{static_cast<std::size_t>(max_signals)};
+        static_assert(max_signals_buff_size>0ull,"Invalid [IQ_rectw_bitstream_max_signal] Parameter!!");
         __ATTR_ALIGN__(32) 
-        __m256 xmm0_i[nsignals_size];
+        __m256 xmm0_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm1_i[nsignals_size];
+        __m256 xmm1_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm2_i[nsignals_size];
+        __m256 xmm2_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm3_i[nsignals_size];
+        __m256 xmm3_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm4_i[nsignals_size];
+        __m256 xmm4_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm5_i[nsignals_size];
+        __m256 xmm5_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm6_i[nsignals_size];
+        __m256 xmm6_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm7_i[nsignals_size];
+        __m256 xmm7_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm8_i[nsignals_size];
+        __m256 xmm8_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm9_i[nsignals_size];
+        __m256 xmm9_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm0_q[nsignals_size];
+        __m256 xmm0_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm1_q[nsignals_size];
+        __m256 xmm1_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm2_q[nsignals_size];
+        __m256 xmm2_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm3_q[nsignals_size];
+        __m256 xmm3_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm4_q[nsignals_size];
+        __m256 xmm4_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm5_q[nsignals_size];
+        __m256 xmm5_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm6_q[nsignals_size];
+        __m256 xmm6_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm7_q[nsignals_size];
+        __m256 xmm7_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm8_q[nsignals_size];
+        __m256 xmm8_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm9_q[nsignals_size];
-        float scal_rem_i[nsignals_size];
-        float scal_rem_q[nsignals_size];
+        __m256 xmm9_q[max_signals_buff_size];
+        float scal_rem_i[max_signals_buff_size];
+        float scal_rem_q[max_signals_buff_size];
         __m256 vzero{_mm256_setzero_ps()};
         __m256 sum0_i{vzero};
         __m256 sum1_i{sum0_i};
@@ -4637,49 +6096,56 @@ gms::radiolocation
         {          
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_scalar();
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_scalar();
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_scalar();
                 }            
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse();
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse();
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_sse();
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse_u4x();
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse_u4x();
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse_u4x();
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx(true);
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx_u4x(true);
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx_u4x(true);
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx512_u4x(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx512_u4x(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx512_u4x(true);
                 } 
         }
 
@@ -5284,99 +6750,566 @@ gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+                                              
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+                                              
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+                                              
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH, 
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u10x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                               gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t  * __restrict__);
+                                                                      
+                                                           
+
 
 
 template<gms::radiolocation::iq_rectw_bitstream_vsequence_t
-         ::IQ_rectw_bitstreams_optim_path  optim_path>         
+         ::IQ_rectw_bitstreams_optim_path  optim_path,
+         gms::radiolocation::iq_rectw_bitstream_vsequence_t
+         ::IQ_rectw_bitstream_max_signal_components max_signals>         
 std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
-::generate_iq_rectw_bitstream_sequence_avx_u6x(std::int32_t * ret_codes)
+::generate_iq_rectw_bitstream_sequence_avx_u6x(std::int32_t * __restrict__ I_ch_ret_codes,
+                                               std::int32_t * __restrict__ Q_ch_ret_codes)
 {
-       if(__builtin_expect(nullptr==ret_codes,0)) { return (-1);}
-       if(__builtin_expect(this->m_IQ_nsignals>256ull,0)) { return (-2);}
+       if(__builtin_expect(nullptr==I_ch_ret_codes,0)) { return (-1);}
+       if(__builtin_expect(nullptr==Q_ch_ret_codes,0)) { return (-2);}
 #if (IQ_RECTW_BITSTREAM_VSEQUENCE_USE_PMC_INSTRUMENTATION) == 1
            PMC_VARS
            HW_PMC_COLLECTION_PROLOGE_BODY
 #endif 
 
-        constexpr std::size_t nsignals_size{256ull};
+        constexpr std::size_t max_signals_buff_size{static_cast<std::size_t>(max_signals)};
+        static_assert(max_signals_buff_size>0ull,"Invalid [IQ_rectw_bitstream_max_signal] Parameter!!");
         __ATTR_ALIGN__(32) 
-        __m256 xmm0_i[nsignals_size];
+        __m256 xmm0_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm1_i[nsignals_size];
+        __m256 xmm1_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm2_i[nsignals_size];
+        __m256 xmm2_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm3_i[nsignals_size];
+        __m256 xmm3_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm4_i[nsignals_size];
+        __m256 xmm4_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm5_i[nsignals_size];
+        __m256 xmm5_i[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm0_q[nsignals_size];
+        __m256 xmm0_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm1_q[nsignals_size];
+        __m256 xmm1_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm2_q[nsignals_size];
+        __m256 xmm2_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm3_q[nsignals_size];
+        __m256 xmm3_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm4_q[nsignals_size];
+        __m256 xmm4_q[max_signals_buff_size];
         __ATTR_ALIGN__(32) 
-        __m256 xmm5_q[nsignals_size];
-        float scal_rem_i[nsignals_size];
-        float scal_rem_q[nsignals_size];
+        __m256 xmm5_q[max_signals_buff_size];
+        float scal_rem_i[max_signals_buff_size];
+        float scal_rem_q[max_signals_buff_size];
         __m256 vzero{_mm256_setzero_ps()};
         __m256 sum0_i{vzero};
         __m256 sum1_i{sum0_i};
@@ -5398,49 +7331,56 @@ gms::radiolocation
         {          
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_scalar();
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_scalar();
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_scalar();
                 }            
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse();
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse();
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_sse();
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse_u4x();
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_sse_u4x();
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_sse_u4x();
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx(true);
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx_u4x(true);
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx_u4x(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx_u4x(true);
                 } 
         }
         else if constexpr(optim_path == IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH)
         {
                 for(std::size_t k{0ull}; k != this->m_IQ_nsignals; ++k) 
                 {
-                    ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx512_u4x(true);
+                    I_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_I_channel_bitstream_avx512_u4x(true);
+                    Q_ch_ret_codes[k] = this->m_iq_rectw_bitstreams.operator[](k).generate_Q_channel_bitstream_avx512_u4x(true);
                 } 
         }
 
@@ -5826,56 +7766,511 @@ gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
 
 template std::int32_t 
 gms::radiolocation
 ::iq_rectw_bitstream_vsequence_t
 ::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
                                               iq_rectw_bitstream_vsequence_t::
-                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH
-                                              >(std::int32_t * __restrict__);
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_25>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_50>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_100>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_150>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_200>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SCALAR_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+                                             
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::SSE_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
+
+template std::int32_t 
+gms::radiolocation
+::iq_rectw_bitstream_vsequence_t
+::generate_iq_rectw_bitstream_sequence_avx_u6x<gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstreams_optim_path::AVX512_U4X_VEC_PATH,
+                                              gms::radiolocation::
+                                              iq_rectw_bitstream_vsequence_t::
+                                              IQ_rectw_bitstream_max_signal_components::
+                                              MAX_SIGNAL_COMPONENTS_250>(std::int32_t * __restrict__,
+                                                                        std::int32_t * __restrict__);
 
 
 template<gms::radiolocation::iq_rectw_bitstream_vsequence_t

@@ -207,35 +207,48 @@ namespace radiolocation
                                                    const std::string &,
                                                    const bool );
                   
+                  /*Important!!: -- The size of two input data arrays must be equal to m_IQ_signals and must not exceed the 
+                                  template argument max_signals*/
+
                   template<IQ_rectw_bitstreams_optim_path  optim_path,
                            IQ_rectw_bitstream_max_signal_components max_signals>         
                   std::int32_t 
                   generate_iq_rectw_bitstream_sequence_sse_u16x(std::int32_t * __restrict__,
                                                                 std::int32_t * __restrict__);
-
-                  template<IQ_rectw_bitstreams_optim_path  optim_path>                           
+                                                                
+                  template<IQ_rectw_bitstreams_optim_path  optim_path,
+                           IQ_rectw_bitstream_max_signal_components max_signals>                          
                   std::int32_t 
-                  generate_iq_rectw_bitstream_sequence_sse_u10x(std::int32_t * __restrict__);
+                  generate_iq_rectw_bitstream_sequence_sse_u10x(std::int32_t * __restrict__,
+                                                                std::int32_t * __restrict__);
                                                                 
 
-                  template<IQ_rectw_bitstreams_optim_path  optim_path>                          
+                  template<IQ_rectw_bitstreams_optim_path  optim_path,
+                           IQ_rectw_bitstream_max_signal_components max_signals>                          
                   std::int32_t 
-                  generate_iq_rectw_bitstream_sequence_sse_u6x(std::int32_t * __restrict__);
+                  generate_iq_rectw_bitstream_sequence_sse_u6x(std::int32_t * __restrict__,
+                                                               std::int32_t * __restrict__);
                                                               
 
-                  template<IQ_rectw_bitstreams_optim_path  optim_path>                          
+                  template<IQ_rectw_bitstreams_optim_path  optim_path,
+                           IQ_rectw_bitstream_max_signal_components max_signals>                          
                   std::int32_t 
-                  generate_iq_rectw_bitstream_sequence_avx_u16x(std::int32_t * __restrict__);
+                  generate_iq_rectw_bitstream_sequence_avx_u16x(std::int32_t * __restrict__,
+                                                                std::int32_t * __restrict__);
                                                                 
 
-                  template<IQ_rectw_bitstreams_optim_path  optim_path>                          
+                  template<IQ_rectw_bitstreams_optim_path  optim_path,
+                           IQ_rectw_bitstream_max_signal_components max_signals>                          
                   std::int32_t 
-                  generate_iq_rectw_bitstream_sequence_avx_u10x(std::int32_t * __restrict__);
+                  generate_iq_rectw_bitstream_sequence_avx_u10x(std::int32_t * __restrict__,
+                                                                std::int32_t * __restrict__);
                                                                 
 
-                  template<IQ_rectw_bitstreams_optim_path  optim_path>                         
+                  template<IQ_rectw_bitstreams_optim_path  optim_path,
+                           IQ_rectw_bitstream_max_signal_components max_signals>                         
                   std::int32_t 
-                  generate_iq_rectw_bitstream_sequence_avx_u6x(std::int32_t * __restrict__);
+                  generate_iq_rectw_bitstream_sequence_avx_u6x(std::int32_t * __restrict__,
+                                                               std::int32_t * __restrict__);
                                                                
 
                   template<IQ_rectw_bitstreams_optim_path  optim_path>                          
