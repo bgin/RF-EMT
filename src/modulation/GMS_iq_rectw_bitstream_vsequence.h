@@ -251,9 +251,11 @@ namespace radiolocation
                                                                std::int32_t * __restrict__);
                                                                
 
-                  template<IQ_rectw_bitstreams_optim_path  optim_path>                          
+                  template<IQ_rectw_bitstreams_optim_path  optim_path,
+                           IQ_rectw_bitstream_max_signal_components max_signals>                          
                   std::int32_t 
-                  generate_iq_rectw_bitstream_sequence_avx512_u16x(std::int32_t * __restrict__);
+                  generate_iq_rectw_bitstream_sequence_avx512_u16x(std::int32_t * __restrict__,
+                                                                   std::int32_t * __restrict__);
                                                                    
 
                   template<IQ_rectw_bitstreams_optim_path  optim_path>                           
