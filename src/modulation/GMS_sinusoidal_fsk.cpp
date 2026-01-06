@@ -2333,17 +2333,18 @@ gms::radiolocation
 {
      using namespace gms::math;
      using namespace gms::common;
-     if(__builtin_expect(iq_bitstream_vsequence.m_I_nsamples!=this->m_I_ch_nsamples,0)) { return (-19);}
-     if(__builtin_expect(iq_bitstream_vsequence.m_Q_nsamples!=this->m_Q_ch_nsamples,0)) { return (-20);};
+     if(__builtin_expect(iq_bitstream_vsequence.m_I_nsamples!=this->m_sfsk_nsamples,0)) { return (-19);}
+     if(__builtin_expect(iq_bitstream_vsequence.m_Q_nsamples!=this->m_sfsk_nsamples,0)) { return (-20);};
 
      if(__builtin_expect(use_iq_bitstream_vsequence==true,1)) 
-     {          
+     {        
+          
           avx_memcpy_unroll8x_ps(&this->m_I_ch_bitstream.m_data[0],
                                  &iq_bitstream_vsequence.m_I_vsequence.m_data[0],
-                                 this->m_I_ch_nsamples);
+                                 this->m_sfsk_nsamples);
           avx_memcpy_unroll8x_ps(&this->m_Q_ch_bitstream.m_data[0],
                                  &iq_bitstream_vsequence.m_Q_vsequence.m_data[0],
-                                 this->m_Q_ch_nsamples);
+                                 this->m_sfsk_nsamples);
      }
      else 
      {
@@ -2888,17 +2889,17 @@ gms::radiolocation
 {
      using namespace gms::math;
      using namespace gms::common;
-     if(__builtin_expect(iq_bitstream_vsequence.m_I_nsamples!=this->m_I_ch_nsamples,0)) { return (-19);}
-     if(__builtin_expect(iq_bitstream_vsequence.m_Q_nsamples!=this->m_Q_ch_nsamples,0)) { return (-20);};
+     if(__builtin_expect(iq_bitstream_vsequence.m_I_nsamples!=this->m_sfsk_nsamples,0)) { return (-19);}
+     if(__builtin_expect(iq_bitstream_vsequence.m_Q_nsamples!=this->m_sfsk_nsamples,0)) { return (-20);};
 
      if(__builtin_expect(use_iq_bitstream_vsequence==true,1)) 
      {          
           avx512_memcpy_unroll8x_ps(&this->m_I_ch_bitstream.m_data[0],
                                  &iq_bitstream_vsequence.m_I_vsequence.m_data[0],
-                                 this->m_I_ch_nsamples);
+                                 this->m_sfsk_nsamples);
           avx512_memcpy_unroll8x_ps(&this->m_Q_ch_bitstream.m_data[0],
                                  &iq_bitstream_vsequence.m_Q_vsequence.m_data[0],
-                                 this->m_Q_ch_nsamples);
+                                 this->m_sfsk_nsamples);
      }
      else 
      {
