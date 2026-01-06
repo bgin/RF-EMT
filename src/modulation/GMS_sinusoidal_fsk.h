@@ -45,6 +45,7 @@ namespace file_info
 #include "GMS_config.h"
 #include "GMS_dyn_array.h"
 #include "GMS_sse_memset.h"
+#include "GMS_iq_rectw_bitstream_vsequence.h"
 #include "GMS_loop_indices_LUT.h"
 
 // Enable non-temporal stores for this class only( used with free-standing operators)
@@ -2090,8 +2091,10 @@ namespace radiolocation
                   template<I_channel_bitstream_optimized_path I_ch_path,
                            Q_channel_bitstream_optimized_path Q_ch_path,
                            pulse_shaping_function_optimized_path psf_path>
-                  std::int32_t  generate_fsk_signal_u8x(const std::int32_t,
+                  std::int32_t  generate_fsk_signal_u8x(const iq_rectw_bitstream_vsequence_t &,
                                                         const std::int32_t,
+                                                        const std::int32_t,
+                                                        const bool,
                                                         const bool,
                                                         const bool,
                                                         const bool);
@@ -2100,8 +2103,10 @@ namespace radiolocation
                  template<I_channel_bitstream_optimized_path I_ch_path,
                            Q_channel_bitstream_optimized_path Q_ch_path,
                            pulse_shaping_function_optimized_path psf_path> 
-                std::int32_t generate_fsk_signal_sse_u4x(const std::int32_t,
+                std::int32_t generate_fsk_signal_sse_u4x(const iq_rectw_bitstream_vsequence_t &,
                                                          const std::int32_t,
+                                                         const std::int32_t,
+                                                         const bool,
                                                          const bool,
                                                          const bool,
                                                          const bool,
@@ -2111,8 +2116,10 @@ namespace radiolocation
                  template<I_channel_bitstream_optimized_path I_ch_path,
                            Q_channel_bitstream_optimized_path Q_ch_path,
                            pulse_shaping_function_optimized_path psf_path>   
-                std::int32_t generate_fsk_signal_avx_u4x(const std::int32_t,
+                std::int32_t generate_fsk_signal_avx_u4x(const iq_rectw_bitstream_vsequence_t &,
                                                          const std::int32_t,
+                                                         const std::int32_t,
+                                                         const bool,
                                                          const bool,
                                                          const bool,
                                                          const bool,
@@ -2122,8 +2129,10 @@ namespace radiolocation
                  template<I_channel_bitstream_optimized_path I_ch_path,
                           Q_channel_bitstream_optimized_path Q_ch_path,
                           pulse_shaping_function_optimized_path psf_path>
-                 std::int32_t generate_fsk_signal_avx512_u4x(const std::int32_t,
+                 std::int32_t generate_fsk_signal_avx512_u4x(const iq_rectw_bitstream_vsequence_t &,
                                                              const std::int32_t,
+                                                             const std::int32_t,
+                                                             const bool,
                                                              const bool,
                                                              const bool,
                                                              const bool,

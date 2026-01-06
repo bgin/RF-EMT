@@ -2,6 +2,9 @@
 #include <fstream>
 #include <iomanip>
 #include "GMS_sinusoidal_fsk.h"
+#include "GMS_sse_memcpy.h"
+#include "GMS_avx_memcpy.h"
+#include "GMS_avx512_memcpy.h"
 
 gms::radiolocation
 ::sinusoidal_fsk_t
@@ -1144,117 +1147,134 @@ template<gms::radiolocation
 std::int32_t 
 gms::radiolocation
 ::sinusoidal_fsk_t
-::generate_fsk_signal_u8x(const std::int32_t I_ch_samples_len,
+::generate_fsk_signal_u8x(const iq_rectw_bitstream_vsequence_t &iq_bitstream_vsequence,
+                          const std::int32_t I_ch_samples_len,
                           const std::int32_t Q_ch_samples_len,
                           const bool I_ch_do_const_prefetch,
                           const bool Q_ch_do_const_prefetch,
-                          const bool psfunc_do_const_prefetch)
+                          const bool psfunc_do_const_prefetch,
+                          const bool use_iq_bitstream_vsequence)
 {
      using namespace gms::math;
-      if constexpr (I_ch_path == I_channel_bitstream_optimized_path::default_scalar_path)
-     {
-          std::int32_t ret_stat_scalar = this->generate_I_channel_bitstream(I_ch_samples_len);
-          if(__builtin_expect(ret_stat_scalar<0,0)) { return (-1);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_sse_path)
-     {
-          std::int32_t ret_stat_sse    = this->generate_I_channel_bitstream_sse();
-          if(__builtin_expect(ret_stat_sse<0,0))    { return (-2);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_sse_u4x_path)
-     {
-          std::int32_t ret_stat_sse_u4x = this->generate_I_channel_bitstream_sse_u4x();
-          if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-3);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx_path)
-     {
-          std::int32_t ret_stat_avx     = this->generate_I_channel_bitstream_avx(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx<0,0))     {return (-4);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx_u4x_path)
-     {
-          std::int32_t ret_stat_avx_u4x = this->generate_I_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-5);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx512_path)
-     {
-          std::int32_t ret_stat_avx512  = this->generate_I_channel_bitstream_avx512(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx512<0,0))  { return (-6);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx512_u4x_path)
-     {
-          std::int32_t ret_stat_avx512_u4x= this->generate_I_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-7);}
-     }
-     else
-     {
-          return (-9999);
-     }
+     if(__builtin_expect(iq_bitstream_vsequence.m_I_nsamples!=this->m_I_ch_nsamples,0)) { return (-19);}
+     if(__builtin_expect(iq_bitstream_vsequence.m_Q_nsamples!=this->m_Q_ch_nsamples,0)) { return (-20);};
 
-     if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::default_scalar_path)
+     if(__builtin_expect(use_iq_bitstream_vsequence==true,1))
      {
-          std::int32_t ret_stat_scalar = this->generate_Q_channel_bitstream(Q_ch_samples_len);
-          if(__builtin_expect(ret_stat_scalar<0,0)) { return (-8);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_sse_path)
-     {
-          std::int32_t ret_stat_sse    = this->generate_Q_channel_bitstream_sse();
-          if(__builtin_expect(ret_stat_sse<0,0))    { return (-9);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_sse_u4x_path)
-     {
-          std::int32_t ret_stat_sse_u4x = this->generate_Q_channel_bitstream_sse_u4x();
-          if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-10);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx_path)
-     {
-          std::int32_t ret_stat_avx     = this->generate_Q_channel_bitstream_avx(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx<0,0))     {return (-11);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx_u4x_path)
-     {
-          std::int32_t ret_stat_avx_u4x = this->generate_Q_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-12);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx512_path)
-     {
-          std::int32_t ret_stat_avx512  = this->generate_Q_channel_bitstream_avx512(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx512<0,0))  { return (-13);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx512_u4x_path)
-     {
-           std::int32_t ret_stat_avx512_u4x= this->generate_Q_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
-           if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-14);}
+          std::memcpy(&this->m_I_ch_bitstream.m_data[0],&iq_bitstream_vsequence.m_I_vsequence.m_data[0],
+                      this->m_I_ch_nsamples*sizeof(float));
+          std::memcpy(&this->m_Q_ch_bitstream.m_data[0],&iq_bitstream_vsequence.m_Q_vsequence.m_data[0],
+                      this->m_Q_ch_nsamples*sizeof(float));
      }
      else 
      {
-          return (-9999);
+
+     
+          if constexpr (I_ch_path == I_channel_bitstream_optimized_path::default_scalar_path)
+          {
+              std::int32_t ret_stat_scalar = this->generate_I_channel_bitstream(I_ch_samples_len);
+              if(__builtin_expect(ret_stat_scalar<0,0)) { return (-1);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_sse_path)
+          {
+              std::int32_t ret_stat_sse    = this->generate_I_channel_bitstream_sse();
+              if(__builtin_expect(ret_stat_sse<0,0))    { return (-2);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_sse_u4x_path)
+          {
+              std::int32_t ret_stat_sse_u4x = this->generate_I_channel_bitstream_sse_u4x();
+              if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-3);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx_path)
+          {
+              std::int32_t ret_stat_avx     = this->generate_I_channel_bitstream_avx(I_ch_do_const_prefetch);
+              if(__builtin_expect(ret_stat_avx<0,0))     {return (-4);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx_u4x_path)
+          {
+              std::int32_t ret_stat_avx_u4x = this->generate_I_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
+              if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-5);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx512_path)
+          {
+              std::int32_t ret_stat_avx512  = this->generate_I_channel_bitstream_avx512(I_ch_do_const_prefetch);
+              if(__builtin_expect(ret_stat_avx512<0,0))  { return (-6);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx512_u4x_path)
+          {
+              std::int32_t ret_stat_avx512_u4x= this->generate_I_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
+              if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-7);}
+          }
+          else
+          {
+               return (-9999);
+          }
+
+          if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::default_scalar_path)
+          {
+              std::int32_t ret_stat_scalar = this->generate_Q_channel_bitstream(Q_ch_samples_len);
+              if(__builtin_expect(ret_stat_scalar<0,0)) { return (-8);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_sse_path)
+          {
+              std::int32_t ret_stat_sse    = this->generate_Q_channel_bitstream_sse();
+              if(__builtin_expect(ret_stat_sse<0,0))    { return (-9);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_sse_u4x_path)
+          {
+              std::int32_t ret_stat_sse_u4x = this->generate_Q_channel_bitstream_sse_u4x();
+              if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-10);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx_path)
+          {
+              std::int32_t ret_stat_avx     = this->generate_Q_channel_bitstream_avx(I_ch_do_const_prefetch);
+              if(__builtin_expect(ret_stat_avx<0,0))     {return (-11);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx_u4x_path)
+          {
+              std::int32_t ret_stat_avx_u4x = this->generate_Q_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
+              if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-12);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx512_path)
+          {
+              std::int32_t ret_stat_avx512  = this->generate_Q_channel_bitstream_avx512(I_ch_do_const_prefetch);
+              if(__builtin_expect(ret_stat_avx512<0,0))  { return (-13);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx512_u4x_path)
+          {
+              std::int32_t ret_stat_avx512_u4x= this->generate_Q_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
+              if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-14);}
+          }
+          else 
+          {
+             return (-9999);
+          }
      }
 
-     if constexpr (psf_path == pulse_shaping_function_optimized_path::default_scalar_path)
-     {
-          std::int32_t ret_stat_scalar = this->generate_pulse_shaping_function_u8x();
-          if(__builtin_expect(ret_stat_scalar<0,0)) { return (-15);}
-     }
-     else if constexpr (psf_path == pulse_shaping_function_optimized_path::vector_sse_path)
-     {
-          std::int32_t ret_stat_sse    = this->generate_pulse_shaping_function_sse_u4x(psfunc_do_const_prefetch);
-          if(__builtin_expect(ret_stat_sse<0,0))    { return (-16);}
-     }
-     else if constexpr (psf_path == pulse_shaping_function_optimized_path::vector_avx_path)
-     {
-          std::int32_t ret_stat_avx    = this->generate_pulse_shaping_function_avx_u4x(psfunc_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx<0,0))    { return (-17);}
-     }
-     else if constexpr (psf_path == pulse_shaping_function_optimized_path::vector_avx512_path)
-     {
-          std::int32_t ret_stat_avx512 = this->generate_pulse_shaping_function_avx512_u4x(psfunc_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx512<0,0))  { return (-18);}
-     }
-     else 
-     {
-          return (-9999);
-     }
+          if constexpr (psf_path == pulse_shaping_function_optimized_path::default_scalar_path)
+          {
+              std::int32_t ret_stat_scalar = this->generate_pulse_shaping_function_u8x();
+              if(__builtin_expect(ret_stat_scalar<0,0)) { return (-15);}
+          }
+          else if constexpr (psf_path == pulse_shaping_function_optimized_path::vector_sse_path)
+          {
+              std::int32_t ret_stat_sse    = this->generate_pulse_shaping_function_sse_u4x(psfunc_do_const_prefetch);
+              if(__builtin_expect(ret_stat_sse<0,0))    { return (-16);}
+          }
+          else if constexpr (psf_path == pulse_shaping_function_optimized_path::vector_avx_path)
+          {
+              std::int32_t ret_stat_avx    = this->generate_pulse_shaping_function_avx_u4x(psfunc_do_const_prefetch);
+              if(__builtin_expect(ret_stat_avx<0,0))    { return (-17);}
+          }
+          else if constexpr (psf_path == pulse_shaping_function_optimized_path::vector_avx512_path)
+          {
+              std::int32_t ret_stat_avx512 = this->generate_pulse_shaping_function_avx512_u4x(psfunc_do_const_prefetch);
+              if(__builtin_expect(ret_stat_avx512<0,0))  { return (-18);}
+          }
+          else 
+          {
+               return (-9999);
+          }
      constexpr std::size_t LUT_loop_idx_threshold{2257ull};
      constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
      constexpr float C314159265358979323846264338328{3.14159265358979323846264338328f};
@@ -1564,8 +1584,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_u8x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::default_scalar_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::default_scalar_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::default_scalar_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::default_scalar_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                                                    const std::int32_t,
+                                                                                                                                   const std::int32_t,
+                                                                                                                                   const bool,
                                                                                                                                    const bool,
                                                                                                                                    const bool,
                                                                                                                                    const bool);
@@ -1576,8 +1598,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_u8x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_sse_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_sse_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_sse_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_sse_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                                                const std::int32_t,
+                                                                                                                               const std::int32_t,
+                                                                                                                               const bool,
                                                                                                                                const bool,
                                                                                                                                const bool,
                                                                                                                                const bool);
@@ -1588,8 +1612,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_u8x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_sse_u4x_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_sse_u4x_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_sse_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_sse_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                                                const std::int32_t,
+                                                                                                                               const std::int32_t,
+                                                                                                                               const bool,
                                                                                                                                const bool,
                                                                                                                                const bool,
                                                                                                                                const bool);
@@ -1600,8 +1626,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_u8x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                                                const std::int32_t,
+                                                                                                                               const std::int32_t,
+                                                                                                                               const bool,
                                                                                                                                const bool,
                                                                                                                                const bool,
                                                                                                                                const bool);
@@ -1612,8 +1640,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_u8x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx_u4x_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx_u4x_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                                                const std::int32_t,
+                                                                                                                               const std::int32_t,
+                                                                                                                               const bool,
                                                                                                                                const bool,
                                                                                                                                const bool,
                                                                                                                                const bool);
@@ -1624,8 +1654,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_u8x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx512_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx512_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx512_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx512_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                                                   const std::int32_t,
+                                                                                                                                  const std::int32_t,
+                                                                                                                                  const bool,
                                                                                                                                   const bool,
                                                                                                                                   const bool,
                                                                                                                                   const bool);
@@ -1636,8 +1668,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_u8x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx512_u4x_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx512_u4x_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx512_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx512_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                                                   const std::int32_t,
+                                                                                                                                  const std::int32_t,
+                                                                                                                                  const bool,
                                                                                                                                   const bool,
                                                                                                                                   const bool,
                                                                                                                                   const bool);
@@ -1685,92 +1719,112 @@ template<gms::radiolocation
 std::int32_t 
 gms::radiolocation
 ::sinusoidal_fsk_t
-::generate_fsk_signal_sse_u4x(const std::int32_t I_ch_samples_len,
+::generate_fsk_signal_sse_u4x(const iq_rectw_bitstream_vsequence_t &iq_bitstream_vsequence,
+                              const std::int32_t I_ch_samples_len,
                               const std::int32_t Q_ch_samples_len,
                               const bool I_ch_do_const_prefetch,
                               const bool Q_ch_do_const_prefetch,
                               const bool psfunc_do_const_prefetch,
-                              const bool do_const_prefetch)
+                              const bool do_const_prefetch,
+                              const bool use_iq_bitstream_vsequence)
 {
      using namespace gms::math;
-      if constexpr (I_ch_path == I_channel_bitstream_optimized_path::default_scalar_path)
-     {
-          std::int32_t ret_stat_scalar = this->generate_I_channel_bitstream(I_ch_samples_len);
-          if(__builtin_expect(ret_stat_scalar<0,0)) { return (-1);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_sse_path)
-     {
-          std::int32_t ret_stat_sse    = this->generate_I_channel_bitstream_sse();
-          if(__builtin_expect(ret_stat_sse<0,0))    { return (-2);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_sse_u4x_path)
-     {
-          std::int32_t ret_stat_sse_u4x = this->generate_I_channel_bitstream_sse_u4x();
-          if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-3);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx_path)
-     {
-          std::int32_t ret_stat_avx     = this->generate_I_channel_bitstream_avx(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx<0,0))     {return (-4);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx_u4x_path)
-     {
-          std::int32_t ret_stat_avx_u4x = this->generate_I_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-5);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx512_path)
-     {
-          std::int32_t ret_stat_avx512  = this->generate_I_channel_bitstream_avx512(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx512<0,0))  { return (-6);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx512_u4x_path)
-     {
-          std::int32_t ret_stat_avx512_u4x= this->generate_I_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-7);}
-     }
-     else
-     {
-          return (-9999);
-     }
+     using namespace gms::common; 
+     if(__builtin_expect(iq_bitstream_vsequence.m_I_nsamples!=this->m_I_ch_nsamples,0)) { return (-19);}
+     if(__builtin_expect(iq_bitstream_vsequence.m_Q_nsamples!=this->m_Q_ch_nsamples,0)) { return (-20);};
 
-     if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::default_scalar_path)
-     {
-          std::int32_t ret_stat_scalar = this->generate_Q_channel_bitstream(Q_ch_samples_len);
-          if(__builtin_expect(ret_stat_scalar<0,0)) { return (-8);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_sse_path)
-     {
-          std::int32_t ret_stat_sse    = this->generate_Q_channel_bitstream_sse();
-          if(__builtin_expect(ret_stat_sse<0,0))    { return (-9);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_sse_u4x_path)
-     {
-          std::int32_t ret_stat_sse_u4x = this->generate_Q_channel_bitstream_sse_u4x();
-          if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-10);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx_path)
-     {
-          std::int32_t ret_stat_avx     = this->generate_Q_channel_bitstream_avx(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx<0,0))     {return (-11);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx_u4x_path)
-     {
-          std::int32_t ret_stat_avx_u4x = this->generate_Q_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-12);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx512_path)
-     {
-          std::int32_t ret_stat_avx512  = this->generate_Q_channel_bitstream_avx512(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx512<0,0))  { return (-13);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx512_u4x_path)
-     {
-           std::int32_t ret_stat_avx512_u4x= this->generate_Q_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
-           if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-14);}
+     if(__builtin_expect(use_iq_bitstream_vsequence==true,1)) 
+     {          
+          sse_memcpy_unroll8x_ps(&this->m_I_ch_bitstream.m_data[0],
+                                 &iq_bitstream_vsequence.m_I_vsequence.m_data[0],
+                                 this->m_I_ch_nsamples);
+          sse_memcpy_unroll8x_ps(&this->m_Q_ch_bitstream.m_data[0],
+                                 &iq_bitstream_vsequence.m_Q_vsequence.m_data[0],
+                                 this->m_Q_ch_nsamples);
      }
      else 
      {
-          return (-9999);
+     
+          if constexpr (I_ch_path == I_channel_bitstream_optimized_path::default_scalar_path)
+          {
+                std::int32_t ret_stat_scalar = this->generate_I_channel_bitstream(I_ch_samples_len);
+                if(__builtin_expect(ret_stat_scalar<0,0)) { return (-1);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_sse_path)
+          {
+                std::int32_t ret_stat_sse    = this->generate_I_channel_bitstream_sse();
+                if(__builtin_expect(ret_stat_sse<0,0))    { return (-2);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_sse_u4x_path)
+          {
+                std::int32_t ret_stat_sse_u4x = this->generate_I_channel_bitstream_sse_u4x();
+                if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-3);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx_path)
+          {
+                std::int32_t ret_stat_avx     = this->generate_I_channel_bitstream_avx(I_ch_do_const_prefetch);
+                if(__builtin_expect(ret_stat_avx<0,0))     {return (-4);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx_u4x_path)
+          {
+                std::int32_t ret_stat_avx_u4x = this->generate_I_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
+                if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-5);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx512_path)
+          {
+                std::int32_t ret_stat_avx512  = this->generate_I_channel_bitstream_avx512(I_ch_do_const_prefetch);
+                if(__builtin_expect(ret_stat_avx512<0,0))  { return (-6);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx512_u4x_path)
+          {
+                std::int32_t ret_stat_avx512_u4x= this->generate_I_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
+                if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-7);}
+          }
+          else
+          {
+               return (-9999);
+          }
+
+          if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::default_scalar_path)
+          {
+               std::int32_t ret_stat_scalar = this->generate_Q_channel_bitstream(Q_ch_samples_len);
+               if(__builtin_expect(ret_stat_scalar<0,0)) { return (-8);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_sse_path)
+          {
+               std::int32_t ret_stat_sse    = this->generate_Q_channel_bitstream_sse();
+               if(__builtin_expect(ret_stat_sse<0,0))    { return (-9);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_sse_u4x_path)
+          {
+               std::int32_t ret_stat_sse_u4x = this->generate_Q_channel_bitstream_sse_u4x();
+               if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-10);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx_path)
+          {
+               std::int32_t ret_stat_avx     = this->generate_Q_channel_bitstream_avx(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx<0,0))     {return (-11);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx_u4x_path)
+          {
+               std::int32_t ret_stat_avx_u4x = this->generate_Q_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-12);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx512_path)
+          {
+               std::int32_t ret_stat_avx512  = this->generate_Q_channel_bitstream_avx512(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx512<0,0))  { return (-13);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx512_u4x_path)
+          {
+               std::int32_t ret_stat_avx512_u4x= this->generate_Q_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-14);}
+          }
+          else 
+          {
+              return (-9999);
+          }
+
      }
 
      if constexpr (psf_path == pulse_shaping_function_optimized_path::default_scalar_path)
@@ -2167,8 +2221,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_sse_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::default_scalar_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::default_scalar_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::default_scalar_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::default_scalar_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -2179,8 +2235,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_sse_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_sse_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_sse_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_sse_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_sse_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -2191,8 +2249,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_sse_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_sse_u4x_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_sse_u4x_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_sse_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_sse_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -2203,8 +2263,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_sse_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -2215,8 +2277,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_sse_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx_u4x_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx_u4x_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -2227,8 +2291,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_sse_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx512_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx512_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx512_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx512_path>(const iq_rectw_bitstream_vsequence_t &,
+                                                                                                             const std::int32_t,
                                                                                                               const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -2239,8 +2305,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_sse_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx512_u4x_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx512_u4x_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx512_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx512_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -2254,92 +2322,112 @@ template<gms::radiolocation
 std::int32_t 
 gms::radiolocation
 ::sinusoidal_fsk_t
-::generate_fsk_signal_avx_u4x(const std::int32_t I_ch_samples_len,
+::generate_fsk_signal_avx_u4x(const iq_rectw_bitstream_vsequence_t &iq_bitstream_vsequence,
+                              const std::int32_t I_ch_samples_len,
                               const std::int32_t Q_ch_samples_len,
                               const bool I_ch_do_const_prefetch,
                               const bool Q_ch_do_const_prefetch,
                               const bool psfunc_do_const_prefetch,
-                              const bool do_const_prefetch)
+                              const bool do_const_prefetch,
+                              const bool use_iq_bitstream_vsequence)
 {
      using namespace gms::math;
-      if constexpr (I_ch_path == I_channel_bitstream_optimized_path::default_scalar_path)
-     {
-          std::int32_t ret_stat_scalar = this->generate_I_channel_bitstream(I_ch_samples_len);
-          if(__builtin_expect(ret_stat_scalar<0,0)) { return (-1);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_sse_path)
-     {
-          std::int32_t ret_stat_sse    = this->generate_I_channel_bitstream_sse();
-          if(__builtin_expect(ret_stat_sse<0,0))    { return (-2);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_sse_u4x_path)
-     {
-          std::int32_t ret_stat_sse_u4x = this->generate_I_channel_bitstream_sse_u4x();
-          if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-3);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx_path)
-     {
-          std::int32_t ret_stat_avx     = this->generate_I_channel_bitstream_avx(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx<0,0))     {return (-4);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx_u4x_path)
-     {
-          std::int32_t ret_stat_avx_u4x = this->generate_I_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-5);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx512_path)
-     {
-          std::int32_t ret_stat_avx512  = this->generate_I_channel_bitstream_avx512(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx512<0,0))  { return (-6);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx512_u4x_path)
-     {
-          std::int32_t ret_stat_avx512_u4x= this->generate_I_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-7);}
-     }
-     else
-     {
-          return (-9999);
-     }
+     using namespace gms::common;
+     if(__builtin_expect(iq_bitstream_vsequence.m_I_nsamples!=this->m_I_ch_nsamples,0)) { return (-19);}
+     if(__builtin_expect(iq_bitstream_vsequence.m_Q_nsamples!=this->m_Q_ch_nsamples,0)) { return (-20);};
 
-     if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::default_scalar_path)
-     {
-          std::int32_t ret_stat_scalar = this->generate_Q_channel_bitstream(Q_ch_samples_len);
-          if(__builtin_expect(ret_stat_scalar<0,0)) { return (-8);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_sse_path)
-     {
-          std::int32_t ret_stat_sse    = this->generate_Q_channel_bitstream_sse();
-          if(__builtin_expect(ret_stat_sse<0,0))    { return (-9);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_sse_u4x_path)
-     {
-          std::int32_t ret_stat_sse_u4x = this->generate_Q_channel_bitstream_sse_u4x();
-          if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-10);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx_path)
-     {
-          std::int32_t ret_stat_avx     = this->generate_Q_channel_bitstream_avx(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx<0,0))     {return (-11);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx_u4x_path)
-     {
-          std::int32_t ret_stat_avx_u4x = this->generate_Q_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-12);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx512_path)
-     {
-          std::int32_t ret_stat_avx512  = this->generate_Q_channel_bitstream_avx512(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx512<0,0))  { return (-13);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx512_u4x_path)
-     {
-           std::int32_t ret_stat_avx512_u4x= this->generate_Q_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
-           if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-14);}
+     if(__builtin_expect(use_iq_bitstream_vsequence==true,1)) 
+     {          
+          avx_memcpy_unroll8x_ps(&this->m_I_ch_bitstream.m_data[0],
+                                 &iq_bitstream_vsequence.m_I_vsequence.m_data[0],
+                                 this->m_I_ch_nsamples);
+          avx_memcpy_unroll8x_ps(&this->m_Q_ch_bitstream.m_data[0],
+                                 &iq_bitstream_vsequence.m_Q_vsequence.m_data[0],
+                                 this->m_Q_ch_nsamples);
      }
      else 
      {
-          return (-9999);
+     
+           if constexpr (I_ch_path == I_channel_bitstream_optimized_path::default_scalar_path)
+           {
+                 std::int32_t ret_stat_scalar = this->generate_I_channel_bitstream(I_ch_samples_len);
+                 if(__builtin_expect(ret_stat_scalar<0,0)) { return (-1);}
+           }
+           else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_sse_path)
+           {
+                 std::int32_t ret_stat_sse    = this->generate_I_channel_bitstream_sse();
+                 if(__builtin_expect(ret_stat_sse<0,0))    { return (-2);}
+           }
+           else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_sse_u4x_path)
+           {
+                 std::int32_t ret_stat_sse_u4x = this->generate_I_channel_bitstream_sse_u4x();
+                 if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-3);}
+           }
+           else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx_path)
+           {
+                 std::int32_t ret_stat_avx     = this->generate_I_channel_bitstream_avx(I_ch_do_const_prefetch);
+                 if(__builtin_expect(ret_stat_avx<0,0))     {return (-4);}
+           }
+           else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx_u4x_path)
+           {
+                 std::int32_t ret_stat_avx_u4x = this->generate_I_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
+                 if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-5);}
+           }
+           else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx512_path)
+           {
+                 std::int32_t ret_stat_avx512  = this->generate_I_channel_bitstream_avx512(I_ch_do_const_prefetch);
+                 if(__builtin_expect(ret_stat_avx512<0,0))  { return (-6);}
+           }
+           else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx512_u4x_path)
+           {
+                 std::int32_t ret_stat_avx512_u4x= this->generate_I_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
+                 if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-7);}
+           }
+           else
+           {
+                 return (-9999);
+           }
+
+           if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::default_scalar_path)
+           {
+                  std::int32_t ret_stat_scalar = this->generate_Q_channel_bitstream(Q_ch_samples_len);
+                  if(__builtin_expect(ret_stat_scalar<0,0)) { return (-8);}
+           }
+           else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_sse_path)
+           {
+                  std::int32_t ret_stat_sse    = this->generate_Q_channel_bitstream_sse();
+                  if(__builtin_expect(ret_stat_sse<0,0))    { return (-9);}
+           }
+           else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_sse_u4x_path)
+           {
+                  std::int32_t ret_stat_sse_u4x = this->generate_Q_channel_bitstream_sse_u4x();
+                  if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-10);}
+           }
+           else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx_path)
+           {
+                 std::int32_t ret_stat_avx     = this->generate_Q_channel_bitstream_avx(I_ch_do_const_prefetch);
+                 if(__builtin_expect(ret_stat_avx<0,0))     {return (-11);}
+           }
+           else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx_u4x_path)
+           {
+                 std::int32_t ret_stat_avx_u4x = this->generate_Q_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
+                 if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-12);}
+           }
+           else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx512_path)
+           {
+                 std::int32_t ret_stat_avx512  = this->generate_Q_channel_bitstream_avx512(I_ch_do_const_prefetch);
+                 if(__builtin_expect(ret_stat_avx512<0,0))  { return (-13);}
+           }
+           else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx512_u4x_path)
+           {
+                 std::int32_t ret_stat_avx512_u4x= this->generate_Q_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
+                 if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-14);}
+           }
+           else 
+           {
+                return (-9999);
+           }
+     
      }
 
      if constexpr (psf_path == pulse_shaping_function_optimized_path::default_scalar_path)
@@ -2686,8 +2774,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_avx512_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::default_scalar_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::default_scalar_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::default_scalar_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::default_scalar_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -2698,8 +2788,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_avx512_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_sse_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_sse_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_sse_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_sse_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -2710,8 +2802,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_avx512_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_sse_u4x_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_sse_u4x_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_sse_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_sse_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -2722,8 +2816,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_avx_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -2734,8 +2830,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_avx_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx_u4x_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx_u4x_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -2746,8 +2844,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_avx_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx512_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx512_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx512_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx512_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -2758,8 +2858,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_avx_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx512_u4x_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx512_u4x_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx512_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx512_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -2775,92 +2877,112 @@ gms::radiolocation
 std::int32_t 
 gms::radiolocation
 ::sinusoidal_fsk_t
-::generate_fsk_signal_avx512_u4x(const std::int32_t I_ch_samples_len,
+::generate_fsk_signal_avx512_u4x(const iq_rectw_bitstream_vsequence_t &iq_bitstream_vsequence,
+                                 const std::int32_t I_ch_samples_len,
                                  const std::int32_t Q_ch_samples_len,
                                  const bool I_ch_do_const_prefetch,
                                  const bool Q_ch_do_const_prefetch,
                                  const bool psfunc_do_const_prefetch,
-                                 const bool do_const_prefetch)
+                                 const bool do_const_prefetch,
+                                 const bool use_iq_bitstream_vsequence)
 {
      using namespace gms::math;
-     if constexpr (I_ch_path == I_channel_bitstream_optimized_path::default_scalar_path)
-     {
-          std::int32_t ret_stat_scalar = this->generate_I_channel_bitstream(I_ch_samples_len);
-          if(__builtin_expect(ret_stat_scalar<0,0)) { return (-1);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_sse_path)
-     {
-          std::int32_t ret_stat_sse    = this->generate_I_channel_bitstream_sse();
-          if(__builtin_expect(ret_stat_sse<0,0))    { return (-2);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_sse_u4x_path)
-     {
-          std::int32_t ret_stat_sse_u4x = this->generate_I_channel_bitstream_sse_u4x();
-          if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-3);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx_path)
-     {
-          std::int32_t ret_stat_avx     = this->generate_I_channel_bitstream_avx(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx<0,0))     {return (-4);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx_u4x_path)
-     {
-          std::int32_t ret_stat_avx_u4x = this->generate_I_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-5);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx512_path)
-     {
-          std::int32_t ret_stat_avx512  = this->generate_I_channel_bitstream_avx512(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx512<0,0))  { return (-6);}
-     }
-     else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx512_u4x_path)
-     {
-          std::int32_t ret_stat_avx512_u4x= this->generate_I_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-7);}
-     }
-     else
-     {
-          return (-9999);
-     }
+     using namespace gms::common;
+     if(__builtin_expect(iq_bitstream_vsequence.m_I_nsamples!=this->m_I_ch_nsamples,0)) { return (-19);}
+     if(__builtin_expect(iq_bitstream_vsequence.m_Q_nsamples!=this->m_Q_ch_nsamples,0)) { return (-20);};
 
-     if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::default_scalar_path)
-     {
-          std::int32_t ret_stat_scalar = this->generate_Q_channel_bitstream(Q_ch_samples_len);
-          if(__builtin_expect(ret_stat_scalar<0,0)) { return (-8);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_sse_path)
-     {
-          std::int32_t ret_stat_sse    = this->generate_Q_channel_bitstream_sse();
-          if(__builtin_expect(ret_stat_sse<0,0))    { return (-9);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_sse_u4x_path)
-     {
-          std::int32_t ret_stat_sse_u4x = this->generate_Q_channel_bitstream_sse_u4x();
-          if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-10);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx_path)
-     {
-          std::int32_t ret_stat_avx     = this->generate_Q_channel_bitstream_avx(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx<0,0))     {return (-11);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx_u4x_path)
-     {
-          std::int32_t ret_stat_avx_u4x = this->generate_Q_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-12);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx512_path)
-     {
-          std::int32_t ret_stat_avx512  = this->generate_Q_channel_bitstream_avx512(I_ch_do_const_prefetch);
-          if(__builtin_expect(ret_stat_avx512<0,0))  { return (-13);}
-     }
-     else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx512_u4x_path)
-     {
-           std::int32_t ret_stat_avx512_u4x= this->generate_Q_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
-           if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-14);}
+     if(__builtin_expect(use_iq_bitstream_vsequence==true,1)) 
+     {          
+          avx512_memcpy_unroll8x_ps(&this->m_I_ch_bitstream.m_data[0],
+                                 &iq_bitstream_vsequence.m_I_vsequence.m_data[0],
+                                 this->m_I_ch_nsamples);
+          avx512_memcpy_unroll8x_ps(&this->m_Q_ch_bitstream.m_data[0],
+                                 &iq_bitstream_vsequence.m_Q_vsequence.m_data[0],
+                                 this->m_Q_ch_nsamples);
      }
      else 
      {
-          return (-9999);
+     
+          if constexpr (I_ch_path == I_channel_bitstream_optimized_path::default_scalar_path)
+          {
+               std::int32_t ret_stat_scalar = this->generate_I_channel_bitstream(I_ch_samples_len);
+               if(__builtin_expect(ret_stat_scalar<0,0)) { return (-1);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_sse_path)
+          {
+               std::int32_t ret_stat_sse    = this->generate_I_channel_bitstream_sse();
+               if(__builtin_expect(ret_stat_sse<0,0))    { return (-2);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_sse_u4x_path)
+          {
+               std::int32_t ret_stat_sse_u4x = this->generate_I_channel_bitstream_sse_u4x();
+               if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-3);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx_path)
+          {
+               std::int32_t ret_stat_avx     = this->generate_I_channel_bitstream_avx(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx<0,0))     {return (-4);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx_u4x_path)
+          {
+               std::int32_t ret_stat_avx_u4x = this->generate_I_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-5);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx512_path)
+          {
+               std::int32_t ret_stat_avx512  = this->generate_I_channel_bitstream_avx512(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx512<0,0))  { return (-6);}
+          }
+          else if constexpr (I_ch_path == I_channel_bitstream_optimized_path::vector_avx512_u4x_path)
+          {
+               std::int32_t ret_stat_avx512_u4x= this->generate_I_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-7);}
+          }
+          else
+          {
+               return (-9999);
+          }
+
+          if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::default_scalar_path)
+          {
+               std::int32_t ret_stat_scalar = this->generate_Q_channel_bitstream(Q_ch_samples_len);
+               if(__builtin_expect(ret_stat_scalar<0,0)) { return (-8);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_sse_path)
+          {
+               std::int32_t ret_stat_sse    = this->generate_Q_channel_bitstream_sse();
+               if(__builtin_expect(ret_stat_sse<0,0))    { return (-9);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_sse_u4x_path)
+          {
+               std::int32_t ret_stat_sse_u4x = this->generate_Q_channel_bitstream_sse_u4x();
+               if(__builtin_expect(ret_stat_sse_u4x<0,0)) {return (-10);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx_path)
+          {
+               std::int32_t ret_stat_avx     = this->generate_Q_channel_bitstream_avx(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx<0,0))     {return (-11);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx_u4x_path)
+          {
+               std::int32_t ret_stat_avx_u4x = this->generate_Q_channel_bitstream_avx_u4x(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx_u4x<0,0)) { return (-12);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx512_path)
+          {
+               std::int32_t ret_stat_avx512  = this->generate_Q_channel_bitstream_avx512(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx512<0,0))  { return (-13);}
+          }
+          else if constexpr (Q_ch_path == Q_channel_bitstream_optimized_path::vector_avx512_u4x_path)
+          {
+               std::int32_t ret_stat_avx512_u4x= this->generate_Q_channel_bitstream_avx512_u4x(I_ch_do_const_prefetch);
+               if(__builtin_expect(ret_stat_avx512_u4x<0,0)){ return (-14);}
+          }
+          else 
+          {
+             return (-9999);
+          }
+
      }
 
      if constexpr (psf_path == pulse_shaping_function_optimized_path::default_scalar_path)
@@ -3234,8 +3356,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_avx512_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::default_scalar_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::default_scalar_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::default_scalar_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::default_scalar_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -3246,8 +3370,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_avx512_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_sse_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_sse_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_sse_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_sse_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -3258,8 +3384,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_avx512_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_sse_u4x_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_sse_u4x_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_sse_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_sse_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -3270,8 +3398,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_avx512_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -3282,8 +3412,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_avx512_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx_u4x_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx_u4x_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -3294,8 +3426,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_avx512_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx512_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx512_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx512_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx512_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
@@ -3306,8 +3440,10 @@ gms::radiolocation
 ::sinusoidal_fsk_t
 ::generate_fsk_signal_avx512_u4x<gms::radiolocation::sinusoidal_fsk_t::I_channel_bitstream_optimized_path::vector_avx512_u4x_path,
                                  gms::radiolocation::sinusoidal_fsk_t::Q_channel_bitstream_optimized_path::vector_avx512_u4x_path,
-                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx512_path>(const std::int32_t,
+                                 gms::radiolocation::sinusoidal_fsk_t::pulse_shaping_function_optimized_path::vector_avx512_path>(const iq_rectw_bitstream_vsequence_t &,
                                                                                                               const std::int32_t,
+                                                                                                              const std::int32_t,
+                                                                                                              const bool,
                                                                                                               const bool,
                                                                                                               const bool,
                                                                                                               const bool,
