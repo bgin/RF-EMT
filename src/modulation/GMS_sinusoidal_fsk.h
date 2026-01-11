@@ -482,7 +482,6 @@ namespace radiolocation
                        
                            for(j = i; j != this->m_I_ch_nsamples; ++j) 
                            {
-                                //const float t_j{static_cast<float>(j*inv_sr)};
                                 const float t_j{gms::math::LUT_loop_indices_2257_align16[j]*inv_sr};
 #if (SINUSOIDAL_FSK_USE_CEPHES) == 1 
                                 const float cos_val = ceph_cosf(this->m_I_ph0+(C6283185307179586476925286766559*this->m_I_fc*t_j));
@@ -584,20 +583,17 @@ namespace radiolocation
                                  const __m128 vcos_val_0    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vfc,vt_i_0),vph0));
                                  const __mmask8 vcos_ge_0_0 = _mm_cmp_ps_mask(vcos_val_0,vzero,_CMP_GE_OQ);
                                  _mm_store_ps(&this->m_I_ch_bitstream.m_data[i+0ull], _mm_mask_blend_ps(vcos_ge_0_0,vnone,vpone));
-                                
-                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+4ull],_MM_HINT_T0);
+                                                                 
                                  const __m128 vt_i_1{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]),vinv_sr)};
                                  const __m128 vcos_val_1    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vfc,vt_i_1),vph0));
                                  const __mmask8 vcos_ge_0_1 = _mm_cmp_ps_mask(vcos_val_1,vzero,_CMP_GE_OQ);
                                  _mm_store_ps(&this->m_I_ch_bitstream.m_data[i+4ull], _mm_mask_blend_ps(vcos_ge_0_1,vnone,vpone));
-                               
-                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+8ull],_MM_HINT_T0);
+                                                               
                                  const __m128 vt_i_2{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]),vinv_sr)};
                                  const __m128 vcos_val_2    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vfc,vt_i_2),vph0));
                                  const __mmask8 vcos_ge_0_2 = _mm_cmp_ps_mask(vcos_val_2,vzero,_CMP_GE_OQ);
                                  _mm_store_ps(&this->m_I_ch_bitstream.m_data[i+8ull], _mm_mask_blend_ps(vcos_ge_0_2,vnone,vpone));
-                                
-                                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+12ull],_MM_HINT_T0);
+                                                                 
                                  const __m128 vt_i_3{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+12ull]),vinv_sr)};
                                  const __m128 vcos_val_3    = _mm_cos_ps(_mm_fmadd_ps(v2pi,_mm_mul_ps(vfc,vt_i_3),vph0));
                                  const __mmask8 vcos_ge_0_3 = _mm_cmp_ps_mask(vcos_val_3,vzero,_CMP_GE_OQ);
