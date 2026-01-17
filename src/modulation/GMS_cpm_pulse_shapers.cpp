@@ -455,5 +455,988 @@ gms::radiolocation
     return (0);
 }
 
+std::int32_t 
+gms::radiolocation 
+::cpm_pulse_shapers_t
+::generate_lsrc_pulse_sse_u8x() noexcept(true) 
+{
+        using namespace gms::math; 
+        constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+        constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+        std::size_t i;
+        float       jj;
+        const float invLT{1.0f/(this->m_L*this->m_T)};
+        const __m128 vinvLT{_mm_set1_ps(invLT)};
+        const __m128 vC6283185307179586476925286766559{_mm_set1_ps(C6283185307179586476925286766559)};
+        const __m128 vone{_mm_set1_ps(1.0f)};
+        const __m128 vfour{_mm_set1_ps(4.0f)};
+        const __m128 vbeta{_mm_set1_ps(this->m_beta)};
+        if(__builtin_expect(this->m_nTLsamples>LUT_loop_indices_2257_align16,0)) 
+        {
+                for(i = 0ull,jj = 0.0f; (i+31ull) < this->m_nTLsamples; i += 32ull,jj = 32.0f) 
+                {
+                        const __m128 vt_i_0{_mm_setr_ps(jj*vinvLT,(jj+1.0f)*vinvLT,(jj+2.0f)*vinvLT,(jj+3.0f)*vinvLT)};
+                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
+                        const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
+                        const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
+                        const __m128 vcos_term_0{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_0))};
+                        const __m128 vcosinc_term_0{_mm_div_ps(vcos_term_0,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_0,vcosinc_denom_0)))};
+                        const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
+                        const __m128 vt_i_1{_mm_setr_ps((jj+4.0f)*vinvLT,(jj+5.0f)*vinvLT,(jj+6.0f)*vinvLT,(jj+7.0f)*vinvLT)};
+                        const __m128 varg_term_1{_mm_mul_ps(C6283185307179586476925286766559,vt_i_1)};
+                        const __m128 vcosinc_denom_1{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_1))};
+                        const __m128 vsin_term_1{_mm_sin_ps(varg_term_1)};
+                        const __m128 vsinc_term_1{_mm_div_ps(vsin_term_1,varg_term_1)};
+                        const __m128 vcos_term_1{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_1))};
+                        const __m128 vcosinc_term_1{_mm_div_ps(vcos_term_1,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_1,vcosinc_denom_1)))};
+                        const __m128 vlsrc_sample_1{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_1,vcosinc_term_1))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+4ull], vlsrc_sample_1);
+                        const __m128 vt_i_2{_mm_setr_ps((jj+8.0f)*vinvLT,(jj+9.0f)*vinvLT,(jj+10.0f)*vinvLT,(jj+11.0f)*vinvLT)};
+                        const __m128 varg_term_2{_mm_mul_ps(C6283185307179586476925286766559,vt_i_2)};
+                        const __m128 vcosinc_denom_2{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_2))};
+                        const __m128 vsin_term_2{_mm_sin_ps(varg_term_2)};
+                        const __m128 vsinc_term_2{_mm_div_ps(vsin_term_2,varg_term_2)};
+                        const __m128 vcos_term_2{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_2))};
+                        const __m128 vcosinc_term_2{_mm_div_ps(vcos_term_2,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_2,vcosinc_denom_2)))};
+                        const __m128 vlsrc_sample_2{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_2,vcosinc_term_2))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+8ull], vlsrc_sample_2);
+                        const __m128 vt_i_3{_mm_setr_ps((jj+12.0f)*vinvLT,(jj+13.0f)*vinvLT,(jj+14.0f)*vinvLT,(jj+15.0f)*vinvLT)};
+                        const __m128 varg_term_3{_mm_mul_ps(C6283185307179586476925286766559,vt_i_3)};
+                        const __m128 vcosinc_denom_3{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_3))};
+                        const __m128 vsin_term_3{_mm_sin_ps(varg_term_3)};
+                        const __m128 vsinc_term_3{_mm_div_ps(vsin_term_3,varg_term_3)};
+                        const __m128 vcos_term_3{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_3))};
+                        const __m128 vcosinc_term_3{_mm_div_ps(vcos_term_3,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_3,vcosinc_denom_3)))};
+                        const __m128 vlsrc_sample_3{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_3,vcosinc_term_3))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+12ull], vlsrc_sample_3);
+                        const __m128 vt_i_4{_mm_setr_ps((jj+16.0f)*vinvLT,(jj+17.0f)*vinvLT,(jj+18.0f)*vinvLT,(jj+19.0f)*vinvLT)};
+                        const __m128 varg_term_4{_mm_mul_ps(C6283185307179586476925286766559,vt_i_4)};
+                        const __m128 vcosinc_denom_4{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_4))};
+                        const __m128 vsin_term_4{_mm_sin_ps(varg_term_4)};
+                        const __m128 vsinc_term_4{_mm_div_ps(vsin_term_4,varg_term_4)};
+                        const __m128 vcos_term_4{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_4))};
+                        const __m128 vcosinc_term_4{_mm_div_ps(vcos_term_4,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_4,vcosinc_denom_4)))};
+                        const __m128 vlsrc_sample_4{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_4,vcosinc_term_4))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+16ull], vlsrc_sample_4);
+                        const __m128 vt_i_5{_mm_setr_ps((jj+20.0f)*vinvLT,(jj+21.0f)*vinvLT,(jj+22.0f)*vinvLT,(jj+23.0f)*vinvLT)};
+                        const __m128 varg_term_5{_mm_mul_ps(C6283185307179586476925286766559,vt_i_5)};
+                        const __m128 vcosinc_denom_5{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_5))};
+                        const __m128 vsin_term_5{_mm_sin_ps(varg_term_5)};
+                        const __m128 vsinc_term_5{_mm_div_ps(vsin_term_5,varg_term_5)};
+                        const __m128 vcos_term_5{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_5))};
+                        const __m128 vcosinc_term_5{_mm_div_ps(vcos_term_5,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_5,vcosinc_denom_5)))};
+                        const __m128 vlsrc_sample_5{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_5,vcosinc_term_5))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+20ull], vlsrc_sample_5);
+                        const __m128 vt_i_6{_mm_setr_ps((jj+24.0f)*vinvLT,(jj+25.0f)*vinvLT,(jj+26.0f)*vinvLT,(jj+27.0f)*vinvLT)};
+                        const __m128 varg_term_6{_mm_mul_ps(C6283185307179586476925286766559,vt_i_6)};
+                        const __m128 vcosinc_denom_6{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_6))};
+                        const __m128 vsin_term_6{_mm_sin_ps(varg_term_6)};
+                        const __m128 vsinc_term_6{_mm_div_ps(vsin_term_6,varg_term_6)};
+                        const __m128 vcos_term_6{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_6))};
+                        const __m128 vcosinc_term_6{_mm_div_ps(vcos_term_6,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_6,vcosinc_denom_6)))};
+                        const __m128 vlsrc_sample_6{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_6,vcosinc_term_6))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+24ull], vlsrc_sample_6);
+                        const __m128 vt_i_7{_mm_setr_ps((jj+28.0f)*vinvLT,(jj+29.0f)*vinvLT,(jj+30.0f)*vinvLT,(jj+31.0f)*vinvLT)};
+                        const __m128 varg_term_7{_mm_mul_ps(C6283185307179586476925286766559,vt_i_7)};
+                        const __m128 vcosinc_denom_7{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_7))};
+                        const __m128 vsin_term_7{_mm_sin_ps(varg_term_7)};
+                        const __m128 vsinc_term_7{_mm_div_ps(vsin_term_7,varg_term_7)};
+                        const __m128 vcos_term_7{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_7))};
+                        const __m128 vcosinc_term_7{_mm_div_ps(vcos_term_7,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_7,vcosinc_denom_7)))};
+                        const __m128 vlsrc_sample_7{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_7,vcosinc_term_7))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+28ull], vlsrc_sample_7);
+                }
+
+                for(; (i+23ull) < this->m_nTLsamples; i += 24ull,jj = 24.0f) 
+                {
+                        const __m128 vt_i_0{_mm_setr_ps(jj*vinvLT,(jj+1.0f)*vinvLT,(jj+2.0f)*vinvLT,(jj+3.0f)*vinvLT)};
+                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
+                        const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
+                        const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
+                        const __m128 vcos_term_0{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_0))};
+                        const __m128 vcosinc_term_0{_mm_div_ps(vcos_term_0,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_0,vcosinc_denom_0)))};
+                        const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
+                        const __m128 vt_i_1{_mm_setr_ps((jj+4.0f)*vinvLT,(jj+5.0f)*vinvLT,(jj+6.0f)*vinvLT,(jj+7.0f)*vinvLT)};
+                        const __m128 varg_term_1{_mm_mul_ps(C6283185307179586476925286766559,vt_i_1)};
+                        const __m128 vcosinc_denom_1{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_1))};
+                        const __m128 vsin_term_1{_mm_sin_ps(varg_term_1)};
+                        const __m128 vsinc_term_1{_mm_div_ps(vsin_term_1,varg_term_1)};
+                        const __m128 vcos_term_1{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_1))};
+                        const __m128 vcosinc_term_1{_mm_div_ps(vcos_term_1,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_1,vcosinc_denom_1)))};
+                        const __m128 vlsrc_sample_1{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_1,vcosinc_term_1))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+4ull], vlsrc_sample_1);
+                        const __m128 vt_i_2{_mm_setr_ps((jj+8.0f)*vinvLT,(jj+9.0f)*vinvLT,(jj+10.0f)*vinvLT,(jj+11.0f)*vinvLT)};
+                        const __m128 varg_term_2{_mm_mul_ps(C6283185307179586476925286766559,vt_i_2)};
+                        const __m128 vcosinc_denom_2{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_2))};
+                        const __m128 vsin_term_2{_mm_sin_ps(varg_term_2)};
+                        const __m128 vsinc_term_2{_mm_div_ps(vsin_term_2,varg_term_2)};
+                        const __m128 vcos_term_2{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_2))};
+                        const __m128 vcosinc_term_2{_mm_div_ps(vcos_term_2,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_2,vcosinc_denom_2)))};
+                        const __m128 vlsrc_sample_2{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_2,vcosinc_term_2))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+8ull], vlsrc_sample_2);
+                        const __m128 vt_i_3{_mm_setr_ps((jj+12.0f)*vinvLT,(jj+13.0f)*vinvLT,(jj+14.0f)*vinvLT,(jj+15.0f)*vinvLT)};
+                        const __m128 varg_term_3{_mm_mul_ps(C6283185307179586476925286766559,vt_i_3)};
+                        const __m128 vcosinc_denom_3{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_3))};
+                        const __m128 vsin_term_3{_mm_sin_ps(varg_term_3)};
+                        const __m128 vsinc_term_3{_mm_div_ps(vsin_term_3,varg_term_3)};
+                        const __m128 vcos_term_3{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_3))};
+                        const __m128 vcosinc_term_3{_mm_div_ps(vcos_term_3,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_3,vcosinc_denom_3)))};
+                        const __m128 vlsrc_sample_3{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_3,vcosinc_term_3))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+12ull], vlsrc_sample_3);
+                        const __m128 vt_i_4{_mm_setr_ps((jj+16.0f)*vinvLT,(jj+17.0f)*vinvLT,(jj+18.0f)*vinvLT,(jj+19.0f)*vinvLT)};
+                        const __m128 varg_term_4{_mm_mul_ps(C6283185307179586476925286766559,vt_i_4)};
+                        const __m128 vcosinc_denom_4{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_4))};
+                        const __m128 vsin_term_4{_mm_sin_ps(varg_term_4)};
+                        const __m128 vsinc_term_4{_mm_div_ps(vsin_term_4,varg_term_4)};
+                        const __m128 vcos_term_4{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_4))};
+                        const __m128 vcosinc_term_4{_mm_div_ps(vcos_term_4,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_4,vcosinc_denom_4)))};
+                        const __m128 vlsrc_sample_4{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_4,vcosinc_term_4))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+16ull], vlsrc_sample_4);
+                        const __m128 vt_i_5{_mm_setr_ps((jj+20.0f)*vinvLT,(jj+21.0f)*vinvLT,(jj+22.0f)*vinvLT,(jj+23.0f)*vinvLT)};
+                        const __m128 varg_term_5{_mm_mul_ps(C6283185307179586476925286766559,vt_i_5)};
+                        const __m128 vcosinc_denom_5{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_5))};
+                        const __m128 vsin_term_5{_mm_sin_ps(varg_term_5)};
+                        const __m128 vsinc_term_5{_mm_div_ps(vsin_term_5,varg_term_5)};
+                        const __m128 vcos_term_5{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_5))};
+                        const __m128 vcosinc_term_5{_mm_div_ps(vcos_term_5,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_5,vcosinc_denom_5)))};
+                        const __m128 vlsrc_sample_5{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_5,vcosinc_term_5))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+20ull], vlsrc_sample_5);
+                }
+
+                for(; (i+15ull) < this->m_nTLsamples; i += 16ull,jj = 16.0f) 
+                {
+                        const __m128 vt_i_0{_mm_setr_ps(jj*vinvLT,(jj+1.0f)*vinvLT,(jj+2.0f)*vinvLT,(jj+3.0f)*vinvLT)};
+                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
+                        const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
+                        const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
+                        const __m128 vcos_term_0{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_0))};
+                        const __m128 vcosinc_term_0{_mm_div_ps(vcos_term_0,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_0,vcosinc_denom_0)))};
+                        const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
+                        const __m128 vt_i_1{_mm_setr_ps((jj+4.0f)*vinvLT,(jj+5.0f)*vinvLT,(jj+6.0f)*vinvLT,(jj+7.0f)*vinvLT)};
+                        const __m128 varg_term_1{_mm_mul_ps(C6283185307179586476925286766559,vt_i_1)};
+                        const __m128 vcosinc_denom_1{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_1))};
+                        const __m128 vsin_term_1{_mm_sin_ps(varg_term_1)};
+                        const __m128 vsinc_term_1{_mm_div_ps(vsin_term_1,varg_term_1)};
+                        const __m128 vcos_term_1{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_1))};
+                        const __m128 vcosinc_term_1{_mm_div_ps(vcos_term_1,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_1,vcosinc_denom_1)))};
+                        const __m128 vlsrc_sample_1{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_1,vcosinc_term_1))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+4ull], vlsrc_sample_1);
+                        const __m128 vt_i_2{_mm_setr_ps((jj+8.0f)*vinvLT,(jj+9.0f)*vinvLT,(jj+10.0f)*vinvLT,(jj+11.0f)*vinvLT)};
+                        const __m128 varg_term_2{_mm_mul_ps(C6283185307179586476925286766559,vt_i_2)};
+                        const __m128 vcosinc_denom_2{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_2))};
+                        const __m128 vsin_term_2{_mm_sin_ps(varg_term_2)};
+                        const __m128 vsinc_term_2{_mm_div_ps(vsin_term_2,varg_term_2)};
+                        const __m128 vcos_term_2{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_2))};
+                        const __m128 vcosinc_term_2{_mm_div_ps(vcos_term_2,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_2,vcosinc_denom_2)))};
+                        const __m128 vlsrc_sample_2{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_2,vcosinc_term_2))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+8ull], vlsrc_sample_2);
+                        const __m128 vt_i_3{_mm_setr_ps((jj+12.0f)*vinvLT,(jj+13.0f)*vinvLT,(jj+14.0f)*vinvLT,(jj+15.0f)*vinvLT)};
+                        const __m128 varg_term_3{_mm_mul_ps(C6283185307179586476925286766559,vt_i_3)};
+                        const __m128 vcosinc_denom_3{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_3))};
+                        const __m128 vsin_term_3{_mm_sin_ps(varg_term_3)};
+                        const __m128 vsinc_term_3{_mm_div_ps(vsin_term_3,varg_term_3)};
+                        const __m128 vcos_term_3{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_3))};
+                        const __m128 vcosinc_term_3{_mm_div_ps(vcos_term_3,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_3,vcosinc_denom_3)))};
+                        const __m128 vlsrc_sample_3{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_3,vcosinc_term_3))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+12ull], vlsrc_sample_3);
+                }
+
+                for(; (i+7ull) < this->m_nTLsamples; i += 8ull,jj = 8.0f) 
+                {
+                        const __m128 vt_i_0{_mm_setr_ps(jj*vinvLT,(jj+1.0f)*vinvLT,(jj+2.0f)*vinvLT,(jj+3.0f)*vinvLT)};
+                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
+                        const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
+                        const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
+                        const __m128 vcos_term_0{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_0))};
+                        const __m128 vcosinc_term_0{_mm_div_ps(vcos_term_0,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_0,vcosinc_denom_0)))};
+                        const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
+                        const __m128 vt_i_1{_mm_setr_ps((jj+4.0f)*vinvLT,(jj+5.0f)*vinvLT,(jj+6.0f)*vinvLT,(jj+7.0f)*vinvLT)};
+                        const __m128 varg_term_1{_mm_mul_ps(C6283185307179586476925286766559,vt_i_1)};
+                        const __m128 vcosinc_denom_1{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_1))};
+                        const __m128 vsin_term_1{_mm_sin_ps(varg_term_1)};
+                        const __m128 vsinc_term_1{_mm_div_ps(vsin_term_1,varg_term_1)};
+                        const __m128 vcos_term_1{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_1))};
+                        const __m128 vcosinc_term_1{_mm_div_ps(vcos_term_1,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_1,vcosinc_denom_1)))};
+                        const __m128 vlsrc_sample_1{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_1,vcosinc_term_1))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+4ull], vlsrc_sample_1);
+                }
+
+                for(; (i+3ull) < this->m_nTLsamples; i += 4ull,jj = 4.0f) 
+                {
+                        const __m128 vt_i_0{_mm_setr_ps(jj*vinvLT,(jj+1.0f)*vinvLT,(jj+2.0f)*vinvLT,(jj+3.0f)*vinvLT)};
+                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
+                        const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
+                        const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
+                        const __m128 vcos_term_0{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_0))};
+                        const __m128 vcosinc_term_0{_mm_div_ps(vcos_term_0,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_0,vcosinc_denom_0)))};
+                        const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
+                }
+
+                 for(; (i+0ull) < this->m_nTLsamples; i += 1ull,jj += 1.0f)  
+                 {
+                                const float t_i{jj*invLT};
+                                const float arg_term_0{C6283185307179586476925286766559*t_i};
+                                const float cosinc_denom_0{4.0f*this->m_beta*t_i};
+#if (CPM_PULSE_SHAPERS_USE_CEPHES)
+                                const float sin_term_0{ceph_sinf(arg_term_0)};
+                                const float cos_term_0{ceph_cosf(this->m_beta*arg_term_0)};
+#else 
+                                const float sin_term_0{std::sin(arg_term_0)};
+                                const float cos_term_0{std::cos(this->m_beta*arg_term_0)};
+#endif
+                                const float sinc_term_0{sin_term_0/arg_term_0};
+                                const float cosinc_term_0{cos_term_0/(1.0f-(cosinc_denom_0*cosinc_denom_0))};
+                                const float lsrc_sample_0{invLT*sinc_term_0*cosinc_term_0};
+                                this->m_lsrc_pulse.m_data[i] = lsrc_sample_0;
+                }
+
+        }
+        else 
+        {
+                for(i = 0ull;(i+31ull) < this->m_nTLsamples;i += 32ull) 
+                {
+                        _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
+                        const __m128 vt_i_0{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinvLT)};
+                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
+                        const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
+                        const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
+                        const __m128 vcos_term_0{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_0))};
+                        const __m128 vcosinc_term_0{_mm_div_ps(vcos_term_0,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_0,vcosinc_denom_0)))};
+                        const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
+                        const __m128 vt_i_1{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]),vinvLT)};
+                        const __m128 varg_term_1{_mm_mul_ps(C6283185307179586476925286766559,vt_i_1)};
+                        const __m128 vcosinc_denom_1{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_1))};
+                        const __m128 vsin_term_1{_mm_sin_ps(varg_term_1)};
+                        const __m128 vsinc_term_1{_mm_div_ps(vsin_term_1,varg_term_1)};
+                        const __m128 vcos_term_1{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_1))};
+                        const __m128 vcosinc_term_1{_mm_div_ps(vcos_term_1,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_1,vcosinc_denom_1)))};
+                        const __m128 vlsrc_sample_1{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_1,vcosinc_term_1))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+4ull], vlsrc_sample_1);
+                        const __m128 vt_i_2{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]),vinvLT)};
+                        const __m128 varg_term_2{_mm_mul_ps(C6283185307179586476925286766559,vt_i_2)};
+                        const __m128 vcosinc_denom_2{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_2))};
+                        const __m128 vsin_term_2{_mm_sin_ps(varg_term_2)};
+                        const __m128 vsinc_term_2{_mm_div_ps(vsin_term_2,varg_term_2)};
+                        const __m128 vcos_term_2{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_2))};
+                        const __m128 vcosinc_term_2{_mm_div_ps(vcos_term_2,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_2,vcosinc_denom_2)))};
+                        const __m128 vlsrc_sample_2{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_2,vcosinc_term_2))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+8ull], vlsrc_sample_2);
+                        const __m128 vt_i_3{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+12ull]),vinvLT)};
+                        const __m128 varg_term_3{_mm_mul_ps(C6283185307179586476925286766559,vt_i_3)};
+                        const __m128 vcosinc_denom_3{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_3))};
+                        const __m128 vsin_term_3{_mm_sin_ps(varg_term_3)};
+                        const __m128 vsinc_term_3{_mm_div_ps(vsin_term_3,varg_term_3)};
+                        const __m128 vcos_term_3{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_3))};
+                        const __m128 vcosinc_term_3{_mm_div_ps(vcos_term_3,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_3,vcosinc_denom_3)))};
+                        const __m128 vlsrc_sample_3{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_3,vcosinc_term_3))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+12ull], vlsrc_sample_3);
+                        _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+16ull],_MM_HINT_T0);
+                        const __m128 vt_i_4{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+16ull]),vinvLT)};
+                        const __m128 varg_term_4{_mm_mul_ps(C6283185307179586476925286766559,vt_i_4)};
+                        const __m128 vcosinc_denom_4{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_4))};
+                        const __m128 vsin_term_4{_mm_sin_ps(varg_term_4)};
+                        const __m128 vsinc_term_4{_mm_div_ps(vsin_term_4,varg_term_4)};
+                        const __m128 vcos_term_4{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_4))};
+                        const __m128 vcosinc_term_4{_mm_div_ps(vcos_term_4,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_4,vcosinc_denom_4)))};
+                        const __m128 vlsrc_sample_4{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_4,vcosinc_term_4))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+16ull], vlsrc_sample_4);
+                        const __m128 vt_i_5{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+20ull]),vinvLT)};
+                        const __m128 varg_term_5{_mm_mul_ps(C6283185307179586476925286766559,vt_i_5)};
+                        const __m128 vcosinc_denom_5{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_5))};
+                        const __m128 vsin_term_5{_mm_sin_ps(varg_term_5)};
+                        const __m128 vsinc_term_5{_mm_div_ps(vsin_term_5,varg_term_5)};
+                        const __m128 vcos_term_5{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_5))};
+                        const __m128 vcosinc_term_5{_mm_div_ps(vcos_term_5,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_5,vcosinc_denom_5)))};
+                        const __m128 vlsrc_sample_5{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_5,vcosinc_term_5))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+20ull], vlsrc_sample_5);
+                        const __m128 vt_i_6{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+24ull]),vinvLT)};
+                        const __m128 varg_term_6{_mm_mul_ps(C6283185307179586476925286766559,vt_i_6)};
+                        const __m128 vcosinc_denom_6{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_6))};
+                        const __m128 vsin_term_6{_mm_sin_ps(varg_term_6)};
+                        const __m128 vsinc_term_6{_mm_div_ps(vsin_term_6,varg_term_6)};
+                        const __m128 vcos_term_6{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_6))};
+                        const __m128 vcosinc_term_6{_mm_div_ps(vcos_term_6,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_6,vcosinc_denom_6)))};
+                        const __m128 vlsrc_sample_6{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_6,vcosinc_term_6))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+24ull], vlsrc_sample_6);
+                        const __m128 vt_i_7{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+28ull]),vinvLT)};
+                        const __m128 varg_term_7{_mm_mul_ps(C6283185307179586476925286766559,vt_i_7)};
+                        const __m128 vcosinc_denom_7{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_7))};
+                        const __m128 vsin_term_7{_mm_sin_ps(varg_term_7)};
+                        const __m128 vsinc_term_7{_mm_div_ps(vsin_term_7,varg_term_7)};
+                        const __m128 vcos_term_7{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_7))};
+                        const __m128 vcosinc_term_7{_mm_div_ps(vcos_term_7,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_7,vcosinc_denom_7)))};
+                        const __m128 vlsrc_sample_7{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_7,vcosinc_term_7))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+28ull], vlsrc_sample_7);
+                }
+
+                for(; (i+23ull) < this->m_nTLsamples; i += 24ull) 
+                {
+                        _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
+                        const __m128 vt_i_0{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinvLT)};
+                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
+                        const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
+                        const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
+                        const __m128 vcos_term_0{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_0))};
+                        const __m128 vcosinc_term_0{_mm_div_ps(vcos_term_0,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_0,vcosinc_denom_0)))};
+                        const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
+                        const __m128 vt_i_1{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]),vinvLT)};
+                        const __m128 varg_term_1{_mm_mul_ps(C6283185307179586476925286766559,vt_i_1)};
+                        const __m128 vcosinc_denom_1{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_1))};
+                        const __m128 vsin_term_1{_mm_sin_ps(varg_term_1)};
+                        const __m128 vsinc_term_1{_mm_div_ps(vsin_term_1,varg_term_1)};
+                        const __m128 vcos_term_1{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_1))};
+                        const __m128 vcosinc_term_1{_mm_div_ps(vcos_term_1,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_1,vcosinc_denom_1)))};
+                        const __m128 vlsrc_sample_1{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_1,vcosinc_term_1))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+4ull], vlsrc_sample_1);
+                        const __m128 vt_i_2{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]),vinvLT)};
+                        const __m128 varg_term_2{_mm_mul_ps(C6283185307179586476925286766559,vt_i_2)};
+                        const __m128 vcosinc_denom_2{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_2))};
+                        const __m128 vsin_term_2{_mm_sin_ps(varg_term_2)};
+                        const __m128 vsinc_term_2{_mm_div_ps(vsin_term_2,varg_term_2)};
+                        const __m128 vcos_term_2{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_2))};
+                        const __m128 vcosinc_term_2{_mm_div_ps(vcos_term_2,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_2,vcosinc_denom_2)))};
+                        const __m128 vlsrc_sample_2{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_2,vcosinc_term_2))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+8ull], vlsrc_sample_2);
+                        const __m128 vt_i_3{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+12ull]),vinvLT)};
+                        const __m128 varg_term_3{_mm_mul_ps(C6283185307179586476925286766559,vt_i_3)};
+                        const __m128 vcosinc_denom_3{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_3))};
+                        const __m128 vsin_term_3{_mm_sin_ps(varg_term_3)};
+                        const __m128 vsinc_term_3{_mm_div_ps(vsin_term_3,varg_term_3)};
+                        const __m128 vcos_term_3{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_3))};
+                        const __m128 vcosinc_term_3{_mm_div_ps(vcos_term_3,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_3,vcosinc_denom_3)))};
+                        const __m128 vlsrc_sample_3{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_3,vcosinc_term_3))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+12ull], vlsrc_sample_3);
+                        _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+16ull],_MM_HINT_T0);
+                        const __m128 vt_i_4{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+16ull]),vinvLT)};
+                        const __m128 varg_term_4{_mm_mul_ps(C6283185307179586476925286766559,vt_i_4)};
+                        const __m128 vcosinc_denom_4{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_4))};
+                        const __m128 vsin_term_4{_mm_sin_ps(varg_term_4)};
+                        const __m128 vsinc_term_4{_mm_div_ps(vsin_term_4,varg_term_4)};
+                        const __m128 vcos_term_4{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_4))};
+                        const __m128 vcosinc_term_4{_mm_div_ps(vcos_term_4,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_4,vcosinc_denom_4)))};
+                        const __m128 vlsrc_sample_4{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_4,vcosinc_term_4))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+16ull], vlsrc_sample_4);
+                        const __m128 vt_i_5{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+20ull]),vinvLT)};
+                        const __m128 varg_term_5{_mm_mul_ps(C6283185307179586476925286766559,vt_i_5)};
+                        const __m128 vcosinc_denom_5{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_5))};
+                        const __m128 vsin_term_5{_mm_sin_ps(varg_term_5)};
+                        const __m128 vsinc_term_5{_mm_div_ps(vsin_term_5,varg_term_5)};
+                        const __m128 vcos_term_5{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_5))};
+                        const __m128 vcosinc_term_5{_mm_div_ps(vcos_term_5,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_5,vcosinc_denom_5)))};
+                        const __m128 vlsrc_sample_5{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_5,vcosinc_term_5))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+20ull], vlsrc_sample_5);
+                
+                }
+
+                for(; (i+15ull) < this->m_nTLsamples; i += 16ull) 
+                {
+                        _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
+                        const __m128 vt_i_0{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinvLT)};
+                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
+                        const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
+                        const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
+                        const __m128 vcos_term_0{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_0))};
+                        const __m128 vcosinc_term_0{_mm_div_ps(vcos_term_0,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_0,vcosinc_denom_0)))};
+                        const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
+                        const __m128 vt_i_1{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]),vinvLT)};
+                        const __m128 varg_term_1{_mm_mul_ps(C6283185307179586476925286766559,vt_i_1)};
+                        const __m128 vcosinc_denom_1{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_1))};
+                        const __m128 vsin_term_1{_mm_sin_ps(varg_term_1)};
+                        const __m128 vsinc_term_1{_mm_div_ps(vsin_term_1,varg_term_1)};
+                        const __m128 vcos_term_1{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_1))};
+                        const __m128 vcosinc_term_1{_mm_div_ps(vcos_term_1,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_1,vcosinc_denom_1)))};
+                        const __m128 vlsrc_sample_1{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_1,vcosinc_term_1))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+4ull], vlsrc_sample_1);
+                        const __m128 vt_i_2{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]),vinvLT)};
+                        const __m128 varg_term_2{_mm_mul_ps(C6283185307179586476925286766559,vt_i_2)};
+                        const __m128 vcosinc_denom_2{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_2))};
+                        const __m128 vsin_term_2{_mm_sin_ps(varg_term_2)};
+                        const __m128 vsinc_term_2{_mm_div_ps(vsin_term_2,varg_term_2)};
+                        const __m128 vcos_term_2{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_2))};
+                        const __m128 vcosinc_term_2{_mm_div_ps(vcos_term_2,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_2,vcosinc_denom_2)))};
+                        const __m128 vlsrc_sample_2{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_2,vcosinc_term_2))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+8ull], vlsrc_sample_2);
+                        const __m128 vt_i_3{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+12ull]),vinvLT)};
+                        const __m128 varg_term_3{_mm_mul_ps(C6283185307179586476925286766559,vt_i_3)};
+                        const __m128 vcosinc_denom_3{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_3))};
+                        const __m128 vsin_term_3{_mm_sin_ps(varg_term_3)};
+                        const __m128 vsinc_term_3{_mm_div_ps(vsin_term_3,varg_term_3)};
+                        const __m128 vcos_term_3{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_3))};
+                        const __m128 vcosinc_term_3{_mm_div_ps(vcos_term_3,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_3,vcosinc_denom_3)))};
+                        const __m128 vlsrc_sample_3{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_3,vcosinc_term_3))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+12ull], vlsrc_sample_3);
+                                       
+                }
+
+                for(; (i+7ull) < this->m_nTLsamples; i += 8ull) 
+                {
+                        const __m128 vt_i_0{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinvLT)};
+                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
+                        const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
+                        const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
+                        const __m128 vcos_term_0{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_0))};
+                        const __m128 vcosinc_term_0{_mm_div_ps(vcos_term_0,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_0,vcosinc_denom_0)))};
+                        const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
+                        const __m128 vt_i_1{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]),vinvLT)};
+                        const __m128 varg_term_1{_mm_mul_ps(C6283185307179586476925286766559,vt_i_1)};
+                        const __m128 vcosinc_denom_1{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_1))};
+                        const __m128 vsin_term_1{_mm_sin_ps(varg_term_1)};
+                        const __m128 vsinc_term_1{_mm_div_ps(vsin_term_1,varg_term_1)};
+                        const __m128 vcos_term_1{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_1))};
+                        const __m128 vcosinc_term_1{_mm_div_ps(vcos_term_1,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_1,vcosinc_denom_1)))};
+                        const __m128 vlsrc_sample_1{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_1,vcosinc_term_1))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+4ull], vlsrc_sample_1);
+                }
+
+                for(; (i+3ull) < this->m_nTLsamples; i += 4ull) 
+                {
+                        const __m128 vt_i_0{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinvLT)};
+                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
+                        const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
+                        const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
+                        const __m128 vcos_term_0{_mm_cos_ps(_mm_mul_ps(vbeta,varg_term_0))};
+                        const __m128 vcosinc_term_0{_mm_div_ps(vcos_term_0,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_0,vcosinc_denom_0)))};
+                        const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
+                        _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
+                }
+
+                 for(; (i+0ull) < this->m_nTLsamples; i += 1ull)  
+                 {
+                                const float t_i{gms::math::LUT_loop_indices_2257_align16[i]*invLT};
+                                const float arg_term_0{C6283185307179586476925286766559*t_i};
+                                const float cosinc_denom_0{4.0f*this->m_beta*t_i};
+#if (CPM_PULSE_SHAPERS_USE_CEPHES)
+                                const float sin_term_0{ceph_sinf(arg_term_0)};
+                                const float cos_term_0{ceph_cosf(this->m_beta*arg_term_0)};
+#else 
+                                const float sin_term_0{std::sin(arg_term_0)};
+                                const float cos_term_0{std::cos(this->m_beta*arg_term_0)};
+#endif
+                                const float sinc_term_0{sin_term_0/arg_term_0};
+                                const float cosinc_term_0{cos_term_0/(1.0f-(cosinc_denom_0*cosinc_denom_0))};
+                                const float lsrc_sample_0{invLT*sinc_term_0*cosinc_term_0};
+                                this->m_lsrc_pulse.m_data[i] = lsrc_sample_0;
+                }
+
+        }
+        return (0);
+}
+
+std::int32_t 
+gms::radiolocation
+::cpm_pulse_shapers_t
+::generate_tfm_pulse_sse_u8x() noexcept(true)
+{
+        using namespace gms::math;
+        constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+        constexpr float one_ov_eight{1.0f/8.0f};
+        std::size_t i;  
+        float jj;
+        const float invT{1.0f/this->m_T};
+        const float invTT{1.0f/(this->m_T*this->m_T)};
+        const __m128 vinvT{_mm_set1_ps(invT)};
+        const __m128 vinvTT{_mm_set1_ps(invTT)};
+        const __m128 v2{_mm_set1_ps(2.0f)};
+        if(__builtin_expect(this->m_nTsamples>LUT_loop_indices_2257_align16,0)) 
+        {
+                __m128 vt_i_left,g0_vec_left;
+                __m128 vt_i_mid ,g0_vec_mid;
+                __m128 vt_i_right,g0_vec_right;
+                __m128 tfm_g_vec_sample;
+                for(i = 0ull,jj = 0.0f;(i+31ull) < this->m_nTsamples;i += 32ull,jj += 32.0f)
+                {
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T,jj-this->m_T+1.0f,jj-this->m_T+2.0f,jj-this->m_T+3.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj,jj+1.0f,jj+2.0f,jj+3.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T,jj+this->m_T+1.0f,jj+this->m_T+2.0f,jj+this->m_T+3.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T+4.0f,jj-this->m_T+5.0f,jj-this->m_T+6.0f,jj-this->m_T+7.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj+4.0f,jj+5.0f,jj+6.0f,jj+7.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T+4.0f,jj+this->m_T+5.0f,jj+this->m_T+6.0f,jj+this->m_T+7.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+4ull],tfm_g_vec_sample);
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T+8.0f,jj-this->m_T+9.0f,jj-this->m_T+10.0f,jj-this->m_T+11.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj+8.0f,jj+9.0f,jj+10.0f,jj+11.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T+8.0f,jj+this->m_T+9.0f,jj+this->m_T+10.0f,jj+this->m_T+11.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+8ull],tfm_g_vec_sample);
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T+12.0f,jj-this->m_T+13.0f,jj-this->m_T+14.0f,jj-this->m_T+15.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj+12.0f,jj+13.0f,jj+14.0f,jj+15.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T+12.0f,jj+this->m_T+13.0f,jj+this->m_T+14.0f,jj+this->m_T+15.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+12ull],tfm_g_vec_sample);
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T+16.0f,jj-this->m_T+17.0f,jj-this->m_T+18.0f,jj-this->m_T+19.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj+16.0f,jj+17.0f,jj+18.0f,jj+19.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T+16.0f,jj+this->m_T+17.0f,jj+this->m_T+18.0f,jj+this->m_T+19.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+16ull],tfm_g_vec_sample);
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T+20.0f,jj-this->m_T+21.0f,jj-this->m_T+22.0f,jj-this->m_T+23.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj+20.0f,jj+21.0f,jj+22.0f,jj+23.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T+20.0f,jj+this->m_T+21.0f,jj+this->m_T+22.0f,jj+this->m_T+23.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+20ull],tfm_g_vec_sample);
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T+24.0f,jj-this->m_T+25.0f,jj-this->m_T+26.0f,jj-this->m_T+27.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj+24.0f,jj+25.0f,jj+26.0f,jj+27.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T+24.0f,jj+this->m_T+25.0f,jj+this->m_T+26.0f,jj+this->m_T+27.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+24ull],tfm_g_vec_sample);
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T+28.0f,jj-this->m_T+29.0f,jj-this->m_T+30.0f,jj-this->m_T+31.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj+28.0f,jj+29.0f,jj+30.0f,jj+31.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T+28.0f,jj+this->m_T+29.0f,jj+this->m_T+30.0f,jj+this->m_T+31.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+28ull],tfm_g_vec_sample);
+                }
+
+                for(;(i+23ull) < this->m_nTsamples;i += 24ull,jj += 24.0f)
+                {
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T,jj-this->m_T+1.0f,jj-this->m_T+2.0f,jj-this->m_T+3.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj,jj+1.0f,jj+2.0f,jj+3.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T,jj+this->m_T+1.0f,jj+this->m_T+2.0f,jj+this->m_T+3.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T+4.0f,jj-this->m_T+5.0f,jj-this->m_T+6.0f,jj-this->m_T+7.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj+4.0f,jj+5.0f,jj+6.0f,jj+7.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T+4.0f,jj+this->m_T+5.0f,jj+this->m_T+6.0f,jj+this->m_T+7.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+4ull],tfm_g_vec_sample);
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T+8.0f,jj-this->m_T+9.0f,jj-this->m_T+10.0f,jj-this->m_T+11.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj+8.0f,jj+9.0f,jj+10.0f,jj+11.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T+8.0f,jj+this->m_T+9.0f,jj+this->m_T+10.0f,jj+this->m_T+11.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+8ull],tfm_g_vec_sample);
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T+12.0f,jj-this->m_T+13.0f,jj-this->m_T+14.0f,jj-this->m_T+15.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj+12.0f,jj+13.0f,jj+14.0f,jj+15.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T+12.0f,jj+this->m_T+13.0f,jj+this->m_T+14.0f,jj+this->m_T+15.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+12ull],tfm_g_vec_sample);
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T+16.0f,jj-this->m_T+17.0f,jj-this->m_T+18.0f,jj-this->m_T+19.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj+16.0f,jj+17.0f,jj+18.0f,jj+19.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T+16.0f,jj+this->m_T+17.0f,jj+this->m_T+18.0f,jj+this->m_T+19.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+16ull],tfm_g_vec_sample);
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T+20.0f,jj-this->m_T+21.0f,jj-this->m_T+22.0f,jj-this->m_T+23.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj+20.0f,jj+21.0f,jj+22.0f,jj+23.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T+20.0f,jj+this->m_T+21.0f,jj+this->m_T+22.0f,jj+this->m_T+23.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+20ull],tfm_g_vec_sample);
+                }
+
+                for(;(i+15ull) < this->m_nTsamples;i += 16ull,jj += 16.0f)
+                {
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T,jj-this->m_T+1.0f,jj-this->m_T+2.0f,jj-this->m_T+3.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj,jj+1.0f,jj+2.0f,jj+3.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T,jj+this->m_T+1.0f,jj+this->m_T+2.0f,jj+this->m_T+3.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T+4.0f,jj-this->m_T+5.0f,jj-this->m_T+6.0f,jj-this->m_T+7.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj+4.0f,jj+5.0f,jj+6.0f,jj+7.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T+4.0f,jj+this->m_T+5.0f,jj+this->m_T+6.0f,jj+this->m_T+7.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+4ull],tfm_g_vec_sample);
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T+8.0f,jj-this->m_T+9.0f,jj-this->m_T+10.0f,jj-this->m_T+11.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj+8.0f,jj+9.0f,jj+10.0f,jj+11.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T+8.0f,jj+this->m_T+9.0f,jj+this->m_T+10.0f,jj+this->m_T+11.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+8ull],tfm_g_vec_sample);
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T+12.0f,jj-this->m_T+13.0f,jj-this->m_T+14.0f,jj-this->m_T+15.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj+12.0f,jj+13.0f,jj+14.0f,jj+15.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T+12.0f,jj+this->m_T+13.0f,jj+this->m_T+14.0f,jj+this->m_T+15.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+12ull],tfm_g_vec_sample);
+                }
+
+                for(;(i+7ull) < this->m_nTsamples;i += 8ull,jj += 8.0f)
+                {
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T,jj-this->m_T+1.0f,jj-this->m_T+2.0f,jj-this->m_T+3.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj,jj+1.0f,jj+2.0f,jj+3.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T,jj+this->m_T+1.0f,jj+this->m_T+2.0f,jj+this->m_T+3.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T+4.0f,jj-this->m_T+5.0f,jj-this->m_T+6.0f,jj-this->m_T+7.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj+4.0f,jj+5.0f,jj+6.0f,jj+7.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T+4.0f,jj+this->m_T+5.0f,jj+this->m_T+6.0f,jj+this->m_T+7.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+4ull],tfm_g_vec_sample);
+                }
+
+                for(;(i+3ull) < this->m_nTsamples;i += 4ull,jj += 4.0f)
+                {
+                        vt_i_left        = _mm_setr_ps(jj-this->m_T,jj-this->m_T+1.0f,jj-this->m_T+2.0f,jj-this->m_T+3.0f);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = _mm_setr_ps(jj,jj+1.0f,jj+2.0f,jj+3.0f);
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_setr_ps(jj+this->m_T,jj+this->m_T+1.0f,jj+this->m_T+2.0f,jj+this->m_T+3.0f);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
+                }
+
+                for(;(i+0ull) < this->m_nTsamples;i += 1ull) 
+                {
+                        const float t_i{static_cast<float>(i)};
+                        const float g0_left_0{tfm_g0_value((t_i-this->m_T),invT,invTT)};
+                        const float g0_mid_0{2.0f*tfm_g0_value(t_i,invT,invTT)};
+                        const float g0_right_0{tfm_g0_value((t_i+this->m_T,invT,invTT))};
+                        const float tfm_sample_0{one_ov_eight*(g0_left_0+g0_mid_0+g0_right_0)};
+                        this->m_tfm_pulse.m_data[i] = tfm_sample_0;
+                }
+
+        }
+        else 
+        {
+                const __m128 vT{_mm_set1_ps(this->m_T)};
+                __m128 vidx,vt_i_left;
+                __m128 g0_vec_left,vt_i_mid;
+                __m128 vt_i_right,g0_vec_right;
+                __m128 tfm_g_vec_sample,g0_vec_mid;
+                for(i = 0ull;(i+31ull) < this->m_nTsamples;i += 32ull) 
+                {
+                        _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+4ull],tfm_g_vec_sample);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+8ull],tfm_g_vec_sample);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+12ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+12ull],tfm_g_vec_sample);
+                        _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+16ull],_MM_HINT_T0);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+16ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+16ull],tfm_g_vec_sample);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+20ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+20ull],tfm_g_vec_sample);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+24ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+24ull],tfm_g_vec_sample);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+28ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+28ull],tfm_g_vec_sample);
+                }
+
+                for(;(i+23ull) < this->m_nTsamples;i += 24ull) 
+                {
+                        _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+4ull],tfm_g_vec_sample);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+8ull],tfm_g_vec_sample);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+12ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+12ull],tfm_g_vec_sample);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+16ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+16ull],tfm_g_vec_sample);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+20ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+20ull],tfm_g_vec_sample);
+                }
+
+                for(;(i+15ull) < this->m_nTsamples;i += 16ull) 
+                {
+                        _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+4ull],tfm_g_vec_sample);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+8ull],tfm_g_vec_sample);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+12ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+12ull],tfm_g_vec_sample);
+                }
+
+                for(;(i+7ull) < this->m_nTsamples;i += 8ull) 
+                {
+                        _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+4ull],tfm_g_vec_sample);
+                }
+
+                for(;(i+3ull) < this->m_nTsamples;i += 4ull) 
+                {
+                        _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
+                        vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]);
+                        vt_i_left        = _mm_sub_ps(vidx,vT);
+                        g0_vec_left      = _mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT);
+                        vt_i_mid         = vidx;
+                        g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
+                        vt_i_right       = _mm_add_ps(vidx,vT);
+                        g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
+                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
+                        _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
+                }
+
+                for(;(i+0ull) < this->m_nTsamples;i += 1ull) 
+                {
+                        const float t_i{gms::math::LUT_loop_indices_2257_align16[i]};
+                        const float g0_left_0{tfm_g0_value((t_i-this->m_T),invT,invTT)};
+                        const float g0_mid_0{2.0f*tfm_g0_value(t_i,invT,invTT)};
+                        const float g0_right_0{tfm_g0_value((t_i+this->m_T,invT,invTT))};
+                        const float tfm_sample_0{one_ov_eight*(g0_left_0+g0_mid_0+g0_right_0)};
+                        this->m_tfm_pulse.m_data[i] = tfm_sample_0;
+                }
+        }
+        return (0);
+}
+
 
 
