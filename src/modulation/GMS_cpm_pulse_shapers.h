@@ -882,6 +882,192 @@ namespace radiolocation
                   std::int32_t 
                   generate_tfm_pulse_sse_u8x() noexcept(true);
 
+                  __ATTR_ALWAYS_INLINE__ 
+                  inline std::int32_t 
+                  generate_gmsk_pulse_scalar_u8x()
+                  {
+                        if(__builtin_expect(this->m_BbT<0.0f,0) || 
+                           __builtin_expect(this->m_BbT>1.0f,0))   { return (-1);}
+                        constexpr float C1201122408786449794857803286095{1.201122408786449794857803286095f}; //INV(SQRT(Ln(2)))
+                        constexpr float C0707106781186547524400844362105{0.707106781186547524400844362105f};
+                        const     float halfT{0.5f*this->m_T};
+                        const     float twoPIBbT{6.283185307179586476925286766559f*this->m_BbT};
+                        const     float inv2T{1.0f/(this->m_T+this->m_T)};
+                        std::size_t i,j; 
+                        float t_i,Q_left_arg;
+                        float Q_left_value,Q_right_arg;
+                        float Q_right_value,gmsk_sample;
+                        for(i = 0ull;i != ROUND_TO_EIGHT(this->m_nTsamples,8ull);i += 8ull) 
+                        {
+                                t_i          = static_cast<float>(i+0ull);
+                                Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
+                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
+                                Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
+                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
+                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
+                                this->m_gmsk_pulse.m_data[i+0ull] = gmsk_sample;
+                                t_i          = static_cast<float>(i+1ull);
+                                Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
+                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
+                                Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
+                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
+                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
+                                this->m_gmsk_pulse.m_data[i+1ull] = gmsk_sample;
+                                t_i          = static_cast<float>(i+2ull);
+                                Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
+                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
+                                Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
+                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
+                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
+                                this->m_gmsk_pulse.m_data[i+2ull] = gmsk_sample;
+                                t_i          = static_cast<float>(i+3ull);
+                                Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
+                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
+                                Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
+                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
+                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
+                                this->m_gmsk_pulse.m_data[i+3ull] = gmsk_sample;
+                                t_i          = static_cast<float>(i+4ull);
+                                Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
+                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
+                                Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
+                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
+                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
+                                this->m_gmsk_pulse.m_data[i+4ull] = gmsk_sample;
+                                t_i          = static_cast<float>(i+5ull);
+                                Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
+                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
+                                Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
+                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
+                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
+                                this->m_gmsk_pulse.m_data[i+5ull] = gmsk_sample;
+                                t_i          = static_cast<float>(i+6ull);
+                                Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
+                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
+                                Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
+                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
+                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
+                                this->m_gmsk_pulse.m_data[i+6ull] = gmsk_sample;
+                                t_i          = static_cast<float>(i+7ull);
+                                Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
+                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
+                                Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
+                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
+                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
+                                this->m_gmsk_pulse.m_data[i+7ull] = gmsk_sample;
+                        }
+
+                        for(j = i;j != this->m_nTsamples; ++j)  
+                        {
+                                float t_j    = static_cast<float>(j);
+                                Q_left_arg   = twoPIBbT*(t_j-this->m_T)*C1201122408786449794857803286095;
+                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
+                                Q_right_arg  = twoPIBbT*(t_j+this->m_T)*C1201122408786449794857803286095;
+                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
+                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
+                                this->m_gmsk_pulse.m_data[j] = gmsk_sample;
+                        }
+                        return (0);
+                  }
+
+                  __ATTR_ALWAYS_INLINE__ 
+                  inline std::int32_t 
+                  generate_gmsk_pulse_sse_rolled() 
+                  {
+                        using namespace gms::math;
+                        if(__builtin_expect(this->m_BbT<0.0f,0) || 
+                           __builtin_expect(this->m_BbT>1.0f,0))   { return (-1);}
+                        constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+                        constexpr float C1201122408786449794857803286095{1.201122408786449794857803286095f}; //INV(SQRT(Ln(2)))
+                        constexpr float C0707106781186547524400844362105{0.707106781186547524400844362105f};
+                        const     float halfT{0.5f*this->m_T};
+                        const     float twoPIBbT{6.283185307179586476925286766559f*this->m_BbT};
+                        const     float inv2T{1.0f/(this->m_T+this->m_T)};
+                        const     __m128 vC1201122408786449794857803286095{_mm_set1_ps(C1201122408786449794857803286095)};
+                        const     __m128 vC0707106781186547524400844362105{_mm_set1_ps(C0707106781186547524400844362105)};
+                        const     __m128 vhalfT{_mm_set1_ps(halfT)};
+                        const     __m128 vtwoPIBbT{_mm_set1_ps(twoPIBbT)};
+                        const     __m128 vinv2T{_mm_set1_ps(inv2T)};
+                        const     __m128 vhalf{_mm_set1_ps(0.5f)};
+                        std::size_t i,j; 
+                        float       jj;
+                        float Q_left_arg;
+                        float Q_left_value,Q_right_arg;
+                        float Q_right_value,gmsk_sample;
+                        if(__builtin_expect(this->m_nTsamples>LUT_loop_indices_2257_align16,0)) 
+                        {
+                             for(i = 0ull,jj = 0.0f;i != ROUND_TO_FOUR(this->m_nTsamples,4ull);i += 4ull,j += 4.0f) 
+                             {
+                                     __m128 vt_sub_halT,vt_add_halfT,vQ_left_arg;
+                                     __m128 vQ_left_value,vQ_right_arg;
+                                     __m128 vQ_right_value,vgmsk_sample;
+
+                                     vt_sub_halT    = _mm_setr_ps(jj-vhalfT,jj+1.0f-vhalfT,jj+2.0f-vhalfT,jj+3.0f-vhalfT);
+                                     vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                                     vt_add_halfT   = _mm_setr_ps(jj+vhalfT,jj+1.0f+vhalfT,jj+2.0f+vhalfT,jj+3.0f+vhalfT);
+                                     vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                                     vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                                     vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                                     vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                                     _mm_store_ps(&this->m_gmsk_pulse.m_data[i],vgmsk_sample);
+                             }
+
+                             for(j = i;j != this->m_nTsamples; ++j)  
+                             {
+                                    float t_j    = static_cast<float>(j);
+                                    Q_left_arg   = twoPIBbT*(t_j-this->m_T)*C1201122408786449794857803286095;
+                                    Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
+                                    Q_right_arg  = twoPIBbT*(t_j+this->m_T)*C1201122408786449794857803286095;
+                                    Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
+                                    gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
+                                    this->m_gmsk_pulse.m_data[j] = gmsk_sample;
+                             }
+                        }
+                        else 
+                        {
+                             for(i = 0ull;i != ROUND_TO_FOUR(this->m_nTsamples,4ull);i += 4ull) 
+                             {
+                                    __m128 vt_sub_halT,vt_add_halfT,vQ_left_arg;
+                                    __m128 vQ_left_value,vQ_right_arg;
+                                    __m128 vQ_right_value,vgmsk_sample;
+
+                                    _mm_prefetch((const char*)&LUT_loop_indices_2257_align16[i],_MM_HINT_T0);
+                                    vt_sub_halT    = _mm_sub_ps(_mm_load_ps(&LUT_loop_indices_2257_align16[i]),vhalfT);
+                                    vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                                    vt_add_halfT   = _mm_add_ps(_mm_load_ps(&LUT_loop_indices_2257_align16[i]),vhalfT);
+                                    vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                                    vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                                    vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                                    vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                                    _mm_store_ps(&this->m_gmsk_pulse.m_data[i],vgmsk_sample);
+                             }
+
+                             for(j = i;j != this->m_nTsamples; ++j)  
+                             {
+                                    float t_j    = static_cast<float>(j);
+                                    Q_left_arg   = twoPIBbT*(t_j-this->m_T)*C1201122408786449794857803286095;
+                                    Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
+                                    Q_right_arg  = twoPIBbT*(t_j+this->m_T)*C1201122408786449794857803286095;
+                                    Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
+                                    gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
+                                    this->m_gmsk_pulse.m_data[j] = gmsk_sample;
+                             }
+                        }
+                        return (0);
+                  }
+
+                  __ATTR_HOT__
+                  __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+                  __ATTR_OPTIMIZE_03__
+#endif         
+                  std::int32_t 
+                  generate_gmsk_pulse_sse_u8x() noexcept(true);       
+
           };    
 
           auto 

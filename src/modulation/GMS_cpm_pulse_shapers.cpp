@@ -1438,5 +1438,632 @@ gms::radiolocation
         return (0);
 }
 
+std::int32_t 
+gms::radiolocation
+::cpm_pulse_shapers_t
+::generate_gmsk_pulse_sse_u8x() noexcept(true) 
+{
+        using namespace gms::math;
+        if(__builtin_expect(this->m_BbT<0.0f,0) || 
+           __builtin_expect(this->m_BbT>1.0f,0))   { return (-1);}
+        constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+        constexpr float C1201122408786449794857803286095{1.201122408786449794857803286095f}; //INV(SQRT(Ln(2)))
+        constexpr float C0707106781186547524400844362105{0.707106781186547524400844362105f};
+        const     float halfT{0.5f*this->m_T};
+        const     float twoPIBbT{6.283185307179586476925286766559f*this->m_BbT};
+        const     float inv2T{1.0f/(this->m_T+this->m_T)};
+        const     __m128 vC1201122408786449794857803286095{_mm_set1_ps(C1201122408786449794857803286095)};
+        const     __m128 vC0707106781186547524400844362105{_mm_set1_ps(C0707106781186547524400844362105)};
+        const     __m128 vhalfT{_mm_set1_ps(halfT)};
+        const     __m128 vtwoPIBbT{_mm_set1_ps(twoPIBbT)};
+        const     __m128 vinv2T{_mm_set1_ps(inv2T)};
+        const     __m128 vhalf{_mm_set1_ps(0.5f)};
+        std::size_t i; 
+        float       jj;
+        float Q_left_arg;
+        float Q_left_value,Q_right_arg;
+        float Q_right_value,gmsk_sample;
+        if(__builtin_expect(this->m_nTsamples>LUT_loop_indices_2257_align16,0)) 
+        {
+                for(i = 0ull,jj = 0.0f;(i+31ull) < this->m_nTsamples;i += 32ull,jj = 32.0f) 
+                {
+                        __m128 vt_sub_halT,vt_add_halfT,vQ_left_arg;
+                        __m128 vQ_left_value,vQ_right_arg;
+                        __m128 vQ_right_value,vgmsk_sample;
+
+                        vt_sub_halT    = _mm_setr_ps(jj-vhalfT,jj+1.0f-vhalfT,jj+2.0f-vhalfT,jj+3.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+vhalfT,jj+1.0f+vhalfT,jj+2.0f+vhalfT,jj+3.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+0ull],vgmsk_sample);
+                        vt_sub_halT    = _mm_setr_ps(jj+4.0f-vhalfT,jj+5.0f-vhalfT,jj+6.0f-vhalfT,jj+7.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+4.0f+vhalfT,jj+5.0f+vhalfT,jj+6.0f+vhalfT,jj+7.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+4ull],vgmsk_sample);
+                        vt_sub_halT    = _mm_setr_ps(jj+8.0f-vhalfT,jj+9.0f-vhalfT,jj+10.0f-vhalfT,jj+11.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+8.0f+vhalfT,jj+9.0f+vhalfT,jj+10.0f+vhalfT,jj+11.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+8ull],vgmsk_sample);
+                        vt_sub_halT    = _mm_setr_ps(jj+12.0f-vhalfT,jj+13.0f-vhalfT,jj+14.0f-vhalfT,jj+15.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+12.0f+vhalfT,jj+13.0f+vhalfT,jj+14.0f+vhalfT,jj+15.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+12ull],vgmsk_sample);
+                        vt_sub_halT    = _mm_setr_ps(jj+16.0f-vhalfT,jj+17.0f-vhalfT,jj+18.0f-vhalfT,jj+19.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+16.0f+vhalfT,jj+17.0f+vhalfT,jj+18.0f+vhalfT,jj+19.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+16ull],vgmsk_sample);
+                        vt_sub_halT    = _mm_setr_ps(jj+20.0f-vhalfT,jj+21.0f-vhalfT,jj+22.0f-vhalfT,jj+23.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+20.0f+vhalfT,jj+21.0f+vhalfT,jj+22.0f+vhalfT,jj+23.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+20ull],vgmsk_sample);
+                        vt_sub_halT    = _mm_setr_ps(jj+24.0f-vhalfT,jj+25.0f-vhalfT,jj+26.0f-vhalfT,jj+27.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+24.0f+vhalfT,jj+25.0f+vhalfT,jj+26.0f+vhalfT,jj+27.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+24ull],vgmsk_sample);
+                        vt_sub_halT    = _mm_setr_ps(jj+28.0f-vhalfT,jj+29.0f-vhalfT,jj+30.0f-vhalfT,jj+31.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+28.0f+vhalfT,jj+29.0f+vhalfT,jj+30.0f+vhalfT,jj+31.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+28ull],vgmsk_sample);
+                }
+
+                for(;(i+23ull) < this->m_nTsamples;i += 24ull,jj = 24.0f) 
+                {
+                        __m128 vt_sub_halT,vt_add_halfT,vQ_left_arg;
+                        __m128 vQ_left_value,vQ_right_arg;
+                        __m128 vQ_right_value,vgmsk_sample;
+
+                        vt_sub_halT    = _mm_setr_ps(jj-vhalfT,jj+1.0f-vhalfT,jj+2.0f-vhalfT,jj+3.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+vhalfT,jj+1.0f+vhalfT,jj+2.0f+vhalfT,jj+3.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+0ull],vgmsk_sample);
+                        vt_sub_halT    = _mm_setr_ps(jj+4.0f-vhalfT,jj+5.0f-vhalfT,jj+6.0f-vhalfT,jj+7.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+4.0f+vhalfT,jj+5.0f+vhalfT,jj+6.0f+vhalfT,jj+7.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+4ull],vgmsk_sample);
+                        vt_sub_halT    = _mm_setr_ps(jj+8.0f-vhalfT,jj+9.0f-vhalfT,jj+10.0f-vhalfT,jj+11.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+8.0f+vhalfT,jj+9.0f+vhalfT,jj+10.0f+vhalfT,jj+11.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+8ull],vgmsk_sample);
+                        vt_sub_halT    = _mm_setr_ps(jj+12.0f-vhalfT,jj+13.0f-vhalfT,jj+14.0f-vhalfT,jj+15.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+12.0f+vhalfT,jj+13.0f+vhalfT,jj+14.0f+vhalfT,jj+15.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+12ull],vgmsk_sample);
+                        vt_sub_halT    = _mm_setr_ps(jj+16.0f-vhalfT,jj+17.0f-vhalfT,jj+18.0f-vhalfT,jj+19.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+16.0f+vhalfT,jj+17.0f+vhalfT,jj+18.0f+vhalfT,jj+19.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+16ull],vgmsk_sample);
+                        vt_sub_halT    = _mm_setr_ps(jj+20.0f-vhalfT,jj+21.0f-vhalfT,jj+22.0f-vhalfT,jj+23.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+20.0f+vhalfT,jj+21.0f+vhalfT,jj+22.0f+vhalfT,jj+23.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+20ull],vgmsk_sample);
+                }
+
+                for(;(i+15ull) < this->m_nTsamples;i += 16ull,jj = 16.0f) 
+                {
+                        __m128 vt_sub_halT,vt_add_halfT,vQ_left_arg;
+                        __m128 vQ_left_value,vQ_right_arg;
+                        __m128 vQ_right_value,vgmsk_sample;
+
+                        vt_sub_halT    = _mm_setr_ps(jj-vhalfT,jj+1.0f-vhalfT,jj+2.0f-vhalfT,jj+3.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+vhalfT,jj+1.0f+vhalfT,jj+2.0f+vhalfT,jj+3.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+0ull],vgmsk_sample);
+                        vt_sub_halT    = _mm_setr_ps(jj+4.0f-vhalfT,jj+5.0f-vhalfT,jj+6.0f-vhalfT,jj+7.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+4.0f+vhalfT,jj+5.0f+vhalfT,jj+6.0f+vhalfT,jj+7.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+4ull],vgmsk_sample);
+                        vt_sub_halT    = _mm_setr_ps(jj+8.0f-vhalfT,jj+9.0f-vhalfT,jj+10.0f-vhalfT,jj+11.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+8.0f+vhalfT,jj+9.0f+vhalfT,jj+10.0f+vhalfT,jj+11.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+8ull],vgmsk_sample);
+                        vt_sub_halT    = _mm_setr_ps(jj+12.0f-vhalfT,jj+13.0f-vhalfT,jj+14.0f-vhalfT,jj+15.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+12.0f+vhalfT,jj+13.0f+vhalfT,jj+14.0f+vhalfT,jj+15.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+12ull],vgmsk_sample);
+                }
+
+                for(;(i+7ull) < this->m_nTsamples;i += 8ull,jj = 8.0f) 
+                {
+                        __m128 vt_sub_halT,vt_add_halfT,vQ_left_arg;
+                        __m128 vQ_left_value,vQ_right_arg;
+                        __m128 vQ_right_value,vgmsk_sample;
+
+                        vt_sub_halT    = _mm_setr_ps(jj-vhalfT,jj+1.0f-vhalfT,jj+2.0f-vhalfT,jj+3.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+vhalfT,jj+1.0f+vhalfT,jj+2.0f+vhalfT,jj+3.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+0ull],vgmsk_sample);
+                        vt_sub_halT    = _mm_setr_ps(jj+4.0f-vhalfT,jj+5.0f-vhalfT,jj+6.0f-vhalfT,jj+7.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+4.0f+vhalfT,jj+5.0f+vhalfT,jj+6.0f+vhalfT,jj+7.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+4ull],vgmsk_sample);
+                }
+
+                for(;(i+3ull) < this->m_nTsamples;i += 4ull,jj = 4.0f) 
+                {
+                        __m128 vt_sub_halT,vt_add_halfT,vQ_left_arg;
+                        __m128 vQ_left_value,vQ_right_arg;
+                        __m128 vQ_right_value,vgmsk_sample;
+
+                        vt_sub_halT    = _mm_setr_ps(jj-vhalfT,jj+1.0f-vhalfT,jj+2.0f-vhalfT,jj+3.0f-vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_setr_ps(jj+vhalfT,jj+1.0f+vhalfT,jj+2.0f+vhalfT,jj+3.0f+vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+0ull],vgmsk_sample);
+                }
+
+                for(;(i+0ull) < this->m_nTsamples; i += 1ull) 
+                {
+                        float t_i    = static_cast<float>(i);
+                        Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
+                        Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
+                        Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
+                        Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
+                        gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
+                        this->m_gmsk_pulse.m_data[i] = gmsk_sample;
+                }
+        }
+        else 
+        {
+                for(i = 0ull;(i+31ull) < this->m_nTsamples;i += 32ull) 
+                {
+                        __m128 vt_sub_halT,vt_add_halfT,vQ_left_arg;
+                        __m128 vQ_left_value,vQ_right_arg,vidx;
+                        __m128 vQ_right_value,vgmsk_sample;
+
+                        _mm_prefetch((const char*)&LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+0ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+0ull],vgmsk_sample);
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+4ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+4ull],vgmsk_sample);
+                         vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+8ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+8ull],vgmsk_sample);
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+12ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+12ull],vgmsk_sample);
+                        _mm_prefetch((const char*)&LUT_loop_indices_2257_align16[i+16ull],_MM_HINT_T0);
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+16ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+16ull],vgmsk_sample);
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+20ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+20ull],vgmsk_sample);
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+24ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+24ull],vgmsk_sample);
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+28ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+28ull],vgmsk_sample);
+                }
+
+                for(;(i+23ull) < this->m_nTsamples;i += 24ull) 
+                {
+                        __m128 vt_sub_halT,vt_add_halfT,vQ_left_arg;
+                        __m128 vQ_left_value,vQ_right_arg,vidx;
+                        __m128 vQ_right_value,vgmsk_sample;
+
+                        _mm_prefetch((const char*)&LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+0ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+0ull],vgmsk_sample);
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+4ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+4ull],vgmsk_sample);
+                         vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+8ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+8ull],vgmsk_sample);
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+12ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+12ull],vgmsk_sample);
+                        _mm_prefetch((const char*)&LUT_loop_indices_2257_align16[i+16ull],_MM_HINT_T0);
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+16ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+16ull],vgmsk_sample);
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+20ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+20ull],vgmsk_sample);
+                }
+
+                for(;(i+15ull) < this->m_nTsamples;i += 16ull) 
+                {
+                        __m128 vt_sub_halT,vt_add_halfT,vQ_left_arg;
+                        __m128 vQ_left_value,vQ_right_arg,vidx;
+                        __m128 vQ_right_value,vgmsk_sample;
+
+                        _mm_prefetch((const char*)&LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+0ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+0ull],vgmsk_sample);
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+4ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+4ull],vgmsk_sample);
+                         vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+8ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+8ull],vgmsk_sample);
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+12ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+12ull],vgmsk_sample);
+                }
+
+                for(;(i+7ull) < this->m_nTsamples;i += 8ull) 
+                {
+                        __m128 vt_sub_halT,vt_add_halfT,vQ_left_arg;
+                        __m128 vQ_left_value,vQ_right_arg,vidx;
+                        __m128 vQ_right_value,vgmsk_sample;
+
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+0ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+0ull],vgmsk_sample);
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+4ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+4ull],vgmsk_sample);
+                }
+
+                for(;(i+3ull) < this->m_nTsamples;i += 4ull) 
+                {
+                        __m128 vt_sub_halT,vt_add_halfT,vQ_left_arg;
+                        __m128 vQ_left_value,vQ_right_arg,vidx;
+                        __m128 vQ_right_value,vgmsk_sample;
+
+                        vidx           = _mm_load_ps(&LUT_loop_indices_2257_align16[i+0ull]);
+                        vt_sub_halT    = _mm_sub_ps(vidx,vhalfT);
+                        vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
+                        vt_add_halfT   = _mm_add_ps(vidx,vhalfT);
+                        vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
+                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
+                        vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
+                        vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
+                        vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
+                        _mm_store_ps(&this->m_gmsk_pulse.m_data[i+0ull],vgmsk_sample);
+                }
+
+                for(;(i+0ull) < this->m_nTsamples; i += 1ull) 
+                {
+                        float t_i    = LUT_loop_indices_2257_align16[i];
+                        Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
+                        Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
+                        Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
+                        Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
+                        gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
+                        this->m_gmsk_pulse.m_data[i] = gmsk_sample;
+                }
+
+        }
+        return (0);
+}
+
+auto 
+gms::radiolocation 
+::operator<<(std::ostream &os,
+             cpm_pulse_shapers_t &rhs)->std::ostream &
+{
+        std::cout << typeid(rhs).name() << "Begin: object state dump." << std::endl;
+        std::cout << "m_nTLsamples    : "      << rhs.m_nTLsamples  << std::endl;
+        std::cout << "m_nTsamples     : "      << rhs.m_nTsamples   << std::endl;   
+        std::cout << "m_T             : "      << std::fixed << std::setprecision(7) << rhs.m_T << std::endl;
+        std::cout << "m_L             : "      << std::fixed << std::setprecision(7) << rhs.m_L << std::endl;
+        std::cout << "m_beta          : "      << std::fixed << std::setprecision(7) << rhs.m_beta << std::endl;
+        std::cout << "m_BbT           : "      << std::fixed << std::setprecision(7) << rhs.m_BbT << std::endl;
+        std::cout << "L-Rectangular Pulse -- Samples:" << "\n";
+        for(std::size_t i{0ull}; i != rhs.m_nTLsamples; ++i)
+        {
+           os << std::fixed << std::setprecision(7) << rhs.m_lrec_pulse.m_data[i] << std::endl;
+        }
+        std::cout << "\n";
+        std::cout << "L-Raised Cosine Pulse -- Samples:" << "\n";
+        for(std::size_t i{0ull}; i != rhs.m_nTLsamples; ++i)
+        {
+           os << std::fixed << std::setprecision(7) << rhs.m_lrc_pulse.m_data[i] << std::endl;
+        }
+        std::cout << "\n";
+        std::cout << "L-Spectrally Raised Cosine Pulse -- Samples:" << "\n";
+        for(std::size_t i{0ull}; i != rhs.m_nTLsamples; ++i)
+        {
+           os << std::fixed << std::setprecision(7) << rhs.m_lsrc_pulse.m_data[i] << std::endl;
+        }
+        std::cout << "\n";
+        std::cout << "Tamed Frquency Modulation(TFM) Pulse -- Samples:" << "\n";
+        for(std::size_t i{0ull}; i != rhs.m_nTsamples; ++i)
+        {
+           os << std::fixed << std::setprecision(7) << rhs.m_tfm_pulse.m_data[i] << std::endl;
+        }
+        std::cout << "\n";
+        std::cout << "Gaussian(MSK) Pulse -- Samples:" << "\n";
+        for(std::size_t i{0ull}; i != rhs.m_nTsamples; ++i)
+        {
+           os << std::fixed << std::setprecision(7) << rhs.m_gmsk_pulse.m_data[i] << std::endl;
+        }
+        std::cout << "\n";
+        std::cout << typeid(rhs).name() << "End: object state dump." << std::endl;
+        return (os);
+}
+
 
 
