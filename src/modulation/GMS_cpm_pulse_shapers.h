@@ -102,7 +102,7 @@ double utilization,nom_ghz,avg_ghz;
 #endif 
 
 #if !defined(CPM_PULSE_SHAPERS_USE_VEC_RCP14_PRECISION)
-#define CPM_PULSE_SHAPERS_USE_VEC_RCP14_PRECISION 1
+#define CPM_PULSE_SHAPERS_USE_VEC_RCP14_PRECISION 0
 #endif 
 
 namespace gms 
@@ -215,7 +215,7 @@ namespace radiolocation
                        std::size_t i,j;
                        const float twoLT{2.0f*this->m_L*this->m_T};
                        const float value{1.0f/twoLT};
-                       for(i = 0ull; i != ROUND_TO_EIGHT(this->m_nTLsamples,8ull)l i += 8ull) 
+                       for(i = 0ull; i != ROUND_TO_EIGHT(this->m_nTLsamples,8ull); i += 8ull) 
                        {
                            this->m_lrec_pulse.m_data[i+0ull] = value;
                            this->m_lrec_pulse.m_data[i+1ull] = value;
@@ -593,12 +593,12 @@ namespace radiolocation
                       const __m128 vone{_mm_set1_ps(1.0f)};
                       const __m128 vfour{_mm_set1_ps(4.0f)};
                       const __m128 vbeta{_mm_set1_ps(this->m_beta)};
-                      if(__builtin_expect(this->m_nTLsamples>LUT_loop_indices_2257_align16,0)) 
+                      if(__builtin_expect(this->m_nTLsamples>LUT_loop_idx_threshold,0)) 
                       {
                            for(i = 0ull,jj = 0.0f; i != ROUND_TO_FOUR(this->m_nTLsamples,4ull); i += 4ull,jj += 4.0f) 
                            {
-                               const __m128 vt_i{_mm_setr_ps(jj*vinvLT,(jj+1.0f)*vinvLT,(jj+2.0f)*vinvLT,(jj+3.0f)*vinvLT)};
-                               const __m128 varg_term{_mm_mul_ps(C6283185307179586476925286766559,vt_i)};
+                               const __m128 vt_i{_mm_setr_ps(jj*invLT,(jj+1.0f)*invLT,(jj+2.0f)*invLT,(jj+3.0f)*invLT)};
+                               const __m128 varg_term{_mm_mul_ps(vC6283185307179586476925286766559,vt_i)};
                                const __m128 vcosinc_denom{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i))};
                                const __m128 vsin_term{_mm_sin_ps(varg_term)};
                                const __m128 vsinc_term{_mm_div_ps(vsin_term,varg_term)};
@@ -632,7 +632,7 @@ namespace radiolocation
                            { 
                                _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i],_MM_HINT_T0);
                                const __m128 vt_i{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i]),vinvLT)};
-                               const __m128 varg_term{_mm_mul_ps(C6283185307179586476925286766559,vt_i)};
+                               const __m128 varg_term{_mm_mul_ps(vC6283185307179586476925286766559,vt_i)};
                                const __m128 vcosinc_denom{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i))};
                                const __m128 vsin_term{_mm_sin_ps(varg_term)};
                                const __m128 vsinc_term{_mm_div_ps(vsin_term,varg_term)};
@@ -692,7 +692,8 @@ namespace radiolocation
 #else 
                        const float sin_term{std::sin(PItT)};
 #endif 
-                       const float cot_term{std::tan(C157079632679489661923132169164-PItT)};
+                       //const float cot_term{std::tan(C157079632679489661923132169164-PItT)};
+                       const float cot_term{1.0f/std::tan(PItT)};
                        const float sqrPItT{PItT*PItT};
                        const float numerator{2.0f-twoPItT*cot_term-sqrPItT};
                        const float ratio{invPIt-(numerator/denom)};
@@ -714,49 +715,49 @@ namespace radiolocation
                             const float t_i_0{static_cast<float>(i+0ull)};
                             const float g0_left_0{tfm_g0_value((t_i_0-this->m_T),invT,invTT)};
                             const float g0_mid_0{2.0f*tfm_g0_value(t_i_0,invT,invTT)};
-                            const float g0_right_0{tfm_g0_value((t_i_0+this->m_T,invT,invTT))};
+                            const float g0_right_0{tfm_g0_value((t_i_0+this->m_T),invT,invTT)};
                             const float tfm_sample_0{one_ov_eight*(g0_left_0+g0_mid_0+g0_right_0)};
                             this->m_tfm_pulse.m_data[i+0ull] = tfm_sample_0;
                             const float t_i_1{static_cast<float>(i+1ull)};
                             const float g0_left_1{tfm_g0_value((t_i_1-this->m_T),invT,invTT)};
                             const float g0_mid_1{2.0f*tfm_g0_value(t_i_1,invT,invTT)};
-                            const float g0_right_1{tfm_g0_value((t_i_1+this->m_T,invT,invTT))};
+                            const float g0_right_1{tfm_g0_value((t_i_1+this->m_T),invT,invTT)};
                             const float tfm_sample_1{one_ov_eight*(g0_left_1+g0_mid_1+g0_right_1)};
                             this->m_tfm_pulse.m_data[i+1ull] = tfm_sample_1;
                             const float t_i_2{static_cast<float>(i+2ull)};
                             const float g0_left_2{tfm_g0_value((t_i_2-this->m_T),invT,invTT)};
                             const float g0_mid_2{2.0f*tfm_g0_value(t_i_2,invT,invTT)};
-                            const float g0_right_2{tfm_g0_value((t_i_2+this->m_T,invT,invTT))};
+                            const float g0_right_2{tfm_g0_value((t_i_2+this->m_T),invT,invTT)};
                             const float tfm_sample_2{one_ov_eight*(g0_left_2+g0_mid_2+g0_right_2)};
                             this->m_tfm_pulse.m_data[i+2ull] = tfm_sample_2;
                             const float t_i_3{static_cast<float>(i+3ull)};
                             const float g0_left_3{tfm_g0_value((t_i_3-this->m_T),invT,invTT)};
                             const float g0_mid_3{2.0f*tfm_g0_value(t_i_3,invT,invTT)};
-                            const float g0_right_3{tfm_g0_value((t_i_3+this->m_T,invT,invTT))};
+                            const float g0_right_3{tfm_g0_value((t_i_3+this->m_T),invT,invTT)};
                             const float tfm_sample_3{one_ov_eight*(g0_left_3+g0_mid_3+g0_right_3)};
                             this->m_tfm_pulse.m_data[i+3ull] = tfm_sample_3;
                             const float t_i_4{static_cast<float>(i+4ull)};
                             const float g0_left_4{tfm_g0_value((t_i_4-this->m_T),invT,invTT)};
                             const float g0_mid_4{2.0f*tfm_g0_value(t_i_4,invT,invTT)};
-                            const float g0_right_4{tfm_g0_value((t_i_4+this->m_T,invT,invTT))};
+                            const float g0_right_4{tfm_g0_value((t_i_4+this->m_T),invT,invTT)};
                             const float tfm_sample_4{one_ov_eight*(g0_left_4+g0_mid_4+g0_right_4)};
                             this->m_tfm_pulse.m_data[i+4ull] = tfm_sample_4;
                             const float t_i_5{static_cast<float>(5+1ull)};
                             const float g0_left_5{tfm_g0_value((t_i_5-this->m_T),invT,invTT)};
                             const float g0_mid_5{2.0f*tfm_g0_value(t_i_5,invT,invTT)};
-                            const float g0_right_5{tfm_g0_value((t_i_5+this->m_T,invT,invTT))};
+                            const float g0_right_5{tfm_g0_value((t_i_5+this->m_T),invT,invTT)};
                             const float tfm_sample_5{one_ov_eight*(g0_left_5+g0_mid_5+g0_right_5)};
                             this->m_tfm_pulse.m_data[i+5ull] = tfm_sample_5;
                             const float t_i_6{static_cast<float>(6+1ull)};
                             const float g0_left_6{tfm_g0_value((t_i_6-this->m_T),invT,invTT)};
                             const float g0_mid_6{2.0f*tfm_g0_value(t_i_6,invT,invTT)};
-                            const float g0_right_6{tfm_g0_value((t_i_6+this->m_T,invT,invTT))};
+                            const float g0_right_6{tfm_g0_value((t_i_6+this->m_T),invT,invTT)};
                             const float tfm_sample_6{one_ov_eight*(g0_left_6+g0_mid_6+g0_right_6)};
                             this->m_tfm_pulse.m_data[i+6ull] = tfm_sample_6;
                             const float t_i_7{static_cast<float>(i+7ull)};
                             const float g0_left_7{tfm_g0_value((t_i_7-this->m_T),invT,invTT)};
                             const float g0_mid_7{2.0f*tfm_g0_value(t_i_7,invT,invTT)};
-                            const float g0_right_7{tfm_g0_value((t_i_7+this->m_T,invT,invTT))};
+                            const float g0_right_7{tfm_g0_value((t_i_7+this->m_T),invT,invTT)};
                             const float tfm_sample_7{one_ov_eight*(g0_left_7+g0_mid_7+g0_right_7)};
                             this->m_tfm_pulse.m_data[i+7ull] = tfm_sample_7;
                        }
@@ -766,7 +767,7 @@ namespace radiolocation
                             const float t_j{static_cast<float>(j)};
                             const float g0_left_0{tfm_g0_value((t_j-this->m_T),invT,invTT)};
                             const float g0_mid_0{2.0f*tfm_g0_value(t_j,invT,invTT)};
-                            const float g0_right_0{tfm_g0_value((t_j+this->m_T,invT,invTT))};
+                            const float g0_right_0{tfm_g0_value((t_j+this->m_T),invT,invTT)};
                             const float tfm_sample_0{one_ov_eight*(g0_left_0+g0_mid_0+g0_right_0)};
                             this->m_tfm_pulse.m_data[j] = tfm_sample_0;
                        }
@@ -785,20 +786,22 @@ namespace radiolocation
                        const __m128 vC157079632679489661923132169164{_mm_set1_ps(1.57079632679489661923132169164f)};
                        const __m128 v24{_mm_set1_ps(24.0f)};
                        const __m128 v2{_mm_set1_ps(2.0f)};
+                       const __m128 vONE{_mm_set1_ps(1.0f)};
 #if (CPM_PULSE_SHAPERS_USE_VEC_RCP14_PRECISION) == 1 
                        const __m128 vinvPIt{_mm_rcp14_ps(_mm_mul_ps(vC314159265358979323846264338328,vt))};
 #else 
-                       const __m128 vONE{_mm_set1_ps(1.0f)};
+                       
                        const __m128 vinvPIt{_mm_div_ps(vONE,_mm_mul_ps(vC314159265358979323846264338328,vt))};
 #endif 
-                       const __m128 vPItT{_mm_mul_ps(vC314159265358979323846264338328,_mm_mul_ps(vt,vinvT))};
+                       const __m128 vPItT{_mm_mul_ps(_mm_mul_ps(vC314159265358979323846264338328,vt),vinvT)};
                        const __m128 vtpow3{_mm_mul_ps(vt,_mm_mul_ps(vt,vt))};
-                       const __m128 v2PItT{_mm_mul_ps(vC6283185307179586476925286766559,_mm_mul_ps(vt,vinvT))};
-                       const __m128 vdenom{_mm_mul_ps(_mm_mul_ps(v24,vC314159265358979323846264338328),_mm_mul_ps(vtpow3,vinvTT))};
+                       const __m128 v2PItT{_mm_mul_ps(_mm_mul_ps(vC6283185307179586476925286766559,vt),vinvT)};
+                       const __m128 vdenom{_mm_mul_ps(_mm_mul_ps(v24,_mm_mul_ps(vC314159265358979323846264338328,vtpow3)),vinvTT)};
                        const __m128 vsin_term{_mm_sin_ps(vPItT)};
                        const __m128 vcot_term{_mm_tan_ps(_mm_sub_ps(vC157079632679489661923132169164,vPItT))};
+                       //const __m128 vcot_term{_mm_rcp_ps(_mm_tan_ps(vPItT))};
                        const __m128 vsqrPItT{_mm_mul_ps(vPItT,vPItT)};
-                       const __m128 vnumerator{_mm_sub_ps(v2,_mm_fmsub_ps(v2PItT,vcot_term,vsqrPItT))};
+                       const __m128 vnumerator{_mm_sub_ps(_mm_sub_ps(v2,_mm_mul_ps(v2PItT,vcot_term)),vsqrPItT)};
                        const __m128 vratio{_mm_sub_ps(vinvPIt,_mm_div_ps(vnumerator,vdenom))};
                        const __m128 vg0_vec{_mm_mul_ps(vsin_term,vratio)};
                        return (vg0_vec);
@@ -810,7 +813,8 @@ namespace radiolocation
                   {
                        using namespace gms::math;
                        constexpr std::size_t LUT_loop_idx_threshold{2257ull};
-                       constexpr float one_ov_eight{1.0f/8.0f};
+                       constexpr float one_ov_eight{0.125f};
+                       constexpr float one_ov_fourth{0.25f};
                        std::size_t i,j;  
                        float jj;
                        const float invT{1.0f/this->m_T};
@@ -818,18 +822,21 @@ namespace radiolocation
                        const __m128 vinvT{_mm_set1_ps(invT)};
                        const __m128 vinvTT{_mm_set1_ps(invTT)};
                        const __m128 v2{_mm_set1_ps(2.0f)};
-                       if(__builtin_expect(this->m_nTsamples>LUT_loop_indices_2257_align16,0))
+                       const __m128 vone_ov_eight{_mm_set1_ps(one_ov_eight)};
+                       const __m128 vone_ov_fourth{_mm_set1_ps(one_ov_fourth)};
+                       if(__builtin_expect(this->m_nTsamples>LUT_loop_idx_threshold,0))
                        {
-                             for(i = 0ull,jj = 0.0f;i != ROUND_TO_FOUR(this->m_nTsamples,4ull);i += 4ull,j += 4.0f) 
+                             for(i = 0ull,jj = 0.0f;i != ROUND_TO_FOUR(this->m_nTsamples,4ull);i += 4ull,jj += 4.0f) 
                              {
                                    const __m128 vt_i_left{_mm_setr_ps(jj-this->m_T,jj-this->m_T+1.0f,jj-this->m_T+2.0f,jj-this->m_T+3.0f)};
-                                   const __m128 g0_vec_left{_mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT)};
+                                   const __m128 g0_vec_left{_mm_mul_ps(vone_ov_eight,_mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT))};
                                    const __m128 vt_i_mid{_mm_setr_ps(jj,jj+1.0f,jj+2.0f,jj+3.0f)};
-                                   const __m128 g0_vec_mid{_mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT)};
+                                   const __m128 g0_vec_mid{_mm_mul_ps(vone_ov_fourth,_mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT))};
                                    const __m128 vt_i_right{_mm_setr_ps(jj+this->m_T,jj+this->m_T+1.0f,jj+this->m_T+2.0f,jj+this->m_T+3.0f)};
-                                   const __m128 g0_vec_right{_mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT)};
-                                   const __m128 tfm_g_vec_sample{_mm_mul_ps(one_ov_eight,
-                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)))};
+                                   const __m128 g0_vec_right{_mm_mul_ps(vone_ov_eight,_mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT))};
+                                   //const __m128 tfm_g_vec_sample{_mm_mul_ps(vone_ov_eight,
+                                                //_mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)))};
+                                   const __m128 tfm_g_vec_sample{_mm_add_ps(g0_vec_left,_mm_add_ps(g0_vec_mid,g0_vec_right))};
                                    _mm_store_ps(&this->m_tfm_pulse.m_data[i],tfm_g_vec_sample);
                              }
 
@@ -837,9 +844,9 @@ namespace radiolocation
                              {
                                    const float t_j{static_cast<float>(j)};
                                    const float g0_left_0{tfm_g0_value((t_j-this->m_T),invT,invTT)};
-                                   const float g0_mid_0{2.0f*tfm_g0_value(t_j,invT,invTT)};
-                                   const float g0_right_0{tfm_g0_value((t_j+this->m_T,invT,invTT))};
-                                   const float tfm_sample_0{one_ov_eight*(g0_left_0+g0_mid_0+g0_right_0)};
+                                   const float g0_mid_0{tfm_g0_value(t_j,invT,invTT)};
+                                   const float g0_right_0{tfm_g0_value((t_j+this->m_T),invT,invTT)};
+                                   const float tfm_sample_0{0.125f*g0_left_0+0.25f*g0_mid_0+0.125f*g0_right_0};
                                    this->m_tfm_pulse.m_data[j] = tfm_sample_0;
                              }
                        }
@@ -851,13 +858,14 @@ namespace radiolocation
                                      _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i],_MM_HINT_T0);
                                      const __m128 vidx{_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i])};
                                      const __m128 vt_i_left{_mm_sub_ps(vidx,vT)};
-                                     const __m128 g0_vec_left{_mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT)};
+                                     const __m128 g0_vec_left{_mm_mul_ps(vone_ov_eight,_mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT))};
                                      const __m128 vt_i_mid{vidx};
-                                     const __m128 g0_vec_mid{_mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT)};
+                                     const __m128 g0_vec_mid{_mm_mul_ps(vone_ov_fourth,_mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT))};
                                      const __m128 vt_i_right{_mm_add_ps(vidx,vT)};
-                                     const __m128 g0_vec_right{_mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT)};
-                                     const __m128 tfm_g_vec_sample{_mm_mul_ps(one_ov_eight,
-                                                _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)))};
+                                     const __m128 g0_vec_right{_mm_mul_ps(vone_ov_eight,_mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT))};
+                                     //const __m128 tfm_g_vec_sample{_mm_mul_ps(vone_ov_eight,
+                                     //           _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)))};
+                                     const __m128 tfm_g_vec_sample{_mm_add_ps(g0_vec_left,_mm_add_ps(g0_vec_mid,g0_vec_right))};
                                      _mm_store_ps(&this->m_tfm_pulse.m_data[i],tfm_g_vec_sample);
                              }
 
@@ -866,8 +874,8 @@ namespace radiolocation
                                    const float t_j{gms::math::LUT_loop_indices_2257_align16[j]};
                                    const float g0_left_0{tfm_g0_value((t_j-this->m_T),invT,invTT)};
                                    const float g0_mid_0{2.0f*tfm_g0_value(t_j,invT,invTT)};
-                                   const float g0_right_0{tfm_g0_value((t_j+this->m_T,invT,invTT))};
-                                   const float tfm_sample_0{one_ov_eight*(g0_left_0+g0_mid_0+g0_right_0)};
+                                   const float g0_right_0{tfm_g0_value((t_j+this->m_T),invT,invTT)};
+                                   const float tfm_sample_0{0.125f*g0_left_0+0.25f*g0_mid_0+0.125f*g0_right_0};
                                    this->m_tfm_pulse.m_data[j] = tfm_sample_0;
                              }
                        }
@@ -994,7 +1002,7 @@ namespace radiolocation
                         float Q_left_arg;
                         float Q_left_value,Q_right_arg;
                         float Q_right_value,gmsk_sample;
-                        if(__builtin_expect(this->m_nTsamples>LUT_loop_indices_2257_align16,0)) 
+                        if(__builtin_expect(this->m_nTsamples>LUT_loop_idx_threshold,0)) 
                         {
                              for(i = 0ull,jj = 0.0f;i != ROUND_TO_FOUR(this->m_nTsamples,4ull);i += 4ull,j += 4.0f) 
                              {
@@ -1002,10 +1010,10 @@ namespace radiolocation
                                      __m128 vQ_left_value,vQ_right_arg;
                                      __m128 vQ_right_value,vgmsk_sample;
 
-                                     vt_sub_halT    = _mm_setr_ps(jj-vhalfT,jj+1.0f-vhalfT,jj+2.0f-vhalfT,jj+3.0f-vhalfT);
+                                     vt_sub_halT    = _mm_setr_ps(jj-halfT,jj+1.0f-halfT,jj+2.0f-halfT,jj+3.0f-halfT);
                                      vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                                     vt_add_halfT   = _mm_setr_ps(jj+vhalfT,jj+1.0f+vhalfT,jj+2.0f+vhalfT,jj+3.0f+vhalfT);
+                                     vt_add_halfT   = _mm_setr_ps(jj+halfT,jj+1.0f+halfT,jj+2.0f+halfT,jj+3.0f+halfT);
                                      vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                                _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                                      vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));

@@ -212,7 +212,7 @@ gms::radiolocation
     const __m128 vone{_mm_set1_ps(1.0f)};
     std::size_t i;
     float j;
-    if(__builtin_expect(this->m_nTLsamples>LUT_loop_indices_2257_align16,0)) 
+    if(__builtin_expect(this->m_nTLsamples>LUT_loop_idx_threshold,0)) 
     {
          for(i = 0ull,j = 0.0f; (i+31ull) < this->m_nTLsamples; i += 32ull,j += 32.0f) 
          {
@@ -275,7 +275,7 @@ gms::radiolocation
                  const __m128 vt_i_5{_mm_setr_ps((j+20.0f)*invLT,(j+21.0f)*invLT,(j+22.0f)*invLT,(j+23.0f)*invLT)};
                  const __m128 vcos_term_5{_mm_cos_ps(_mm_mul_ps(vC6283185307179586476925286766559,vt_i_5))};
                  const __m128 vlrc_value_5{_mm_mul_ps(vinv2LT,_mm_sub_ps(vone,vcos_term_5))};
-                 _mm_store_ps(&this->m_lrc_pulse.m_data[i+20ull],vlrc_value_5) 
+                 _mm_store_ps(&this->m_lrc_pulse.m_data[i+20ull],vlrc_value_5);
          }
 
          for(; (i+15ull) < this->m_nTLsamples; i += 16ull,j += 16.0f) 
@@ -417,7 +417,7 @@ gms::radiolocation
                  const __m128 vt_i_3{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+12ull]),vinvLT)};
                  const __m128 vcos_term_3{_mm_cos_ps(_mm_mul_ps(vC6283185307179586476925286766559,vt_i_3))};
                  const __m128 vlrc_value_3{_mm_mul_ps(vinv2LT,_mm_sub_ps(vone,vcos_term_3))};
-                 _mm_store_ps(&this->m_lrc_pulse.m_data[i+12ull],vlrc_value_3)
+                 _mm_store_ps(&this->m_lrc_pulse.m_data[i+12ull],vlrc_value_3);
           }
 
           for(; (i+7ull) < this->m_nTLsamples; i += 8ull) 
@@ -449,7 +449,7 @@ gms::radiolocation
                 const float cos_term_0{std::cos(C6283185307179586476925286766559*t_i*invLT)};
 #endif
                 const float lrc_val_0{inv2LT*(1.0f-cos_term_0)};
-                this->m_lrc_pulse.m_data[j] = lrc_val_0;
+                this->m_lrc_pulse.m_data[i] = lrc_val_0;
           }
     }
     return (0);
@@ -471,12 +471,12 @@ gms::radiolocation
         const __m128 vone{_mm_set1_ps(1.0f)};
         const __m128 vfour{_mm_set1_ps(4.0f)};
         const __m128 vbeta{_mm_set1_ps(this->m_beta)};
-        if(__builtin_expect(this->m_nTLsamples>LUT_loop_indices_2257_align16,0)) 
+        if(__builtin_expect(this->m_nTLsamples>LUT_loop_idx_threshold,0)) 
         {
                 for(i = 0ull,jj = 0.0f; (i+31ull) < this->m_nTLsamples; i += 32ull,jj = 32.0f) 
                 {
-                        const __m128 vt_i_0{_mm_setr_ps(jj*vinvLT,(jj+1.0f)*vinvLT,(jj+2.0f)*vinvLT,(jj+3.0f)*vinvLT)};
-                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 vt_i_0{_mm_setr_ps(jj*invLT,(jj+1.0f)*invLT,(jj+2.0f)*invLT,(jj+3.0f)*invLT)};
+                        const __m128 varg_term_0{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_0)};
                         const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
                         const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
                         const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
@@ -484,8 +484,8 @@ gms::radiolocation
                         const __m128 vcosinc_term_0{_mm_div_ps(vcos_term_0,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_0,vcosinc_denom_0)))};
                         const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
-                        const __m128 vt_i_1{_mm_setr_ps((jj+4.0f)*vinvLT,(jj+5.0f)*vinvLT,(jj+6.0f)*vinvLT,(jj+7.0f)*vinvLT)};
-                        const __m128 varg_term_1{_mm_mul_ps(C6283185307179586476925286766559,vt_i_1)};
+                        const __m128 vt_i_1{_mm_setr_ps((jj+4.0f)*invLT,(jj+5.0f)*invLT,(jj+6.0f)*invLT,(jj+7.0f)*invLT)};
+                        const __m128 varg_term_1{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_1)};
                         const __m128 vcosinc_denom_1{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_1))};
                         const __m128 vsin_term_1{_mm_sin_ps(varg_term_1)};
                         const __m128 vsinc_term_1{_mm_div_ps(vsin_term_1,varg_term_1)};
@@ -493,8 +493,8 @@ gms::radiolocation
                         const __m128 vcosinc_term_1{_mm_div_ps(vcos_term_1,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_1,vcosinc_denom_1)))};
                         const __m128 vlsrc_sample_1{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_1,vcosinc_term_1))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+4ull], vlsrc_sample_1);
-                        const __m128 vt_i_2{_mm_setr_ps((jj+8.0f)*vinvLT,(jj+9.0f)*vinvLT,(jj+10.0f)*vinvLT,(jj+11.0f)*vinvLT)};
-                        const __m128 varg_term_2{_mm_mul_ps(C6283185307179586476925286766559,vt_i_2)};
+                        const __m128 vt_i_2{_mm_setr_ps((jj+8.0f)*invLT,(jj+9.0f)*invLT,(jj+10.0f)*invLT,(jj+11.0f)*invLT)};
+                        const __m128 varg_term_2{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_2)};
                         const __m128 vcosinc_denom_2{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_2))};
                         const __m128 vsin_term_2{_mm_sin_ps(varg_term_2)};
                         const __m128 vsinc_term_2{_mm_div_ps(vsin_term_2,varg_term_2)};
@@ -502,8 +502,8 @@ gms::radiolocation
                         const __m128 vcosinc_term_2{_mm_div_ps(vcos_term_2,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_2,vcosinc_denom_2)))};
                         const __m128 vlsrc_sample_2{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_2,vcosinc_term_2))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+8ull], vlsrc_sample_2);
-                        const __m128 vt_i_3{_mm_setr_ps((jj+12.0f)*vinvLT,(jj+13.0f)*vinvLT,(jj+14.0f)*vinvLT,(jj+15.0f)*vinvLT)};
-                        const __m128 varg_term_3{_mm_mul_ps(C6283185307179586476925286766559,vt_i_3)};
+                        const __m128 vt_i_3{_mm_setr_ps((jj+12.0f)*invLT,(jj+13.0f)*invLT,(jj+14.0f)*invLT,(jj+15.0f)*invLT)};
+                        const __m128 varg_term_3{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_3)};
                         const __m128 vcosinc_denom_3{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_3))};
                         const __m128 vsin_term_3{_mm_sin_ps(varg_term_3)};
                         const __m128 vsinc_term_3{_mm_div_ps(vsin_term_3,varg_term_3)};
@@ -511,8 +511,8 @@ gms::radiolocation
                         const __m128 vcosinc_term_3{_mm_div_ps(vcos_term_3,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_3,vcosinc_denom_3)))};
                         const __m128 vlsrc_sample_3{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_3,vcosinc_term_3))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+12ull], vlsrc_sample_3);
-                        const __m128 vt_i_4{_mm_setr_ps((jj+16.0f)*vinvLT,(jj+17.0f)*vinvLT,(jj+18.0f)*vinvLT,(jj+19.0f)*vinvLT)};
-                        const __m128 varg_term_4{_mm_mul_ps(C6283185307179586476925286766559,vt_i_4)};
+                        const __m128 vt_i_4{_mm_setr_ps((jj+16.0f)*invLT,(jj+17.0f)*invLT,(jj+18.0f)*invLT,(jj+19.0f)*invLT)};
+                        const __m128 varg_term_4{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_4)};
                         const __m128 vcosinc_denom_4{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_4))};
                         const __m128 vsin_term_4{_mm_sin_ps(varg_term_4)};
                         const __m128 vsinc_term_4{_mm_div_ps(vsin_term_4,varg_term_4)};
@@ -520,8 +520,8 @@ gms::radiolocation
                         const __m128 vcosinc_term_4{_mm_div_ps(vcos_term_4,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_4,vcosinc_denom_4)))};
                         const __m128 vlsrc_sample_4{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_4,vcosinc_term_4))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+16ull], vlsrc_sample_4);
-                        const __m128 vt_i_5{_mm_setr_ps((jj+20.0f)*vinvLT,(jj+21.0f)*vinvLT,(jj+22.0f)*vinvLT,(jj+23.0f)*vinvLT)};
-                        const __m128 varg_term_5{_mm_mul_ps(C6283185307179586476925286766559,vt_i_5)};
+                        const __m128 vt_i_5{_mm_setr_ps((jj+20.0f)*invLT,(jj+21.0f)*invLT,(jj+22.0f)*invLT,(jj+23.0f)*invLT)};
+                        const __m128 varg_term_5{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_5)};
                         const __m128 vcosinc_denom_5{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_5))};
                         const __m128 vsin_term_5{_mm_sin_ps(varg_term_5)};
                         const __m128 vsinc_term_5{_mm_div_ps(vsin_term_5,varg_term_5)};
@@ -529,8 +529,8 @@ gms::radiolocation
                         const __m128 vcosinc_term_5{_mm_div_ps(vcos_term_5,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_5,vcosinc_denom_5)))};
                         const __m128 vlsrc_sample_5{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_5,vcosinc_term_5))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+20ull], vlsrc_sample_5);
-                        const __m128 vt_i_6{_mm_setr_ps((jj+24.0f)*vinvLT,(jj+25.0f)*vinvLT,(jj+26.0f)*vinvLT,(jj+27.0f)*vinvLT)};
-                        const __m128 varg_term_6{_mm_mul_ps(C6283185307179586476925286766559,vt_i_6)};
+                        const __m128 vt_i_6{_mm_setr_ps((jj+24.0f)*invLT,(jj+25.0f)*invLT,(jj+26.0f)*invLT,(jj+27.0f)*invLT)};
+                        const __m128 varg_term_6{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_6)};
                         const __m128 vcosinc_denom_6{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_6))};
                         const __m128 vsin_term_6{_mm_sin_ps(varg_term_6)};
                         const __m128 vsinc_term_6{_mm_div_ps(vsin_term_6,varg_term_6)};
@@ -538,8 +538,8 @@ gms::radiolocation
                         const __m128 vcosinc_term_6{_mm_div_ps(vcos_term_6,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_6,vcosinc_denom_6)))};
                         const __m128 vlsrc_sample_6{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_6,vcosinc_term_6))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+24ull], vlsrc_sample_6);
-                        const __m128 vt_i_7{_mm_setr_ps((jj+28.0f)*vinvLT,(jj+29.0f)*vinvLT,(jj+30.0f)*vinvLT,(jj+31.0f)*vinvLT)};
-                        const __m128 varg_term_7{_mm_mul_ps(C6283185307179586476925286766559,vt_i_7)};
+                        const __m128 vt_i_7{_mm_setr_ps((jj+28.0f)*invLT,(jj+29.0f)*invLT,(jj+30.0f)*invLT,(jj+31.0f)*invLT)};
+                        const __m128 varg_term_7{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_7)};
                         const __m128 vcosinc_denom_7{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_7))};
                         const __m128 vsin_term_7{_mm_sin_ps(varg_term_7)};
                         const __m128 vsinc_term_7{_mm_div_ps(vsin_term_7,varg_term_7)};
@@ -551,8 +551,8 @@ gms::radiolocation
 
                 for(; (i+23ull) < this->m_nTLsamples; i += 24ull,jj = 24.0f) 
                 {
-                        const __m128 vt_i_0{_mm_setr_ps(jj*vinvLT,(jj+1.0f)*vinvLT,(jj+2.0f)*vinvLT,(jj+3.0f)*vinvLT)};
-                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 vt_i_0{_mm_setr_ps(jj*invLT,(jj+1.0f)*invLT,(jj+2.0f)*invLT,(jj+3.0f)*invLT)};
+                        const __m128 varg_term_0{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_0)};
                         const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
                         const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
                         const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
@@ -560,8 +560,8 @@ gms::radiolocation
                         const __m128 vcosinc_term_0{_mm_div_ps(vcos_term_0,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_0,vcosinc_denom_0)))};
                         const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
-                        const __m128 vt_i_1{_mm_setr_ps((jj+4.0f)*vinvLT,(jj+5.0f)*vinvLT,(jj+6.0f)*vinvLT,(jj+7.0f)*vinvLT)};
-                        const __m128 varg_term_1{_mm_mul_ps(C6283185307179586476925286766559,vt_i_1)};
+                        const __m128 vt_i_1{_mm_setr_ps((jj+4.0f)*invLT,(jj+5.0f)*invLT,(jj+6.0f)*invLT,(jj+7.0f)*invLT)};
+                        const __m128 varg_term_1{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_1)};
                         const __m128 vcosinc_denom_1{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_1))};
                         const __m128 vsin_term_1{_mm_sin_ps(varg_term_1)};
                         const __m128 vsinc_term_1{_mm_div_ps(vsin_term_1,varg_term_1)};
@@ -569,8 +569,8 @@ gms::radiolocation
                         const __m128 vcosinc_term_1{_mm_div_ps(vcos_term_1,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_1,vcosinc_denom_1)))};
                         const __m128 vlsrc_sample_1{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_1,vcosinc_term_1))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+4ull], vlsrc_sample_1);
-                        const __m128 vt_i_2{_mm_setr_ps((jj+8.0f)*vinvLT,(jj+9.0f)*vinvLT,(jj+10.0f)*vinvLT,(jj+11.0f)*vinvLT)};
-                        const __m128 varg_term_2{_mm_mul_ps(C6283185307179586476925286766559,vt_i_2)};
+                        const __m128 vt_i_2{_mm_setr_ps((jj+8.0f)*invLT,(jj+9.0f)*invLT,(jj+10.0f)*invLT,(jj+11.0f)*invLT)};
+                        const __m128 varg_term_2{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_2)};
                         const __m128 vcosinc_denom_2{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_2))};
                         const __m128 vsin_term_2{_mm_sin_ps(varg_term_2)};
                         const __m128 vsinc_term_2{_mm_div_ps(vsin_term_2,varg_term_2)};
@@ -578,8 +578,8 @@ gms::radiolocation
                         const __m128 vcosinc_term_2{_mm_div_ps(vcos_term_2,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_2,vcosinc_denom_2)))};
                         const __m128 vlsrc_sample_2{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_2,vcosinc_term_2))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+8ull], vlsrc_sample_2);
-                        const __m128 vt_i_3{_mm_setr_ps((jj+12.0f)*vinvLT,(jj+13.0f)*vinvLT,(jj+14.0f)*vinvLT,(jj+15.0f)*vinvLT)};
-                        const __m128 varg_term_3{_mm_mul_ps(C6283185307179586476925286766559,vt_i_3)};
+                        const __m128 vt_i_3{_mm_setr_ps((jj+12.0f)*invLT,(jj+13.0f)*invLT,(jj+14.0f)*invLT,(jj+15.0f)*invLT)};
+                        const __m128 varg_term_3{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_3)};
                         const __m128 vcosinc_denom_3{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_3))};
                         const __m128 vsin_term_3{_mm_sin_ps(varg_term_3)};
                         const __m128 vsinc_term_3{_mm_div_ps(vsin_term_3,varg_term_3)};
@@ -587,8 +587,8 @@ gms::radiolocation
                         const __m128 vcosinc_term_3{_mm_div_ps(vcos_term_3,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_3,vcosinc_denom_3)))};
                         const __m128 vlsrc_sample_3{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_3,vcosinc_term_3))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+12ull], vlsrc_sample_3);
-                        const __m128 vt_i_4{_mm_setr_ps((jj+16.0f)*vinvLT,(jj+17.0f)*vinvLT,(jj+18.0f)*vinvLT,(jj+19.0f)*vinvLT)};
-                        const __m128 varg_term_4{_mm_mul_ps(C6283185307179586476925286766559,vt_i_4)};
+                        const __m128 vt_i_4{_mm_setr_ps((jj+16.0f)*invLT,(jj+17.0f)*invLT,(jj+18.0f)*invLT,(jj+19.0f)*invLT)};
+                        const __m128 varg_term_4{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_4)};
                         const __m128 vcosinc_denom_4{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_4))};
                         const __m128 vsin_term_4{_mm_sin_ps(varg_term_4)};
                         const __m128 vsinc_term_4{_mm_div_ps(vsin_term_4,varg_term_4)};
@@ -596,8 +596,8 @@ gms::radiolocation
                         const __m128 vcosinc_term_4{_mm_div_ps(vcos_term_4,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_4,vcosinc_denom_4)))};
                         const __m128 vlsrc_sample_4{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_4,vcosinc_term_4))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+16ull], vlsrc_sample_4);
-                        const __m128 vt_i_5{_mm_setr_ps((jj+20.0f)*vinvLT,(jj+21.0f)*vinvLT,(jj+22.0f)*vinvLT,(jj+23.0f)*vinvLT)};
-                        const __m128 varg_term_5{_mm_mul_ps(C6283185307179586476925286766559,vt_i_5)};
+                        const __m128 vt_i_5{_mm_setr_ps((jj+20.0f)*invLT,(jj+21.0f)*invLT,(jj+22.0f)*invLT,(jj+23.0f)*invLT)};
+                        const __m128 varg_term_5{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_5)};
                         const __m128 vcosinc_denom_5{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_5))};
                         const __m128 vsin_term_5{_mm_sin_ps(varg_term_5)};
                         const __m128 vsinc_term_5{_mm_div_ps(vsin_term_5,varg_term_5)};
@@ -609,8 +609,8 @@ gms::radiolocation
 
                 for(; (i+15ull) < this->m_nTLsamples; i += 16ull,jj = 16.0f) 
                 {
-                        const __m128 vt_i_0{_mm_setr_ps(jj*vinvLT,(jj+1.0f)*vinvLT,(jj+2.0f)*vinvLT,(jj+3.0f)*vinvLT)};
-                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 vt_i_0{_mm_setr_ps(jj*invLT,(jj+1.0f)*invLT,(jj+2.0f)*invLT,(jj+3.0f)*invLT)};
+                        const __m128 varg_term_0{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_0)};
                         const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
                         const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
                         const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
@@ -618,8 +618,8 @@ gms::radiolocation
                         const __m128 vcosinc_term_0{_mm_div_ps(vcos_term_0,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_0,vcosinc_denom_0)))};
                         const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
-                        const __m128 vt_i_1{_mm_setr_ps((jj+4.0f)*vinvLT,(jj+5.0f)*vinvLT,(jj+6.0f)*vinvLT,(jj+7.0f)*vinvLT)};
-                        const __m128 varg_term_1{_mm_mul_ps(C6283185307179586476925286766559,vt_i_1)};
+                        const __m128 vt_i_1{_mm_setr_ps((jj+4.0f)*invLT,(jj+5.0f)*invLT,(jj+6.0f)*invLT,(jj+7.0f)*invLT)};
+                        const __m128 varg_term_1{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_1)};
                         const __m128 vcosinc_denom_1{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_1))};
                         const __m128 vsin_term_1{_mm_sin_ps(varg_term_1)};
                         const __m128 vsinc_term_1{_mm_div_ps(vsin_term_1,varg_term_1)};
@@ -627,8 +627,8 @@ gms::radiolocation
                         const __m128 vcosinc_term_1{_mm_div_ps(vcos_term_1,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_1,vcosinc_denom_1)))};
                         const __m128 vlsrc_sample_1{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_1,vcosinc_term_1))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+4ull], vlsrc_sample_1);
-                        const __m128 vt_i_2{_mm_setr_ps((jj+8.0f)*vinvLT,(jj+9.0f)*vinvLT,(jj+10.0f)*vinvLT,(jj+11.0f)*vinvLT)};
-                        const __m128 varg_term_2{_mm_mul_ps(C6283185307179586476925286766559,vt_i_2)};
+                        const __m128 vt_i_2{_mm_setr_ps((jj+8.0f)*invLT,(jj+9.0f)*invLT,(jj+10.0f)*invLT,(jj+11.0f)*invLT)};
+                        const __m128 varg_term_2{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_2)};
                         const __m128 vcosinc_denom_2{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_2))};
                         const __m128 vsin_term_2{_mm_sin_ps(varg_term_2)};
                         const __m128 vsinc_term_2{_mm_div_ps(vsin_term_2,varg_term_2)};
@@ -636,8 +636,8 @@ gms::radiolocation
                         const __m128 vcosinc_term_2{_mm_div_ps(vcos_term_2,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_2,vcosinc_denom_2)))};
                         const __m128 vlsrc_sample_2{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_2,vcosinc_term_2))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+8ull], vlsrc_sample_2);
-                        const __m128 vt_i_3{_mm_setr_ps((jj+12.0f)*vinvLT,(jj+13.0f)*vinvLT,(jj+14.0f)*vinvLT,(jj+15.0f)*vinvLT)};
-                        const __m128 varg_term_3{_mm_mul_ps(C6283185307179586476925286766559,vt_i_3)};
+                        const __m128 vt_i_3{_mm_setr_ps((jj+12.0f)*invLT,(jj+13.0f)*invLT,(jj+14.0f)*invLT,(jj+15.0f)*invLT)};
+                        const __m128 varg_term_3{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_3)};
                         const __m128 vcosinc_denom_3{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_3))};
                         const __m128 vsin_term_3{_mm_sin_ps(varg_term_3)};
                         const __m128 vsinc_term_3{_mm_div_ps(vsin_term_3,varg_term_3)};
@@ -649,8 +649,8 @@ gms::radiolocation
 
                 for(; (i+7ull) < this->m_nTLsamples; i += 8ull,jj = 8.0f) 
                 {
-                        const __m128 vt_i_0{_mm_setr_ps(jj*vinvLT,(jj+1.0f)*vinvLT,(jj+2.0f)*vinvLT,(jj+3.0f)*vinvLT)};
-                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 vt_i_0{_mm_setr_ps(jj*invLT,(jj+1.0f)*invLT,(jj+2.0f)*invLT,(jj+3.0f)*invLT)};
+                        const __m128 varg_term_0{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_0)};
                         const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
                         const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
                         const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
@@ -658,8 +658,8 @@ gms::radiolocation
                         const __m128 vcosinc_term_0{_mm_div_ps(vcos_term_0,_mm_sub_ps(vone,_mm_mul_ps(vcosinc_denom_0,vcosinc_denom_0)))};
                         const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
-                        const __m128 vt_i_1{_mm_setr_ps((jj+4.0f)*vinvLT,(jj+5.0f)*vinvLT,(jj+6.0f)*vinvLT,(jj+7.0f)*vinvLT)};
-                        const __m128 varg_term_1{_mm_mul_ps(C6283185307179586476925286766559,vt_i_1)};
+                        const __m128 vt_i_1{_mm_setr_ps((jj+4.0f)*invLT,(jj+5.0f)*invLT,(jj+6.0f)*invLT,(jj+7.0f)*invLT)};
+                        const __m128 varg_term_1{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_1)};
                         const __m128 vcosinc_denom_1{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_1))};
                         const __m128 vsin_term_1{_mm_sin_ps(varg_term_1)};
                         const __m128 vsinc_term_1{_mm_div_ps(vsin_term_1,varg_term_1)};
@@ -671,8 +671,8 @@ gms::radiolocation
 
                 for(; (i+3ull) < this->m_nTLsamples; i += 4ull,jj = 4.0f) 
                 {
-                        const __m128 vt_i_0{_mm_setr_ps(jj*vinvLT,(jj+1.0f)*vinvLT,(jj+2.0f)*vinvLT,(jj+3.0f)*vinvLT)};
-                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 vt_i_0{_mm_setr_ps(jj*invLT,(jj+1.0f)*invLT,(jj+2.0f)*invLT,(jj+3.0f)*invLT)};
+                        const __m128 varg_term_0{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_0)};
                         const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
                         const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
                         const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
@@ -707,7 +707,7 @@ gms::radiolocation
                 {
                         _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
                         const __m128 vt_i_0{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinvLT)};
-                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 varg_term_0{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_0)};
                         const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
                         const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
                         const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
@@ -716,7 +716,7 @@ gms::radiolocation
                         const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
                         const __m128 vt_i_1{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]),vinvLT)};
-                        const __m128 varg_term_1{_mm_mul_ps(C6283185307179586476925286766559,vt_i_1)};
+                        const __m128 varg_term_1{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_1)};
                         const __m128 vcosinc_denom_1{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_1))};
                         const __m128 vsin_term_1{_mm_sin_ps(varg_term_1)};
                         const __m128 vsinc_term_1{_mm_div_ps(vsin_term_1,varg_term_1)};
@@ -725,7 +725,7 @@ gms::radiolocation
                         const __m128 vlsrc_sample_1{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_1,vcosinc_term_1))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+4ull], vlsrc_sample_1);
                         const __m128 vt_i_2{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]),vinvLT)};
-                        const __m128 varg_term_2{_mm_mul_ps(C6283185307179586476925286766559,vt_i_2)};
+                        const __m128 varg_term_2{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_2)};
                         const __m128 vcosinc_denom_2{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_2))};
                         const __m128 vsin_term_2{_mm_sin_ps(varg_term_2)};
                         const __m128 vsinc_term_2{_mm_div_ps(vsin_term_2,varg_term_2)};
@@ -734,7 +734,7 @@ gms::radiolocation
                         const __m128 vlsrc_sample_2{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_2,vcosinc_term_2))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+8ull], vlsrc_sample_2);
                         const __m128 vt_i_3{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+12ull]),vinvLT)};
-                        const __m128 varg_term_3{_mm_mul_ps(C6283185307179586476925286766559,vt_i_3)};
+                        const __m128 varg_term_3{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_3)};
                         const __m128 vcosinc_denom_3{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_3))};
                         const __m128 vsin_term_3{_mm_sin_ps(varg_term_3)};
                         const __m128 vsinc_term_3{_mm_div_ps(vsin_term_3,varg_term_3)};
@@ -744,7 +744,7 @@ gms::radiolocation
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+12ull], vlsrc_sample_3);
                         _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+16ull],_MM_HINT_T0);
                         const __m128 vt_i_4{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+16ull]),vinvLT)};
-                        const __m128 varg_term_4{_mm_mul_ps(C6283185307179586476925286766559,vt_i_4)};
+                        const __m128 varg_term_4{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_4)};
                         const __m128 vcosinc_denom_4{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_4))};
                         const __m128 vsin_term_4{_mm_sin_ps(varg_term_4)};
                         const __m128 vsinc_term_4{_mm_div_ps(vsin_term_4,varg_term_4)};
@@ -753,7 +753,7 @@ gms::radiolocation
                         const __m128 vlsrc_sample_4{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_4,vcosinc_term_4))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+16ull], vlsrc_sample_4);
                         const __m128 vt_i_5{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+20ull]),vinvLT)};
-                        const __m128 varg_term_5{_mm_mul_ps(C6283185307179586476925286766559,vt_i_5)};
+                        const __m128 varg_term_5{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_5)};
                         const __m128 vcosinc_denom_5{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_5))};
                         const __m128 vsin_term_5{_mm_sin_ps(varg_term_5)};
                         const __m128 vsinc_term_5{_mm_div_ps(vsin_term_5,varg_term_5)};
@@ -762,7 +762,7 @@ gms::radiolocation
                         const __m128 vlsrc_sample_5{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_5,vcosinc_term_5))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+20ull], vlsrc_sample_5);
                         const __m128 vt_i_6{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+24ull]),vinvLT)};
-                        const __m128 varg_term_6{_mm_mul_ps(C6283185307179586476925286766559,vt_i_6)};
+                        const __m128 varg_term_6{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_6)};
                         const __m128 vcosinc_denom_6{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_6))};
                         const __m128 vsin_term_6{_mm_sin_ps(varg_term_6)};
                         const __m128 vsinc_term_6{_mm_div_ps(vsin_term_6,varg_term_6)};
@@ -771,7 +771,7 @@ gms::radiolocation
                         const __m128 vlsrc_sample_6{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_6,vcosinc_term_6))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+24ull], vlsrc_sample_6);
                         const __m128 vt_i_7{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+28ull]),vinvLT)};
-                        const __m128 varg_term_7{_mm_mul_ps(C6283185307179586476925286766559,vt_i_7)};
+                        const __m128 varg_term_7{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_7)};
                         const __m128 vcosinc_denom_7{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_7))};
                         const __m128 vsin_term_7{_mm_sin_ps(varg_term_7)};
                         const __m128 vsinc_term_7{_mm_div_ps(vsin_term_7,varg_term_7)};
@@ -785,7 +785,7 @@ gms::radiolocation
                 {
                         _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
                         const __m128 vt_i_0{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinvLT)};
-                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 varg_term_0{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_0)};
                         const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
                         const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
                         const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
@@ -794,7 +794,7 @@ gms::radiolocation
                         const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
                         const __m128 vt_i_1{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]),vinvLT)};
-                        const __m128 varg_term_1{_mm_mul_ps(C6283185307179586476925286766559,vt_i_1)};
+                        const __m128 varg_term_1{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_1)};
                         const __m128 vcosinc_denom_1{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_1))};
                         const __m128 vsin_term_1{_mm_sin_ps(varg_term_1)};
                         const __m128 vsinc_term_1{_mm_div_ps(vsin_term_1,varg_term_1)};
@@ -803,7 +803,7 @@ gms::radiolocation
                         const __m128 vlsrc_sample_1{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_1,vcosinc_term_1))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+4ull], vlsrc_sample_1);
                         const __m128 vt_i_2{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]),vinvLT)};
-                        const __m128 varg_term_2{_mm_mul_ps(C6283185307179586476925286766559,vt_i_2)};
+                        const __m128 varg_term_2{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_2)};
                         const __m128 vcosinc_denom_2{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_2))};
                         const __m128 vsin_term_2{_mm_sin_ps(varg_term_2)};
                         const __m128 vsinc_term_2{_mm_div_ps(vsin_term_2,varg_term_2)};
@@ -812,7 +812,7 @@ gms::radiolocation
                         const __m128 vlsrc_sample_2{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_2,vcosinc_term_2))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+8ull], vlsrc_sample_2);
                         const __m128 vt_i_3{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+12ull]),vinvLT)};
-                        const __m128 varg_term_3{_mm_mul_ps(C6283185307179586476925286766559,vt_i_3)};
+                        const __m128 varg_term_3{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_3)};
                         const __m128 vcosinc_denom_3{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_3))};
                         const __m128 vsin_term_3{_mm_sin_ps(varg_term_3)};
                         const __m128 vsinc_term_3{_mm_div_ps(vsin_term_3,varg_term_3)};
@@ -822,7 +822,7 @@ gms::radiolocation
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+12ull], vlsrc_sample_3);
                         _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+16ull],_MM_HINT_T0);
                         const __m128 vt_i_4{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+16ull]),vinvLT)};
-                        const __m128 varg_term_4{_mm_mul_ps(C6283185307179586476925286766559,vt_i_4)};
+                        const __m128 varg_term_4{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_4)};
                         const __m128 vcosinc_denom_4{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_4))};
                         const __m128 vsin_term_4{_mm_sin_ps(varg_term_4)};
                         const __m128 vsinc_term_4{_mm_div_ps(vsin_term_4,varg_term_4)};
@@ -831,7 +831,7 @@ gms::radiolocation
                         const __m128 vlsrc_sample_4{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_4,vcosinc_term_4))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+16ull], vlsrc_sample_4);
                         const __m128 vt_i_5{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+20ull]),vinvLT)};
-                        const __m128 varg_term_5{_mm_mul_ps(C6283185307179586476925286766559,vt_i_5)};
+                        const __m128 varg_term_5{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_5)};
                         const __m128 vcosinc_denom_5{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_5))};
                         const __m128 vsin_term_5{_mm_sin_ps(varg_term_5)};
                         const __m128 vsinc_term_5{_mm_div_ps(vsin_term_5,varg_term_5)};
@@ -846,7 +846,7 @@ gms::radiolocation
                 {
                         _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+0ull],_MM_HINT_T0);
                         const __m128 vt_i_0{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinvLT)};
-                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 varg_term_0{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_0)};
                         const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
                         const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
                         const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
@@ -855,7 +855,7 @@ gms::radiolocation
                         const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
                         const __m128 vt_i_1{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]),vinvLT)};
-                        const __m128 varg_term_1{_mm_mul_ps(C6283185307179586476925286766559,vt_i_1)};
+                        const __m128 varg_term_1{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_1)};
                         const __m128 vcosinc_denom_1{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_1))};
                         const __m128 vsin_term_1{_mm_sin_ps(varg_term_1)};
                         const __m128 vsinc_term_1{_mm_div_ps(vsin_term_1,varg_term_1)};
@@ -864,7 +864,7 @@ gms::radiolocation
                         const __m128 vlsrc_sample_1{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_1,vcosinc_term_1))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+4ull], vlsrc_sample_1);
                         const __m128 vt_i_2{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]),vinvLT)};
-                        const __m128 varg_term_2{_mm_mul_ps(C6283185307179586476925286766559,vt_i_2)};
+                        const __m128 varg_term_2{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_2)};
                         const __m128 vcosinc_denom_2{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_2))};
                         const __m128 vsin_term_2{_mm_sin_ps(varg_term_2)};
                         const __m128 vsinc_term_2{_mm_div_ps(vsin_term_2,varg_term_2)};
@@ -873,7 +873,7 @@ gms::radiolocation
                         const __m128 vlsrc_sample_2{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_2,vcosinc_term_2))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+8ull], vlsrc_sample_2);
                         const __m128 vt_i_3{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+12ull]),vinvLT)};
-                        const __m128 varg_term_3{_mm_mul_ps(C6283185307179586476925286766559,vt_i_3)};
+                        const __m128 varg_term_3{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_3)};
                         const __m128 vcosinc_denom_3{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_3))};
                         const __m128 vsin_term_3{_mm_sin_ps(varg_term_3)};
                         const __m128 vsinc_term_3{_mm_div_ps(vsin_term_3,varg_term_3)};
@@ -887,7 +887,7 @@ gms::radiolocation
                 for(; (i+7ull) < this->m_nTLsamples; i += 8ull) 
                 {
                         const __m128 vt_i_0{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinvLT)};
-                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 varg_term_0{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_0)};
                         const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
                         const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
                         const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
@@ -896,7 +896,7 @@ gms::radiolocation
                         const __m128 vlsrc_sample_0{_mm_mul_ps(vinvLT,_mm_mul_ps(vsinc_term_0,vcosinc_term_0))};
                         _mm_store_ps(&this->m_lsrc_pulse.m_data[i+0ull], vlsrc_sample_0);
                         const __m128 vt_i_1{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]),vinvLT)};
-                        const __m128 varg_term_1{_mm_mul_ps(C6283185307179586476925286766559,vt_i_1)};
+                        const __m128 varg_term_1{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_1)};
                         const __m128 vcosinc_denom_1{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_1))};
                         const __m128 vsin_term_1{_mm_sin_ps(varg_term_1)};
                         const __m128 vsinc_term_1{_mm_div_ps(vsin_term_1,varg_term_1)};
@@ -909,7 +909,7 @@ gms::radiolocation
                 for(; (i+3ull) < this->m_nTLsamples; i += 4ull) 
                 {
                         const __m128 vt_i_0{_mm_mul_ps(_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinvLT)};
-                        const __m128 varg_term_0{_mm_mul_ps(C6283185307179586476925286766559,vt_i_0)};
+                        const __m128 varg_term_0{_mm_mul_ps(vC6283185307179586476925286766559,vt_i_0)};
                         const __m128 vcosinc_denom_0{_mm_mul_ps(vfour,_mm_mul_ps(vbeta,vt_i_0))};
                         const __m128 vsin_term_0{_mm_sin_ps(varg_term_0)};
                         const __m128 vsinc_term_0{_mm_div_ps(vsin_term_0,varg_term_0)};
@@ -956,7 +956,8 @@ gms::radiolocation
         const __m128 vinvT{_mm_set1_ps(invT)};
         const __m128 vinvTT{_mm_set1_ps(invTT)};
         const __m128 v2{_mm_set1_ps(2.0f)};
-        if(__builtin_expect(this->m_nTsamples>LUT_loop_indices_2257_align16,0)) 
+        const __m128 vone_ov_eight{_mm_set1_ps(one_ov_eight)};
+        if(__builtin_expect(this->m_nTsamples>LUT_loop_idx_threshold,0)) 
         {
                 __m128 vt_i_left,g0_vec_left;
                 __m128 vt_i_mid ,g0_vec_mid;
@@ -970,7 +971,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T,jj+this->m_T+1.0f,jj+this->m_T+2.0f,jj+this->m_T+3.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
                         vt_i_left        = _mm_setr_ps(jj-this->m_T+4.0f,jj-this->m_T+5.0f,jj-this->m_T+6.0f,jj-this->m_T+7.0f);
@@ -979,7 +980,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T+4.0f,jj+this->m_T+5.0f,jj+this->m_T+6.0f,jj+this->m_T+7.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+4ull],tfm_g_vec_sample);
                         vt_i_left        = _mm_setr_ps(jj-this->m_T+8.0f,jj-this->m_T+9.0f,jj-this->m_T+10.0f,jj-this->m_T+11.0f);
@@ -988,7 +989,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T+8.0f,jj+this->m_T+9.0f,jj+this->m_T+10.0f,jj+this->m_T+11.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+8ull],tfm_g_vec_sample);
                         vt_i_left        = _mm_setr_ps(jj-this->m_T+12.0f,jj-this->m_T+13.0f,jj-this->m_T+14.0f,jj-this->m_T+15.0f);
@@ -997,7 +998,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T+12.0f,jj+this->m_T+13.0f,jj+this->m_T+14.0f,jj+this->m_T+15.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+12ull],tfm_g_vec_sample);
                         vt_i_left        = _mm_setr_ps(jj-this->m_T+16.0f,jj-this->m_T+17.0f,jj-this->m_T+18.0f,jj-this->m_T+19.0f);
@@ -1006,7 +1007,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T+16.0f,jj+this->m_T+17.0f,jj+this->m_T+18.0f,jj+this->m_T+19.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+16ull],tfm_g_vec_sample);
                         vt_i_left        = _mm_setr_ps(jj-this->m_T+20.0f,jj-this->m_T+21.0f,jj-this->m_T+22.0f,jj-this->m_T+23.0f);
@@ -1015,7 +1016,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T+20.0f,jj+this->m_T+21.0f,jj+this->m_T+22.0f,jj+this->m_T+23.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+20ull],tfm_g_vec_sample);
                         vt_i_left        = _mm_setr_ps(jj-this->m_T+24.0f,jj-this->m_T+25.0f,jj-this->m_T+26.0f,jj-this->m_T+27.0f);
@@ -1024,7 +1025,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T+24.0f,jj+this->m_T+25.0f,jj+this->m_T+26.0f,jj+this->m_T+27.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+24ull],tfm_g_vec_sample);
                         vt_i_left        = _mm_setr_ps(jj-this->m_T+28.0f,jj-this->m_T+29.0f,jj-this->m_T+30.0f,jj-this->m_T+31.0f);
@@ -1033,7 +1034,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T+28.0f,jj+this->m_T+29.0f,jj+this->m_T+30.0f,jj+this->m_T+31.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+28ull],tfm_g_vec_sample);
                 }
@@ -1046,7 +1047,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T,jj+this->m_T+1.0f,jj+this->m_T+2.0f,jj+this->m_T+3.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
                         vt_i_left        = _mm_setr_ps(jj-this->m_T+4.0f,jj-this->m_T+5.0f,jj-this->m_T+6.0f,jj-this->m_T+7.0f);
@@ -1055,7 +1056,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T+4.0f,jj+this->m_T+5.0f,jj+this->m_T+6.0f,jj+this->m_T+7.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+4ull],tfm_g_vec_sample);
                         vt_i_left        = _mm_setr_ps(jj-this->m_T+8.0f,jj-this->m_T+9.0f,jj-this->m_T+10.0f,jj-this->m_T+11.0f);
@@ -1064,7 +1065,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T+8.0f,jj+this->m_T+9.0f,jj+this->m_T+10.0f,jj+this->m_T+11.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+8ull],tfm_g_vec_sample);
                         vt_i_left        = _mm_setr_ps(jj-this->m_T+12.0f,jj-this->m_T+13.0f,jj-this->m_T+14.0f,jj-this->m_T+15.0f);
@@ -1073,7 +1074,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T+12.0f,jj+this->m_T+13.0f,jj+this->m_T+14.0f,jj+this->m_T+15.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+12ull],tfm_g_vec_sample);
                         vt_i_left        = _mm_setr_ps(jj-this->m_T+16.0f,jj-this->m_T+17.0f,jj-this->m_T+18.0f,jj-this->m_T+19.0f);
@@ -1082,7 +1083,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T+16.0f,jj+this->m_T+17.0f,jj+this->m_T+18.0f,jj+this->m_T+19.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+16ull],tfm_g_vec_sample);
                         vt_i_left        = _mm_setr_ps(jj-this->m_T+20.0f,jj-this->m_T+21.0f,jj-this->m_T+22.0f,jj-this->m_T+23.0f);
@@ -1091,7 +1092,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T+20.0f,jj+this->m_T+21.0f,jj+this->m_T+22.0f,jj+this->m_T+23.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+20ull],tfm_g_vec_sample);
                 }
@@ -1104,7 +1105,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T,jj+this->m_T+1.0f,jj+this->m_T+2.0f,jj+this->m_T+3.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
                         vt_i_left        = _mm_setr_ps(jj-this->m_T+4.0f,jj-this->m_T+5.0f,jj-this->m_T+6.0f,jj-this->m_T+7.0f);
@@ -1113,7 +1114,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T+4.0f,jj+this->m_T+5.0f,jj+this->m_T+6.0f,jj+this->m_T+7.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+4ull],tfm_g_vec_sample);
                         vt_i_left        = _mm_setr_ps(jj-this->m_T+8.0f,jj-this->m_T+9.0f,jj-this->m_T+10.0f,jj-this->m_T+11.0f);
@@ -1122,7 +1123,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T+8.0f,jj+this->m_T+9.0f,jj+this->m_T+10.0f,jj+this->m_T+11.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+8ull],tfm_g_vec_sample);
                         vt_i_left        = _mm_setr_ps(jj-this->m_T+12.0f,jj-this->m_T+13.0f,jj-this->m_T+14.0f,jj-this->m_T+15.0f);
@@ -1131,7 +1132,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T+12.0f,jj+this->m_T+13.0f,jj+this->m_T+14.0f,jj+this->m_T+15.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+12ull],tfm_g_vec_sample);
                 }
@@ -1144,7 +1145,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T,jj+this->m_T+1.0f,jj+this->m_T+2.0f,jj+this->m_T+3.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
                         vt_i_left        = _mm_setr_ps(jj-this->m_T+4.0f,jj-this->m_T+5.0f,jj-this->m_T+6.0f,jj-this->m_T+7.0f);
@@ -1153,7 +1154,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T+4.0f,jj+this->m_T+5.0f,jj+this->m_T+6.0f,jj+this->m_T+7.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+4ull],tfm_g_vec_sample);
                 }
@@ -1166,7 +1167,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_setr_ps(jj+this->m_T,jj+this->m_T+1.0f,jj+this->m_T+2.0f,jj+this->m_T+3.0f);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample = _mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample = _mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
                 }
@@ -1176,7 +1177,7 @@ gms::radiolocation
                         const float t_i{static_cast<float>(i)};
                         const float g0_left_0{tfm_g0_value((t_i-this->m_T),invT,invTT)};
                         const float g0_mid_0{2.0f*tfm_g0_value(t_i,invT,invTT)};
-                        const float g0_right_0{tfm_g0_value((t_i+this->m_T,invT,invTT))};
+                        const float g0_right_0{tfm_g0_value((t_i+this->m_T),invT,invTT)};
                         const float tfm_sample_0{one_ov_eight*(g0_left_0+g0_mid_0+g0_right_0)};
                         this->m_tfm_pulse.m_data[i] = tfm_sample_0;
                 }
@@ -1199,7 +1200,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
                         vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]);
@@ -1209,7 +1210,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+4ull],tfm_g_vec_sample);
                         vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]);
@@ -1219,7 +1220,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+8ull],tfm_g_vec_sample);
                         vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+12ull]);
@@ -1229,7 +1230,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+12ull],tfm_g_vec_sample);
                         _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i+16ull],_MM_HINT_T0);
@@ -1240,7 +1241,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+16ull],tfm_g_vec_sample);
                         vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+20ull]);
@@ -1250,7 +1251,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+20ull],tfm_g_vec_sample);
                         vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+24ull]);
@@ -1260,7 +1261,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+24ull],tfm_g_vec_sample);
                         vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+28ull]);
@@ -1270,7 +1271,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+28ull],tfm_g_vec_sample);
                 }
@@ -1285,7 +1286,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
                         vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]);
@@ -1295,7 +1296,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+4ull],tfm_g_vec_sample);
                         vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]);
@@ -1305,7 +1306,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+8ull],tfm_g_vec_sample);
                         vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+12ull]);
@@ -1315,7 +1316,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+12ull],tfm_g_vec_sample);
                         vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+16ull]);
@@ -1325,7 +1326,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+16ull],tfm_g_vec_sample);
                         vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+20ull]);
@@ -1335,7 +1336,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+20ull],tfm_g_vec_sample);
                 }
@@ -1350,7 +1351,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
                         vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]);
@@ -1360,7 +1361,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+4ull],tfm_g_vec_sample);
                         vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]);
@@ -1370,7 +1371,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+8ull],tfm_g_vec_sample);
                         vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+12ull]);
@@ -1380,7 +1381,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+12ull],tfm_g_vec_sample);
                 }
@@ -1395,7 +1396,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
                         vidx             = _mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+4ull]);
@@ -1405,7 +1406,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+4ull],tfm_g_vec_sample);
                 }
@@ -1420,7 +1421,7 @@ gms::radiolocation
                         g0_vec_mid       = _mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT);
                         vt_i_right       = _mm_add_ps(vidx,vT);
                         g0_vec_right     = _mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT);
-                        tfm_g_vec_sample =_mm_mul_ps(one_ov_eight,
+                        tfm_g_vec_sample =_mm_mul_ps(vone_ov_eight,
                                                 _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)));
                         _mm_store_ps(&this->m_tfm_pulse.m_data[i+0ull],tfm_g_vec_sample);
                 }
@@ -1430,7 +1431,7 @@ gms::radiolocation
                         const float t_i{gms::math::LUT_loop_indices_2257_align16[i]};
                         const float g0_left_0{tfm_g0_value((t_i-this->m_T),invT,invTT)};
                         const float g0_mid_0{2.0f*tfm_g0_value(t_i,invT,invTT)};
-                        const float g0_right_0{tfm_g0_value((t_i+this->m_T,invT,invTT))};
+                        const float g0_right_0{tfm_g0_value((t_i+this->m_T),invT,invTT)};
                         const float tfm_sample_0{one_ov_eight*(g0_left_0+g0_mid_0+g0_right_0)};
                         this->m_tfm_pulse.m_data[i] = tfm_sample_0;
                 }
@@ -1463,7 +1464,7 @@ gms::radiolocation
         float Q_left_arg;
         float Q_left_value,Q_right_arg;
         float Q_right_value,gmsk_sample;
-        if(__builtin_expect(this->m_nTsamples>LUT_loop_indices_2257_align16,0)) 
+        if(__builtin_expect(this->m_nTsamples>LUT_loop_idx_threshold,0)) 
         {
                 for(i = 0ull,jj = 0.0f;(i+31ull) < this->m_nTsamples;i += 32ull,jj = 32.0f) 
                 {
@@ -1471,80 +1472,80 @@ gms::radiolocation
                         __m128 vQ_left_value,vQ_right_arg;
                         __m128 vQ_right_value,vgmsk_sample;
 
-                        vt_sub_halT    = _mm_setr_ps(jj-vhalfT,jj+1.0f-vhalfT,jj+2.0f-vhalfT,jj+3.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj-halfT,jj+1.0f-halfT,jj+2.0f-halfT,jj+3.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+vhalfT,jj+1.0f+vhalfT,jj+2.0f+vhalfT,jj+3.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+halfT,jj+1.0f+halfT,jj+2.0f+halfT,jj+3.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
                         vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
                         vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
                         _mm_store_ps(&this->m_gmsk_pulse.m_data[i+0ull],vgmsk_sample);
-                        vt_sub_halT    = _mm_setr_ps(jj+4.0f-vhalfT,jj+5.0f-vhalfT,jj+6.0f-vhalfT,jj+7.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj+4.0f-halfT,jj+5.0f-halfT,jj+6.0f-halfT,jj+7.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+4.0f+vhalfT,jj+5.0f+vhalfT,jj+6.0f+vhalfT,jj+7.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+4.0f+halfT,jj+5.0f+halfT,jj+6.0f+halfT,jj+7.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
                         vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
                         vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
                         _mm_store_ps(&this->m_gmsk_pulse.m_data[i+4ull],vgmsk_sample);
-                        vt_sub_halT    = _mm_setr_ps(jj+8.0f-vhalfT,jj+9.0f-vhalfT,jj+10.0f-vhalfT,jj+11.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj+8.0f-halfT,jj+9.0f-halfT,jj+10.0f-halfT,jj+11.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+8.0f+vhalfT,jj+9.0f+vhalfT,jj+10.0f+vhalfT,jj+11.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+8.0f+halfT,jj+9.0f+halfT,jj+10.0f+halfT,jj+11.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
                         vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
                         vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
                         _mm_store_ps(&this->m_gmsk_pulse.m_data[i+8ull],vgmsk_sample);
-                        vt_sub_halT    = _mm_setr_ps(jj+12.0f-vhalfT,jj+13.0f-vhalfT,jj+14.0f-vhalfT,jj+15.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj+12.0f-halfT,jj+13.0f-halfT,jj+14.0f-halfT,jj+15.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+12.0f+vhalfT,jj+13.0f+vhalfT,jj+14.0f+vhalfT,jj+15.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+12.0f+halfT,jj+13.0f+halfT,jj+14.0f+halfT,jj+15.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
                         vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
                         vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
                         _mm_store_ps(&this->m_gmsk_pulse.m_data[i+12ull],vgmsk_sample);
-                        vt_sub_halT    = _mm_setr_ps(jj+16.0f-vhalfT,jj+17.0f-vhalfT,jj+18.0f-vhalfT,jj+19.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj+16.0f-halfT,jj+17.0f-halfT,jj+18.0f-halfT,jj+19.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+16.0f+vhalfT,jj+17.0f+vhalfT,jj+18.0f+vhalfT,jj+19.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+16.0f+halfT,jj+17.0f+halfT,jj+18.0f+halfT,jj+19.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
                         vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
                         vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
                         _mm_store_ps(&this->m_gmsk_pulse.m_data[i+16ull],vgmsk_sample);
-                        vt_sub_halT    = _mm_setr_ps(jj+20.0f-vhalfT,jj+21.0f-vhalfT,jj+22.0f-vhalfT,jj+23.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj+20.0f-halfT,jj+21.0f-halfT,jj+22.0f-halfT,jj+23.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+20.0f+vhalfT,jj+21.0f+vhalfT,jj+22.0f+vhalfT,jj+23.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+20.0f+halfT,jj+21.0f+halfT,jj+22.0f+halfT,jj+23.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
                         vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
                         vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
                         _mm_store_ps(&this->m_gmsk_pulse.m_data[i+20ull],vgmsk_sample);
-                        vt_sub_halT    = _mm_setr_ps(jj+24.0f-vhalfT,jj+25.0f-vhalfT,jj+26.0f-vhalfT,jj+27.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj+24.0f-halfT,jj+25.0f-halfT,jj+26.0f-halfT,jj+27.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+24.0f+vhalfT,jj+25.0f+vhalfT,jj+26.0f+vhalfT,jj+27.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+24.0f+halfT,jj+25.0f+halfT,jj+26.0f+halfT,jj+27.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
                         vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
                         vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
                         _mm_store_ps(&this->m_gmsk_pulse.m_data[i+24ull],vgmsk_sample);
-                        vt_sub_halT    = _mm_setr_ps(jj+28.0f-vhalfT,jj+29.0f-vhalfT,jj+30.0f-vhalfT,jj+31.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj+28.0f-halfT,jj+29.0f-halfT,jj+30.0f-halfT,jj+31.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+28.0f+vhalfT,jj+29.0f+vhalfT,jj+30.0f+vhalfT,jj+31.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+28.0f+halfT,jj+29.0f+halfT,jj+30.0f+halfT,jj+31.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
@@ -1559,60 +1560,60 @@ gms::radiolocation
                         __m128 vQ_left_value,vQ_right_arg;
                         __m128 vQ_right_value,vgmsk_sample;
 
-                        vt_sub_halT    = _mm_setr_ps(jj-vhalfT,jj+1.0f-vhalfT,jj+2.0f-vhalfT,jj+3.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj-halfT,jj+1.0f-halfT,jj+2.0f-halfT,jj+3.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+vhalfT,jj+1.0f+vhalfT,jj+2.0f+vhalfT,jj+3.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+halfT,jj+1.0f+halfT,jj+2.0f+halfT,jj+3.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
                         vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
                         vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
                         _mm_store_ps(&this->m_gmsk_pulse.m_data[i+0ull],vgmsk_sample);
-                        vt_sub_halT    = _mm_setr_ps(jj+4.0f-vhalfT,jj+5.0f-vhalfT,jj+6.0f-vhalfT,jj+7.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj+4.0f-halfT,jj+5.0f-halfT,jj+6.0f-halfT,jj+7.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+4.0f+vhalfT,jj+5.0f+vhalfT,jj+6.0f+vhalfT,jj+7.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+4.0f+halfT,jj+5.0f+halfT,jj+6.0f+halfT,jj+7.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
                         vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
                         vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
                         _mm_store_ps(&this->m_gmsk_pulse.m_data[i+4ull],vgmsk_sample);
-                        vt_sub_halT    = _mm_setr_ps(jj+8.0f-vhalfT,jj+9.0f-vhalfT,jj+10.0f-vhalfT,jj+11.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj+8.0f-halfT,jj+9.0f-halfT,jj+10.0f-halfT,jj+11.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+8.0f+vhalfT,jj+9.0f+vhalfT,jj+10.0f+vhalfT,jj+11.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+8.0f+halfT,jj+9.0f+halfT,jj+10.0f+halfT,jj+11.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
                         vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
                         vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
                         _mm_store_ps(&this->m_gmsk_pulse.m_data[i+8ull],vgmsk_sample);
-                        vt_sub_halT    = _mm_setr_ps(jj+12.0f-vhalfT,jj+13.0f-vhalfT,jj+14.0f-vhalfT,jj+15.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj+12.0f-halfT,jj+13.0f-halfT,jj+14.0f-halfT,jj+15.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+12.0f+vhalfT,jj+13.0f+vhalfT,jj+14.0f+vhalfT,jj+15.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+12.0f+halfT,jj+13.0f+halfT,jj+14.0f+halfT,jj+15.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
                         vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
                         vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
                         _mm_store_ps(&this->m_gmsk_pulse.m_data[i+12ull],vgmsk_sample);
-                        vt_sub_halT    = _mm_setr_ps(jj+16.0f-vhalfT,jj+17.0f-vhalfT,jj+18.0f-vhalfT,jj+19.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj+16.0f-halfT,jj+17.0f-halfT,jj+18.0f-halfT,jj+19.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+16.0f+vhalfT,jj+17.0f+vhalfT,jj+18.0f+vhalfT,jj+19.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+16.0f+halfT,jj+17.0f+halfT,jj+18.0f+halfT,jj+19.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
                         vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
                         vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
                         _mm_store_ps(&this->m_gmsk_pulse.m_data[i+16ull],vgmsk_sample);
-                        vt_sub_halT    = _mm_setr_ps(jj+20.0f-vhalfT,jj+21.0f-vhalfT,jj+22.0f-vhalfT,jj+23.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj+20.0f-halfT,jj+21.0f-halfT,jj+22.0f-halfT,jj+23.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+20.0f+vhalfT,jj+21.0f+vhalfT,jj+22.0f+vhalfT,jj+23.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+20.0f+halfT,jj+21.0f+halfT,jj+22.0f+halfT,jj+23.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
@@ -1627,40 +1628,40 @@ gms::radiolocation
                         __m128 vQ_left_value,vQ_right_arg;
                         __m128 vQ_right_value,vgmsk_sample;
 
-                        vt_sub_halT    = _mm_setr_ps(jj-vhalfT,jj+1.0f-vhalfT,jj+2.0f-vhalfT,jj+3.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj-halfT,jj+1.0f-halfT,jj+2.0f-halfT,jj+3.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+vhalfT,jj+1.0f+vhalfT,jj+2.0f+vhalfT,jj+3.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+halfT,jj+1.0f+halfT,jj+2.0f+halfT,jj+3.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
                         vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
                         vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
                         _mm_store_ps(&this->m_gmsk_pulse.m_data[i+0ull],vgmsk_sample);
-                        vt_sub_halT    = _mm_setr_ps(jj+4.0f-vhalfT,jj+5.0f-vhalfT,jj+6.0f-vhalfT,jj+7.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj+4.0f-halfT,jj+5.0f-halfT,jj+6.0f-halfT,jj+7.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+4.0f+vhalfT,jj+5.0f+vhalfT,jj+6.0f+vhalfT,jj+7.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+4.0f+halfT,jj+5.0f+halfT,jj+6.0f+halfT,jj+7.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
                         vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
                         vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
                         _mm_store_ps(&this->m_gmsk_pulse.m_data[i+4ull],vgmsk_sample);
-                        vt_sub_halT    = _mm_setr_ps(jj+8.0f-vhalfT,jj+9.0f-vhalfT,jj+10.0f-vhalfT,jj+11.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj+8.0f-halfT,jj+9.0f-halfT,jj+10.0f-halfT,jj+11.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+8.0f+vhalfT,jj+9.0f+vhalfT,jj+10.0f+vhalfT,jj+11.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+8.0f+halfT,jj+9.0f+halfT,jj+10.0f+halfT,jj+11.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
                         vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
                         vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
                         _mm_store_ps(&this->m_gmsk_pulse.m_data[i+8ull],vgmsk_sample);
-                        vt_sub_halT    = _mm_setr_ps(jj+12.0f-vhalfT,jj+13.0f-vhalfT,jj+14.0f-vhalfT,jj+15.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj+12.0f-halfT,jj+13.0f-halfT,jj+14.0f-halfT,jj+15.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+12.0f+vhalfT,jj+13.0f+vhalfT,jj+14.0f+vhalfT,jj+15.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+12.0f+halfT,jj+13.0f+halfT,jj+14.0f+halfT,jj+15.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
@@ -1675,20 +1676,20 @@ gms::radiolocation
                         __m128 vQ_left_value,vQ_right_arg;
                         __m128 vQ_right_value,vgmsk_sample;
 
-                        vt_sub_halT    = _mm_setr_ps(jj-vhalfT,jj+1.0f-vhalfT,jj+2.0f-vhalfT,jj+3.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj-halfT,jj+1.0f-halfT,jj+2.0f-halfT,jj+3.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+vhalfT,jj+1.0f+vhalfT,jj+2.0f+vhalfT,jj+3.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+halfT,jj+1.0f+halfT,jj+2.0f+halfT,jj+3.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
                         vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
                         vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
                         _mm_store_ps(&this->m_gmsk_pulse.m_data[i+0ull],vgmsk_sample);
-                        vt_sub_halT    = _mm_setr_ps(jj+4.0f-vhalfT,jj+5.0f-vhalfT,jj+6.0f-vhalfT,jj+7.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj+4.0f-halfT,jj+5.0f-halfT,jj+6.0f-halfT,jj+7.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+4.0f+vhalfT,jj+5.0f+vhalfT,jj+6.0f+vhalfT,jj+7.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+4.0f+halfT,jj+5.0f+halfT,jj+6.0f+halfT,jj+7.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
@@ -1703,10 +1704,10 @@ gms::radiolocation
                         __m128 vQ_left_value,vQ_right_arg;
                         __m128 vQ_right_value,vgmsk_sample;
 
-                        vt_sub_halT    = _mm_setr_ps(jj-vhalfT,jj+1.0f-vhalfT,jj+2.0f-vhalfT,jj+3.0f-vhalfT);
+                        vt_sub_halT    = _mm_setr_ps(jj-halfT,jj+1.0f-halfT,jj+2.0f-halfT,jj+3.0f-halfT);
                         vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                        vt_add_halfT   = _mm_setr_ps(jj+vhalfT,jj+1.0f+vhalfT,jj+2.0f+vhalfT,jj+3.0f+vhalfT);
+                        vt_add_halfT   = _mm_setr_ps(jj+halfT,jj+1.0f+halfT,jj+2.0f+halfT,jj+3.0f+halfT);
                         vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
                                                 _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
                         vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
