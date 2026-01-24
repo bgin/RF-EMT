@@ -7,7 +7,7 @@
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
-#pragma intel optimization_parameter target_arch=AVX512
+#pragma intel optimization_parameter target_arch=SKYLAKE-AVX512
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER)	|| !defined(__ICC))
 #pragma optimize GCC target("avx512")
 #endif
@@ -93,7 +93,7 @@ avx512_memset_unroll8x_ps(float * __restrict__ dst,const float filler,std::size_
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
-#pragma intel optimization_parameter target_arch=AVX512
+#pragma intel optimization_parameter target_arch=SKYLAKE-AVX512
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER)	|| !defined(__ICC))
 #pragma optimize GCC target("avx512")
 #endif
@@ -194,7 +194,7 @@ avx512_memset_unroll16x_ps(float * __restrict__ dst,const float filler,std::size
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
-#pragma intel optimization_parameter target_arch=AVX512
+#pragma intel optimization_parameter target_arch=SKYLAKE-AVX512
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER)	|| !defined(__ICC))
 #pragma optimize GCC target("avx512")
 #endif
@@ -285,7 +285,7 @@ avx512_memset_unroll8x_pd(double * __restrict__ dst,const double filler,std::siz
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
-#pragma intel optimization_parameter target_arch=AVX512
+#pragma intel optimization_parameter target_arch=SKYLAKE-AVX512
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER)	|| !defined(__ICC))
 #pragma optimize GCC target("avx512")
 #endif
