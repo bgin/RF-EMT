@@ -122,7 +122,6 @@ namespace radiolocation
                  darray_r4_t    m_lrec_pulse; //LREC samples
                  darray_r4_t    m_lrc_pulse;  //L(Raised-Cosine)
                  darray_r4_t    m_lsrc_pulse; //L(Spectrally-Raised-Cosine)
-                 darray_r4_t    m_tfm_pulse;  //Tamed-Frequency-Modulation
                  darray_r4_t    m_gmsk_pulse; // Gaussian-MSK
 
                  cpm_pulse_shapers_t() noexcept(true);
@@ -177,19 +176,9 @@ namespace radiolocation
 #endif   
                    }
 
-                    __ATTR_ALWAYS_INLINE__ 
-                  inline void clear_tfm_pulse(const float filler) noexcept(true)
-                  {
-#if (INIT_BY_STD_FILL) == 0
-                      using namespace gms::common;
-	                  sse_memset_unroll8x_ps(this->m_tfm_pulse.m_data,filler,this->m_nTsamples);
-#else 
-                      std::fill(this->m_tfm_pulse.m_data,this->m_tfm_pulse.m_data+this->m_nTsamples,filler);
-#endif   
-                   }
 
-                    __ATTR_ALWAYS_INLINE__ 
-                  inline void clear_gms_pulse(const float filler) noexcept(true)
+                  __ATTR_ALWAYS_INLINE__ 
+                  inline void clear_gmsk_pulse(const float filler) noexcept(true)
                   {
 #if (INIT_BY_STD_FILL) == 0
                       using namespace gms::common;
@@ -671,410 +660,39 @@ namespace radiolocation
                   std::int32_t 
                   generate_lsrc_pulse_sse_u8x() noexcept(true);
 
-                  __ATTR_ALWAYS_INLINE__ 
-                  inline float 
-                  tfm_g0_value(const float t,
-                               const float invT,
-                               const float invTT)
-                  {
-                       using namespace gms::math;
-                       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
-                       constexpr float C314159265358979323846264338328{3.14159265358979323846264338328f};
-                       constexpr float C157079632679489661923132169164{1.57079632679489661923132169164f};
-                       constexpr float C0125{1.0f/8.0f};
-                       const float invPIt{1.0f/(C314159265358979323846264338328*t)};
-                       const float PItT{C314159265358979323846264338328*t*invT};
-                       const float tpow3{t*t*t};
-                       const float twoPItT{C6283185307179586476925286766559*t*invT};
-                       const float denom{24.0f*C314159265358979323846264338328*tpow3*invTT};
-#if (CPM_PULSE_SHAPERS_USE_CEPHES) == 1
-                       const float sin_term{ceph_sinf(PItT)};
-#else 
-                       const float sin_term{std::sin(PItT)};
-#endif 
-                       //const float cot_term{std::tan(C157079632679489661923132169164-PItT)};
-                       const float cot_term{1.0f/std::tan(PItT)};
-                       const float sqrPItT{PItT*PItT};
-                       const float numerator{2.0f-twoPItT*cot_term-sqrPItT};
-                       const float ratio{invPIt-(numerator/denom)};
-                       const float g0_value{sin_term*ratio};
-                       return (g0_value);
-                  }
-
-                  __ATTR_ALWAYS_INLINE__ 
-                  inline std::int32_t 
-                  generate_tfm_pulse_scalar_u8x() noexcept(true) 
-                  {
-                       using namespace gms::math;
-                       constexpr float one_ov_eight{1.0f/8.0f};
-                       std::size_t i,j;  
-                       const float invT{1.0f/this->m_T};
-                       const float invTT{1.0f/(this->m_T*this->m_T)};
-                       for(i = 0ull; i != ROUND_TO_EIGHT(this->m_nTsamples,8ull); i += 8ull) 
-                       {
-                            const float t_i_0{static_cast<float>(i+0ull)};
-                            const float g0_left_0{tfm_g0_value((t_i_0-this->m_T),invT,invTT)};
-                            const float g0_mid_0{2.0f*tfm_g0_value(t_i_0,invT,invTT)};
-                            const float g0_right_0{tfm_g0_value((t_i_0+this->m_T),invT,invTT)};
-                            const float tfm_sample_0{one_ov_eight*(g0_left_0+g0_mid_0+g0_right_0)};
-                            this->m_tfm_pulse.m_data[i+0ull] = tfm_sample_0;
-                            const float t_i_1{static_cast<float>(i+1ull)};
-                            const float g0_left_1{tfm_g0_value((t_i_1-this->m_T),invT,invTT)};
-                            const float g0_mid_1{2.0f*tfm_g0_value(t_i_1,invT,invTT)};
-                            const float g0_right_1{tfm_g0_value((t_i_1+this->m_T),invT,invTT)};
-                            const float tfm_sample_1{one_ov_eight*(g0_left_1+g0_mid_1+g0_right_1)};
-                            this->m_tfm_pulse.m_data[i+1ull] = tfm_sample_1;
-                            const float t_i_2{static_cast<float>(i+2ull)};
-                            const float g0_left_2{tfm_g0_value((t_i_2-this->m_T),invT,invTT)};
-                            const float g0_mid_2{2.0f*tfm_g0_value(t_i_2,invT,invTT)};
-                            const float g0_right_2{tfm_g0_value((t_i_2+this->m_T),invT,invTT)};
-                            const float tfm_sample_2{one_ov_eight*(g0_left_2+g0_mid_2+g0_right_2)};
-                            this->m_tfm_pulse.m_data[i+2ull] = tfm_sample_2;
-                            const float t_i_3{static_cast<float>(i+3ull)};
-                            const float g0_left_3{tfm_g0_value((t_i_3-this->m_T),invT,invTT)};
-                            const float g0_mid_3{2.0f*tfm_g0_value(t_i_3,invT,invTT)};
-                            const float g0_right_3{tfm_g0_value((t_i_3+this->m_T),invT,invTT)};
-                            const float tfm_sample_3{one_ov_eight*(g0_left_3+g0_mid_3+g0_right_3)};
-                            this->m_tfm_pulse.m_data[i+3ull] = tfm_sample_3;
-                            const float t_i_4{static_cast<float>(i+4ull)};
-                            const float g0_left_4{tfm_g0_value((t_i_4-this->m_T),invT,invTT)};
-                            const float g0_mid_4{2.0f*tfm_g0_value(t_i_4,invT,invTT)};
-                            const float g0_right_4{tfm_g0_value((t_i_4+this->m_T),invT,invTT)};
-                            const float tfm_sample_4{one_ov_eight*(g0_left_4+g0_mid_4+g0_right_4)};
-                            this->m_tfm_pulse.m_data[i+4ull] = tfm_sample_4;
-                            const float t_i_5{static_cast<float>(5+1ull)};
-                            const float g0_left_5{tfm_g0_value((t_i_5-this->m_T),invT,invTT)};
-                            const float g0_mid_5{2.0f*tfm_g0_value(t_i_5,invT,invTT)};
-                            const float g0_right_5{tfm_g0_value((t_i_5+this->m_T),invT,invTT)};
-                            const float tfm_sample_5{one_ov_eight*(g0_left_5+g0_mid_5+g0_right_5)};
-                            this->m_tfm_pulse.m_data[i+5ull] = tfm_sample_5;
-                            const float t_i_6{static_cast<float>(6+1ull)};
-                            const float g0_left_6{tfm_g0_value((t_i_6-this->m_T),invT,invTT)};
-                            const float g0_mid_6{2.0f*tfm_g0_value(t_i_6,invT,invTT)};
-                            const float g0_right_6{tfm_g0_value((t_i_6+this->m_T),invT,invTT)};
-                            const float tfm_sample_6{one_ov_eight*(g0_left_6+g0_mid_6+g0_right_6)};
-                            this->m_tfm_pulse.m_data[i+6ull] = tfm_sample_6;
-                            const float t_i_7{static_cast<float>(i+7ull)};
-                            const float g0_left_7{tfm_g0_value((t_i_7-this->m_T),invT,invTT)};
-                            const float g0_mid_7{2.0f*tfm_g0_value(t_i_7,invT,invTT)};
-                            const float g0_right_7{tfm_g0_value((t_i_7+this->m_T),invT,invTT)};
-                            const float tfm_sample_7{one_ov_eight*(g0_left_7+g0_mid_7+g0_right_7)};
-                            this->m_tfm_pulse.m_data[i+7ull] = tfm_sample_7;
-                       }
-
-                       for(j = i; j != this->m_nTsamples; ++j)  
-                       {
-                            const float t_j{static_cast<float>(j)};
-                            const float g0_left_0{tfm_g0_value((t_j-this->m_T),invT,invTT)};
-                            const float g0_mid_0{2.0f*tfm_g0_value(t_j,invT,invTT)};
-                            const float g0_right_0{tfm_g0_value((t_j+this->m_T),invT,invTT)};
-                            const float tfm_sample_0{one_ov_eight*(g0_left_0+g0_mid_0+g0_right_0)};
-                            this->m_tfm_pulse.m_data[j] = tfm_sample_0;
-                       }
-                       return (0);
-                  }
-
-                  __ATTR_ALWAYS_INLINE__
-                  inline __m128 
-                  _mm_tfm_g0_vec_ps(const __m128 vt,
-                                    const __m128 vinvT,
-                                    const __m128 vinvTT) 
-                  {
-                        
-                       const __m128 vC6283185307179586476925286766559{_mm_set1_ps(6.283185307179586476925286766559f)};
-                       const __m128 vC314159265358979323846264338328{_mm_set1_ps(3.14159265358979323846264338328f)};
-                       const __m128 vC157079632679489661923132169164{_mm_set1_ps(1.57079632679489661923132169164f)};
-                       const __m128 v24{_mm_set1_ps(24.0f)};
-                       const __m128 v2{_mm_set1_ps(2.0f)};
-                       const __m128 vONE{_mm_set1_ps(1.0f)};
-#if (CPM_PULSE_SHAPERS_USE_VEC_RCP14_PRECISION) == 1 
-                       const __m128 vinvPIt{_mm_rcp14_ps(_mm_mul_ps(vC314159265358979323846264338328,vt))};
-#else 
-                       
-                       const __m128 vinvPIt{_mm_div_ps(vONE,_mm_mul_ps(vC314159265358979323846264338328,vt))};
-#endif 
-                       const __m128 vPItT{_mm_mul_ps(_mm_mul_ps(vC314159265358979323846264338328,vt),vinvT)};
-                       const __m128 vtpow3{_mm_mul_ps(vt,_mm_mul_ps(vt,vt))};
-                       const __m128 v2PItT{_mm_mul_ps(_mm_mul_ps(vC6283185307179586476925286766559,vt),vinvT)};
-                       const __m128 vdenom{_mm_mul_ps(_mm_mul_ps(v24,_mm_mul_ps(vC314159265358979323846264338328,vtpow3)),vinvTT)};
-                       const __m128 vsin_term{_mm_sin_ps(vPItT)};
-                       const __m128 vcot_term{_mm_tan_ps(_mm_sub_ps(vC157079632679489661923132169164,vPItT))};
-                       //const __m128 vcot_term{_mm_rcp_ps(_mm_tan_ps(vPItT))};
-                       const __m128 vsqrPItT{_mm_mul_ps(vPItT,vPItT)};
-                       const __m128 vnumerator{_mm_sub_ps(_mm_sub_ps(v2,_mm_mul_ps(v2PItT,vcot_term)),vsqrPItT)};
-                       const __m128 vratio{_mm_sub_ps(vinvPIt,_mm_div_ps(vnumerator,vdenom))};
-                       const __m128 vg0_vec{_mm_mul_ps(vsin_term,vratio)};
-                       return (vg0_vec);
-                  }
-
-                  __ATTR_ALWAYS_INLINE__ 
-                  inline std::int32_t 
-                  generate_tfm_pulse_sse_rolled() noexcept(true) 
-                  {
-                       using namespace gms::math;
-                       constexpr std::size_t LUT_loop_idx_threshold{2257ull};
-                       constexpr float one_ov_eight{0.125f};
-                       constexpr float one_ov_fourth{0.25f};
-                       std::size_t i,j;  
-                       float jj;
-                       const float invT{1.0f/this->m_T};
-                       const float invTT{1.0f/(this->m_T*this->m_T)};
-                       const __m128 vinvT{_mm_set1_ps(invT)};
-                       const __m128 vinvTT{_mm_set1_ps(invTT)};
-                       const __m128 v2{_mm_set1_ps(2.0f)};
-                       const __m128 vone_ov_eight{_mm_set1_ps(one_ov_eight)};
-                       const __m128 vone_ov_fourth{_mm_set1_ps(one_ov_fourth)};
-                       if(__builtin_expect(this->m_nTsamples>LUT_loop_idx_threshold,0))
-                       {
-                             for(i = 0ull,jj = 0.0f;i != ROUND_TO_FOUR(this->m_nTsamples,4ull);i += 4ull,jj += 4.0f) 
-                             {
-                                   const __m128 vt_i_left{_mm_setr_ps(jj-this->m_T,jj-this->m_T+1.0f,jj-this->m_T+2.0f,jj-this->m_T+3.0f)};
-                                   const __m128 g0_vec_left{_mm_mul_ps(vone_ov_eight,_mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT))};
-                                   const __m128 vt_i_mid{_mm_setr_ps(jj,jj+1.0f,jj+2.0f,jj+3.0f)};
-                                   const __m128 g0_vec_mid{_mm_mul_ps(vone_ov_fourth,_mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT))};
-                                   const __m128 vt_i_right{_mm_setr_ps(jj+this->m_T,jj+this->m_T+1.0f,jj+this->m_T+2.0f,jj+this->m_T+3.0f)};
-                                   const __m128 g0_vec_right{_mm_mul_ps(vone_ov_eight,_mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT))};
-                                   //const __m128 tfm_g_vec_sample{_mm_mul_ps(vone_ov_eight,
-                                                //_mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)))};
-                                   const __m128 tfm_g_vec_sample{_mm_add_ps(g0_vec_left,_mm_add_ps(g0_vec_mid,g0_vec_right))};
-                                   _mm_store_ps(&this->m_tfm_pulse.m_data[i],tfm_g_vec_sample);
-                             }
-
-                             for(j = i; j != this->m_nTsamples; ++j)  
-                             {
-                                   const float t_j{static_cast<float>(j)};
-                                   const float g0_left_0{tfm_g0_value((t_j-this->m_T),invT,invTT)};
-                                   const float g0_mid_0{tfm_g0_value(t_j,invT,invTT)};
-                                   const float g0_right_0{tfm_g0_value((t_j+this->m_T),invT,invTT)};
-                                   const float tfm_sample_0{0.125f*g0_left_0+0.25f*g0_mid_0+0.125f*g0_right_0};
-                                   this->m_tfm_pulse.m_data[j] = tfm_sample_0;
-                             }
-                       }
-                       else 
-                       {
-                             const __m128 vT{_mm_set1_ps(this->m_T)};
-                             for(i = 0ull; i != ROUND_TO_FOUR(this->m_nTsamples,4ull); i += 4ull) 
-                             {
-                                     _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align16[i],_MM_HINT_T0);
-                                     const __m128 vidx{_mm_load_ps(&gms::math::LUT_loop_indices_2257_align16[i])};
-                                     const __m128 vt_i_left{_mm_sub_ps(vidx,vT)};
-                                     const __m128 g0_vec_left{_mm_mul_ps(vone_ov_eight,_mm_tfm_g0_vec_ps(vt_i_left,vinvT,vinvTT))};
-                                     const __m128 vt_i_mid{vidx};
-                                     const __m128 g0_vec_mid{_mm_mul_ps(vone_ov_fourth,_mm_tfm_g0_vec_ps(vt_i_mid,vinvT,vinvTT))};
-                                     const __m128 vt_i_right{_mm_add_ps(vidx,vT)};
-                                     const __m128 g0_vec_right{_mm_mul_ps(vone_ov_eight,_mm_tfm_g0_vec_ps(vt_i_right,vinvT,vinvTT))};
-                                     //const __m128 tfm_g_vec_sample{_mm_mul_ps(vone_ov_eight,
-                                     //           _mm_add_ps(g0_vec_left,_mm_add_ps(_mm_mul_ps(v2,g0_vec_mid),g0_vec_right)))};
-                                     const __m128 tfm_g_vec_sample{_mm_add_ps(g0_vec_left,_mm_add_ps(g0_vec_mid,g0_vec_right))};
-                                     _mm_store_ps(&this->m_tfm_pulse.m_data[i],tfm_g_vec_sample);
-                             }
-
-                             for(j = i; j != this->m_nTsamples; ++j)  
-                             {
-                                   const float t_j{gms::math::LUT_loop_indices_2257_align16[j]};
-                                   const float g0_left_0{tfm_g0_value((t_j-this->m_T),invT,invTT)};
-                                   const float g0_mid_0{2.0f*tfm_g0_value(t_j,invT,invTT)};
-                                   const float g0_right_0{tfm_g0_value((t_j+this->m_T),invT,invTT)};
-                                   const float tfm_sample_0{0.125f*g0_left_0+0.25f*g0_mid_0+0.125f*g0_right_0};
-                                   this->m_tfm_pulse.m_data[j] = tfm_sample_0;
-                             }
-                       }
-                       return (0);
-                  }
-
-                   __ATTR_HOT__
-                  __ATTR_ALIGN__(32)
-#if defined(__INTEL_COMPILER) || defined(__ICC)
-                  __ATTR_OPTIMIZE_03__
-#endif                
-                  std::int32_t 
-                  generate_tfm_pulse_sse_u8x() noexcept(true);
-
-                  __ATTR_ALWAYS_INLINE__ 
-                  inline std::int32_t 
-                  generate_gmsk_pulse_scalar_u8x()
-                  {
+                 __ATTR_ALWAYS_INLINE__
+                 inline std::int32_t 
+                 generate_gmsk_pulse_scalar_rolled()
+                 {
                         if(__builtin_expect(this->m_BbT<0.0f,0) || 
                            __builtin_expect(this->m_BbT>1.0f,0))   { return (-1);}
                         constexpr float C1201122408786449794857803286095{1.201122408786449794857803286095f}; //INV(SQRT(Ln(2)))
                         constexpr float C0707106781186547524400844362105{0.707106781186547524400844362105f};
-                        const     float halfT{0.5f*this->m_T};
+                        constexpr float inc{0.003333333333333333333333333333f};
+                        const     float halfT{1.5f};
                         const     float twoPIBbT{6.283185307179586476925286766559f*this->m_BbT};
-                        const     float inv2T{1.0f/(this->m_T+this->m_T)};
-                        std::size_t i,j; 
+                        const     float inv2T{0.3333333333333333333333333333333333f};
+                        std::size_t i; 
                         float t_i,Q_left_arg;
                         float Q_left_value,Q_right_arg;
                         float Q_right_value,gmsk_sample;
-                        for(i = 0ull;i != ROUND_TO_EIGHT(this->m_nTsamples,8ull);i += 8ull) 
+                        t_i = 0.0f;
+                        for(i = 0ull;i != this->m_nTsamples; ++i) 
                         {
-                                t_i          = static_cast<float>(i+0ull);
-                                Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
-                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
-                                Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
-                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
-                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
-                                this->m_gmsk_pulse.m_data[i+0ull] = gmsk_sample;
-                                t_i          = static_cast<float>(i+1ull);
-                                Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
-                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
-                                Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
-                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
-                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
-                                this->m_gmsk_pulse.m_data[i+1ull] = gmsk_sample;
-                                t_i          = static_cast<float>(i+2ull);
-                                Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
-                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
-                                Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
-                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
-                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
-                                this->m_gmsk_pulse.m_data[i+2ull] = gmsk_sample;
-                                t_i          = static_cast<float>(i+3ull);
-                                Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
-                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
-                                Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
-                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
-                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
-                                this->m_gmsk_pulse.m_data[i+3ull] = gmsk_sample;
-                                t_i          = static_cast<float>(i+4ull);
-                                Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
-                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
-                                Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
-                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
-                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
-                                this->m_gmsk_pulse.m_data[i+4ull] = gmsk_sample;
-                                t_i          = static_cast<float>(i+5ull);
-                                Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
-                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
-                                Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
-                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
-                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
-                                this->m_gmsk_pulse.m_data[i+5ull] = gmsk_sample;
-                                t_i          = static_cast<float>(i+6ull);
-                                Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
-                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
-                                Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
-                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
-                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
-                                this->m_gmsk_pulse.m_data[i+6ull] = gmsk_sample;
-                                t_i          = static_cast<float>(i+7ull);
-                                Q_left_arg   = twoPIBbT*(t_i-this->m_T)*C1201122408786449794857803286095;
-                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
-                                Q_right_arg  = twoPIBbT*(t_i+this->m_T)*C1201122408786449794857803286095;
-                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
-                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
-                                this->m_gmsk_pulse.m_data[i+7ull] = gmsk_sample;
-                        }
-
-                        for(j = i;j != this->m_nTsamples; ++j)  
-                        {
-                                float t_j    = static_cast<float>(j);
-                                Q_left_arg   = twoPIBbT*(t_j-this->m_T)*C1201122408786449794857803286095;
-                                Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
-                                Q_right_arg  = twoPIBbT*(t_j+this->m_T)*C1201122408786449794857803286095;
-                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
-                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
-                                this->m_gmsk_pulse.m_data[j] = gmsk_sample;
+                               t_i += inc;
+                               Q_left_arg   = (twoPIBbT*t_i-halfT)*C1201122408786449794857803286095;
+                               Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
+                               Q_right_arg  = (twoPIBbT*t_i+halfT)*C1201122408786449794857803286095;
+                               Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
+                               gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
+                               this->m_gmsk_pulse.m_data[i] = gmsk_sample;
+                               
                         }
                         return (0);
-                  }
+                 }
 
-                  __ATTR_ALWAYS_INLINE__ 
-                  inline std::int32_t 
-                  generate_gmsk_pulse_sse_rolled() 
-                  {
-                        using namespace gms::math;
-                        if(__builtin_expect(this->m_BbT<0.0f,0) || 
-                           __builtin_expect(this->m_BbT>1.0f,0))   { return (-1);}
-                        constexpr std::size_t LUT_loop_idx_threshold{2257ull};
-                        constexpr float C1201122408786449794857803286095{1.201122408786449794857803286095f}; //INV(SQRT(Ln(2)))
-                        constexpr float C0707106781186547524400844362105{0.707106781186547524400844362105f};
-                        const     float halfT{0.5f*this->m_T};
-                        const     float twoPIBbT{6.283185307179586476925286766559f*this->m_BbT};
-                        const     float inv2T{1.0f/(this->m_T+this->m_T)};
-                        const     __m128 vC1201122408786449794857803286095{_mm_set1_ps(C1201122408786449794857803286095)};
-                        const     __m128 vC0707106781186547524400844362105{_mm_set1_ps(C0707106781186547524400844362105)};
-                        const     __m128 vhalfT{_mm_set1_ps(halfT)};
-                        const     __m128 vtwoPIBbT{_mm_set1_ps(twoPIBbT)};
-                        const     __m128 vinv2T{_mm_set1_ps(inv2T)};
-                        const     __m128 vhalf{_mm_set1_ps(0.5f)};
-                        std::size_t i,j; 
-                        float       jj;
-                        float Q_left_arg;
-                        float Q_left_value,Q_right_arg;
-                        float Q_right_value,gmsk_sample;
-                        if(__builtin_expect(this->m_nTsamples>LUT_loop_idx_threshold,0)) 
-                        {
-                             for(i = 0ull,jj = 0.0f;i != ROUND_TO_FOUR(this->m_nTsamples,4ull);i += 4ull,j += 4.0f) 
-                             {
-                                     __m128 vt_sub_halT,vt_add_halfT,vQ_left_arg;
-                                     __m128 vQ_left_value,vQ_right_arg;
-                                     __m128 vQ_right_value,vgmsk_sample;
 
-                                     vt_sub_halT    = _mm_setr_ps(jj-halfT,jj+1.0f-halfT,jj+2.0f-halfT,jj+3.0f-halfT);
-                                     vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
-                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                                     vt_add_halfT   = _mm_setr_ps(jj+halfT,jj+1.0f+halfT,jj+2.0f+halfT,jj+3.0f+halfT);
-                                     vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
-                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
-                                     vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
-                                     vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
-                                     vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
-                                     _mm_store_ps(&this->m_gmsk_pulse.m_data[i],vgmsk_sample);
-                             }
-
-                             for(j = i;j != this->m_nTsamples; ++j)  
-                             {
-                                    float t_j    = static_cast<float>(j);
-                                    Q_left_arg   = twoPIBbT*(t_j-this->m_T)*C1201122408786449794857803286095;
-                                    Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
-                                    Q_right_arg  = twoPIBbT*(t_j+this->m_T)*C1201122408786449794857803286095;
-                                    Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
-                                    gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
-                                    this->m_gmsk_pulse.m_data[j] = gmsk_sample;
-                             }
-                        }
-                        else 
-                        {
-                             for(i = 0ull;i != ROUND_TO_FOUR(this->m_nTsamples,4ull);i += 4ull) 
-                             {
-                                    __m128 vt_sub_halT,vt_add_halfT,vQ_left_arg;
-                                    __m128 vQ_left_value,vQ_right_arg;
-                                    __m128 vQ_right_value,vgmsk_sample;
-
-                                    _mm_prefetch((const char*)&LUT_loop_indices_2257_align16[i],_MM_HINT_T0);
-                                    vt_sub_halT    = _mm_sub_ps(_mm_load_ps(&LUT_loop_indices_2257_align16[i]),vhalfT);
-                                    vQ_left_arg    = _mm_mul_ps(vC0707106781186547524400844362105,
-                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_sub_halT,vC1201122408786449794857803286095)));
-                                    vt_add_halfT   = _mm_add_ps(_mm_load_ps(&LUT_loop_indices_2257_align16[i]),vhalfT);
-                                    vQ_right_arg   = _mm_mul_ps(vC0707106781186547524400844362105,
-                                                               _mm_mul_ps(vtwoPIBbT,_mm_mul_ps(vt_add_halfT,vC1201122408786449794857803286095)));
-                                    vQ_left_value  = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_left_arg));
-                                    vQ_right_value = _mm_mul_ps(vhalf,_mm_erfc_ps(vQ_right_arg));
-                                    vgmsk_sample   = _mm_mul_ps(vinv2T,_mm_sub_ps(vQ_left_value,vQ_right_value));
-                                    _mm_store_ps(&this->m_gmsk_pulse.m_data[i],vgmsk_sample);
-                             }
-
-                             for(j = i;j != this->m_nTsamples; ++j)  
-                             {
-                                    float t_j    = static_cast<float>(j);
-                                    Q_left_arg   = twoPIBbT*(t_j-this->m_T)*C1201122408786449794857803286095;
-                                    Q_left_value = 0.5f*std::erfc(Q_left_arg*C0707106781186547524400844362105);
-                                    Q_right_arg  = twoPIBbT*(t_j+this->m_T)*C1201122408786449794857803286095;
-                                    Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
-                                    gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
-                                    this->m_gmsk_pulse.m_data[j] = gmsk_sample;
-                             }
-                        }
-                        return (0);
-                  }
-
-                  __ATTR_HOT__
-                  __ATTR_ALIGN__(32)
-#if defined(__INTEL_COMPILER) || defined(__ICC)
-                  __ATTR_OPTIMIZE_03__
-#endif         
-                  std::int32_t 
-                  generate_gmsk_pulse_sse_u8x() noexcept(true);       
+                  
 
           };    
 
