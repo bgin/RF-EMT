@@ -51,7 +51,7 @@ void unit_test_cpm_gmsk_pulse_shapers()
    gmsk_pulse.generate_gmsk_pulse_scalar_rolled();
    std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n");
    cpm_pulse_shapers_t::create_signal_plot(static_cast<std::int32_t>(gmsk_pulse.m_nTsamples),gmsk_pulse.m_gmsk_pulse.m_data,nullptr,
-                                              "cpm_gmsk_pulse_scalar_rolled_test_3_","Gaussian MSK Pulse",false);
+                                              "cpm_gmsk_pulse_scalar_rolled_test_5_","Gaussian MSK Pulse",false);
    /*
    gmsk_pulse.clear_gmsk_pulse(0.0f);
    printf("[UNIT-TEST]: #2 -- generate_gmsk_pulse_sse_rolled()\n");
