@@ -660,12 +660,62 @@ namespace radiolocation
                   std::int32_t 
                   generate_lsrc_pulse_sse_u8x() noexcept(true);
 
+/*
+    For vectorization in the range -- [0.0-1.0]
+    int main() {
+   
+    constexpr float incr = 0.04f;
+    float t= 0.0f;
+    float x0 = 0.0f;
+    float x1 = 0.0f;
+    float x2 = 0.0f;
+    float x3 = 0.0f;
+    for(int i = 0;i < 25; ++i,t += incr)
+    {
+        x0 = t;
+        x1 = t+0.01f;
+        x2 = t+0.02f;
+        x3 = t+0.03f;
+        std::printf("t=%.7f,x0=%.7f,x1=%.7f,x2=%.7f,x3=%.7f\n",t,x0,x1,x2,x3);
+    }
+    return 0;
+}
+
+t=0.0000000,x0=0.0000000,x1=0.0100000,x2=0.0200000,x3=0.0300000
+t=0.0400000,x0=0.0400000,x1=0.0500000,x2=0.0600000,x3=0.0700000
+t=0.0800000,x0=0.0800000,x1=0.0900000,x2=0.1000000,x3=0.1100000
+t=0.1200000,x0=0.1200000,x1=0.1300000,x2=0.1400000,x3=0.1500000
+t=0.1600000,x0=0.1600000,x1=0.1700000,x2=0.1800000,x3=0.1900000
+t=0.2000000,x0=0.2000000,x1=0.2100000,x2=0.2200000,x3=0.2300000
+t=0.2400000,x0=0.2400000,x1=0.2500000,x2=0.2600000,x3=0.2700000
+t=0.2800000,x0=0.2800000,x1=0.2900000,x2=0.3000000,x3=0.3100000
+t=0.3200000,x0=0.3200000,x1=0.3300000,x2=0.3400000,x3=0.3500000
+t=0.3600000,x0=0.3600000,x1=0.3699999,x2=0.3800000,x3=0.3900000
+t=0.3999999,x0=0.3999999,x1=0.4099999,x2=0.4200000,x3=0.4299999
+t=0.4399999,x0=0.4399999,x1=0.4499999,x2=0.4599999,x3=0.4699999
+t=0.4799999,x0=0.4799999,x1=0.4899999,x2=0.4999999,x3=0.5099999
+t=0.5199999,x0=0.5199999,x1=0.5299999,x2=0.5399999,x3=0.5499999
+t=0.5599999,x0=0.5599999,x1=0.5699999,x2=0.5799999,x3=0.5899999
+t=0.6000000,x0=0.6000000,x1=0.6100000,x2=0.6199999,x3=0.6299999
+t=0.6400000,x0=0.6400000,x1=0.6500000,x2=0.6600000,x3=0.6700000
+t=0.6800000,x0=0.6800000,x1=0.6900000,x2=0.7000000,x3=0.7100000
+t=0.7200000,x0=0.7200000,x1=0.7300000,x2=0.7400000,x3=0.7500000
+t=0.7600001,x0=0.7600001,x1=0.7700000,x2=0.7800000,x3=0.7900000
+t=0.8000001,x0=0.8000001,x1=0.8100001,x2=0.8200001,x3=0.8300000
+t=0.8400001,x0=0.8400001,x1=0.8500001,x2=0.8600001,x3=0.8700001
+t=0.8800001,x0=0.8800001,x1=0.8900001,x2=0.9000001,x3=0.9100001
+t=0.9200001,x0=0.9200001,x1=0.9300001,x2=0.9400001,x3=0.9500001
+t=0.9600002,x0=0.9600002,x1=0.9700001,x2=0.9800001,x3=0.9900001
+*/
+
                  __ATTR_ALWAYS_INLINE__
                  inline std::int32_t 
                  generate_gmsk_pulse_scalar_rolled()
                  {
+                        using namespace gms::common;
                         if(__builtin_expect(this->m_BbT<0.0f,0) || 
                            __builtin_expect(this->m_BbT>1.0f,0))   { return (-1);}
+                        if(__builtin_expect((this->m_nTsamples%2ull)!=0ull,0)) {return (-2);}
                         constexpr float C1201122408786449794857803286095{1.201122408786449794857803286095f}; //INV(SQRT(Ln(2)))
                         constexpr float C0707106781186547524400844362105{0.707106781186547524400844362105f};
                         constexpr float inc{0.003333333333333333333333333333f};
@@ -673,11 +723,12 @@ namespace radiolocation
                         const     float twoPIBbT{6.283185307179586476925286766559f*this->m_BbT};
                         const     float inv2T{0.3333333333333333333333333333333333f};
                         std::size_t i; 
+                        std::size_t halfnTsamples{this->m_nTsamples/2ull};                        
                         float t_i,Q_left_arg;
                         float Q_left_value,Q_right_arg;
                         float Q_right_value,gmsk_sample;
                         t_i = 0.0f;
-                        for(i = 0ull;i != this->m_nTsamples; ++i) 
+                        for(i = 0ull;i != halfnTsamples; ++i) 
                         {
                                t_i += inc;
                                Q_left_arg   = (twoPIBbT*t_i-halfT)*C1201122408786449794857803286095;
@@ -685,9 +736,10 @@ namespace radiolocation
                                Q_right_arg  = (twoPIBbT*t_i+halfT)*C1201122408786449794857803286095;
                                Q_right_value= 0.5f*std::erfc(Q_right_arg*C0707106781186547524400844362105);
                                gmsk_sample  = inv2T*(Q_left_value-Q_right_value);
-                               this->m_gmsk_pulse.m_data[i] = gmsk_sample;
-                               
+                               this->m_gmsk_pulse.m_data[i] = gmsk_sample;                               
                         }
+                        std::memcpy(this->m_gmsk_pulse.m_data+halfnTsamples,this->m_gmsk_pulse.m_data,halfnTsamples*sizeof(float));
+                        std::reverse(this->m_gmsk_pulse.m_data,this->m_gmsk_pulse.m_data+halfnTsamples);
                         return (0);
                  }
 
