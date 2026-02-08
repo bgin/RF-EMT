@@ -935,6 +935,317 @@ gms::radiolocation
         return (0);
 }
 
+std::int32_t 
+gms::radiolocation
+::cpm_pulse_shapers_t
+::generate_lrc_pulse_avx_u8x(const bool do_consts_prefetch)
+{
+        using namespace gms::math;
+        constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+        const float twoLT{2.0f*this->m_L*this->m_T};
+        const float inv2LT{1.0f/twoLT};
+        const float invLT{1.0f/(this->m_L*this->m_T)};
+        const __m256 vinv2LT{_mm256_set1_ps(inv2LT)};
+        const __m256 vinvLT{_mm256_set1_ps(invLT)};
+        __m256 c0_7,c8_15,c16_23,c24_31;
+        __m256 c32_39,c40_47,c48_55,c56_63;
+        __m256 vC6283185307179586476925286766559;
+        __m256 vone;
+        __m256 vt_i;
+        __m256 vcos_term;
+        __m256 vlrc_value;
+        if(!do_consts_prefetch)
+        {
+                c0_7   = _mm256_setr_ps(0.0f,1.0f,2.0f,3.0f,4.0f,5.0f,6.0f,7.0f);
+                c8_15  = _mm256_setr_ps(8.0f,9.0f,10.0f,11.0f,12.0f,13.0f,14.0f,15.0f);
+                c16_23 = _mm256_setr_ps(16.0f,17.0f,18.0f,19.0f,20.0f,21.0f,22.0f,23.0f);
+                c24_31 = _mm256_setr_ps(24.0f,25.0f,26.0f,27.0f,28.0f,29.0f,30.0f,31.0f);
+                c32_39 = _mm256_setr_ps(32.0f,33.0f,34.0f,35.0f,36.0f,37.0f,38.0f,39.0f);
+                c40_47 = _mm256_setr_ps(40.0f,41.0f,42.0f,43.0f,44.0f,45.0f,46.0f,47.0f);
+                c48_55 = _mm256_setr_ps(48.0f,49.0f,50.0f,51.0f,52.0f,53.0f,54.0f,55.0f);
+                c56_63 = _mm256_setr_ps(56.0f,57.0f,58.0f,59.0f,60.0f,61.0f,62.0f,63.0f);
+                vC6283185307179586476925286766559 = _mm256_set1_ps(C6283185307179586476925286766559);
+                vone                              = _mm256_set1_ps(1.0f);
+        }
+        else 
+        {
+                __ATTR_ALIGN__(32) const float prefetched_constants[80] = 
+                {
+                        0.0f,1.0f,2.0f,3.0f,4.0f,5.0f,6.0f,7.0f,
+                        8.0f,9.0f,10.0f,11.0f,12.0f,13.0f,14.0f,15.0f,
+                        16.0f,17.0f,18.0f,19.0f,20.0f,21.0f,22.0f,23.0f,
+                        24.0f,25.0f,26.0f,27.0f,28.0f,29.0f,30.0f,31.0f,
+                        32.0f,33.0f,34.0f,35.0f,36.0f,37.0f,38.0f,39.0f,
+                        40.0f,41.0f,42.0f,43.0f,44.0f,45.0f,46.0f,47.0f,
+                        48.0f,49.0f,50.0f,51.0f,52.0f,53.0f,54.0f,55.0f,
+                        56.0f,57.0f,58.0f,59.0f,60.0f,61.0f,62.0f,63.0f,
+                        6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                        6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                        6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                        6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                        +1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f                       
+                };
+                _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+                _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+                _mm_prefetch((const char*)&prefetched_constants[32],_MM_HINT_T0);
+                _mm_prefetch((const char*)&prefetched_constants[48],_MM_HINT_T0);
+                _mm_prefetch((const char*)&prefetched_constants[64],_MM_HINT_T0);
+                c0_7   = _mm256_load_ps(&prefetched_constants[0]);
+                c8_15  = _mm256_load_ps(&prefetched_constants[8]);
+                c16_23 = _mm256_load_ps(&prefetched_constants[16]);
+                c24_31 = _mm256_load_ps(&prefetched_constants[24]);
+                c32_39 = _mm256_load_ps(&prefetched_constants[32]);
+                c40_47 = _mm256_load_ps(&prefetched_constants[40]);
+                c48_55 = _mm256_load_ps(&prefetched_constants[48]);
+                c56_63 = _mm256_load_ps(&prefetched_constants[56]);
+                vC6283185307179586476925286766559 = _mm256_load_ps(&prefetched_constants[64]);
+                vone  = _mm256_load_ps(&prefetched_constants[72]);
+        }
+        std::size_t i;
+        float j;
+        constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+        if(__builtin_expect(this->m_nTLsamples>LUT_loop_idx_threshold,0))
+        {
+             for(i = 0ull,j = 0.0f;(i+63ull) < this->m_nTLsamples;i += 64ull,j += 64.0f) 
+             {
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c0_7),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+0ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c8_15),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+8ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c16_23),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+16ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c24_31),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+24ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c32_39),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+32ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c40_47),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+40ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c48_55),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+48ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c56_63),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+56ull],vlrc_value);
+             }
+
+             for(; (i+47ull) < this->m_nTLsamples;i += 48ull,j += 48.0f) 
+             {
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c0_7),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+0ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c8_15),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+8ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c16_23),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+16ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c24_31),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+24ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c32_39),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+32ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c40_47),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+40ull],vlrc_value);
+             }
+
+             for(; (i+31ull) < this->m_nTLsamples;i += 32ull,j += 32.0f) 
+             {
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c0_7),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+0ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c8_15),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+8ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c16_23),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+16ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c24_31),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+24ull],vlrc_value);
+              }
+
+              for(; (i+15ull) < this->m_nTLsamples;i += 16ull,j += 16.0f) 
+              {
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c0_7),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+0ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c8_15),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+8ull],vlrc_value);
+              }
+
+              for(; (i+7ull) < this->m_nTLsamples;i += 8ull,j += 8.0f) 
+              {
+                 vt_i       = _mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(j),c0_7),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+0ull],vlrc_value);
+              }
+
+              for(; (i+0ull) < this->m_nTLsamples; i += 1ull)   
+              {
+                   const float t_i{static_cast<float>(i)};
+#if (CPM_PULSE_SHAPERS_USE_CEPHES) == 1
+                   const float cos_term_0{ceph_cosf(C6283185307179586476925286766559*t_i*invLT)};
+#else
+                   const float cos_term_0{std::cos(C6283185307179586476925286766559*t_i*invLT)};
+#endif
+                   const float lrc_val_0{inv2LT*(1.0f-cos_term_0)};
+                   this->m_lrc_pulse.m_data[i] = lrc_val_0;
+              }
+        }
+        else 
+        {
+             for(i = 0ull;(i+63ull) < this->m_nTLsamples;i += 64ull) 
+             {
+                _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+0ull],_MM_HINT_T0);
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+0ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+8ull],vlrc_value);
+                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+16ull],_MM_HINT_T0);
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+16ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+16ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+24ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+24ull],vlrc_value);
+                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+32ull],_MM_HINT_T0);
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+32ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+32ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+40ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+40ull],vlrc_value);
+                 _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i+48ull],_MM_HINT_T0);
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+48ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+48ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+56ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+56ull],vlrc_value);
+             }
+
+             for(; (i+47ull) < this->m_nTLsamples;i += 48ull) 
+             {
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+0ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+8ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+16ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+16ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+24ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+24ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+32ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+32ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+40ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+40ull],vlrc_value);
+             }
+
+             for(; (i+31ull) < this->m_nTLsamples;i += 32ull) 
+             {
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+0ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+8ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+16ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+16ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+24ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+24ull],vlrc_value);
+             }
+
+              for(; (i+15ull) < this->m_nTLsamples;i += 16ull) 
+              {
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+0ull],vlrc_value);
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+8ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+8ull],vlrc_value);
+              }
+
+              for(; (i+7ull) < this->m_nTLsamples;i += 8ull) 
+              {
+                 vt_i       = _mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i+0ull]),vinvLT);
+                 vcos_term  = _mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i));
+                 vlrc_value = _mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term));
+                 _mm256_store_ps(&this->m_lrc_pulse.m_data[i+0ull],vlrc_value);
+              }
+
+              for(; (i+0ull) < this->m_nTLsamples; i += 1ull)   
+              {
+                   const float t_i{gms::math::LUT_loop_indices_2257_align16[i]};
+#if (CPM_PULSE_SHAPERS_USE_CEPHES) == 1
+                   const float cos_term_0{ceph_cosf(C6283185307179586476925286766559*t_i*invLT)};
+#else
+                   const float cos_term_0{std::cos(C6283185307179586476925286766559*t_i*invLT)};
+#endif
+                   const float lrc_val_0{inv2LT*(1.0f-cos_term_0)};
+                   this->m_lrc_pulse.m_data[i] = lrc_val_0;
+              }
+        }
+        return (0);
+}
 
 auto 
 gms::radiolocation 

@@ -423,6 +423,105 @@ namespace radiolocation
 
                   __ATTR_ALWAYS_INLINE__
                   inline std::int32_t 
+                  generate_lrc_pulse_avx_rolled(const bool do_consts_prefetch)
+                  {
+                       using namespace gms::math;
+                       constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
+                       const float twoLT{2.0f*this->m_L*this->m_T};
+                       const float inv2LT{1.0f/twoLT};
+                       const float invLT{1.0f/(this->m_L*this->m_T)};
+                       //const __m256 vC6283185307179586476925286766559{_mm256_set1_ps(C6283185307179586476925286766559)};
+                       const __m256 vinv2LT{_mm256_set1_ps(inv2LT)};
+                       const __m256 vinvLT{_mm256_set1_ps(invLT)};
+                       //const __m256 vone{_mm256_set1_ps(1.0f)};
+                       __m256 c0_8;
+                       __m256 vC6283185307179586476925286766559;
+                       __m256 vone;
+                       if(!do_consts_prefetch)
+                       {
+                            c0_8                              = _mm256_setr_ps(0.0f,1.0f,2.0f,3.0f,4.0f,5.0f,6.0f,7.0f);
+                            vC6283185307179586476925286766559 = _mm256_set1_ps(C6283185307179586476925286766559);
+                            vone                              = _mm256_set1_ps(1.0f);
+                       }
+                       else 
+                       {
+                            __ATTR_ALIGN__(32) const float prefetched_constants[32] = 
+                            {
+                                0.0f,1.0f,2.0f,3.0f,4.0f,5.0f,6.0f,7.0f,
+                                6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                6.283185307179586476925286766559f,6.283185307179586476925286766559f,
+                                +1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,+1.0f,
+                                0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f
+                            };
+                            _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+                            _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+                            c0_8                              = _mm256_load_ps(&prefetched_constants[0]);
+                            vC6283185307179586476925286766559 = _mm256_load_ps(&prefetched_constants[8]);
+                            vone                              = _mm256_load_ps(&prefetched_constants[16]);
+                       }
+                       std::size_t i,j;
+                       float jj;
+                       constexpr std::size_t LUT_loop_idx_threshold{2257ull};
+                       if(__builtin_expect(this->m_nTLsamples>LUT_loop_idx_threshold,0)) 
+                       {
+                           for(i=0ull,jj=0.0f;i != ROUND_TO_EIGHT(this->m_nTLsamples,8ull); i+=8ull,jj+=8.0f)
+                           {
+                               const __m256 vt_i{_mm256_mul_ps(_mm256_add_ps(_mm256_set1_ps(jj),c0_8),vinvLT)};
+                               const __m256 vcos_term{_mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i))};
+                               const __m256 vlrc_value{_mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term))};
+                               _mm256_store_ps(&this->m_lrc_pulse.m_data[i],vlrc_value);
+                           }
+
+                           for(j = i;j != this->m_nTLsamples; ++j)   
+                           {
+                               const float t_j{static_cast<float>(j)};
+#if (CPM_PULSE_SHAPERS_USE_CEPHES) == 1
+                               const float cos_term_0{ceph_cosf(C6283185307179586476925286766559*t_j*invLT)};
+#else
+                               const float cos_term_0{std::cos(C6283185307179586476925286766559*t_j*invLT)};
+#endif
+                               const float lrc_val_0{inv2LT*(1.0f-cos_term_0)};
+                               this->m_lrc_pulse.m_data[j] = lrc_val_0;
+                           }
+                       }
+                       else 
+                       {
+                           for(i = 0ull; i != ROUND_TO_EIGHT(this->m_nTLsamples,8ull); i += 8ull) 
+                           {
+                               _mm_prefetch((const char*)&gms::math::LUT_loop_indices_2257_align32[i],_MM_HINT_T0);
+                               const __m256 vt_i{_mm256_mul_ps(_mm256_load_ps(&gms::math::LUT_loop_indices_2257_align16[i]),vinvLT)};
+                               const __m256 vcos_term{_mm256_cos_ps(_mm256_mul_ps(vC6283185307179586476925286766559,vt_i))};
+                               const __m256 vlrc_value{_mm256_mul_ps(vinv2LT,_mm256_sub_ps(vone,vcos_term))};
+                               _mm256_store_ps(&this->m_lrc_pulse.m_data[i],vlrc_value);
+                           }
+                           
+                           for(j = i;j != this->m_nTLsamples; ++j)   
+                           {
+                               const float t_j{gms::math::LUT_loop_indices_2257_align16[j]};
+#if (CPM_PULSE_SHAPERS_USE_CEPHES) == 1
+                               const float cos_term_0{ceph_cosf(C6283185307179586476925286766559*t_j*invLT)};
+#else
+                               const float cos_term_0{std::cos(C6283185307179586476925286766559*t_j*invLT)};
+#endif
+                               const float lrc_val_0{inv2LT*(1.0f-cos_term_0)};
+                               this->m_lrc_pulse.m_data[j] = lrc_val_0;
+                           }
+                       }
+                       return (0);
+                  }  
+
+                  __ATTR_HOT__
+                  __ATTR_ALIGN__(32)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+                  __ATTR_OPTIMIZE_03__
+#endif                
+                  std::int32_t 
+                  generate_lrc_pulse_avx_u8x(const bool);
+
+                  __ATTR_ALWAYS_INLINE__
+                  inline std::int32_t 
                   generate_lsrc_pulse_scalar_u8x() 
                   {
                        using namespace gms::math;
