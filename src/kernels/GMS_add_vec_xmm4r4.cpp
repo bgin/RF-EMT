@@ -1429,7 +1429,7 @@ gms::math::vadd_f32_2x128v_u6x_u( const float * __restrict__ vec_x,
             if(__builtin_expect(n==0ull,0)) { return -1;}
 
 #if (ADD_VEC_XMM4R4_ADD_PEEL_LOOP) == 1
-            while(((std::uintptr_t)&vec_z & 63) && n)
+            while(((std::uintptr_t)&vec_z & 15) && n)
             {
                    const float x = *vec_x;
                    const float y = *vec_y;
