@@ -117,7 +117,7 @@ vaddpc_f32_1x512_1xf32_u16x_u(const float * __restrict__ vec_x,
                             _mm_prefetch((const char *)&vec_y[i+80ull],_MM_HINT_T0);
 #endif 
                 vx5 = _mm512_loadu_ps(&vec_x[i+80ull]);
-                vy5 = _mm512_loadu_ps(&vec_y[i+808ull]);
+                vy5 = _mm512_loadu_ps(&vec_y[i+80ull]);
                 vz5 = _mm512_fmadd_ps(vx5,vc,vy5);
                 _mm512_storeu_ps(&vec_y[i+80ull],vz5);
 #if (ADD_PRODUCT_VEC_ZMM16R4_SOFT_PREFETCH) == 1
