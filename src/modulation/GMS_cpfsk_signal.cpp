@@ -52,7 +52,7 @@ gms::radiolocation
 ::cpfsk_signal_t(const cpfsk_signal_t &rhs) noexcept(false)
 :
 m_T(rhs.m_T),
-m_nfreqs(rhs.m_nfreqs)
+m_nfreqs(rhs.m_nfreqs),
 m_k(rhs.m_k),
 m_A(rhs.m_A),
 m_h(rhs.m_h),
@@ -77,7 +77,7 @@ m_h(rhs.m_h),
 m_fc(rhs.m_fc),
 m_ph0(rhs.m_ph0),
 m_Phik(rhs.m_Phik),
-m_cpfsk_signal(std::move(rhs.m_cpfsk_signal)) 
+m_cpfsk_signal(std::move(rhs.m_cpfsk_signal)),
 m_cpfsk_psd(std::move(rhs.m_cpfsk_psd))
 {
 
@@ -85,7 +85,7 @@ m_cpfsk_psd(std::move(rhs.m_cpfsk_psd))
 
 gms::radiolocation 
 ::cpfsk_signal_t
-::~cpfsk_signal_t() noexcept(true)
+::~cpfsk_signal_t() 
 {
 
 }
@@ -98,7 +98,7 @@ gms::radiolocation
 {
      if(__builtin_expect(this==&other,0)) { return (*this);}
      this->m_T      = other.m_T;
-     this->m_nfreqs = other.m_nfreqs
+     this->m_nfreqs = other.m_nfreqs;
      this->m_k      = other.m_k;
      this->m_A      = other.m_A;
      this->m_h      = other.m_h;
@@ -133,7 +133,7 @@ gms::radiolocation
 void 
 gms::radiolocation 
 ::cpfsk_signal_t
-::create_signal_plot(const std::uint32_t n_samp,
+::create_sequence_plot(const std::uint32_t n_samp,
                      const float * __restrict sig_arg,
                      const float * __restrict sig_val,
                      const std::string &header,
@@ -201,15 +201,15 @@ gms::radiolocation
      if(__builtin_expect(M<=1,0)) {return (-2);}
      constexpr float C628318530717958647692528676656{6.28318530717958647692528676656f};
      constexpr float C314159265358979323846264338328{3.14159265358979323846264338328f};
-     const half_h{0.5f*this->m_h};
+     const float half_h{0.5f*this->m_h};
      const float sqr_A{this->m_A*this->m_A};
      const float f_M{static_cast<float>(M)};
      const float f_T{static_cast<float>(this->m_T)};
      const float invf_M{1.0f/f_M};
      const float lead_term{sqr_A*f_T*invf_M};
 #if (CPFSK_SIGNAL_USE_CEPHES) == 1
-     const float sin_num{ceph_sin(f_M*C314159265358979323846264338328*this->m_h)};
-     const float sin_den{ceph_sin(C314159265358979323846264338328*this->m_h)};
+     const float sin_num{gms::math::ceph_sinf(f_M*C314159265358979323846264338328*this->m_h)};
+     const float sin_den{gms::math::ceph_sinf(C314159265358979323846264338328*this->m_h)};
      const float Ca{f_M*(sin_num/sin_den)};
 #else 
      const float sin_num{std::sin(f_M*C314159265358979323846264338328*this->m_h)};
@@ -225,7 +225,7 @@ gms::radiolocation
           const float freq = freqs.m_data[k];
           twoPIft          = C628318530717958647692528676656*freq*f_T;
 #if (CPFSK_SIGNAL_USE_CEPHES) == 1
-          cos2PIft = 2.0f*Ca*ceph_cosf(twoPIft);
+          cos2PIft = 2.0f*Ca*gms::math::ceph_cosf(twoPIft);
 #else 
           cos2PIft = 2.0f*Ca*std::cos(twoPIft);
 #endif
@@ -237,7 +237,7 @@ gms::radiolocation
                                    (freq*f_T-(t_i-f_M-1.0f)*half_h);
                const float sqr_gamm_i = gamma_i*gamma_i;
 #if (CPFSK_SIGNAL_USE_CEPHES) == 1
-               const float sin_term{ceph_sin(gamma_i)};
+               const float sin_term{gms::math::ceph_sinf(gamma_i)};
                const float sinc_term{0.5f*((sin_term*sin_term)/sqr_gamm_i)};
                
 #else 
@@ -252,10 +252,10 @@ gms::radiolocation
                                    (freq*f_T-(t_j-f_M-1.0f)*half_h);
                     const float gamma_ij_sum = gamma_i+gamma_j;
 #if (CPFSK_SIGNAL_USE_CEPHES) == 1
-                    const float cos1_term = ceph_cosf(gamma_ij_sum);
-                    const float cos2_term = Ca*ceph_cosf(gamma_ij_sum-twoPIft);
+                    const float cos1_term = gms::math::ceph_cosf(gamma_ij_sum);
+                    const float cos2_term = Ca*gms::math::ceph_cosf(gamma_ij_sum-twoPIft);
                     const float sinc1_term= sin_term/gamma_i;
-                    const float sinc2_term= ceph_sinf(gamma_j)/gamma_j;
+                    const float sinc2_term= gms::math::ceph_sinf(gamma_j)/gamma_j;
 #else 
                     const float cos1_term = std::cos(gamma_ij_sum);
                     const float cos2_term = std::cos(gamma_ij_sum-twoPIft);
@@ -276,8 +276,8 @@ gms::radiolocation
 
 std::int32_t 
 gms::radiolocation
-::cpfsk_signal_t 
-::cpfsk_signal_scalar_u8x(const float ak) noexcept(true)
+::cpfsk_signal_t
+::generate_cpfsk_signal_scalar_u8x(const float ak) noexcept(true)
 {
      using namespace gms::math;
      constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
@@ -457,7 +457,7 @@ gms::radiolocation
 std::int32_t 
 gms::radiolocation
 ::cpfsk_signal_t
-::generate_cpfsk_signal_sse_u4x(const float ak) noexcept(true)                            
+::generate_cpfsk_signal_sse_u8x(const float ak) noexcept(true)                            
 {
      using namespace gms::math;
      constexpr float C6283185307179586476925286766559{6.283185307179586476925286766559f};
@@ -1886,16 +1886,22 @@ gms::radiolocation
 {
      std::cout << typeid(rhs).name() << "Begin: object state dump." << std::endl;
      std::cout << "m_T          :"   << rhs.m_T                     << std::endl;
+     std::cout << "m_nfreqs     :"   << rhs.m_nfreqs                << std::endl;
      std::cout << "m_k          :"   << rhs.m_k                     << std::endl;
      std::cout << "m_A          : "  << std::fixed << std::setprecision(7) << rhs.m_A << std::endl;
      std::cout << "m_h          : "  << std::fixed << std::setprecision(7) << rhs.m_h << std::endl;
-     std::cout << "m_fc         : "  << std::fixed << std::setprecision(7) << rhs.m_I_fc << std::endl;
+     std::cout << "m_fc         : "  << std::fixed << std::setprecision(7) << rhs.m_fc << std::endl;
      std::cout << "m_ph0        : "  << std::fixed << std::setprecision(7) << rhs.m_ph0 << std::endl;
      std::cout << "m_Phik       : "  << std::fixed << std::setprecision(7) << rhs.m_Phik << std::endl;
-     std::cout << "CPFKS signal -- samples:" <<"\n\n";
-     for(std::size_t i{0ull}; i!=this->m_T; ++i) 
+     std::cout << "CPFSK signal -- samples:" << "\n\n";
+     for(std::size_t i{0ull}; i!=rhs.m_T; ++i) 
      {
           os << std::fixed << std::setprecision(7) << rhs.m_cpfsk_signal.m_data[i] << std::endl;
+     }
+     std::cout << "CPFSK signal's PSD frequency samples:" << "\n\n";
+     for(std::size_t i{0ull}; i!=rhs.m_nfreqs; ++i) 
+     {
+          os << std::fixed << std::setprecision(7) << rhs.m_cpfsk_psd.m_data[i] << std::endl;
      }
      std::cout << typeid(rhs).name() << "End: object state dump." << std::endl;
      return (os);

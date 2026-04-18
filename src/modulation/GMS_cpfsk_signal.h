@@ -123,9 +123,9 @@ namespace radiolocation
                        IQ_rectw_bitstream_vseq_type
                   };
 
-                  inline cpfsk_signal_t() noexcept(true);
+                  cpfsk_signal_t() noexcept(true);
 
-                  inline cpfsk_signal_t(const std::size_t,
+                  cpfsk_signal_t(const std::size_t,
                                         const std::size_t,
                                         const std::uint32_t,
                                         const float,
@@ -133,16 +133,16 @@ namespace radiolocation
                                         const float,
                                         const float) noexcept(false);
 
-                  inline cpfsk_signal_t(const cpfsk_signal_t &) noexcept(false);
+                  cpfsk_signal_t(const cpfsk_signal_t &) noexcept(false);
 
-                  inline cpfsk_signal_t(cpfsk_signal_t &&) noexcept(true);
+                  cpfsk_signal_t(cpfsk_signal_t &&) noexcept(true);
 
-                  inline ~cpfsk_signal_t() noexcept(true);
+                  ~cpfsk_signal_t();
 
-                  inline cpfsk_signal_t & 
+                  cpfsk_signal_t & 
                   operator=(const cpfsk_signal_t &) noexcept(false);
 
-                  inline cpfsk_signal_t 
+                  cpfsk_signal_t &
                   operator=(cpfsk_signal_t &&) noexcept(true);
 
                   static void create_sequence_plot(const std::uint32_t,
