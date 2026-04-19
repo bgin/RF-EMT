@@ -10,20 +10,20 @@
 #include "GMS_cpfsk_signal.h"
 
 /*
-   icpc -o unit_test_cpfsk_sse -O3 -fp-model fast=2 -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
-   GMS_config.h GMS_malloc.h GMS_fast_pmc_access.h  GMS_dyn_array.h GMS_sse_memset.h GMS_sse_memset.cpp GMS_cephes_sin_cos.h GMS_loop_indices_LUT.h GMS_loop_indices_LUT.cpp GMS_iq_rectwave_bitstream.h GMS_iq_rectwave_bitstream.cpp GMS_iq_rectw_bitstream_vsequence.h GMS_iq_rectw_bitstream_vsequence.cpp GMS_cpfsk_signal.h GMS_cpfsk_signal.cpp unit_test_cpfsk_signal_sse.cpp
+   icpc -o unit_test_cpfsk_avx512 -O3 -fp-model fast=2 -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
+   GMS_config.h GMS_malloc.h GMS_fast_pmc_access.h  GMS_dyn_array.h GMS_sse_memset.h GMS_sse_memset.cpp GMS_cephes_sin_cos.h GMS_loop_indices_LUT.h GMS_loop_indices_LUT.cpp GMS_iq_rectwave_bitstream.h GMS_iq_rectwave_bitstream.cpp GMS_iq_rectw_bitstream_vsequence.h GMS_iq_rectw_bitstream_vsequence.cpp GMS_cpfsk_signal.h GMS_cpfsk_signal.cpp unit_test_cpfsk_signal_avx512.cpp
    ASM: 
-   icpc -S -fverbose-asm -masm=intel  -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_malloc.h GMS_fast_pmc_access.h  GMS_dyn_array.h GMS_sse_memset.h GMS_sse_memset.cpp GMS_cephes_sin_cos.h GMS_loop_indices_LUT.h GMS_loop_indices_LUT.cpp GMS_iq_rectwave_bitstream.h GMS_iq_rectwave_bitstream.cpp GMS_iq_rectw_bitstream_vsequence.h GMS_iq_rectw_bitstream_vsequence.cpp GMS_cpfsk_signal.h GMS_cpfsk_signal.cpp unit_test_cpfsk_signal_sse.cpp
+   icpc -S -fverbose-asm -masm=intel  -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_malloc.h GMS_fast_pmc_access.h  GMS_dyn_array.h GMS_sse_memset.h GMS_sse_memset.cpp GMS_cephes_sin_cos.h GMS_loop_indices_LUT.h GMS_loop_indices_LUT.cpp GMS_iq_rectwave_bitstream.h GMS_iq_rectwave_bitstream.cpp GMS_iq_rectw_bitstream_vsequence.h GMS_iq_rectw_bitstream_vsequence.cpp GMS_cpfsk_signal.h GMS_cpfsk_signal.cpp unit_test_cpfsk_signal_avx512.cpp
 
 */
 
 __attribute__((hot))
 __attribute__((noinline))
 void 
-unit_test_cpfsk_sse_rolled();
+unit_test_cpfsk_avx512_rolled();
 
 void 
-unit_test_cpfsk_sse_rolled()
+unit_test_cpfsk_avx512_rolled()
 {
      using namespace gms::radiolocation;
      using namespace gms;
@@ -231,7 +231,7 @@ unit_test_cpfsk_sse_rolled()
       darray_r4_t    cpfsk_user_data_I      = darray_r4_t(500ull);
       darray_r4_t    cpfsk_user_data_Q      = darray_r4_t(500ull);
       std::int32_t state_compute_Phik{-9999};
-      std::int32_t state_generate_cpfsk_signal_sse{-9999};
+      std::int32_t state_generate_cpfsk_signal_avx512{-9999};
       std::memcpy(&cpfsk_user_data_I.m_data[0],&IQ_rectw_bitstream_vseq.m_I_vsequence.m_data[0],sizeof(float)*500ull);
       const float ak_I{cpfsk_user_data_I.m_data[499ull]};
       state_compute_Phik = cpfsk_signal_pulse_1.compute_Phik(cpfsk_user_data_I);
@@ -240,19 +240,19 @@ unit_test_cpfsk_sse_rolled()
            std::printf("[FAIL] -- compute_Phik returned a errorenous state value=%d\n",state_compute_Phik);
            return;
       }
-      state_generate_cpfsk_signal_sse = cpfsk_signal_pulse_1.generate_cpfsk_signal_sse(ak_I);
-      if(__builtin_expect(state_generate_cpfsk_signal_sse!=0,0))
+      state_generate_cpfsk_signal_avx512 = cpfsk_signal_pulse_1.generate_cpfsk_signal_avx512(ak_I,true);
+      if(__builtin_expect(state_generate_cpfsk_signal_avx512!=0,0))
       {
-           std::printf("[FAIL] -- generate_cpfsk_signal_sse returned a errorenous state value=%d\n",state_generate_cpfsk_signal_sse);
+           std::printf("[FAIL] -- generate_cpfsk_signal_avx512 returned a errorenous state value=%d\n",state_generate_cpfsk_signal_avx512);
            return;
       }
       std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n");
       cpfsk_signal_t::create_sequence_plot(static_cast<std::int32_t>(cpfsk_signal_pulse_1.m_T),
                                            cpfsk_signal_pulse_1.m_cpfsk_signal.m_data,nullptr,
-                                           "unit_test_cpfsk_sse_rolled_test_I_ch_1_","CPFSK signal user data I-channel",false);   
+                                           "unit_test_cpfsk_avx512_rolled_test_I_ch_1_","CPFSK signal user data I-channel",false);   
       cpfsk_signal_pulse_1.clear_cpfsk_signal(0.0f);
       state_compute_Phik = -9999;
-      state_generate_cpfsk_signal_sse = -9999;
+      state_generate_cpfsk_signal_avx512 = -9999;
       std::memcpy(&cpfsk_user_data_Q.m_data[0],&IQ_rectw_bitstream_vseq.m_Q_vsequence.m_data[0],sizeof(float)*500ull);
       const float ak_Q{cpfsk_user_data_Q.m_data[499ull]};
       state_compute_Phik = cpfsk_signal_pulse_1.compute_Phik(cpfsk_user_data_Q);
@@ -261,16 +261,16 @@ unit_test_cpfsk_sse_rolled()
            std::printf("[FAIL] -- compute_Phik returned a errorenous state value=%d\n",state_compute_Phik);
            return;
       }
-      state_generate_cpfsk_signal_sse = cpfsk_signal_pulse_1.generate_cpfsk_signal_sse(ak_Q);
-      if(__builtin_expect(state_generate_cpfsk_signal_sse!=0,0))
+      state_generate_cpfsk_signal_avx512 = cpfsk_signal_pulse_1.generate_cpfsk_signal_avx512(ak_Q,true);
+      if(__builtin_expect(state_generate_cpfsk_signal_avx512!=0,0))
       {
-           std::printf("[FAIL] -- generate_cpfsk_signal_sse returned a errorenous state value=%d\n",state_generate_cpfsk_signal_sse);
+           std::printf("[FAIL] -- generate_cpfsk_signal_avx512 returned a errorenous state value=%d\n",state_generate_cpfsk_signal_avx512);
            return;
       }
       std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n");
       cpfsk_signal_t::create_sequence_plot(static_cast<std::int32_t>(cpfsk_signal_pulse_1.m_T),
                                            cpfsk_signal_pulse_1.m_cpfsk_signal.m_data,nullptr,
-                                           "unit_test_cpfsk_sse_rolled_test_Q_ch_1_","CPFSK signal user data Q-channel",false);
+                                           "unit_test_cpfsk_avx512_rolled_test_Q_ch_1_","CPFSK signal user data Q-channel",false);
       std::printf("[UNIT_TEST]: function=%s -- **END**\n", __PRETTY_FUNCTION__);
       
 }
@@ -278,10 +278,10 @@ unit_test_cpfsk_sse_rolled()
 __attribute__((hot))
 __attribute__((noinline))
 void 
-unit_test_cpfsk_sse_u8x();
+unit_test_cpfsk_avx512_u8x();
 
 void 
-unit_test_cpfsk_sse_u8x()
+unit_test_cpfsk_avx512_u8x()
 {
      using namespace gms::radiolocation;
      using namespace gms;
@@ -489,7 +489,7 @@ unit_test_cpfsk_sse_u8x()
       darray_r4_t    cpfsk_user_data_I      = darray_r4_t(500ull);
       darray_r4_t    cpfsk_user_data_Q      = darray_r4_t(500ull);
       std::int32_t state_compute_Phik{-9999};
-      std::int32_t state_generate_cpfsk_signal_sse{-9999};
+      std::int32_t state_generate_cpfsk_signal_avx512{-9999};
       std::memcpy(&cpfsk_user_data_I.m_data[0],&IQ_rectw_bitstream_vseq.m_I_vsequence.m_data[0],sizeof(float)*500ull);
       const float ak_I{cpfsk_user_data_I.m_data[499ull]};
       state_compute_Phik = cpfsk_signal_pulse_1.compute_Phik(cpfsk_user_data_I);
@@ -498,19 +498,19 @@ unit_test_cpfsk_sse_u8x()
            std::printf("[FAIL] -- compute_Phik returned a errorenous state value=%d\n",state_compute_Phik);
            return;
       }
-      state_generate_cpfsk_signal_sse = cpfsk_signal_pulse_1.generate_cpfsk_signal_sse_u8x(ak_I);
-      if(__builtin_expect(state_generate_cpfsk_signal_sse!=0,0))
+      state_generate_cpfsk_signal_avx512 = cpfsk_signal_pulse_1.generate_cpfsk_signal_avx512_u8x(ak_I,true);
+      if(__builtin_expect(state_generate_cpfsk_signal_avx512!=0,0))
       {
-           std::printf("[FAIL] -- generate_cpfsk_signal_sse_u8x returned a errorenous state value=%d\n",state_generate_cpfsk_signal_sse);
+           std::printf("[FAIL] -- generate_cpfsk_signal_avx512_u8x returned a errorenous state value=%d\n",state_generate_cpfsk_signal_avx512);
            return;
       }
       std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n");
       cpfsk_signal_t::create_sequence_plot(static_cast<std::int32_t>(cpfsk_signal_pulse_1.m_T),
                                            cpfsk_signal_pulse_1.m_cpfsk_signal.m_data,nullptr,
-                                           "unit_test_cpfsk_sse_u8x_test_I_ch_1_","CPFSK signal user data I-channel",false);   
+                                           "unit_test_cpfsk_avx512_u8x_test_I_ch_1_","CPFSK signal user data I-channel",false);   
       cpfsk_signal_pulse_1.clear_cpfsk_signal(0.0f);
       state_compute_Phik = -9999;
-      state_generate_cpfsk_signal_sse = -9999;
+      state_generate_cpfsk_signal_avx512 = -9999;
       std::memcpy(&cpfsk_user_data_Q.m_data[0],&IQ_rectw_bitstream_vseq.m_Q_vsequence.m_data[0],sizeof(float)*500ull);
       const float ak_Q{cpfsk_user_data_Q.m_data[499ull]};
       state_compute_Phik = cpfsk_signal_pulse_1.compute_Phik(cpfsk_user_data_Q);
@@ -519,16 +519,16 @@ unit_test_cpfsk_sse_u8x()
            std::printf("[FAIL] -- compute_Phik returned a errorenous state value=%d\n",state_compute_Phik);
            return;
       }
-      state_generate_cpfsk_signal_sse = cpfsk_signal_pulse_1.generate_cpfsk_signal_sse_u8x(ak_Q);
-      if(__builtin_expect(state_generate_cpfsk_signal_sse!=0,0))
+      state_generate_cpfsk_signal_avx512 = cpfsk_signal_pulse_1.generate_cpfsk_signal_avx512_u8x(ak_Q,true);
+      if(__builtin_expect(state_generate_cpfsk_signal_avx512!=0,0))
       {
-           std::printf("[FAIL] -- generate_cpfsk_signal_sse_u8x returned a errorenous state value=%d\n",state_generate_cpfsk_signal_sse);
+           std::printf("[FAIL] -- generate_cpfsk_signal_avx512_u8x returned a errorenous state value=%d\n",state_generate_cpfsk_signal_avx512);
            return;
       }
       std::printf("[UNIT-TEST:] -- Creating gnuplot plotting command file.\n");
       cpfsk_signal_t::create_sequence_plot(static_cast<std::int32_t>(cpfsk_signal_pulse_1.m_T),
                                            cpfsk_signal_pulse_1.m_cpfsk_signal.m_data,nullptr,
-                                           "unit_test_cpfsk_sse_u8x_test_Q_ch_1_","CPFSK signal user data Q-channel",false);
+                                           "unit_test_cpfsk_avx512_u8x_test_Q_ch_1_","CPFSK signal user data Q-channel",false);
       std::printf("[UNIT_TEST]: function=%s -- **END**\n", __PRETTY_FUNCTION__);
       
 }
@@ -536,7 +536,7 @@ unit_test_cpfsk_sse_u8x()
 
 int main() 
 {
-    unit_test_cpfsk_sse_rolled();
-    unit_test_cpfsk_sse_u8x();
+    unit_test_cpfsk_avx512_rolled();
+    unit_test_cpfsk_avx512_u8x();
     return 0;
 }
