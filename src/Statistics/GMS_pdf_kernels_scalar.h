@@ -56,6 +56,10 @@ namespace file_info
 #include <cstdint>
 #include <cmath>
 #include "GMS_config.h"
+#include "GMS_compare_fp_safe.h"
+
+namespace gms
+{
 
 namespace math 
 {
@@ -245,10 +249,254 @@ float np_gauss8_r4(const float z)
     return C0398942280401432677939946059934*std::fma(z2,std::fma(z2,term1,-2.1875f),2.1875f)*ceph_expf(-0.5f*z2);
 }
 
+/*
+   For Epanechnikov kernels the input check i.e. z^2 < 5.0 was removed 
+   in order to remove the branch-misprediction.
+*/
+
+/*
+    The input range is (z*z < 5.0)?result:0.0
+*/
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_epanechnikov2_r4(const float z)
+{
+    const float zz{z*z};
+    return (static_cast<float>(0.33541019662496845446f-0.067082039324993690892f*zz));
+   
+}
+
+/*
+    The input range is (z*z < 5.0)?result:0.0
+*/
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_epanechnikov4_r4(const float z)
+{
+    const float zz{z*z};
+    return (static_cast<float>(0.008385254916f*std::fma(7.0f,zz,-15.0f)*(-5.0+zz)));
+    
+}
+
+/*
+    The input range is (z*z < 5.0)?result:0.0
+*/
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_epanechnikov6_r4(const float z)
+{
+    const float zz{z*z};
+    const float term1{static_cast<float>(0.33541019662496845446f*std::fma(std::fma(0.721875f,zz,-3.28125f),zz,2.734375f)*
+                                         (1.0f-0.2f*zz))}; 
+    return (term1);
+   
+                  
+}
+
+/*
+    The input range is (z*z < 5.0)?result:0.0
+*/
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_epanechnikov8_r4(const float z)
+{
+    const float zz{z*z};
+    const float fma_arg{4.1056640625f-0.5865234375f*zz};
+    const float fma_term{std::fma(std::fma(fma_arg,zz,-7.8955078125f),zz,3.5888671875f)};
+    return (static_cast<float>(0.33541019662496845446f*fma_term*(1.0f-0.2f*zz)));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_rect_r4(const float z)
+{
+    return (z*z < 1.0f)?0.5f:0.0f;
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_uaa_r4(const bool same_cat,const float lambda, const std::int32_t c)
+{
+    return (same_cat)?(1.0f-lambda):lambda/((static_cast<float>(c)-1.0f));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_score_uaa_r4(const bool same_cat,const float lambda, const std::int32_t c)
+{
+    return (same_cat)?-1.0f:(1.0f/(static_cast<float>(c)-1.0f)); 
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_uli_racine_r4(const bool same_cat,const float lambda)
+{
+    return (same_cat)?1.0f:lambda;
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_unli_racine_r4(const bool same_cat,const float lambda, const std::int32_t c)
+{
+     return ((same_cat)?1.0f:lambda)/((static_cast<float>(c)-1.0f)*lambda + 1.0f);
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_score_uli_racine_r4(const bool same_cat,const float lambda)
+{
+     return (same_cat)?0.0f:1.0f;
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_score_unli_racine_r4(const bool same_cat,const float lambda, const std::int32_t c)
+{
+     const float inorm{1.0f/(std::fma((static_cast<float>(c)-1.0f),lambda,1.0f))};
+     const float term{1.0f-static_cast<float>(c)};
+     return (same_cat)?term*inorm*inorm:inorm*std::fma(lambda*term,inorm,1.0f);
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_owang_van_ryzin_r4(const float x, const float y, 
+                            const float lambda,
+                            const float epsilon)
+{
+     const float term{1.0f-lambda};
+     const float ipow_arg{static_cast<float>(static_cast<std::int32_t>(std::fabs(x-y)))};
+     return (gms::approximatelyEqual(x,y,epsilon))?term:std::pow(lambda,ipow_arg)*term*0.5f;
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_score_owang_van_ryzin_r4(const float x, const float y, 
+                                  const float lambda,
+                                  const float epsilon)
+{
+    const float fabs_term{std::fabs(x-y)};
+    const float ipow_arg{static_cast<float>(static_cast<std::int32_t>(std::fabs(x-y)))};
+    return (gms::approximatelyEqual(x,y,epsilon))?-1.0f:(0.5*std::pow(lambda,ipow_arg)*(fabs_term/lambda-2.0f));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_oli_racine_r4(const float x, const float y, 
+                       const float lambda)           
+{
+      return (std::pow(lambda,static_cast<float>(static_cast<std::int32_t>(std::fabs(x-y)))));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_score_oli_racine_r4(const float x, const float y, 
+                             const float lambda)
+{
+      const float fabs_term{std::fabs(x-y)};
+      return (fabs_term*std::pow(lambda,static_cast<float>(static_cast<std::int32_t>(fabs_term))));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_onli_racine_r4(const float x, const float y, 
+                        const float lambda)
+{
+      const float ratio{(1.0f-lambda)/(1.0f+lambda)};
+      const float fabs_term{std::fabs(x-y)};
+      return std::pow(lambda,static_cast<float>(static_cast<std::int32_t>(fabs_term)))*ratio;
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_score_onli_racine_r4(const float x, const float y, 
+                              const float lambda)
+{
+      const std::int32_t cxy{static_cast<float>(static_cast<std::int32_t>(std::fabs(x-y)))};
+      float cxy_f{static_cast<float>(cxy)};
+      return ((cxy!=0) || (lambda!=0.0f))?std::pow(lambda,cxy_f-1.0f)*(cxy_f*(1.0f-lambda*lambda)-
+                                                   2.0f*lambda):-2.0f;
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_econvol_rect_r4(const float z)
+{
+      return ((std::fabs(z)<2.0f)?0.25f:0.0f);
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_econvol_gauss2_r4(const float z)
+{
+      return(0.28209479177387814348f*ceph_expf(-0.25f*z*z));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_econvol_gauss4_r4(const float z)
+{
+      const float zz{z*z};
+      return(0.0044077311214668459918f*ceph_expf(-0.25f*zz)*std::fma(zz,zz-28.0f,108.0f));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_econvol_gauss6_r4(const float z)
+{
+      const float zz{z*z};
+      return(0.00001721769969f*ceph_expf(-0.25f*zz)*std::fma(std::fma(std::fma((-88.0f+zz),zz,2312.0f),zz,-19360.0f),zz,36240.0));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_econvol_gauss8_r4(const float z)
+{
+      const float zz{z*z};
+      return(0.2989183974E-7f*ceph_exp(-0.25f*zz)*std::fma(std::fma(std::fma(std::fma(std::fma((-180.0+zz),zz,11604.0f),
+                                                           zz,-331680.0f),zz,4202352.0f),zz,-20462400.0f),zz,25018560.0f));
+}
+
+// Derivative kernels
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_deriv_gauss2_r4(const float z)
+{
+      constexpr float C0398942280401432677939946059934{0.398942280401432677939946059934f};
+      return (-z*C0398942280401432677939946059934*ceph_expf(-0.5f*z*z)); 
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_deriv_gauss4_r4(const float z)
+{
+     const float zz{z*z};
+     constexpr float C0398942280401432677939946059934{0.398942280401432677939946059934f};
+     return (-C0398942280401432677939946059934*z*(2.5f-0.5f*zz)*ceph_expf(-0.5f*zz));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_deriv_gauss6_r4(const float z)
+{
+       const float zz{z*z};
+       return (-0.049867785050179084743f*z*ceph_expf(-0.5f*zz)*std::fma(-14.0+zz,zz,35.0f));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_deriv_gauss8_r4(const float z)
+{
+      const float zz{z*z};
+      constexpr float C0398942280401432677939946059934{0.398942280401432677939946059934f};
+      return (-C0398942280401432677939946059934*z*std::fma(std::fma((0.5625f-0.02083333333f*zz),zz,-3.9375f),zz,6.5625)*
+               ceph_expf(-0.5f*zz));
+}
+
 } //np_standalone_funcs
 
 } // math
 
+} // gms
 
 
 
