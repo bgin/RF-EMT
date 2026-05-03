@@ -492,6 +492,122 @@ float np_deriv_gauss8_r4(const float z)
                ceph_expf(-0.5f*zz));
 }
 
+/* **WARNING** The test (z^2 < 5.0f) was removed*/
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_deriv_epan2_r4(const float z)
+{
+      return (-0.13416407864998738178f*z);
+}
+
+/* **WARNING** The test (z^2 < 5.0f) was removed*/
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_deriv_epan4_r4(const float z)
+{
+    const float zz{z*z};
+    return z*(2.347871374742824e-1f*zz-8.385254921942804e-1f);
+}
+
+/* **WARNING** The test (z^2 < 5.0f) was removed*/
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_deriv_epan6_r4(const float z)
+{
+    const float zz{z*z};
+    return z*std::fma((1.848948710641142f-2.905490831007508e-1f*zz),zz,-2.567984320334919f);
+}
+
+/* **WARNING** The test (z^2 < 5.0f) was removed*/
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_deriv_epan8_r4(const float z)
+{
+    const float zz{z*z};
+    return z*std::fma(std::fma(std::fma(zz,3.147615066924801e-1f,-2.83285356023232f),zz,7.626913431394709),zz,-5.777964720753567);
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_deriv_rect_r4() { return 0.0f;}
+
+// CDF kernels
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_cdf_gauss2_r4(const float z) 
+{
+    return (std::fma(0.5f,std::erf(0.7071067810f*z),0.5f));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_cdf_gauss4_r4(const float z) 
+{
+     const float expf_term{ceph_expf(-0.5f*z*z)};
+     return (std::fma(0.5f,std::erf(0.7071067810*z),std::fma(0.1994711401f*z,expf_term,0.5f)));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_cdf_gauss6_r4(const float z)
+{
+    const float zz{z*z};
+    const float expf_term{z*ceph_expf(-0.5f*zz)};
+    return (std::fma(0.5f,std::erf(0.7071067810f*z),
+                          std::fma(expf_term,(0.3490744952-0.04986778504*zz),0.5f)));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_cdf_gauss8_r4(const float z)
+{
+    const float zz{z*z};
+    const float expf_term{z*ceph_expf(-0.5f*zz)};
+    return (std::fma(0.5f,std::erf(0.7071067810f*z),
+                          std::fma(expf_term,std::fma(std::fma(0.008311297511f*zz,-0.1329807601f),zz,0.4737439578f),0.5f)));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_cdf_epan2_r4(const float z) 
+{
+    //SQRT(5)
+    constexpr float C2236067977499789696409173668731{2.236067977499789696409173668731f};
+    return (z < -C2236067977499789696409173668731) ? 0.0f : (z > C2236067977499789696409173668731) ? 1.0f : 
+    (std::fma(z,(0.3354101967f-0.02236067978f*z*z),0.5));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_cdf_epan4_r4(const float z) 
+{
+    const float zz{z*z};
+    constexpr float C2236067977499789696409173668731{2.236067977499789696409173668731f};
+    return (z < -C2236067977499789696409173668731) ? 0.0f : (z > C2236067977499789696409173668731) ? 1.0f : 
+    (std::fma(std::fma(std::fma(0.01173935688,zz,-0.1397542486f),zz,0.6288941188f),z,0.5f));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_cdf_epan6_r4(const float z) 
+{
+    const float zz{z*z};
+    constexpr float C2236067977499789696409173668731{2.236067977499789696409173668731f};
+    return (z < -C2236067977499789696409173668731) ? 0.0f : (z > C2236067977499789696409173668731) ? 1.0f : 
+    (std::fma(std::fma(std::fma((0.09244743547f-0.006917835307f*zz),zz,-0.4279973864f),zz,0.9171372566f),z,0.5f));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_cdf_epan8_r4(const float z) 
+{
+    const float zz{z*z};
+    constexpr float C2236067977499789696409173668731{2.236067977499789696409173668731f};
+    return (z < -C2236067977499789696409173668731) ? 0.0f : (z > C2236067977499789696409173668731) ? 1.0f : 
+    (std::fma(std::fma(std::fma(std::fma(std::fma(zz,0.004371687590f,-0.06744889424f),zz,0.3813456714f),zz,-0.9629941194f),zz,1.203742649),z,0.5f));
+}
+
 } //np_standalone_funcs
 
 } // math
