@@ -44,7 +44,7 @@ If you are interested, please open an issue or a pull request.
 
 ## License
 
-This project is licensed under the terms of the MIT license.
+This project is licensed under the terms of the MIT license and the GPLv2 license.
 
 ## Acknowledgments
 
