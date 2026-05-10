@@ -608,24 +608,328 @@ float np_cdf_epan8_r4(const float z)
     (std::fma(std::fma(std::fma(std::fma(std::fma(zz,0.004371687590f,-0.06744889424f),zz,0.3813456714f),zz,-0.9629941194f),zz,1.203742649),z,0.5f));
 }
 
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_cdf_rect_r4(const float z)
+{
+    return (z < -1.0f) ? 0.0f : (z > 1.0f) ? 1.0f : (std::fma(0.5f,z,0.5f));
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_cdf_owang_van_ryzin_r4(const float y, const float x, 
+                                const float lambda, const float epsilon)
+{
+    if(__builtin_expect(gms::approximatelyEqual(x,y,epsilon),0)) {return (1.0f-0.5f*lambda);}
+    const float cxy{ceph_floorf(std::fabs(x-y))};
+    const float gee{std::pow(lambda,cxy)};
+    return (gms::definitelyLessThan(x,y,epsilon)) ? 0.5f*gee : (1.0f-gee);
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_cdf_oli_racine_r4(const float y, const float x, 
+                           const float lambda, const float ch,
+                           const float cl, const float epsilon)
+{
+    const float xh = gms::definitelyGreaterThan(x,ch,epsilon) ? ch : x;
+    const float cxy{ceph_floorf(std::fabs(xh-y))};
+    const float one_m_lambda{1.0f-lambda};
+    const float gee{std::pow(lambda,cxy)/one_m_lambda};
+    if(gms::definitelyLessThan(x,y,epsilon))
+    {
+        const float true_branch{0.0f};
+        const float false_branch{gee*(1.0f-std::pow(lambda,x-cl+1.0f))};
+        return (gms::definitelyLessThan(x,cl,epsilon))?true_branch:false_branch;
+    }
+    else 
+    {
+        const float one_p_lambda{1.0f+lambda};
+        const float lambda_mul_gee{lambda*gee};
+        return (one_p_lambda-std::pow(lambda,y-cl+1.0f))/one_m_lambda-lambda_mul_gee;
+    }
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_cdf_onli_rancine_r4(const float y, const float x, 
+                             const float lambda, const float epsilon)
+{
+    const float cxy{ceph_floorf(std::fabs(x-y))};
+    const float gee{std::pow(lambda,cxy)/(1.0f+lambda)};
+    return (gms::definitelyLessThan(x,y,epsilon))?gee:1.0f-lambda*gee;
+}
+
+// Adaptive convolution kernels.
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_adaptconvol_gauss2_r4(const float x, const float y,
+                               const float hx,const float hy)
+{
+    const float h2{std::fma(hx,hy,hy*hy)};
+    const float z2{(x*y)*(x-y)/h2};
+    const float sqrt_h2{std::sqrt(h2)};
+    const float ret_term{0.3989422803f*hx*hy};
+    return (ret_term*ceph_expf(-0.5f*z2)/sqrt_h2);
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+float np_adaptconvol_epan2_total_r4(const float x, const float y,
+                                    const float hx,const float hy)
+{
+    constexpr float C6708203932499369089227521006194{6.708203932499369089227521006194f};
+    const float ayy{-C6708203932499369089227521006194*y*y};
+    const float hl{std::max(hx,hy)};
+    const float hs{std::min(hx,hy)};
+    const float axy{2.0f*C6708203932499369089227521006194*x*y};
+    const float hlhl{hl*hl};
+    const float axx{C6708203932499369089227521006194*x*x};   
+    const float ahlhl{5.0f*C6708203932499369089227521006194*hlhl};
+    const float ahshs{C6708203932499369089227521006194*hs*hs};
+    const float left_term{ayy+axy-axx+ahlhl-ahshs};
+    return (left_term*hs/(100.0f*hlhl));
+}
+
+enum class kernel_functions_types : int32_t 
+{
+     SECOND_ORDER_GAUSSIAN,
+     FOURTH_ORDER_GAUSSIAN,
+     SIXTH_ORDER_GAUSSIAN,
+     EIGHT_ORDER_GAUSSIAN,
+     SECOND_ORDER_EPANECHNIKOV,
+     FOURTH_ORDER_EPANECHNIKOV,
+     SIXTH_ORDER_EPANECHNIKOV,
+     EIGHT_ORDER_EPANECHNIKOV,
+     RECTANGULAR_KERNEL
+};
+
+enum class kernel_functions_cdf : int32_t 
+{
+     SECOND_ORDER_GAUSSIAN,
+     FOURTH_ORDER_GAUSSIAN,
+     SIXTH_ORDER_GAUSSIAN,
+     EIGHT_ORDER_GAUSSIAN,
+     SECOND_ORDER_EPANECHNIKOV,
+     FOURTH_ORDER_EPANECHNIKOV,
+     SIXTH_ORDER_EPANECHNIKOV,
+     EIGHT_ORDER_EPANECHNIKOV,
+     RECTANGULAR_KERNEL
+};
+
+enum class kernel_functions_derivative: int32_t 
+{
+     SECOND_ORDER_GAUSSIAN,
+     FOURTH_ORDER_GAUSSIAN,
+     SIXTH_ORDER_GAUSSIAN,
+     EIGHT_ORDER_GAUSSIAN,
+     SECOND_ORDER_EPANECHNIKOV,
+     FOURTH_ORDER_EPANECHNIKOV,
+     SIXTH_ORDER_EPANECHNIKOV,
+     EIGHT_ORDER_EPANECHNIKOV,
+     RECTANGULAR_KERNEL
+};
+
+template<kernel_functions_types kernels>
+float evaluate_kernel_function(const float z,const float epsilon) 
+{
+    const float zz{z*z};
+    constexpr float C039894228040143267794{0.39894228040143267794f};
+    float ret_val{0.0f};
+
+    if constexpr(kernels==kernel_functions_types::SECOND_ORDER_GAUSSIAN)
+    {
+        ret_val = C039894228040143267794*ceph_expf(-0.5f*zz);
+    }
+    else if constexpr(kernels==kernel_functions_types::FOURTH_ORDER_GAUSSIAN)
+    {
+        const float expf_term{ceph_expf(-0.5f*zz)};
+        ret_val = C039894228040143267794*(1.5f-0.5f*zz)*expf_term;
+    }
+    else if constexpr(kernels==kernel_functions_types::SIXTH_ORDER_GAUSSIAN)
+    {
+        const float zp4{0.125f*zz*zz};
+        const float expf_term{ceph_expf(-0.5f*zz)};
+        const float term1{1.875f-1.25f*zz+zp4};
+        ret_val = C039894228040143267794*term1*expf_term;
+    }
+    else if constexpr(kernels==kernel_functions_types::EIGHT_ORDER_GAUSSIAN)
+    {
+        const float expf_term{ceph_expf(-0.5f*zz)};
+        const float zp4{0.4375f*zz*zz};
+        const float zp6{0.02083333333f*zz*zz*zz};
+        const float term1{2.1875f-2.1875f*zz+zp4-zp6};
+        ret_val = C039894228040143267794*term1*expf_term;
+    }
+    else if constexpr(kernels==kernel_functions_types::SECOND_ORDER_EPANECHNIKOV)
+    {
+        if(__builtin_expect(gms::definitelyLessThan(zz,5.0f,epsilon)))
+        {  ret_val = 0.33541019662496845446f-0.067082039324993690892f*zz;}
+    }
+    else if constexpr(kernels==kernel_functions_types::FOURTH_ORDER_EPANECHNIKOV)
+    {        
+        if(__builtin_expect(gms::definitelyLessThan(zz,5.0f,epsilon)))
+        {   const float term1{0.008385254916f*(-15.0f+7.0f*zz)*(-5.0f+zz)};
+            ret_val = term1;
+        }
+    }
+    else if constexpr(kernels==kernel_functions_types::SIXTH_ORDER_EPANECHNIKOV)
+    {
+        if(__builtin_expect(gms::definitelyLessThan(zz,5.0f,epsilon)))
+        {
+            const float term1{(1.0f-0.2f*zz)};
+            ret_val = 0.33541019662496845446f*std::fma(std::fma(0.721875f,zz,-3.28125f),zz,2.734375f)*term1;
+        }
+    }
+    else if constexpr(kernels==kernel_functions_types::EIGHT_ORDER_EPANECHNIKOV)
+    {
+        if(__builtin_expect(gms::definitelyLessThan(zz,5.0f,epsilon)))
+        {
+            const float term1{1.0f-0.2f*zz};
+            const float term2{4.1056640625f-0.5865234375f*zz};
+            ret_val = 0.33541019662496845446f*std::fma(std::fma(term2,zz,-7.8955078125f),zz,3.5888671875)*term1;
+        }
+    }
+    else if constexpr(kernels==kernel_functions_types::RECTANGULAR_KERNEL)
+    {
+        if(__builtin_expect(gms::definitelyLessThan(zz,1.0f,epsilon))) {ret_val = 0.5f;}
+        
+    }
+
+    return (ret_val);
+}
+
+template<kernel_functions_cdf cdf_kernels>
+float evaluate_cdf_kernel_functions(const float z,const float epsilon)
+{
+     const float zz{z*z};
+     constexpr float C2236067978{2.236067978f};
+     float ret_val{0.0f};
+
+     if constexpr(cdf_kernels==kernel_functions_cdf::SECOND_ORDER_GAUSSIAN)
+     {
+         ret_val = std::fma(0.5f,std::erf(0.7071067810f*z),0.5f);
+     }
+     else if constexpr(cdf_kernels==kernel_functions_cdf::FOURTH_ORDER_GAUSSIAN)
+     {
+         const float expf_term{ceph_expf(-0.5f*zz)};
+         ret_val = std::fma(0.5f,std::erf(0.7071067810f*z),(0.1994711401f*z*expf_term))+0.5f;
+     }
+     else if constexpr(cdf_kernels==kernel_functions_cdf::SIXTH_ORDER_GAUSSIAN)
+     {
+         const float expf_term{ceph_expf(-0.5f*zz)};
+         const float pz3{zz*z};
+         const float last_term{0.04986778504f*expf_term*pz3};
+         ret_val = std::fma(0.5f,std::erf(0.7071067810f*z),(0.3490744952f*z*expf_term))-last_term+0.5f;
+     }
+     else if constexpr(cdf_kernels==kernel_functions_cdf::EIGHT_ORDER_GAUSSIAN)
+     {
+          const float expf_term{ceph_expf(-0.5f*zz)};
+          const float pz3{zz*z};
+          const float pz5{pz3*zz};
+          const float mid_term{0.1329807601f*expf_term*pz3};
+          const float last_term{0.008311297511f*expf_term*pz5};
+          ret_val = std::fma(0.5f,std::erf(0.7071067810f*z),(0.4737439578f*z*expf_term))- 
+                    mid_term+last_term+0.5f;
+     }
+     else if constexpr(cdf_kernels==kernel_functions_cdf::SECOND_ORDER_EPANECHNIKOV)
+     {
+          if(gms::definitelyLessThan(z,-C2236067978,epsilon))
+          {
+               ret_val = 0.0f;
+          }
+          else if(gms::definitelyLessThan(z,C2236067978,epsilon))
+          {
+               const float zp3{zz*z};
+               ret_val = 0.3354101967f*z-0.02236067978f*zp3+0.5f;
+          }
+          else 
+          {
+               ret_val = 1.0f;
+          }
+     }
+     else if constexpr(cdf_kernels==kernel_functions_cdf::FOURTH_ORDER_EPANECHNIKOV)
+     {
+          if(gms::definitelyLessThan(z,-C2236067978,epsilon))
+          {
+               ret_val = 0.0f;
+          }
+          else if(gms::definitelyLessThan(z,C2236067978,epsilon))
+          {
+               const float zp3{zz*z};
+               const float zp5{zp3*zz};
+               ret_val = 0.01173935688f*zp5-0.1397542486f*zp3+0.6288941188f*z+0.5f;					
+          }
+          else 
+          {
+               ret_val = 1.0f;
+          }
+     }
+     else if constexpr(cdf_kernels==kernel_functions_cdf::SIXTH_ORDER_EPANECHNIKOV)
+     {
+          if(gms::definitelyLessThan(z,-C2236067978,epsilon))
+          {
+               ret_val = 0.0f;
+          }
+          else if(gms::definitelyLessThan(z,C2236067978,epsilon))
+          {
+               const float zp3{zz*z};
+               const float zp5{zp3*zz};
+               const float zp7{zp5*zz};
+               ret_val = std::fma(-0.006917835307f,zp7,0.09244743547f*zp5)- 
+                         0.4279973864f*zp3+0.9171372566*z+0.5f;
+          }
+          else 
+          {
+               ret_val = 1.0f;
+          }
+     }
+     else if constexpr(cdf_kernel==kernel_functions_cdf::EIGHT_ORDER_EPANECHNIKOV)
+     {
+          if(gms::definitelyLessThan(z,-C2236067978,epsilon))
+          {
+               ret_val = 0.0f;
+          }
+          else if(gms::definitelyLessThan(z,C2236067978,epsilon))
+          {
+               const float zp3{zz*z};
+               const float zp5{zp3*zz};
+               const float zp7{zp5*zz};
+               const float zp9{zp7*zz};
+               ret_val =  0.004371687590f*zp9
+                         -0.06744889424f*zp7
+					     +0.3813456714f*zp5
+					     -0.9629941194f*zp3
+					     +std::fma(1.203742649f,z,0.5f);
+          }
+          else 
+          {
+               ret_val = 1.0f;
+          }
+     }
+     else if constexpr(cdf_kernel==kernel_functions_cdf::RECTANGULAR_KERNEL)
+     {
+          if(z < -1.0f)
+          {
+               ret_val = 0.0f;
+          }
+          else if(z < 1.0f)
+          {
+               ret_val = std::fma(0.5f,z,0.5f);
+          }
+          else 
+          {
+               ret_val = 1.0f;
+          }
+     }
+     return (ret_val);
+}
+
 } //np_standalone_funcs
 
 } // math
 
 } // gms
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 #endif /*__GMS_PDF_KERNELS_SCALAR_H__*/
