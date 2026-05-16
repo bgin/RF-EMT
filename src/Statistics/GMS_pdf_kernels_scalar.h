@@ -731,6 +731,51 @@ enum class kernel_functions_derivative: int32_t
      RECTANGULAR_KERNEL
 };
 
+enum class kernel_convolution_functions : int32_t 
+{
+     SECOND_ORDER_GAUSSIAN,
+     FOURTH_ORDER_GAUSSIAN,
+     SIXTH_ORDER_GAUSSIAN,
+     EIGHT_ORDER_GAUSSIAN,
+     SECOND_ORDER_EPANECHNIKOV,
+     FOURTH_ORDER_EPANECHNIKOV,
+     SIXTH_ORDER_EPANECHNIKOV,
+     EIGHT_ORDER_EPANECHNIKOV,
+     RECTANGULAR_KERNEL
+};
+
+enum class kernel_regression_asymptotic_constants : int32_t 
+{
+     SECOND_ORDER_GAUSSIAN,
+     FOURTH_ORDER_GAUSSIAN,
+     SIXTH_ORDER_GAUSSIAN,
+     EIGHT_ORDER_GAUSSIAN,
+     SECOND_ORDER_EPANECHNIKOV,
+     FOURTH_ORDER_EPANECHNIKOV,
+     SIXTH_ORDER_EPANECHNIKOV,
+     EIGHT_ORDER_EPANECHNIKOV,
+     RECTANGULAR_KERNEL
+};
+
+enum class kernel_density_asymptotic_constants : int32_t 
+{
+     SECOND_ORDER_GAUSSIAN,
+     FOURTH_ORDER_GAUSSIAN,
+     SIXTH_ORDER_GAUSSIAN,
+     EIGHT_ORDER_GAUSSIAN,
+     SECOND_ORDER_EPANECHNIKOV,
+     FOURTH_ORDER_EPANECHNIKOV,
+     SIXTH_ORDER_EPANECHNIKOV,
+     EIGHT_ORDER_EPANECHNIKOV,
+     RECTANGULAR_KERNEL
+};
+
+enum class kernl_ordered_constants : int32_t 
+{
+     WANG_VAN_RYZIN_KERNEL,
+     QI_KERNEL
+};
+
 template<kernel_functions_types kernels>
 float evaluate_kernel_function(const float z,const float epsilon) 
 {
@@ -925,6 +970,325 @@ float evaluate_cdf_kernel_functions(const float z,const float epsilon)
      }
      return (ret_val);
 }
+
+/*
+    The inputs for the Epanechnikov kernels must be less then 5.0, i.e. ((z*z)<5.0)
+    The input checks are removed due to optimizing out the branch misprediction.
+*/
+template<kernel_functions_derivative kernel_deriv>
+float evaluate_kernel_funcs_derivatives(const float z,const float epsilon)
+{
+    const float zz{z*z};
+    constexpr float C039894228040143267794{0.39894228040143267794f};
+    float ret_val{0.0f};
+
+    if constexpr(kernel_deriv==kernel_functions_derivative::SECOND_ORDER_GAUSSIAN)
+    {
+        ret_val = -z*C039894228040143267794*ceph_expf(-0.5f*zz);
+    }
+    else if constexpr(kernel_deriv==kernel_functions_derivative::FOURTH_ORDER_GAUSSIAN)
+    {
+        const float zp3{zz*z};
+        const float mid_term{2.5f*z-0.5f*zp3};
+        ret_val = -C039894228040143267794*mid_term*ceph_expf(-0.5f*zz);
+    }
+    else if constexpr(kernel_deriv==kernel_functions_derivative::SIXTH_ORDER_GAUSSIAN)
+    {
+        const float zp4{zz*zz};
+        const float last_term{35.0f-14.0f*zz+zp4};
+        ret_val = -0.049867785050179084743*z*ceph_expf(-0.5f*zz)*last_term;
+    }
+    else if constexpr(kernel_deriv==kernel_functions_derivative::EIGHT_ORDER_GAUSSIAN)
+    {
+        const float zp3{zz*z};
+        const float zp4{zz*zz};
+        const float zp6{zz*zz*zz};
+        const float mid_term1{6.5625f*z-3.9375f*zp3};
+        const float mid_term2{0.5625f*zp4*z-0.02083333333f*zp6*z};
+        ret_val = -C039894228040143267794*(mid_term1+mid_term2)*ceph_expf(-0.5f*zz);
+    }
+    else if constexpr(kernel_deriv==kernel_functions_derivative::SECOND_ORDER_EPANECHNIKOV)
+    {
+        ret_val = -0.13416407864998738178f*z;
+    }
+    else if constexpr(kernel_deriv==kernel_functions_derivative::FOURTH_ORDER_EPANECHNIKOV)
+    {
+        const float term1{1.0f-0.2f*zz};
+        const float term2{1.875f-0.875f*zz};
+        ret_val = -0.58696784409369479531*z*term1-0.13416407864998738178f*term2*z;
+    }
+    else if constexpr(kernel_deriv==kernel_functions_derivative::SIXTH_ORDER_EPANECHNIKOV)
+    {
+        ret_val = -1.0022916396047925e-10f*z*(zz*(2898847705.0f*zz-18447212816.0f)+25621128780.0f);
+    }
+    else if constexpr(kernel_deriv==kernel_functions_derivative::EIGHT_ORDER_EPANECHNIKOV)
+    {
+        const float zp3{zz*z};
+        const float zp5{zp3*zz};
+        const float zp7{zp5*zz};
+        ret_val =   -5.7779647152973081413f*z
+					+ 7.6269134241924467465f*zp3
+					- 2.8328535575571945058f*zp5
+					+ 0.31476150639524383398f*zp7;
+    }
+    else if constexpr(kernel_deriv==kernel_functions_derivative::RECTANGULAR_KERNEL)
+    {   
+        /* Derivative always zero except at +-1 where it is undefined. */
+        ret_val = 0.0f;
+    }
+    return (ret_val);
+}
+
+template<kernel_convolution_functions convolution_funcs>
+float evaluate_kernel_convolution_funcs(const float z,const float epsilon,
+                                        const float h1,const float h2)
+{
+    /* Evaluate the convolution kernel function */
+    const float zz{z*z};
+    float ret_val{0.0f};
+    const bool zz_lt_20 = gms::definitelyLessThan(zz,20.0f,epsilon);
+    const bool z_lt_0   = z<0.0;
+    if constexpr(convolution_funcs==kernel_convolution_functions::SECOND_ORDER_GAUSSIAN)
+    {
+        ret_val = 0.28209479177387814348f*ceph_expf(-0.25f*zz);
+    }
+    else if constexpr(convolution_funcs==kernel_convolution_functions::FOURTH_ORDER_GAUSSIAN)
+    {
+        const float zp4{zz*zz};
+        const float last_term{108.0f-28.0f*zz*zp4};
+        ret_val = 0.0044077311214668459918f*ceph_expf(-0.25f*zz)*last_term;
+    }
+    else if constexpr(convolution_funcs==kernel_convolution_functions::SIXTH_ORDER_GAUSSIAN)
+    {
+        const float zp4{zz*zz};
+        const float zp6{zp4*zz};
+        const float zp8{zp6*zz};
+        const float mid_term{36240.0f-19360.0f*zz+2312.0f*zp4};
+        const float last_term{std::fma(88.0f,zp6,zp8)};
+        ret_val = 0.00001721769969f*ceph_expf(-0.25f*zz)*(mid_term-last_term);
+    }
+    else if constexpr(convolution_funcs==kernel_convolution_functions::EIGHT_ORDER_GAUSSIAN)
+    {
+        const float zp4{zz*zz};
+        const float zp6{zp4*zz};
+        const float zp8{zp6*zz};
+        const float zp10{zp8*zz};
+        const float zp12{zp10*zz};
+        const float term1{25018560.0f-20462400.0f*zz+202352.0f*zp4};
+        const float term2{331680.0f*zp6+11604.0f*zp8};
+        const float term3{std::fma(180.0f,zp10,zp12)};
+        ret_val = 0.2989183974e-7f*ceph_expf(0.25f*zz)*(term1-term2-term3);
+    }
+    else if constexpr(convolution_funcs==kernel_convolution_functions::SECOND_ORDER_EPANECHNIKOV)
+    {
+        const float zp3{zz*z};
+        const float zp5{zp3*zz};
+        const float common_term{26883.0f*zp5-2688300.0f*zp3};
+        ret_val = (zz_lt_20)  ? 
+                  ((z_lt_0) ? 
+                   (5.579734404642339e-9f*(common_term-12022443.0f*zz+48089773.0f)) : 
+                   (-5.579734404642339e-9f*(common_term+12022443.0f*zz-48089773.0f))) : 0.0f;
+    }
+    else if constexpr(convolution_funcs==kernel_convolution_functions::FOURTH_ORDER_EPANECHNIKOV)
+    {
+        const float zp3{zz*z};
+        const float zp4{zz*zz};
+        const float zp5{zp3*zz};
+        const float zp7{zp5*zz};
+        const float zp9{zp7*zz};
+        ret_val = (zz_lt_20)  ? 
+                  ((z_lt_0) ?
+                  (3.756009615384615e-9f*(1456.0f*zp9-124800.0f*zp7+5491200.0f*zp5+156274320.0f*zp4-24960000.0f*zp3-111624513.0f*zz+148832684.0f)):
+                  (-3.756009615384615e-9f*(1456.0f*zp9-124800.0f*zp7+5491200.0f*zp5-156274320.0f*zp4-24960000.0f*zp3+111624513.0f*zz-148832684.0f))):0.0f;
+    }
+    else if constexpr(convolution_funcs==kernel_convolution_functions::SIXTH_ORDER_EPANECHNIKOV)
+    {
+        const float zp3{zz*z};
+        const float zp4{zz*zz};
+        const float zp5{zp3*zz};
+        const float zp6{zp5*z};
+        const float zp7{zp5*zz};
+        const float zp9{zp7*zz};
+        const float zp11{zp9*zz};
+        const float zp13{zp11*zz};
+        ret_val = (zz_lt_20)  ? 
+                  ((z_lt_0) ?
+                  (9.390024038461537e-11f*(2079.0f*zp13-206388.0f*zp11+8867040.0f*zp9-255528000.0f*zp7-515705252.0f*zp6+1681680000.0f*zp5+4922641042.0f*zp4-3057600000.0f*zp3-13674002896*zz+9015826085)) :
+                  (-9.390024038461537e-11f*(2079.0f*zp13-206388.0f*zp11+8867040.0f*zp9-255528000.0f*zp7+515705252.0f*zp6+1681680000.0f*zp5-4922641042.0f*zp4-3057600000.0f*zp3+13674002896*zz-9015826085))) : 0.0f;
+    }
+    else if constexpr(convolution_funcs==kernel_convolution_functions::EIGHT_ORDER_EPANECHNIKOV)
+    {
+        const float zp3{zz*z};
+        const float zp4{zz*zz};
+        const float zp5{zp3*zz};
+        const float zp6{zp5*z};
+        const float zp7{zp5*zz};
+        const float zp8{zp7*z};
+        const float zp9{zp7*zz};
+        const float zp11{zp9*zz};
+        const float zp13{zp11*zz};
+        const float zp15{zp13*zz};
+        const float zp17{zp15*zz};
+        ret_val = (zz_lt_20)  ? 
+                  ((z_lt_0) ?
+                  (1.121969784007353e-13f*(63063.0f*zp17-7351344.0f*zp15+373222080.0f*zp13-11040382080.0f*zp11+241727270400.0f*zp9+350679571413.0f*zp8-1900039680000.0*zp7-4208154856956.0f*zp6+5757696000000.0f*zp5+16994471537707.0f*zp4-5757696000000.0f*zp3-25749199299557.0f*zz+10097725215512.0f)) :
+                  (-1.121969784007353e-13f*(63063.0f*zp17-7351344.0f*zp15+373222080.0f*zp13-11040382080.0f*zp11+241727270400.0f*zp9-350679571413.0f*zp8-1900039680000.0*zp7+4208154856956.0f*zp6+5757696000000.0f*zp5-16994471537707.0f*zp4-5757696000000.0f*zp3+25749199299557.0f*zz+10097725215512.0f))) : 0.0f;
+                  
+    }
+    else if constexpr(convolution_funcs==kernel_convolution_functions::RECTANGULAR_KERNEL)
+    {
+        ret_val = (zz<1.0f) ? 0.5f/(h1*h2) : 0.0f;
+    }
+
+    return (ret_val);
+}
+
+template<kernel_regression_asymptotic_constants regress_constants>
+void init_kernel_regression_asymptotic_constants(const float num_reg_continous,
+                                                 float & INT_KERNEL_P,
+                                                 float & K_INT_KERNEL_P,
+                                                 float & INT_KERNEL_PM_HALF,
+                                                 float & DIFF_KER_PPM)
+{
+    if constexpr(regress_constants==kernel_regression_asymptotic_constants::SECOND_ORDER_GAUSSIAN)
+    {
+        INT_KERNEL_P = 0.28209479177387814348f;
+		K_INT_KERNEL_P = std::pow(INT_KERNEL_P, num_reg_continuous);
+		INT_KERNEL_PM_HALF = 0.21969564473386119853f;
+		DIFF_KER_PPM = (2.0f*(K_INT_KERNEL_P/INT_KERNEL_P)*0.062399147040017f);
+        return;
+    }
+    else if constexpr(regress_constants==kernel_regression_asymptotic_constants::FOURTH_ORDER_GAUSSIAN)
+    {
+        INT_KERNEL_P = 0.47603496111841936711f;
+		K_INT_KERNEL_P = std::pow(INT_KERNEL_P,num_reg_continuous);
+		INT_KERNEL_PM_HALF = 0.27805230036629307938f;
+		DIFF_KER_PPM = (2.0f*(K_INT_KERNEL_P/INT_KERNEL_P)*0.19798266075212628773f);
+        return;
+    }
+    else if constexpr(regress_constants==kernel_regression_asymptotic_constants::SIXTH_ORDER_GAUSSIAN)
+    {
+        INT_KERNEL_P = 0.62396943688265038571f;
+		K_INT_KERNEL_P = std::pow(INT_KERNEL_P, num_reg_continuous);
+		INT_KERNEL_PM_HALF = 0.25618196366213489976f;
+		DIFF_KER_PPM = (2.0f*(K_INT_KERNEL_P/INT_KERNEL_P)*0.36778747322051548595f);
+        return;
+    }
+    else if constexpr(regress_constants==kernel_regression_asymptotic_constants::EIGHT_ORDER_GAUSSIAN)
+    {
+        INT_KERNEL_P = 0.74785078617543927990f;
+		K_INT_KERNEL_P = std::pow(INT_KERNEL_P, num_reg_continuous);
+		INT_KERNEL_PM_HALF = 0.19644083574560137818f;
+		DIFF_KER_PPM = (2.0f*(K_INT_KERNEL_P/INT_KERNEL_P)*0.55140995042983790172f);
+        return;
+    }
+    else if constexpr(regress_constants==kernel_regression_asymptotic_constants::SECOND_ORDER_EPANECHNIKOV)
+    {
+        INT_KERNEL_P = 0.26832815729997476357f;
+		K_INT_KERNEL_P = std::pow(INT_KERNEL_P, num_reg_continuous);
+		INT_KERNEL_PM_HALF = 0.20250390621232470438f;
+		DIFF_KER_PPM = (2.0f*(K_INT_KERNEL_P/INT_KERNEL_P)*0.0658242510876501f);
+        return;
+    }
+    else if constexpr(regress_constants==kernel_regression_asymptotic_constants::FOURTH_ORDER_EPANECHNIKOV)
+    {
+        INT_KERNEL_P = 0.55901699437494742410f;
+		K_INT_KERNEL_P = std::pow(INT_KERNEL_P, num_reg_continuous);
+		INT_KERNEL_PM_HALF = 0.25635637709255874475f;
+		DIFF_KER_PPM = (2.0f*(K_INT_KERNEL_P/INT_KERNEL_P)*0.30266061728238867935f);
+        return;
+    }
+    else if constexpr(regress_constants==kernel_regression_asymptotic_constants::SIXTH_ORDER_EPANECHNIKOV)
+    {
+        INT_KERNEL_P = 0.84658823667359826246f;
+		K_INT_KERNEL_P = std::pow(INT_KERNEL_P, num_reg_continuous);
+		INT_KERNEL_PM_HALF = 0.27428761935713012265f;
+		DIFF_KER_PPM = (2.0f*(K_INT_KERNEL_P/INT_KERNEL_P)*0.57230061731646813981f);
+        return;
+    }
+    else if constexpr(regress_constants==kernel_regression_asymptotic_constants::EIGHT_ORDER_EPANECHNIKOV)
+    {
+        INT_KERNEL_P = 1.1329342579014329689f;
+		K_INT_KERNEL_P = std::pow(INT_KERNEL_P, num_reg_continuous);
+		INT_KERNEL_PM_HALF = 0.15585854498586945817f;
+		DIFF_KER_PPM = (2.0f*(K_INT_KERNEL_P/INT_KERNEL_P)*0.97707571291556351073f);
+        return;
+    }
+    else if constexpr(regress_constants==kernel_regression_asymptotic_constants::RECTANGULAR_KERNEL)
+    {
+
+			INT_KERNEL_P = 0.5f;
+			K_INT_KERNEL_P = std::pow(INT_KERNEL_P, num_reg_continuous);
+			INT_KERNEL_PM_HALF = 0.25f;
+			DIFF_KER_PPM = (2.0f*(K_INT_KERNEL_P/INT_KERNEL_P)*0.25f);
+            return;
+    }
+}
+
+template<kernel_density_asymptotic_constants density_constants>
+void init_kernel_density_asymptotic_constants(const float num_var_continous,
+                                              float & INT_KERNEL_P,
+                                              float & K_INT_KERNEL_P)
+{
+    /* Initialize constants for various kernels required for asymptotic standard errors */
+    if constexpr(density_constants==kernel_density_asymptotic_constants::SECOND_ORDER_GAUSSIAN)
+    {
+         INT_KERNEL_P = 0.28209479177387814348f;
+		 K_INT_KERNEL_P = std::pow(INT_KERNEL_P, num_var_continuous);
+         return;
+    }
+    else if constexpr(density_constants==kernel_density_asymptotic_constants::FOURTH_ORDER_GAUSSIAN)
+    {
+         INT_KERNEL_P = 0.47603496111841936711f;
+		 K_INT_KERNEL_P = std::pow(INT_KERNEL_P, num_var_continuous);
+         return; 
+    }
+    else if constexpr(density_constants==kernel_density_asymptotic_constants::SIXTH_ORDER_GAUSSIAN)
+    {
+         INT_KERNEL_P = 0.62396943688265038571f;
+		 K_INT_KERNEL_P = std::pow(INT_KERNEL_P, num_var_continuous);
+         return;
+    }
+    else if constexpr(density_constants==kernel_density_asymptotic_constants::EIGHT_ORDER_GAUSSIAN)
+    {
+         INT_KERNEL_P = 0.74785078617543927990f;
+		 K_INT_KERNEL_P = std::pow(INT_KERNEL_P, num_var_continuous);
+         return;
+    }
+    else if constexpr(density_constants==kernel_density_asymptotic_constants::SECOND_ORDER_EPANECHNIKOV)
+    {
+         INT_KERNEL_P = 0.26832815729997476357f;
+		 K_INT_KERNEL_P = std::pow(INT_KERNEL_P, num_var_continuous);
+         return;
+    }
+    else if constexpr(density_constants==kernel_density_asymptotic_constants::FOURTH_ORDER_EPANECHNIKOV)
+    {
+         INT_KERNEL_P = 0.55901699437494742410f;
+		 K_INT_KERNEL_P = std::pow(INT_KERNEL_P, num_var_continuous);
+         return;
+    }
+    else if constexpr(density_constants==kernel_density_asymptotic_constants::SIXTH_ORDER_EPANECHNIKOV)
+    {
+         INT_KERNEL_P = 0.84658823667359826246f;
+		 K_INT_KERNEL_P = std::pow(INT_KERNEL_P, num_var_continuous);
+         return;
+    }
+    else if constexpr(density_constants==kernel_density_asymptotic_constants::EIGHT_ORDER_EPANECHNIKOV)
+    {
+         INT_KERNEL_P = 1.1329342579014329689f;
+		 K_INT_KERNEL_P = std::pow(INT_KERNEL_P, num_var_continuous);
+         return;
+    }
+    else if constexpr(density_constants==kernel_density_asymptotic_constants::RECTANGULAR_KERNEL)
+    {
+         INT_KERNEL_P = 0.5f;
+		 K_INT_KERNEL_P = std::pow(INT_KERNEL_P, num_var_continuous);
+         return;
+    }
+}
+
+
+
 
 } //np_standalone_funcs
 
