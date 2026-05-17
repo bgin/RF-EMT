@@ -55,6 +55,9 @@ namespace file_info
 
 #include <cstdint>
 #include <cmath>
+#if (USE_OPENMP) == 1
+#include <omp.h>
+#endif
 #include "GMS_config.h"
 #include "GMS_compare_fp_safe.h"
 
@@ -212,6 +215,9 @@ return( x );
 
 } // anonymous namespace
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float  np_gauss2_r4(const float z)
@@ -220,6 +226,9 @@ float  np_gauss2_r4(const float z)
     return C0398942280401432677939946059934*ceph_expf(-0.5f*z*z);
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_gauss4_r4(const float z)
@@ -229,6 +238,9 @@ float np_gauss4_r4(const float z)
      return C0398942280401432677939946059934*(1.5f-exp_arg)*ceph_expf(-exp_arg);
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_gauss6_r4(const float z)
@@ -239,6 +251,9 @@ float np_gauss6_r4(const float z)
      return C0398942280401432677939946059934*std::fma(z2,term1,1.875)*ceph_expf(-0.5f*z2);
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_gauss8_r4(const float z)
@@ -257,6 +272,9 @@ float np_gauss8_r4(const float z)
 /*
     The input range is (z*z < 5.0)?result:0.0
 */
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_epanechnikov2_r4(const float z)
@@ -269,6 +287,9 @@ float np_epanechnikov2_r4(const float z)
 /*
     The input range is (z*z < 5.0)?result:0.0
 */
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_epanechnikov4_r4(const float z)
@@ -281,6 +302,9 @@ float np_epanechnikov4_r4(const float z)
 /*
     The input range is (z*z < 5.0)?result:0.0
 */
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_epanechnikov6_r4(const float z)
@@ -296,6 +320,9 @@ float np_epanechnikov6_r4(const float z)
 /*
     The input range is (z*z < 5.0)?result:0.0
 */
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_epanechnikov8_r4(const float z)
@@ -306,6 +333,9 @@ float np_epanechnikov8_r4(const float z)
     return (static_cast<float>(0.33541019662496845446f*fma_term*(1.0f-0.2f*zz)));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_rect_r4(const float z)
@@ -313,6 +343,9 @@ float np_rect_r4(const float z)
     return (z*z < 1.0f)?0.5f:0.0f;
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_uaa_r4(const bool same_cat,const float lambda, const std::int32_t c)
@@ -320,6 +353,9 @@ float np_uaa_r4(const bool same_cat,const float lambda, const std::int32_t c)
     return (same_cat)?(1.0f-lambda):lambda/((static_cast<float>(c)-1.0f));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_score_uaa_r4(const bool same_cat,const float lambda, const std::int32_t c)
@@ -327,6 +363,9 @@ float np_score_uaa_r4(const bool same_cat,const float lambda, const std::int32_t
     return (same_cat)?-1.0f:(1.0f/(static_cast<float>(c)-1.0f)); 
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_uli_racine_r4(const bool same_cat,const float lambda)
@@ -334,6 +373,9 @@ float np_uli_racine_r4(const bool same_cat,const float lambda)
     return (same_cat)?1.0f:lambda;
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_unli_racine_r4(const bool same_cat,const float lambda, const std::int32_t c)
@@ -341,6 +383,9 @@ float np_unli_racine_r4(const bool same_cat,const float lambda, const std::int32
      return ((same_cat)?1.0f:lambda)/((static_cast<float>(c)-1.0f)*lambda + 1.0f);
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_score_uli_racine_r4(const bool same_cat,const float lambda)
@@ -348,6 +393,9 @@ float np_score_uli_racine_r4(const bool same_cat,const float lambda)
      return (same_cat)?0.0f:1.0f;
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_score_unli_racine_r4(const bool same_cat,const float lambda, const std::int32_t c)
@@ -357,6 +405,9 @@ float np_score_unli_racine_r4(const bool same_cat,const float lambda, const std:
      return (same_cat)?term*inorm*inorm:inorm*std::fma(lambda*term,inorm,1.0f);
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_owang_van_ryzin_r4(const float x, const float y, 
@@ -368,6 +419,9 @@ float np_owang_van_ryzin_r4(const float x, const float y,
      return (gms::approximatelyEqual(x,y,epsilon))?term:std::pow(lambda,ipow_arg)*term*0.5f;
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_score_owang_van_ryzin_r4(const float x, const float y, 
@@ -379,6 +433,9 @@ float np_score_owang_van_ryzin_r4(const float x, const float y,
     return (gms::approximatelyEqual(x,y,epsilon))?-1.0f:(0.5*std::pow(lambda,ipow_arg)*(fabs_term/lambda-2.0f));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_oli_racine_r4(const float x, const float y, 
@@ -387,6 +444,9 @@ float np_oli_racine_r4(const float x, const float y,
       return (std::pow(lambda,static_cast<float>(static_cast<std::int32_t>(std::fabs(x-y)))));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_score_oli_racine_r4(const float x, const float y, 
@@ -396,6 +456,9 @@ float np_score_oli_racine_r4(const float x, const float y,
       return (fabs_term*std::pow(lambda,static_cast<float>(static_cast<std::int32_t>(fabs_term))));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_onli_racine_r4(const float x, const float y, 
@@ -406,6 +469,9 @@ float np_onli_racine_r4(const float x, const float y,
       return std::pow(lambda,static_cast<float>(static_cast<std::int32_t>(fabs_term)))*ratio;
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_score_onli_racine_r4(const float x, const float y, 
@@ -417,6 +483,9 @@ float np_score_onli_racine_r4(const float x, const float y,
                                                    2.0f*lambda):-2.0f;
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_econvol_rect_r4(const float z)
@@ -424,6 +493,9 @@ float np_econvol_rect_r4(const float z)
       return ((std::fabs(z)<2.0f)?0.25f:0.0f);
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_econvol_gauss2_r4(const float z)
@@ -431,6 +503,9 @@ float np_econvol_gauss2_r4(const float z)
       return(0.28209479177387814348f*ceph_expf(-0.25f*z*z));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_econvol_gauss4_r4(const float z)
@@ -439,6 +514,9 @@ float np_econvol_gauss4_r4(const float z)
       return(0.0044077311214668459918f*ceph_expf(-0.25f*zz)*std::fma(zz,zz-28.0f,108.0f));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_econvol_gauss6_r4(const float z)
@@ -447,6 +525,9 @@ float np_econvol_gauss6_r4(const float z)
       return(0.00001721769969f*ceph_expf(-0.25f*zz)*std::fma(std::fma(std::fma((-88.0f+zz),zz,2312.0f),zz,-19360.0f),zz,36240.0));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_econvol_gauss8_r4(const float z)
@@ -457,6 +538,9 @@ float np_econvol_gauss8_r4(const float z)
 }
 
 // Derivative kernels
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_deriv_gauss2_r4(const float z)
@@ -465,6 +549,9 @@ float np_deriv_gauss2_r4(const float z)
       return (-z*C0398942280401432677939946059934*ceph_expf(-0.5f*z*z)); 
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_deriv_gauss4_r4(const float z)
@@ -474,6 +561,9 @@ float np_deriv_gauss4_r4(const float z)
      return (-C0398942280401432677939946059934*z*(2.5f-0.5f*zz)*ceph_expf(-0.5f*zz));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_deriv_gauss6_r4(const float z)
@@ -482,6 +572,9 @@ float np_deriv_gauss6_r4(const float z)
        return (-0.049867785050179084743f*z*ceph_expf(-0.5f*zz)*std::fma(-14.0+zz,zz,35.0f));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_deriv_gauss8_r4(const float z)
@@ -493,6 +586,9 @@ float np_deriv_gauss8_r4(const float z)
 }
 
 /* **WARNING** The test (z^2 < 5.0f) was removed*/
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_deriv_epan2_r4(const float z)
@@ -501,6 +597,9 @@ float np_deriv_epan2_r4(const float z)
 }
 
 /* **WARNING** The test (z^2 < 5.0f) was removed*/
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_deriv_epan4_r4(const float z)
@@ -510,6 +609,9 @@ float np_deriv_epan4_r4(const float z)
 }
 
 /* **WARNING** The test (z^2 < 5.0f) was removed*/
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_deriv_epan6_r4(const float z)
@@ -519,6 +621,9 @@ float np_deriv_epan6_r4(const float z)
 }
 
 /* **WARNING** The test (z^2 < 5.0f) was removed*/
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_deriv_epan8_r4(const float z)
@@ -527,12 +632,17 @@ float np_deriv_epan8_r4(const float z)
     return z*std::fma(std::fma(std::fma(zz,3.147615066924801e-1f,-2.83285356023232f),zz,7.626913431394709),zz,-5.777964720753567);
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_deriv_rect_r4() { return 0.0f;}
 
 // CDF kernels
-
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_cdf_gauss2_r4(const float z) 
@@ -540,6 +650,9 @@ float np_cdf_gauss2_r4(const float z)
     return (std::fma(0.5f,std::erf(0.7071067810f*z),0.5f));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_cdf_gauss4_r4(const float z) 
@@ -548,6 +661,9 @@ float np_cdf_gauss4_r4(const float z)
      return (std::fma(0.5f,std::erf(0.7071067810*z),std::fma(0.1994711401f*z,expf_term,0.5f)));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_cdf_gauss6_r4(const float z)
@@ -558,6 +674,9 @@ float np_cdf_gauss6_r4(const float z)
                           std::fma(expf_term,(0.3490744952-0.04986778504*zz),0.5f)));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_cdf_gauss8_r4(const float z)
@@ -567,7 +686,9 @@ float np_cdf_gauss8_r4(const float z)
     return (std::fma(0.5f,std::erf(0.7071067810f*z),
                           std::fma(expf_term,std::fma(std::fma(0.008311297511f*zz,-0.1329807601f),zz,0.4737439578f),0.5f)));
 }
-
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_cdf_epan2_r4(const float z) 
@@ -578,6 +699,9 @@ float np_cdf_epan2_r4(const float z)
     (std::fma(z,(0.3354101967f-0.02236067978f*z*z),0.5));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_cdf_epan4_r4(const float z) 
@@ -588,6 +712,9 @@ float np_cdf_epan4_r4(const float z)
     (std::fma(std::fma(std::fma(0.01173935688,zz,-0.1397542486f),zz,0.6288941188f),z,0.5f));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_cdf_epan6_r4(const float z) 
@@ -598,6 +725,9 @@ float np_cdf_epan6_r4(const float z)
     (std::fma(std::fma(std::fma((0.09244743547f-0.006917835307f*zz),zz,-0.4279973864f),zz,0.9171372566f),z,0.5f));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_cdf_epan8_r4(const float z) 
@@ -608,6 +738,9 @@ float np_cdf_epan8_r4(const float z)
     (std::fma(std::fma(std::fma(std::fma(std::fma(zz,0.004371687590f,-0.06744889424f),zz,0.3813456714f),zz,-0.9629941194f),zz,1.203742649),z,0.5f));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_cdf_rect_r4(const float z)
@@ -615,6 +748,9 @@ float np_cdf_rect_r4(const float z)
     return (z < -1.0f) ? 0.0f : (z > 1.0f) ? 1.0f : (std::fma(0.5f,z,0.5f));
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_cdf_owang_van_ryzin_r4(const float y, const float x, 
@@ -626,6 +762,9 @@ float np_cdf_owang_van_ryzin_r4(const float y, const float x,
     return (gms::definitelyLessThan(x,y,epsilon)) ? 0.5f*gee : (1.0f-gee);
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_cdf_oli_racine_r4(const float y, const float x, 
@@ -650,6 +789,9 @@ float np_cdf_oli_racine_r4(const float y, const float x,
     }
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_cdf_onli_rancine_r4(const float y, const float x, 
@@ -661,7 +803,9 @@ float np_cdf_onli_rancine_r4(const float y, const float x,
 }
 
 // Adaptive convolution kernels.
-
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_adaptconvol_gauss2_r4(const float x, const float y,
@@ -674,6 +818,9 @@ float np_adaptconvol_gauss2_r4(const float x, const float y,
     return (ret_term*ceph_expf(-0.5f*z2)/sqrt_h2);
 }
 
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 float np_adaptconvol_epan2_total_r4(const float x, const float y,
@@ -691,6 +838,64 @@ float np_adaptconvol_epan2_total_r4(const float x, const float y,
     const float left_term{ayy+axy-axx+ahlhl-ahshs};
     return (left_term*hs/(100.0f*hlhl));
 }
+
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline 
+float kernel_ordered_van_ryzin_wang(const float x,const float y,
+                                    const float lambda,const float epsilon)
+{
+    float ret_val{};
+    const float one_m_lambda{1.0f-lambda};
+    const bool x_eq_y = gms::approximatelyEqual(x,y,epsilon);
+    ret_val = (x_eq_y) ? one_m_lambda : std::pow(lambda,ceph_floorf(std::fabs(x-y)))*one_m_lambda*0.5f;
+    return (ret_val);
+}
+
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline 
+float kernel_ordered_qi(const float x,const float y,
+                        const float lambda,const float epsilon)
+{
+    float ret_val{};
+    const bool x_eq_y = gms::approximatelyEqual(x,y,epsilon);
+    ret_val = (x_eq_y) ? 1.0f : std::pow(lambda,ceph_floorf(std::fabs(x-y)));
+    return (ret_val);
+}
+
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline 
+float kernel_unordered_aitchenson_aitken_0(const float x,const float y,const float lambda,
+                                           const float c,const float epsilon)
+{
+    float ret_val{};
+    const bool x_eq_y = gms::approximatelyEqual(x,y,epsilon);
+    ret_val = (x_eq_y) ? 1.0f-lambda : lambda/(c-1.0f);
+    return (ret_val);
+}
+
+#if (USE_OPENMP) == 1
+#pragma omp declare simd simdlen(16)
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline 
+float kernel_unordered_aitchenson_aitken_1(const float x,const float y,
+                                           const float lambda,const float epsilon)
+{
+    float ret_val{};
+    const bool x_eq_y = gms::approximatelyEqual(x,y,epsilon);
+    ret_val = (x_eq_y) ? 1.0f : lambda;
+    return (ret_val);
+}
+
 
 enum class kernel_functions_types : int32_t 
 {
@@ -770,378 +975,149 @@ enum class kernel_density_asymptotic_constants : int32_t
      RECTANGULAR_KERNEL
 };
 
-enum class kernl_ordered_constants : int32_t 
+enum class kernel_ordered_funcs : int32_t 
 {
      WANG_VAN_RYZIN_KERNEL,
      QI_KERNEL
 };
 
-template<kernel_functions_types kernels>
-float evaluate_kernel_function(const float z,const float epsilon) 
+enum class kernel_unordered_funcs : int32_t 
 {
-    const float zz{z*z};
-    constexpr float C039894228040143267794{0.39894228040143267794f};
-    float ret_val{0.0f};
+     AITCHENSON_AITKEN_KERNEL_0,
+     AITCHENSON_AITKEN_KERNEL_1
+};
 
-    if constexpr(kernels==kernel_functions_types::SECOND_ORDER_GAUSSIAN)
+template<kernel_ordered_funcs kernel_ordered>
+float kernel_ordered_convolution(float * __restrict c_vals,const std::int32_t c_len,
+                                 const float x, const float y, const float lambda,
+                                 const float epsilon)
+{
+    
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+    float * __restrict ptr_c_vals = &c_vals[0];
+    assume_aligned(ptr_c_vals,16);   
+#elif defined(__GNUC__) && (!defined(__INTEL_COMPILER) || !defined(__ICC))
+    float * __restrict ptr_c_vals = (float*)__builtin_assume_aligned(c_vals,16);    
+#endif  
+    float kernel_sum{0.0f}; 
+    if constexpr(kernel_ordered==kernel_ordered_funcs::WANG_VAN_RYZIN_KERNEL)
     {
-        ret_val = C039894228040143267794*ceph_expf(-0.5f*zz);
-    }
-    else if constexpr(kernels==kernel_functions_types::FOURTH_ORDER_GAUSSIAN)
-    {
-        const float expf_term{ceph_expf(-0.5f*zz)};
-        ret_val = C039894228040143267794*(1.5f-0.5f*zz)*expf_term;
-    }
-    else if constexpr(kernels==kernel_functions_types::SIXTH_ORDER_GAUSSIAN)
-    {
-        const float zp4{0.125f*zz*zz};
-        const float expf_term{ceph_expf(-0.5f*zz)};
-        const float term1{1.875f-1.25f*zz+zp4};
-        ret_val = C039894228040143267794*term1*expf_term;
-    }
-    else if constexpr(kernels==kernel_functions_types::EIGHT_ORDER_GAUSSIAN)
-    {
-        const float expf_term{ceph_expf(-0.5f*zz)};
-        const float zp4{0.4375f*zz*zz};
-        const float zp6{0.02083333333f*zz*zz*zz};
-        const float term1{2.1875f-2.1875f*zz+zp4-zp6};
-        ret_val = C039894228040143267794*term1*expf_term;
-    }
-    else if constexpr(kernels==kernel_functions_types::SECOND_ORDER_EPANECHNIKOV)
-    {
-        if(__builtin_expect(gms::definitelyLessThan(zz,5.0f,epsilon)))
-        {  ret_val = 0.33541019662496845446f-0.067082039324993690892f*zz;}
-    }
-    else if constexpr(kernels==kernel_functions_types::FOURTH_ORDER_EPANECHNIKOV)
-    {        
-        if(__builtin_expect(gms::definitelyLessThan(zz,5.0f,epsilon)))
-        {   const float term1{0.008385254916f*(-15.0f+7.0f*zz)*(-5.0f+zz)};
-            ret_val = term1;
-        }
-    }
-    else if constexpr(kernels==kernel_functions_types::SIXTH_ORDER_EPANECHNIKOV)
-    {
-        if(__builtin_expect(gms::definitelyLessThan(zz,5.0f,epsilon)))
+#if (USE_OPENMP) == 1
+#pragma simd simdlen(4) linear(i:1) private(curr_val,left_kern_val,right_kern_val) reduction(+:kernel_sum)
+#endif 
+        for(std::int32_t i = 0;i != c_len; ++i) 
         {
-            const float term1{(1.0f-0.2f*zz)};
-            ret_val = 0.33541019662496845446f*std::fma(std::fma(0.721875f,zz,-3.28125f),zz,2.734375f)*term1;
+            const float curr_val{ptr_c_vals[i]};
+            const float left_kern_val{kernel_ordered_van_ryzin_wang(x,curr_val,lambda,epsilon)};
+            const float right_kern_val{kernel_ordered_van_ryzin_wang(y,curr_val,lambda,epsilon)};
+            kernel_sum += (left_kern_val*right_kern_val);
         }
+        return (kernel_sum);
     }
-    else if constexpr(kernels==kernel_functions_types::EIGHT_ORDER_EPANECHNIKOV)
+    else if constexpr(kernel_ordered==kernel_ordered_funcs::QI_KERNEL)
     {
-        if(__builtin_expect(gms::definitelyLessThan(zz,5.0f,epsilon)))
+#if (USE_OPENMP) == 1
+#pragma simd simdlen(4) linear(i:1) private(curr_val,left_kern_val,right_kern_val) reduction(+:kernel_sum)
+#endif 
+        for(std::int32_t i = 0;i != c_len; ++i) 
         {
-            const float term1{1.0f-0.2f*zz};
-            const float term2{4.1056640625f-0.5865234375f*zz};
-            ret_val = 0.33541019662496845446f*std::fma(std::fma(term2,zz,-7.8955078125f),zz,3.5888671875)*term1;
+            const float curr_val{ptr_c_vals[i]};
+            const float left_kern_val{kernel_ordered_qi(x,curr_val,lambda,epsilon)};
+            const float right_kern_val{kernel_ordered_qi(y,curr_val,lambda,epsilon)};
+            kernel_sum += (left_kern_val*right_kern_val);
         }
-    }
-    else if constexpr(kernels==kernel_functions_types::RECTANGULAR_KERNEL)
-    {
-        if(__builtin_expect(gms::definitelyLessThan(zz,1.0f,epsilon))) {ret_val = 0.5f;}
-        
+        return (kernel_sum);
     }
 
-    return (ret_val);
 }
 
-template<kernel_functions_cdf cdf_kernels>
-float evaluate_cdf_kernel_functions(const float z,const float epsilon)
+template<kernel_unordered_funcs kernel_unordered>
+float cdf_kernel_unordered(float * __restrict categorical_vals,const std::int32_t vals_len,const float c,
+                           const float x,const float y,const float lambda,const float epsilon)
 {
-     const float zz{z*z};
-     constexpr float C2236067978{2.236067978f};
-     float ret_val{0.0f};
-
-     if constexpr(cdf_kernels==kernel_functions_cdf::SECOND_ORDER_GAUSSIAN)
-     {
-         ret_val = std::fma(0.5f,std::erf(0.7071067810f*z),0.5f);
-     }
-     else if constexpr(cdf_kernels==kernel_functions_cdf::FOURTH_ORDER_GAUSSIAN)
-     {
-         const float expf_term{ceph_expf(-0.5f*zz)};
-         ret_val = std::fma(0.5f,std::erf(0.7071067810f*z),(0.1994711401f*z*expf_term))+0.5f;
-     }
-     else if constexpr(cdf_kernels==kernel_functions_cdf::SIXTH_ORDER_GAUSSIAN)
-     {
-         const float expf_term{ceph_expf(-0.5f*zz)};
-         const float pz3{zz*z};
-         const float last_term{0.04986778504f*expf_term*pz3};
-         ret_val = std::fma(0.5f,std::erf(0.7071067810f*z),(0.3490744952f*z*expf_term))-last_term+0.5f;
-     }
-     else if constexpr(cdf_kernels==kernel_functions_cdf::EIGHT_ORDER_GAUSSIAN)
-     {
-          const float expf_term{ceph_expf(-0.5f*zz)};
-          const float pz3{zz*z};
-          const float pz5{pz3*zz};
-          const float mid_term{0.1329807601f*expf_term*pz3};
-          const float last_term{0.008311297511f*expf_term*pz5};
-          ret_val = std::fma(0.5f,std::erf(0.7071067810f*z),(0.4737439578f*z*expf_term))- 
-                    mid_term+last_term+0.5f;
-     }
-     else if constexpr(cdf_kernels==kernel_functions_cdf::SECOND_ORDER_EPANECHNIKOV)
-     {
-          if(gms::definitelyLessThan(z,-C2236067978,epsilon))
-          {
-               ret_val = 0.0f;
-          }
-          else if(gms::definitelyLessThan(z,C2236067978,epsilon))
-          {
-               const float zp3{zz*z};
-               ret_val = 0.3354101967f*z-0.02236067978f*zp3+0.5f;
-          }
-          else 
-          {
-               ret_val = 1.0f;
-          }
-     }
-     else if constexpr(cdf_kernels==kernel_functions_cdf::FOURTH_ORDER_EPANECHNIKOV)
-     {
-          if(gms::definitelyLessThan(z,-C2236067978,epsilon))
-          {
-               ret_val = 0.0f;
-          }
-          else if(gms::definitelyLessThan(z,C2236067978,epsilon))
-          {
-               const float zp3{zz*z};
-               const float zp5{zp3*zz};
-               ret_val = 0.01173935688f*zp5-0.1397542486f*zp3+0.6288941188f*z+0.5f;					
-          }
-          else 
-          {
-               ret_val = 1.0f;
-          }
-     }
-     else if constexpr(cdf_kernels==kernel_functions_cdf::SIXTH_ORDER_EPANECHNIKOV)
-     {
-          if(gms::definitelyLessThan(z,-C2236067978,epsilon))
-          {
-               ret_val = 0.0f;
-          }
-          else if(gms::definitelyLessThan(z,C2236067978,epsilon))
-          {
-               const float zp3{zz*z};
-               const float zp5{zp3*zz};
-               const float zp7{zp5*zz};
-               ret_val = std::fma(-0.006917835307f,zp7,0.09244743547f*zp5)- 
-                         0.4279973864f*zp3+0.9171372566*z+0.5f;
-          }
-          else 
-          {
-               ret_val = 1.0f;
-          }
-     }
-     else if constexpr(cdf_kernel==kernel_functions_cdf::EIGHT_ORDER_EPANECHNIKOV)
-     {
-          if(gms::definitelyLessThan(z,-C2236067978,epsilon))
-          {
-               ret_val = 0.0f;
-          }
-          else if(gms::definitelyLessThan(z,C2236067978,epsilon))
-          {
-               const float zp3{zz*z};
-               const float zp5{zp3*zz};
-               const float zp7{zp5*zz};
-               const float zp9{zp7*zz};
-               ret_val =  0.004371687590f*zp9
-                         -0.06744889424f*zp7
-					     +0.3813456714f*zp5
-					     -0.9629941194f*zp3
-					     +std::fma(1.203742649f,z,0.5f);
-          }
-          else 
-          {
-               ret_val = 1.0f;
-          }
-     }
-     else if constexpr(cdf_kernel==kernel_functions_cdf::RECTANGULAR_KERNEL)
-     {
-          if(z < -1.0f)
-          {
-               ret_val = 0.0f;
-          }
-          else if(z < 1.0f)
-          {
-               ret_val = std::fma(0.5f,z,0.5f);
-          }
-          else 
-          {
-               ret_val = 1.0f;
-          }
-     }
-     return (ret_val);
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+    float * __restrict ptr_categorical_vals = &categorical_vals[0];
+    assume_aligned(ptr_categorical_vals,16);   
+#elif defined(__GNUC__) && (!defined(__INTEL_COMPILER) || !defined(__ICC))
+    float * __restrict ptr_categorical_vals = (float*)__builtin_assume_aligned(categorical_vals,16);    
+#endif  
+    float kernel_sum{0.0f}; 
+    if constexpr(kernel_unordered==kernel_unordered_funcs::AITCHENSON_AITKEN_KERNEL_0)
+    {
+#if (USE_OPENMP) == 1
+#pragma simd simdlen(4) linear(i:1) private(current_value,current_value_le_x) reduction(+:kernel_sum)
+#endif        
+        for(std::int32_t i = 0;i != vals_len; ++i) 
+        {
+            const float current_value{ptr_categorical_vals[i]};
+            const bool  current_value_le_x = gms::definitelyLessThan(current_value,x,epsilon);
+            if(current_value_le_x)
+            {
+                kernel_sum += kernel_unordered_aitchenson_aitken_0(current_value,y,lambda,c,epsilon);
+            }
+        }
+        return (kernel_sum);
+    }
+    else if constexpr(kernel_unordered==kernel_unordered_funcs::AITCHENSON_AITKEN_KERNEL_1)
+    {
+#if (USE_OPENMP) == 1
+#pragma simd simdlen(4) linear(i:1) private(current_value,current_value_le_x) reduction(+:kernel_sum)
+#endif        
+        for(std::int32_t i = 0;i != vals_len; ++i) 
+        {
+            const float current_value{ptr_categorical_vals[i]};
+            const bool  current_value_le_x = gms::definitelyLessThan(current_value,x,epsilon);
+            if(current_value_le_x)
+            {
+                kernel_sum += kernel_unordered_aitchenson_aitken_1(current_value,y,lambda,epsilon);
+            }
+        }
+        return (kernel_sum);
+    }
 }
 
-/*
-    The inputs for the Epanechnikov kernels must be less then 5.0, i.e. ((z*z)<5.0)
-    The input checks are removed due to optimizing out the branch misprediction.
-*/
-template<kernel_functions_derivative kernel_deriv>
-float evaluate_kernel_funcs_derivatives(const float z,const float epsilon)
+template<kernel_unordered_funcs kernel_unordered>
+float kernel_unordered_convolution(float * __restrict c_vals,const std::int32_t c_vals_len,
+                                   const float x,const float y,const float lambda,const float c,
+                                   const float epsilon)
 {
-    const float zz{z*z};
-    constexpr float C039894228040143267794{0.39894228040143267794f};
-    float ret_val{0.0f};
-
-    if constexpr(kernel_deriv==kernel_functions_derivative::SECOND_ORDER_GAUSSIAN)
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+    float * __restrict ptr_c_vals = &c_vals[0];
+    assume_aligned(ptr_c_vals,16);   
+#elif defined(__GNUC__) && (!defined(__INTEL_COMPILER) || !defined(__ICC))
+    float * __restrict ptr_c_vals = (float*)__builtin_assume_aligned(c_vals,16);    
+#endif  
+    float kernel_sum{0.0f}; 
+    if constexpr(kernel_unordered==kernel_unordered_funcs::AITCHENSON_AITKEN_KERNEL_0)
     {
-        ret_val = -z*C039894228040143267794*ceph_expf(-0.5f*zz);
+#if (USE_OPENMP) == 1
+#pragma simd simdlen(4) linear(i:1) private(current_value,left_kern_val,right_kern_val) reduction(+:kernel_sum)
+#endif          
+        for(std::int32_t i = 0;i != c_vals_len; ++i) 
+        {
+            const float current_value{ptr_c_vals[i]};
+            const float left_kern_val{kernel_unordered_aitchenson_aitken_0(x,current_value,lambda,c,epsilon)};
+            const float right_kern_val{kernel_unordered_aitchenson_aitken_0(y,current_value,lambda,c,epsilon)};
+            kernel_sum += (left_kern_val*right_kern_val);
+        }
+        return (kernel_sum);
     }
-    else if constexpr(kernel_deriv==kernel_functions_derivative::FOURTH_ORDER_GAUSSIAN)
+    else if constexpr(kernel_unordered==kernel_unordered_funcs::AITCHENSON_AITKEN_KERNEL_1)
     {
-        const float zp3{zz*z};
-        const float mid_term{2.5f*z-0.5f*zp3};
-        ret_val = -C039894228040143267794*mid_term*ceph_expf(-0.5f*zz);
+#if (USE_OPENMP) == 1
+#pragma simd simdlen(4) linear(i:1) private(current_value,left_kern_val,right_kern_val) reduction(+:kernel_sum)
+#endif          
+        for(std::int32_t i = 0;i != c_vals_len; ++i) 
+        {
+            const float current_value{ptr_c_vals[i]};
+            const float left_kern_val{kernel_unordered_aitchenson_aitken_1(x,current_value,lambda,epsilon)};
+            const float right_kern_val{kernel_unordered_aitchenson_aitken_1(y,current_value,lambda,epsilon)};
+            kernel_sum += (left_kern_val*right_kern_val);
+        }
+        return (kernel_sum);
     }
-    else if constexpr(kernel_deriv==kernel_functions_derivative::SIXTH_ORDER_GAUSSIAN)
-    {
-        const float zp4{zz*zz};
-        const float last_term{35.0f-14.0f*zz+zp4};
-        ret_val = -0.049867785050179084743*z*ceph_expf(-0.5f*zz)*last_term;
-    }
-    else if constexpr(kernel_deriv==kernel_functions_derivative::EIGHT_ORDER_GAUSSIAN)
-    {
-        const float zp3{zz*z};
-        const float zp4{zz*zz};
-        const float zp6{zz*zz*zz};
-        const float mid_term1{6.5625f*z-3.9375f*zp3};
-        const float mid_term2{0.5625f*zp4*z-0.02083333333f*zp6*z};
-        ret_val = -C039894228040143267794*(mid_term1+mid_term2)*ceph_expf(-0.5f*zz);
-    }
-    else if constexpr(kernel_deriv==kernel_functions_derivative::SECOND_ORDER_EPANECHNIKOV)
-    {
-        ret_val = -0.13416407864998738178f*z;
-    }
-    else if constexpr(kernel_deriv==kernel_functions_derivative::FOURTH_ORDER_EPANECHNIKOV)
-    {
-        const float term1{1.0f-0.2f*zz};
-        const float term2{1.875f-0.875f*zz};
-        ret_val = -0.58696784409369479531*z*term1-0.13416407864998738178f*term2*z;
-    }
-    else if constexpr(kernel_deriv==kernel_functions_derivative::SIXTH_ORDER_EPANECHNIKOV)
-    {
-        ret_val = -1.0022916396047925e-10f*z*(zz*(2898847705.0f*zz-18447212816.0f)+25621128780.0f);
-    }
-    else if constexpr(kernel_deriv==kernel_functions_derivative::EIGHT_ORDER_EPANECHNIKOV)
-    {
-        const float zp3{zz*z};
-        const float zp5{zp3*zz};
-        const float zp7{zp5*zz};
-        ret_val =   -5.7779647152973081413f*z
-					+ 7.6269134241924467465f*zp3
-					- 2.8328535575571945058f*zp5
-					+ 0.31476150639524383398f*zp7;
-    }
-    else if constexpr(kernel_deriv==kernel_functions_derivative::RECTANGULAR_KERNEL)
-    {   
-        /* Derivative always zero except at +-1 where it is undefined. */
-        ret_val = 0.0f;
-    }
-    return (ret_val);
 }
 
-template<kernel_convolution_functions convolution_funcs>
-float evaluate_kernel_convolution_funcs(const float z,const float epsilon,
-                                        const float h1,const float h2)
-{
-    /* Evaluate the convolution kernel function */
-    const float zz{z*z};
-    float ret_val{0.0f};
-    const bool zz_lt_20 = gms::definitelyLessThan(zz,20.0f,epsilon);
-    const bool z_lt_0   = z<0.0;
-    if constexpr(convolution_funcs==kernel_convolution_functions::SECOND_ORDER_GAUSSIAN)
-    {
-        ret_val = 0.28209479177387814348f*ceph_expf(-0.25f*zz);
-    }
-    else if constexpr(convolution_funcs==kernel_convolution_functions::FOURTH_ORDER_GAUSSIAN)
-    {
-        const float zp4{zz*zz};
-        const float last_term{108.0f-28.0f*zz*zp4};
-        ret_val = 0.0044077311214668459918f*ceph_expf(-0.25f*zz)*last_term;
-    }
-    else if constexpr(convolution_funcs==kernel_convolution_functions::SIXTH_ORDER_GAUSSIAN)
-    {
-        const float zp4{zz*zz};
-        const float zp6{zp4*zz};
-        const float zp8{zp6*zz};
-        const float mid_term{36240.0f-19360.0f*zz+2312.0f*zp4};
-        const float last_term{std::fma(88.0f,zp6,zp8)};
-        ret_val = 0.00001721769969f*ceph_expf(-0.25f*zz)*(mid_term-last_term);
-    }
-    else if constexpr(convolution_funcs==kernel_convolution_functions::EIGHT_ORDER_GAUSSIAN)
-    {
-        const float zp4{zz*zz};
-        const float zp6{zp4*zz};
-        const float zp8{zp6*zz};
-        const float zp10{zp8*zz};
-        const float zp12{zp10*zz};
-        const float term1{25018560.0f-20462400.0f*zz+202352.0f*zp4};
-        const float term2{331680.0f*zp6+11604.0f*zp8};
-        const float term3{std::fma(180.0f,zp10,zp12)};
-        ret_val = 0.2989183974e-7f*ceph_expf(0.25f*zz)*(term1-term2-term3);
-    }
-    else if constexpr(convolution_funcs==kernel_convolution_functions::SECOND_ORDER_EPANECHNIKOV)
-    {
-        const float zp3{zz*z};
-        const float zp5{zp3*zz};
-        const float common_term{26883.0f*zp5-2688300.0f*zp3};
-        ret_val = (zz_lt_20)  ? 
-                  ((z_lt_0) ? 
-                   (5.579734404642339e-9f*(common_term-12022443.0f*zz+48089773.0f)) : 
-                   (-5.579734404642339e-9f*(common_term+12022443.0f*zz-48089773.0f))) : 0.0f;
-    }
-    else if constexpr(convolution_funcs==kernel_convolution_functions::FOURTH_ORDER_EPANECHNIKOV)
-    {
-        const float zp3{zz*z};
-        const float zp4{zz*zz};
-        const float zp5{zp3*zz};
-        const float zp7{zp5*zz};
-        const float zp9{zp7*zz};
-        ret_val = (zz_lt_20)  ? 
-                  ((z_lt_0) ?
-                  (3.756009615384615e-9f*(1456.0f*zp9-124800.0f*zp7+5491200.0f*zp5+156274320.0f*zp4-24960000.0f*zp3-111624513.0f*zz+148832684.0f)):
-                  (-3.756009615384615e-9f*(1456.0f*zp9-124800.0f*zp7+5491200.0f*zp5-156274320.0f*zp4-24960000.0f*zp3+111624513.0f*zz-148832684.0f))):0.0f;
-    }
-    else if constexpr(convolution_funcs==kernel_convolution_functions::SIXTH_ORDER_EPANECHNIKOV)
-    {
-        const float zp3{zz*z};
-        const float zp4{zz*zz};
-        const float zp5{zp3*zz};
-        const float zp6{zp5*z};
-        const float zp7{zp5*zz};
-        const float zp9{zp7*zz};
-        const float zp11{zp9*zz};
-        const float zp13{zp11*zz};
-        ret_val = (zz_lt_20)  ? 
-                  ((z_lt_0) ?
-                  (9.390024038461537e-11f*(2079.0f*zp13-206388.0f*zp11+8867040.0f*zp9-255528000.0f*zp7-515705252.0f*zp6+1681680000.0f*zp5+4922641042.0f*zp4-3057600000.0f*zp3-13674002896*zz+9015826085)) :
-                  (-9.390024038461537e-11f*(2079.0f*zp13-206388.0f*zp11+8867040.0f*zp9-255528000.0f*zp7+515705252.0f*zp6+1681680000.0f*zp5-4922641042.0f*zp4-3057600000.0f*zp3+13674002896*zz-9015826085))) : 0.0f;
-    }
-    else if constexpr(convolution_funcs==kernel_convolution_functions::EIGHT_ORDER_EPANECHNIKOV)
-    {
-        const float zp3{zz*z};
-        const float zp4{zz*zz};
-        const float zp5{zp3*zz};
-        const float zp6{zp5*z};
-        const float zp7{zp5*zz};
-        const float zp8{zp7*z};
-        const float zp9{zp7*zz};
-        const float zp11{zp9*zz};
-        const float zp13{zp11*zz};
-        const float zp15{zp13*zz};
-        const float zp17{zp15*zz};
-        ret_val = (zz_lt_20)  ? 
-                  ((z_lt_0) ?
-                  (1.121969784007353e-13f*(63063.0f*zp17-7351344.0f*zp15+373222080.0f*zp13-11040382080.0f*zp11+241727270400.0f*zp9+350679571413.0f*zp8-1900039680000.0*zp7-4208154856956.0f*zp6+5757696000000.0f*zp5+16994471537707.0f*zp4-5757696000000.0f*zp3-25749199299557.0f*zz+10097725215512.0f)) :
-                  (-1.121969784007353e-13f*(63063.0f*zp17-7351344.0f*zp15+373222080.0f*zp13-11040382080.0f*zp11+241727270400.0f*zp9-350679571413.0f*zp8-1900039680000.0*zp7+4208154856956.0f*zp6+5757696000000.0f*zp5-16994471537707.0f*zp4-5757696000000.0f*zp3+25749199299557.0f*zz+10097725215512.0f))) : 0.0f;
-                  
-    }
-    else if constexpr(convolution_funcs==kernel_convolution_functions::RECTANGULAR_KERNEL)
-    {
-        ret_val = (zz<1.0f) ? 0.5f/(h1*h2) : 0.0f;
-    }
-
-    return (ret_val);
-}
 
 template<kernel_regression_asymptotic_constants regress_constants>
 void init_kernel_regression_asymptotic_constants(const float num_reg_continous,
