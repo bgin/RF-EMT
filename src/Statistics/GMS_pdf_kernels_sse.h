@@ -77,12 +77,11 @@ namespace np_standalone_funcs
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif  
-__ATTR_ALWAYS_INLINE__
-static inline
+template<bool use_prefetching>
 __m128 np_gauss2_sse_ps(const __m128 z)
 {
 #if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
-     __ATTR_ALIGN__(16) const float prefetched_constants[16] = {
+     __ATTR_ALIGN__(16) constexpr float prefetched_constants[16] = {
                                                  0.398942280401432677939946059934f,
                                                  0.398942280401432677939946059934f,
                                                  0.398942280401432677939946059934f,
@@ -90,7 +89,10 @@ __m128 np_gauss2_sse_ps(const __m128 z)
                                                  -0.5f,-0.5f,-0.5f,-0.5f,
                                                  0.0f,0.0f,0.0f,0.0f,
                                                  0.0f,0.0f,0.0f,0.0f};
-    _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0); 
+    if constexpr(use_prefetching==true)
+    {
+         _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0); 
+    }
     const __m128 vC0398942280401432677939946059934{_mm_load_ps(&prefetched_constants[0])};
     const __m128 vC05{_mm_load_ps(&prefetched_constants[4])};
 #else
@@ -109,12 +111,11 @@ __m128 np_gauss2_sse_ps(const __m128 z)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif  
-__ATTR_ALWAYS_INLINE__
-static inline
+template<bool use_prefetching>
 __m128 np_gauss4_sse_ps(const __m128 z)
 {
 #if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
-     __ATTR_ALIGN__(16) const float prefetched_constants[16] = {
+     __ATTR_ALIGN__(16) constexpr float prefetched_constants[16] = {
                                                  0.398942280401432677939946059934f,
                                                  0.398942280401432677939946059934f,
                                                  0.398942280401432677939946059934f,
@@ -122,7 +123,10 @@ __m128 np_gauss4_sse_ps(const __m128 z)
                                                  -0.5f,-0.5f,-0.5f,-0.5f,
                                                  1.5f,1.5f,1.5f,1.5f,
                                                  0.5f,0.5f,0.5f,0.5f};
-    _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0); 
+    if constexpr(use_prefetching==true)
+    {
+      _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0); 
+    }
     const __m128 vC0398942280401432677939946059934{_mm_load_ps(&prefetched_constants[0])};
     const __m128 vnC05{_mm_load_ps(&prefetched_constants[4])};
     const __m128 vC15{_mm_load_ps(&prefetched_constants[8])};
@@ -147,12 +151,11 @@ __m128 np_gauss4_sse_ps(const __m128 z)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif  
-__ATTR_ALWAYS_INLINE__
-static inline
+template<bool use_prefetching>
 __m128 np_gauss6_sse_ps(const __m128 z)
 {
 #if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
-     __ATTR_ALIGN__(16) const float prefetched_constants[32] = {
+     __ATTR_ALIGN__(16) constexpr float prefetched_constants[32] = {
                                                  0.398942280401432677939946059934f,
                                                  0.398942280401432677939946059934f,
                                                  0.398942280401432677939946059934f,
@@ -164,8 +167,11 @@ __m128 np_gauss6_sse_ps(const __m128 z)
                                                  0.0f,0.0f,0.0f,0.0f,
                                                  0.0f,0.0f,0.0f,0.0f,
                                                  0.0f,0.0f,0.0f,0.f};
-    _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0); 
-    _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+    if constexpr(use_prefetching==true)
+    {
+       _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0); 
+       _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+    }
     const __m128 vC0398942280401432677939946059934{_mm_load_ps(&prefetched_constants[0])};
     const __m128 vnC0125{_mm_load_ps(&prefetched_constants[4])};
     const __m128 vC125{_mm_load_ps(&prefetched_constants[8])};
@@ -191,12 +197,11 @@ __m128 np_gauss6_sse_ps(const __m128 z)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif  
-__ATTR_ALWAYS_INLINE__
-static inline
+template<bool use_prefetching>
 __m128 np_gauss8_sse_ps(const __m128 z)
 {
 #if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
-     __ATTR_ALIGN__(16) const float prefetched_constants[32] = {
+     __ATTR_ALIGN__(16) constexpr float prefetched_constants[32] = {
                                                  0.398942280401432677939946059934f,
                                                  0.398942280401432677939946059934f,
                                                  0.398942280401432677939946059934f,
@@ -209,8 +214,11 @@ __m128 np_gauss8_sse_ps(const __m128 z)
                                                  -0.5f,-0.5f,-0.5f,-0.5f,
                                                  0.0f,0.0f,0.0f,0.0f,
                                                  0.0f,0.0f,0.0f,0.0f};
-    _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0); 
-    _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+    if constexpr(use_prefetching==true)
+    {
+        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0); 
+        _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+    }
     const __m128 vC0398942280401432677939946059934{_mm_load_ps(&prefetched_constants[0])};
     const __m128 vC4375{_mm_load_ps(&prefetched_constants[4])};
     const __m128 vC02083333333{_mm_load_ps(&prefetched_constants[8])};
@@ -248,12 +256,11 @@ __m128 np_gauss8_sse_ps(const __m128 z)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif  
-__ATTR_ALWAYS_INLINE__
-static inline
+template<bool use_prefetching>
 __m128 np_epanechnikov2_sse_ps(const __m128 z) 
 {
 #if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
-    __ATTR_ALIGN__(16) const float prefetched_constants[16] = {
+    __ATTR_ALIGN__(16) constexpr float prefetched_constants[16] = {
                                                 0.33541019662496845446f,
                                                 0.33541019662496845446f,
                                                 0.33541019662496845446f,
@@ -264,7 +271,10 @@ __m128 np_epanechnikov2_sse_ps(const __m128 z)
                                                 0.067082039324993690892f,
                                                 0.0f,0.0f,0.0f,0.0f,
                                                 0.0f,0.0f,0.0f,0.0f};
-    _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);                                  
+    if constexpr(use_prefetching==true)
+    {
+        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);       
+    }                           
     const __m128 vC033541019662496845446{_mm_load_ps(&prefetched_constants[0])};
     const __m128 vC0067082039324993690892{_mm_load_ps(&prefetched_constants[4])};
 #else 
@@ -282,12 +292,11 @@ __m128 np_epanechnikov2_sse_ps(const __m128 z)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif  
-__ATTR_ALWAYS_INLINE__
-static inline
+template<bool use_prefetching>
 __m128 np_epanechnikov4_sse_ps(const __m128 z) 
 {
 #if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
-    __ATTR_ALIGN__(16) const float prefetched_constants[16] = {
+    __ATTR_ALIGN__(16) constexpr float prefetched_constants[16] = {
                                     0.008385254916f,
                                     0.008385254916f,
                                     0.008385254916f,
@@ -295,8 +304,10 @@ __m128 np_epanechnikov4_sse_ps(const __m128 z)
                                     7.0f,7.0f,7.0f,7.0f,
                                     -15.0f,-15.0f,-15.0f,-15.0f,
                                     -5.0f,-5.0f,-5.0f,-5.0f};
-                                                
-    _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0); 
+    if constexpr(use_prefetching==true)
+    {                                         
+        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0); 
+    }
     const __m128 vC0008385254916{_mm_load_ps(&prefetched_constants[0])};
     const __m128 vC7{_mm_load_ps(&prefetched_constants[4])};
     const __m128 vnC15{_mm_load_ps(&prefetched_constants[8])};
@@ -320,12 +331,11 @@ __m128 np_epanechnikov4_sse_ps(const __m128 z)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif  
-__ATTR_ALWAYS_INLINE__
-static inline
+template<bool use_prefetching>
 __m128 np_epanechnikov6_sse_ps(const __m128 z) 
 {
 #if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
-    __ATTR_ALIGN__(16) const float prefetched_constants[32] = {
+    __ATTR_ALIGN__(16) constexpr float prefetched_constants[32] = {
                                         0.33541019662496845446f,
                                         0.33541019662496845446f,
                                         0.33541019662496845446f,
@@ -340,8 +350,11 @@ __m128 np_epanechnikov6_sse_ps(const __m128 z)
                                         0.2f,0.2f,0.2f,0.2f,
                                         0.0f,0.0f,0.0f,0.0f,
                                         0.0f,0.0f,0.0f,0.0f};
-    _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
-    _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+    if constexpr(use_prefetching==true)
+    {
+        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+        _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+    }
     const __m128 vC033541019662496845446{_mm_load_ps(&prefetched_constants[0])};
     const __m128 vC2734375{_mm_load_ps(&prefetched_constants[4])};
     const __m128 vnC328125{_mm_load_ps(&prefetched_constants[8])};
@@ -369,12 +382,11 @@ __m128 np_epanechnikov6_sse_ps(const __m128 z)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif  
-__ATTR_ALWAYS_INLINE__
-static inline
+template<bool use_prefetching>
 __m128 np_epanechnikov8_sse_ps(const __m128 z) 
 {
 #if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
-    __ATTR_ALIGN__(16) const float prefetched_constants[32] = {
+    __ATTR_ALIGN__(16) constexpr float prefetched_constants[32] = {
                                      0.33541019662496845446f,
                                      0.33541019662496845446f,
                                      0.33541019662496845446f,
@@ -390,8 +402,11 @@ __m128 np_epanechnikov8_sse_ps(const __m128 z)
                                      1.0f,1.0f,1.0f,1.0f,
                                      0.2f,0.2f,0.2f,0.2f,
                                      0.0f,0.0f,0.0f,0.0f};
-    _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
-    _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+    if constexpr(use_prefetching==true)
+    {
+        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+        _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+    }
     const __m128 vC033541019662496845446{_mm_load_ps(&prefetched_constants[0])};
     const __m128 vC35888671875{_mm_load_ps(&prefetched_constants[4])};
     const __m128 vnC78955078125{_mm_load_ps(&prefetched_constants[8])};
@@ -422,17 +437,19 @@ __m128 np_epanechnikov8_sse_ps(const __m128 z)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif  
-__ATTR_ALWAYS_INLINE__
-static inline
+template<bool use_prefetching>
 __m128 np_rect_sse_ps(const __m128 z) 
 {
 #if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
-    __ATTR_ALIGN__(16) const float prefetched_constants[16] = {  
+    __ATTR_ALIGN__(16) constexpr float prefetched_constants[16] = {  
                                         0.5f,0.5f,0.5f,0.5f,
                                         0.0f,0.0f,0.0f,0.0f,
                                         1.0f,1.0f,1.0f,1.0f,
                                         0.0f,0.0f,0.0f,0.0f};
-    _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+    if constexpr(use_prefetching==true)
+    {
+        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+    }
     const __m128 vC05{_mm_load_ps(&prefetched_constants[0])};
     const __m128 vC0{_mm_load_ps(&prefetched_constants[4])};
     const __m128 vC1{_mm_load_ps(&prefetched_constants[8])};
@@ -453,19 +470,21 @@ __m128 np_rect_sse_ps(const __m128 z)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif  
-__ATTR_ALWAYS_INLINE__
-static inline
+template<bool use_prefetching>
 __m128 np_uaa_sse_ps(const __m128 vsame_cat,
                      const __m128 vlambda,
                      const __m128 vc)
 {
 #if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
-    __ATTR_ALIGN__(16) const float prefetched_constants[16] = { 
+    __ATTR_ALIGN__(16) constexpr float prefetched_constants[16] = { 
                                       1.0f,1.0f,1.0f,1.0f,
                                       0.0f,0.0f,0.0f,0.0f,
                                       0.0f,0.0f,0.0f,0.0f,
                                       0.0f,0.0f,0.0f,0.0f};
-    _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+    if constexpr(use_prefetching==true)
+    {
+        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+    }
     const __m128 vC1{_mm_load_ps(&prefetched_constants[0])};
     const __m128 vC0{_mm_setzero_ps()};
 #else 
