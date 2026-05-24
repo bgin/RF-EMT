@@ -1,8 +1,5 @@
 
 
-#ifndef __GMS_SIMD_UTILS_H__
-#define __GMS_SIMD_UTILS_H__ 040120220918
-
 /*MIT License
 Copyright (c) 2020 Bernard Gingold
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -22,8 +19,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#ifndef __GMS_SIMD_UTILS_H__
+#define __GMS_SIMD_UTILS_H__ 040120220918
 
-namespace file_info {
+
+
+
+namespace file_info 
+{
 
 const unsigned int GMS_SIMD_UTILS_MAJOR = 1U;
 const unsigned int GMS_SIMD_UTILS_MINOR = 0U;
@@ -52,7 +55,7 @@ namespace  gms {
           namespace  math {
 
 
-                       namespace 
+            namespace 
 			{
 
                           const __m128  _0PS     = _mm_set1_ps(0.0F);
@@ -67,12 +70,11 @@ namespace  gms {
 
 
 	              
-                      __ATTR_ALWAYS_INLINE__
-		     static inline
-		      __mmask8 isinf_zmm8r8(__m512d x) {
-
-                         union {
-                           __m512i u;
+        __ATTR_ALWAYS_INLINE__
+		static inline
+		__mmask8 isinf_zmm8r8(__m512d x) {
+             union {
+               __m512i u;
 			   __m512d f;
 			 } ieee754;
 			 const __m512i c0 = _mm512_set1_epi64(0x7fffffff);
@@ -85,7 +87,7 @@ namespace  gms {
 			 b0 = _mm512_cmp_epi64_mask(t0,c1,_MM_CMPINT_EQ);
 			 b1 = _mm512_cmp_epi64_mask(ieee754.u,_0,_MM_CMPINT_EQ);
 			 return (b0 && b1);
-		    }
+		}
 
 /*
 		     
@@ -117,30 +119,30 @@ namespace  gms {
 		      // Single-precision
 
                      
-                      __ATTR_ALWAYS_INLINE__
-		      static inline
-		      __m128
-		      xmm4r4_load_3u_avx512(const float * __restrict v) {
+            __ATTR_ALWAYS_INLINE__
+		    static inline
+		    __m128
+		    xmm4r4_load_3u_avx512(const float * __restrict v) {
                             const __mmask8 k = 0x7;
                             return (_mm_mask_loadu_ps(_0PS,k,v));
 		    }
 
 
 		      
-                      __ATTR_ALWAYS_INLINE__
-		      static inline
-		      __m128
-		      xmm4r4_load_3a_avx512(const float * __restrict __ATTR_ALIGN__(16) v) {
+            __ATTR_ALWAYS_INLINE__
+		    static inline
+		    __m128
+		    xmm4r4_load_3a_avx512(const float * __restrict __ATTR_ALIGN__(16) v) {
                             const __mmask8 k = 0x7;
                             return (_mm_mask_load_ps(_0PS,k,v));
 		    }
 
 
 		     
-                      __ATTR_ALWAYS_INLINE__
-		      static inline
-		      __m128
-		      xmm4r4_load_3u_avx(const float * __restrict v) {
+            __ATTR_ALWAYS_INLINE__
+		    static inline
+		    __m128
+		    xmm4r4_load_3u_avx(const float * __restrict v) {
 
                           const __m128i k = _mm_set_epi32(0,-1,-1,-1);
 			  return (_mm_maskload_ps(v,(__m128i)k));
@@ -148,10 +150,10 @@ namespace  gms {
 
 
 		    
-                      __ATTR_ALWAYS_INLINE__
-		     static inline
-		      __m128
-		      xmm4r4_load_3a_avx(const float * __restrict __ATTR_ALIGN__(16) v) {
+            __ATTR_ALWAYS_INLINE__
+		    static inline
+		    __m128
+		    xmm4r4_load_3a_avx(const float * __restrict __ATTR_ALIGN__(16) v) {
 
                           const __m128i k = _mm_set_epi32(0,-1,-1,-1);
 			  return (_mm_maskload_ps(v,(__m128i)k));
@@ -160,10 +162,10 @@ namespace  gms {
                     // Load only 3 elements (lower) of XMM register.
 		    // Double-precision
 		  
-                      __ATTR_ALWAYS_INLINE__
-		      static inline
-		      __m256d
-		      ymm8r4_load_3u_avx512(const double * __restrict v) {
+            __ATTR_ALWAYS_INLINE__
+		    static inline
+		    __m256d
+		    ymm8r4_load_3u_avx512(const double * __restrict v) {
 
 		          const __mmask8 k = 0x7;
 			  return (_mm256_mask_loadu_pd(_0PD,k,v));
@@ -171,10 +173,10 @@ namespace  gms {
 
 
 		    
-                      __ATTR_ALWAYS_INLINE__
-		      static inline
-		      __m256d
-		      ymm8r4_load_3a_avx512(const double * __restrict v) {
+            __ATTR_ALWAYS_INLINE__
+		    static inline
+		    __m256d
+		    ymm8r4_load_3a_avx512(const double * __restrict v) {
 
 		          const __mmask8 k = 0x7;
 			  return (_mm256_mask_load_pd(_0PD,k,v));
@@ -207,12 +209,10 @@ namespace  gms {
 		  // Store only 3 elements (lower) of XMM register.
 
 		    
-                      __ATTR_ALWAYS_INLINE__
-		     
-		     
-		      static inline   
-                      void
-		      xmm4r4_store_3u_avx512(float * __restrict v,
+            __ATTR_ALWAYS_INLINE__
+		    static inline   
+            void
+		    xmm4r4_store_3u_avx512(float * __restrict v,
 		                             const __m128 x) {
 
                           const __mmask8 k = 0x7;
@@ -221,11 +221,10 @@ namespace  gms {
 
 
 		    
-                      __ATTR_ALWAYS_INLINE__
-		     
-		     static inline   
-                      void
-		      xmm4r4_store_3a_avx512(float * __restrict  __ATTR_ALIGN__(16) v,
+            __ATTR_ALWAYS_INLINE__		     
+		    static inline   
+            void
+		    xmm4r4_store_3a_avx512(float * __restrict  __ATTR_ALIGN__(16) v,
 		                             const __m128 x) {
 
                           const __mmask8 k = 0x7;
@@ -234,13 +233,12 @@ namespace  gms {
 
 
 		    
-                      __ATTR_ALWAYS_INLINE__
-		     
-		     
+             __ATTR_ALWAYS_INLINE__		    		     
 		      static inline   
                       void
 		      xmm4r4_store_3u_avx(float * __restrict v,
-		                          const __m128 x) {
+		                          const __m128 x) 
+		  {
 
                           const __m128i k = _mm_set_epi32(0,-1,-1,-1);
 			  return (_mm_maskstore_ps(v,(__m128i)k,x));
@@ -248,9 +246,7 @@ namespace  gms {
 
 
 		    
-                      __ATTR_ALWAYS_INLINE__
-		     
-		     
+            __ATTR_ALWAYS_INLINE__		     
 		      static inline   
                       void
 		      xmm4r4_store_3a_avx(float * __restrict __ATTR_ALIGN__(16) v,
@@ -262,9 +258,7 @@ namespace  gms {
 
 
 		    
-                      __ATTR_ALWAYS_INLINE__
-		     
-		     
+            __ATTR_ALWAYS_INLINE__		     
 		      static inline   
                       void
 		      ymm4r8_store_3u_avx512(double * __restrict v,
@@ -276,9 +270,7 @@ namespace  gms {
 
 
 		    
-                      __ATTR_ALWAYS_INLINE__
-		     
-		     
+            __ATTR_ALWAYS_INLINE__		     
 		      static inline   
                       void
 		      ymm8r4_store_3a_avx512(double * __restrict __ATTR_ALIGN__(16) v,
@@ -292,20 +284,18 @@ namespace  gms {
 		   // The whole register negated
 		   
 		     
-                      __ATTR_ALWAYS_INLINE__
-		    
+              __ATTR_ALWAYS_INLINE__		    
 		      static inline 
-                      __m128
-		      negate_xmm4r4(const __m128 v) {
-
+             __m128
+		      negate_xmm4r4(const __m128 v) 
+			  {
+                   const __m128  NZ128SP = _mm_set1_ps(-0.0F);
 		           return (_mm_xor_ps(v,NZ128SP));
-		    }
+		      }
 		   
                    
 		    
-                      __ATTR_ALWAYS_INLINE__
-		     
-		     
+            __ATTR_ALWAYS_INLINE__		     
 		      static inline 
                       __m256
 		      negate_ymm8r4(const __m256 v) {
@@ -315,9 +305,7 @@ namespace  gms {
 		    
 		    
                     
-                      __ATTR_ALWAYS_INLINE__
-		     
-		     
+            __ATTR_ALWAYS_INLINE__		     
 		      static inline 
                       __m128d
 		      negate_xmm2r8(const __m128d v) {
@@ -327,9 +315,7 @@ namespace  gms {
 		   
 
 		    
-                      __ATTR_ALWAYS_INLINE__
-		     
-		     
+            __ATTR_ALWAYS_INLINE__		     
 		      static inline 
                       __m256d
 		      negate_ymm4r8(const __m256d v) {
@@ -339,9 +325,7 @@ namespace  gms {
 
 
 		    
-                      __ATTR_ALWAYS_INLINE__
-		     
-		     
+            __ATTR_ALWAYS_INLINE__		     
 		      static inline 
                       __m512
 		      negate_zmm16r4(const __m512 v) {
@@ -351,9 +335,7 @@ namespace  gms {
 
 
 		    
-                      __ATTR_ALWAYS_INLINE__
-		     
-		     
+            __ATTR_ALWAYS_INLINE__		     
 		      static inline 
                       __m512d
 		      negate_zmm8r8(const __m512d v) {
@@ -364,9 +346,7 @@ namespace  gms {
 
 		    // Dot product
 		    
-                      __ATTR_ALWAYS_INLINE__
-		     
-		     
+            __ATTR_ALWAYS_INLINE__		     
 		      static inline 
                       __m128d
 		      ymm8r4_dot(const __m256d x,
@@ -381,9 +361,7 @@ namespace  gms {
                    // Getting a single value form SIMD register
 
 		    
-                      __ATTR_ALWAYS_INLINE__
-		     
-		     
+              __ATTR_ALWAYS_INLINE__		     
 		      static inline 
 		      float
 		      ymm8r4_0_elem(__m256 a) {
@@ -392,9 +370,7 @@ namespace  gms {
 		      
 
 		    
-                      __ATTR_ALWAYS_INLINE__
-		     
-		     
+            __ATTR_ALWAYS_INLINE__		     
 		      static inline 
                       float
 		      ymm8r4_1_elem(__m256 a) {
@@ -403,9 +379,7 @@ namespace  gms {
                       }
 
 		    
-                      __ATTR_ALWAYS_INLINE__
-		     
-		     
+            __ATTR_ALWAYS_INLINE__		     
 		      static inline 
                      float
 		     ymm8r4_2_elem(__m256 a) {
@@ -414,9 +388,7 @@ namespace  gms {
                      }
 
 		    
-                      __ATTR_ALWAYS_INLINE__
-		     
-		     
+            __ATTR_ALWAYS_INLINE__		     
 		      static inline 
                       float
 		      ymm8r4_3_elem(__m256 a) {
@@ -425,9 +397,7 @@ namespace  gms {
                      }
 
 		    
-                      __ATTR_ALWAYS_INLINE__
-		     
-		     
+            __ATTR_ALWAYS_INLINE__		     
 		      static inline 
                       float
 		      ymm8r4_4_elem(__m256 a) {
@@ -435,7 +405,7 @@ namespace  gms {
                       }
 
 		     
-                      __ATTR_ALWAYS_INLINE__
+            __ATTR_ALWAYS_INLINE__
 		      static inline 
                       float
 		      ymm8r4_5_elem(__m256 a) {
@@ -444,7 +414,7 @@ namespace  gms {
                      }
 		     
 		     
-                      __ATTR_ALWAYS_INLINE__
+            __ATTR_ALWAYS_INLINE__
 		       static inline 
                       float
 		      ymm8r4_6_elem(__m256 a) {
@@ -453,7 +423,7 @@ namespace  gms {
                       }
 
 		    
-                      __ATTR_ALWAYS_INLINE__
+            __ATTR_ALWAYS_INLINE__
 		      static inline 
                       float
 		      ymm8r4_7_elem(__m256 a) {
@@ -462,7 +432,7 @@ namespace  gms {
                       }
 
 		   
-                      __ATTR_ALWAYS_INLINE__
+            __ATTR_ALWAYS_INLINE__
 		      static inline 
                       double
 		      ymm4r8_0_elem(__m256d a) {
@@ -470,7 +440,7 @@ namespace  gms {
                       }
 
 		     
-                      __ATTR_ALWAYS_INLINE__
+            __ATTR_ALWAYS_INLINE__
 		     static inline 
                       double
 		      ymm4r8_1_elem(__m256d a) {
@@ -479,7 +449,7 @@ namespace  gms {
                       }
 
 		     
-                      __ATTR_ALWAYS_INLINE__
+            __ATTR_ALWAYS_INLINE__
 		       static inline 
                       double
 		      ymm4r8_2_elem(__m256d a) {
@@ -487,7 +457,7 @@ namespace  gms {
                       }
 
 		    
-                      __ATTR_ALWAYS_INLINE__
+            __ATTR_ALWAYS_INLINE__
 		     static inline 
                       double
 		      ymm4r8_3_elem(__m256d a) {
@@ -498,7 +468,7 @@ namespace  gms {
 
 		     // Horizontal summation.
                    
-                      __ATTR_ALWAYS_INLINE__
+            __ATTR_ALWAYS_INLINE__
 		      static inline 
 		      float
 		      ymm8r4_horizontal_sum(const __m256 a) {
@@ -510,7 +480,7 @@ namespace  gms {
                       }
 
 		      
-                      __ATTR_ALWAYS_INLINE__
+            __ATTR_ALWAYS_INLINE__
 		      static inline 
                       double
 		      ymm4r8_horizontal_sum(const __m256d a) {
@@ -521,7 +491,7 @@ namespace  gms {
                       }
 
 		  
-                      __ATTR_ALWAYS_INLINE__
+            __ATTR_ALWAYS_INLINE__
 		       static inline 
                       double
 		      ymm4r8_horizontal_prod(const __m256d a) {
