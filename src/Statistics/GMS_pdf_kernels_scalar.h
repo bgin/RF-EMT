@@ -358,7 +358,7 @@ float np_uaa_r4(const bool same_cat,const float lambda, const std::int32_t c)
 #endif
 __ATTR_ALWAYS_INLINE__
 static inline 
-float np_score_uaa_r4(const bool same_cat,const float lambda, const std::int32_t c)
+float np_score_uaa_r4(const bool same_cat,const std::int32_t c)
 {
     return (same_cat)?-1.0f:(1.0f/(static_cast<float>(c)-1.0f)); 
 }
@@ -380,7 +380,7 @@ __ATTR_ALWAYS_INLINE__
 static inline 
 float np_unli_racine_r4(const bool same_cat,const float lambda, const std::int32_t c)
 {
-     return ((same_cat)?1.0f:lambda)/((static_cast<float>(c)-1.0f)*lambda + 1.0f);
+     return ((same_cat)?1.0f:lambda/((static_cast<float>(c)-1.0f)*lambda + 1.0f));
 }
 
 #if (USE_OPENMP) == 1
@@ -388,7 +388,7 @@ float np_unli_racine_r4(const bool same_cat,const float lambda, const std::int32
 #endif
 __ATTR_ALWAYS_INLINE__
 static inline 
-float np_score_uli_racine_r4(const bool same_cat,const float lambda)
+float np_score_uli_racine_r4(const bool same_cat)
 {
      return (same_cat)?0.0f:1.0f;
 }
@@ -533,7 +533,7 @@ static inline
 float np_econvol_gauss8_r4(const float z)
 {
       const float zz{z*z};
-      return(0.2989183974E-7f*ceph_exp(-0.25f*zz)*std::fma(std::fma(std::fma(std::fma(std::fma((-180.0+zz),zz,11604.0f),
+      return(0.2989183974E-7f*ceph_expf(-0.25f*zz)*std::fma(std::fma(std::fma(std::fma(std::fma((-180.0+zz),zz,11604.0f),
                                                            zz,-331680.0f),zz,4202352.0f),zz,-20462400.0f),zz,25018560.0f));
 }
 
