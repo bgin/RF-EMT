@@ -1118,7 +1118,7 @@ __m128 np_econvol_epan2_z_gt_0_sse_ps(const __m128 z)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif  
-template<bool use_prefetching>
+template<bool use_prefetching, bool use_horner_scheme>
 __m128 np_econvol_epan4_z_lt_0_sse_ps(const __m128 z)
 {
 #if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
@@ -1157,6 +1157,9 @@ __m128 np_econvol_epan4_z_lt_0_sse_ps(const __m128 z)
         const __m128 vC111624513{_mm_set1_ps(111624513.0f)};
         const __m128 vC148832684{_mm_set1_ps(148832684.0f)};
 #endif 
+    if constexpr (use_horner_scheme==true)
+    {
+   
         const __m128 z_to_pow2{_mm_mul_ps(z,z)};
         const __m128 z_to_pow3{_mm_mul_ps(z_to_pow2,z)};
         const __m128 z_to_pow4{_mm_mul_ps(z_to_pow2,z_to_pow2)};
@@ -1170,6 +1173,25 @@ __m128 np_econvol_epan4_z_lt_0_sse_ps(const __m128 z)
                                                 _mm_fmsub_ps(vC24960000,z_to_pow3,
                                                     _mm_fmadd_ps(vC111624513,z_to_pow2,vC148832684))))))};
         return (_mm_mul_ps(vC3756009615384615,horner_series));
+    }
+    else 
+    {
+        const __m128 z_to_pow2{_mm_mul_ps(z,z)};
+        const __m128 factor_zpow2{_mm_fmadd_ps(vC111624513,z_to_pow2,vC148832684)};
+        const __m128 z_to_pow3{_mm_mul_ps(z_to_pow2,z)};
+        const __m128 factor_zpow3{_mm_mul_ps(vC24960000,z_to_pow3)};
+        const __m128 z_to_pow4{_mm_mul_ps(z_to_pow3,z)};
+        const __m128 factor_zpow4{_mm_mul_ps(vC15627432,z_to_pow4)};
+        const __m128 z_to_pow5{_mm_mul_ps(z_to_pow4,z)};
+        const __m128 factor_zpow5{_mm_mul_ps(vC5491200,z_to_pow5)};
+        const __m128 z_to_pow7{_mm_mul_ps(z_to_pow5,z_to_pow2)};
+        const __m128 factor_zpow7{vC124800,z_to_pow7};
+        const __m128 z_to_pow9{_mm_mul_ps(z_to_pow7,z_to_pow2)};
+        const __m128 factor_zpow9{_mm_mul_ps(vC1456,z_to_pow9)};
+        const __m128 partial_factor_1{_mm_sub_ps(factor_zpow4,_mm_sub_ps(factor_zpow3,factor_zpow2))};
+        const __m128 partial_factor_2{_mm_add_ps(_mm_sub_ps(factor_zpow9,factor_zpow7),factor_zpow5)};
+        return (_mm_mul_ps(vC3756009615384615,_mm_add_ps(partial_factor_1,partial_factor_2)));
+    }
 }
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
@@ -1261,7 +1283,7 @@ __m128 np_econvol_epan4_z_gt_0_sse_ps(const __m128 z)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif  
-template<bool use_prefetching>
+template<bool use_prefetching, bool use_horner_scheme>
 __m128 np_econvol_epan6_z_lt_0_sse_ps(const __m128 z)
 {
 #if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
@@ -1281,10 +1303,355 @@ __m128 np_econvol_epan6_z_lt_0_sse_ps(const __m128 z)
                                   9015826085.0f,9015826085.0f,9015826085.0f,9015826085.0f,
                                   0.0f,0.0f,0.0f,0.0f
     };
-
+    if constexpr(use_prefetching==true)
+    {
+        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+        _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+        _mm_prefetch((const char*)&prefetched_constants[32],_MM_HINT_T0);
+    }    
+        const __m128 vC9390024038461537{_mm_load_ps(&prefetched_constants[0])};
+        const __m128 vC2079{_mm_load_ps(&prefetched_constants[4])};
+        const __m128 vC206388{_mm_load_ps(&prefetched_constants[8])};
+        const __m128 vC8867040{_mm_load_ps(&prefetched_constants[12])};
+        const __m128 vC255528000{_mm_load_ps(&prefetched_constants[16])};
+        const __m128 vC515705252{_mm_load_ps(&prefetched_constants[20])};
+        const __m128 vC1681680000{_mm_load_ps(&prefetched_constants[24])};
+        const __m128 vC4922641042{_mm_load_ps(&prefetched_constants[28])};
+        const __m128 vC3057600000{_mm_load_ps(&prefetched_constants[32])};
+        const __m128 vC13674002896{_mm_load_ps(&prefetched_constants[36])};
+        const __m128 vC9015826085{_mm_load_ps(&prefetched_constants[40])};
 #else 
-
+        const __m128 vC9390024038461537{_mm_set1_ps(9.390024038461537E-11f)};
+        const __m128 vC2079{_mm_set1_ps(2079.0f)};
+        const __m128 vC206388{_mm_set1_ps(206388.0f)};
+        const __m128 vC8867040{_mm_set1_ps(8867040.0f)};
+        const __m128 vC255528000{_mm_set1_ps(255528000.0f)};
+        const __m128 vC515705252{_mm_set1_ps(515705252.0f)};
+        const __m128 vC1681680000{_mm_set1_ps(1681680000.0f)};
+        const __m128 vC4922641042{_mm_set1_ps(4922641042.0f)};
+        const __m128 vC3057600000{_mm_set1_ps(3057600000.0f)};
+        const __m128 vC13674002896{_mm_set1_ps(13674002896.0f)};
+        const __m128 vC9015826085{_mm_load_ps(9015826085.0f)};
 #endif 
+    if constexpr(use_horner_scheme==true)
+    {
+        const __m128 z_to_pow2{_mm_mul_ps(z,z)};
+        const __m128 z_to_pow3{_mm_mul_ps(z_to_pow2,z)};
+        const __m128 z_to_pow4{_mm_mul_ps(z_to_pow2,z_to_pow2)};
+        const __m128 z_to_pow5{_mm_mul_ps(z_to_pow3,z_to_pow2)};
+        const __m128 z_to_pow6{_mm_mul_ps(z_to_pow5,z)};
+        const __m128 z_to_pow7{_mm_mul_ps(z_to_pow5,z_to_pow2)};
+        const __m128 z_to_pow9{_mm_mul_ps(z_to_pow7,z_to_pow2)};
+        const __m128 z_to_pow11{_mm_mul_ps(z_to_pow9,z_to_pow2)};
+        const __m128 z_to_pow13{_mm_mul_ps(z_to_pow11,z_to_pow2)};
+        // Long micro-ops dependency chain!!
+        const __m128 horner_series{_mm_fmsub_ps(vC2079,z_to_pow13,
+                                      _mm_fmadd_ps(vC206388,z_to_pow11,
+                                         _mm_fmsub_ps(vC8867040,z_to_pow9,
+                                            _mm_fmsub_ps(vC255528000,z_to_pow7,
+                                               _mm_fmadd_ps(vC515705252,z_to_pow6,
+                                                  _mm_fmadd_ps(vC1681680000,z_to_pow5,
+                                                     _mm_fmsub_ps(vC4922641042,z_to_pow4,
+                                                        _mm_fmsub_ps(vC3057600000,z_to_pow3,
+                                                           _mm_fmadd_ps(vC13674002896,z_to_pow2,vC9015826085)))))))))};
+        return (_mm_mul_ps(vC9390024038461537,horner_series));
+    }
+    else 
+    {
+        const __m128 z_to_pow2{_mm_mul_ps(z,z)};
+        const __m128 factor_zpow2{_mm_fmadd_ps(vC13674002896,z_to_pow2,vC9015826085)};
+        const __m128 z_to_pow3{_mm_mul_ps(z_to_pow2,z)};
+        const __m128 factor_zpow3{_mm_mul_ps(vC3057600000,z_to_pow3)};
+        const __m128 z_to_pow4{_mm_mul_ps(z_to_pow2,z_to_pow2)};
+        const __m128 factor_zpow4{_mm_mul_ps(vC4922641042,z_to_pow4)};
+        const __m128 z_to_pow5{_mm_mul_ps(z_to_pow4,z)};
+        const __m128 factor_zpow5{_mm_mul_ps(vC1681680000,z_to_pow5)};
+        const __m128 z_to_pow6{_mm_mul_ps(z_to_pow5,z)};
+        const __m128 factor_zpow6{_mm_mul_ps(vC515705252,z_to_pow6)};
+        const __m128 z_to_pow7{_mm_mul_ps(z_to_pow5,z_to_pow2)};
+        const __m128 factor_zpow7{_mm_mul_ps(vC255528000,z_to_pow7)};
+        const __m128 z_to_pow9{_mm_mul_ps(z_to_pow7,z_to_pow2)};
+        const __m128 factor_zpow9{_mm_mul_ps(vC8867040,z_to_pow9)};
+        const __m128 z_to_pow11{_mm_mul_ps(z_to_pow9,z_to_pow2)};
+        const __m128 factor_zpow11{_mm_mul_ps(vC206388,z_to_pow11)};
+        const __m128 z_to_pow13{_mm_mul_ps(z_to_pow11,z_to_pow2)};
+        const __m128 factor_zpow13{_mm_mul_ps(vC2079,z_to_pow13)};
+        const __m128 partial_factor_1{_mm_add_ps(_mm_sub_ps(factor_zpow13,factor_zpow11),factor_zpow9)};
+        const __m128 partial_factor_2{_mm_add_ps(_mm_sub_ps(factor_zpow7,factor_zpow6),factor_zpow5)};
+        const __m128 partial_factor_3{_mm_sub_ps(_mm_sub_ps(factor_zpow4,factor_zpow3),factor_zpow2)};
+        return (_mm_mul_ps(vC9390024038461537,_mm_add_ps(_mm_sub_ps(partial_factor_1,partial_factor_2),partial_factor_3)));
+    }
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif  
+template<bool use_prefetching, bool use_horner_scheme>
+__m128 np_econvol_epan6_z_gt_0_sse_ps(const __m128 z)
+{
+#if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
+    __ATTR_ALIGN__(16) constexpr float prefetched_constants[48] = 
+    { 
+                                 -9.390024038461537E-11f,-9.390024038461537E-11,
+                                 -9.390024038461537E-11f,-9.390024038461537E-11f,
+                                  2079.0f,2079.0f,2079.0f,2079.0f,
+                                  206388.0f,206388.0f,206388.0f,206388.0f,
+                                  8867040.0f,8867040.0f,8867040.0f,8867040.0f,
+                                  255528000.0f,255528000.0f,255528000.0f,255528000.0f,
+                                  515705252.0f,515705252.0f,515705252.0f,515705252.0f,
+                                  1681680000.0f,1681680000.0f,1681680000.0f,1681680000.0f,
+                                  4922641042.0f,4922641042.0f,4922641042.0f,4922641042.0f,
+                                  3057600000.0f,3057600000.0f,3057600000.0f,3057600000.0f,
+                                  13674002896.0f,13674002896.0f,13674002896.0f,13674002896.0f,
+                                  9015826085.0f,9015826085.0f,9015826085.0f,9015826085.0f,
+                                  0.0f,0.0f,0.0f,0.0f
+    };
+    if constexpr(use_prefetching==true)
+    {
+        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+        _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+        _mm_prefetch((const char*)&prefetched_constants[32],_MM_HINT_T0);
+    }    
+        const __m128 vCN9390024038461537{_mm_load_ps(&prefetched_constants[0])};
+        const __m128 vC2079{_mm_load_ps(&prefetched_constants[4])};
+        const __m128 vC206388{_mm_load_ps(&prefetched_constants[8])};
+        const __m128 vC8867040{_mm_load_ps(&prefetched_constants[12])};
+        const __m128 vC255528000{_mm_load_ps(&prefetched_constants[16])};
+        const __m128 vC515705252{_mm_load_ps(&prefetched_constants[20])};
+        const __m128 vC1681680000{_mm_load_ps(&prefetched_constants[24])};
+        const __m128 vC4922641042{_mm_load_ps(&prefetched_constants[28])};
+        const __m128 vC3057600000{_mm_load_ps(&prefetched_constants[32])};
+        const __m128 vC13674002896{_mm_load_ps(&prefetched_constants[36])};
+        const __m128 vC9015826085{_mm_load_ps(&prefetched_constants[40])};
+#else 
+        const __m128 vCN9390024038461537{_mm_set1_ps(-9.390024038461537E-11f)};
+        const __m128 vC2079{_mm_set1_ps(2079.0f)};
+        const __m128 vC206388{_mm_set1_ps(206388.0f)};
+        const __m128 vC8867040{_mm_set1_ps(8867040.0f)};
+        const __m128 vC255528000{_mm_set1_ps(255528000.0f)};
+        const __m128 vC515705252{_mm_set1_ps(515705252.0f)};
+        const __m128 vC1681680000{_mm_set1_ps(1681680000.0f)};
+        const __m128 vC4922641042{_mm_set1_ps(4922641042.0f)};
+        const __m128 vC3057600000{_mm_set1_ps(3057600000.0f)};
+        const __m128 vC13674002896{_mm_set1_ps(13674002896.0f)};
+        const __m128 vC9015826085{_mm_load_ps(9015826085.0f)};
+#endif 
+    if constexpr(use_horner_scheme==true)
+    {
+        const __m128 z_to_pow2{_mm_mul_ps(z,z)};
+        const __m128 z_to_pow3{_mm_mul_ps(z_to_pow2,z)};
+        const __m128 z_to_pow4{_mm_mul_ps(z_to_pow2,z_to_pow2)};
+        const __m128 z_to_pow5{_mm_mul_ps(z_to_pow3,z_to_pow2)};
+        const __m128 z_to_pow6{_mm_mul_ps(z_to_pow5,z)};
+        const __m128 z_to_pow7{_mm_mul_ps(z_to_pow5,z_to_pow2)};
+        const __m128 z_to_pow9{_mm_mul_ps(z_to_pow7,z_to_pow2)};
+        const __m128 z_to_pow11{_mm_mul_ps(z_to_pow9,z_to_pow2)};
+        const __m128 z_to_pow13{_mm_mul_ps(z_to_pow11,z_to_pow2)};
+        // Long micro-ops dependency chain!!
+        const __m128 horner_series{_mm_fmsub_ps(vC2079,z_to_pow13,
+                                      _mm_fmadd_ps(vC206388,z_to_pow11,
+                                         _mm_fmsub_ps(vC8867040,z_to_pow9,
+                                            _mm_fmadd_ps(vC255528000,z_to_pow7,
+                                               _mm_fmadd_ps(vC515705252,z_to_pow6,
+                                                  _mm_fmsub_ps(vC1681680000,z_to_pow5,
+                                                     _mm_fmsub_ps(vC4922641042,z_to_pow4,
+                                                        _mm_fmadd_ps(vC3057600000,z_to_pow3,
+                                                           _mm_fsub_ps(vC13674002896,z_to_pow2,vC9015826085)))))))))};
+        return (_mm_mul_ps(vCN9390024038461537,horner_series));
+    }
+    else 
+    {
+        const __m128 z_to_pow2{_mm_mul_ps(z,z)};
+        const __m128 factor_zpow2{_mm_fmsub_ps(vC13674002896,z_to_pow2,vC9015826085)};
+        const __m128 z_to_pow3{_mm_mul_ps(z_to_pow2,z)};
+        const __m128 factor_zpow3{_mm_mul_ps(vC3057600000,z_to_pow3)};
+        const __m128 z_to_pow4{_mm_mul_ps(z_to_pow2,z_to_pow2)};
+        const __m128 factor_zpow4{_mm_mul_ps(vC4922641042,z_to_pow4)};
+        const __m128 z_to_pow5{_mm_mul_ps(z_to_pow4,z)};
+        const __m128 factor_zpow5{_mm_mul_ps(vC1681680000,z_to_pow5)};
+        const __m128 z_to_pow6{_mm_mul_ps(z_to_pow5,z)};
+        const __m128 factor_zpow6{_mm_mul_ps(vC515705252,z_to_pow6)};
+        const __m128 z_to_pow7{_mm_mul_ps(z_to_pow5,z_to_pow2)};
+        const __m128 factor_zpow7{_mm_mul_ps(vC255528000,z_to_pow7)};
+        const __m128 z_to_pow9{_mm_mul_ps(z_to_pow7,z_to_pow2)};
+        const __m128 factor_zpow9{_mm_mul_ps(vC8867040,z_to_pow9)};
+        const __m128 z_to_pow11{_mm_mul_ps(z_to_pow9,z_to_pow2)};
+        const __m128 factor_zpow11{_mm_mul_ps(vC206388,z_to_pow11)};
+        const __m128 z_to_pow13{_mm_mul_ps(z_to_pow11,z_to_pow2)};
+        const __m128 factor_zpow13{_mm_mul_ps(vC2079,z_to_pow13)};
+        const __m128 partial_factor_1{_mm_add_ps(_mm_sub_ps(factor_zpow13,factor_zpow11),factor_zpow9)};
+        const __m128 partial_factor_2{_mm_add_ps(_mm_add_ps(factor_zpow7,factor_zpow6),factor_zpow5)};
+        const __m128 partial_factor_3{_mm_add_ps(_mm_sub_ps(factor_zpow4,factor_zpow3),factor_zpow2)};
+        return (_mm_mul_ps(vCN9390024038461537,_mm_sub_ps(_mm_sub_ps(partial_factor_1,partial_factor_2),partial_factor_3)));
+    }
+}
+
+/*
+   ***Warning***
+   True branch of this function: 
+   double np_econvol_uaa(const int same_cat, const double lambda, const int c){
+          const double dcm1 = (double)(c-1);
+          const double oml = 1.0-lambda;
+          return (same_cat)?(oml*oml+lambda*lambda/dcm1):(lambda/dcm1*(2.0*oml+((double)(c-2))*lambda/dcm1));
+}
+*/
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif  
+inline 
+__m128 np_econvol_uaa_br_true_sse_ps(const __m128 lambda,const __m128 c) 
+{
+    __ATTR_ALIGN__(16) constexpr float constants[4] = {1.0f,1.0f,1.0f,1.0f};
+    const __m128 vC1{_mm_load_ps(&constants[0])};
+    const __m128 oml{_mm_sub_ps(vC1,lambda)};
+    const __m128 dcm1{_mm_sub_ps(c,vC1)};   
+    const __m128 factor_1{_mm_div_ps(lambda,dcm1)};
+    return (_mm_fmadd_ps(oml,oml,_mm_mul_ps(lambda,factor_1)));
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif  
+inline 
+__m128 
+np_econvol_uaa_br_false_sse_ps(const __m128 lambda,const __m128 c)
+{
+    __ATTR_ALIGN__(16) constexpr float constants[8] = {1.0f,1.0f,1.0f,1.0f,
+                                                       2.0f,2.0f,2.0f,2.0f};
+    const __m128 vC1{_mm_load_ps(&constants[0])};
+    const __m128 oml{_mm_sub_ps(vC1,lambda)};
+    const __m128 dcm1{_mm_sub_ps(c,vC1)};
+    const __m128 vC2{_mm_load_ps(&constants[4])};
+    const __m128 factor_1{_mm_div_ps(lambda,dcm1)};
+    const __m128 factor_2{_mm_fmadd_ps(vC2,oml,_mm_mul_ps(_mm_sub_ps(c,vC2),factor_1))};
+    return (_mm_mul_ps(factor_1,factor_2));                                                   
+}
+
+/*
+   True branch
+   double np_econvol_uli_racine(const int same_cat, const double lambda, const int c){
+  return (same_cat)?(1.0 + (double)(c-1)*lambda*lambda):(lambda*(2.0+(double)(c-2)*lambda));
+}
+*/
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif  
+inline 
+__m128 
+np_econvol_uli_racine_true_br_sse_ps(const __m128 lambda,const __m128 c)
+{
+    __ATTR_ALIGN__(16) constexpr float constants[4] = {1.0f,1.0f,1.0f,1.0f};
+    const __m128 vC1{_mm_load_ps(&constants[0])};
+    const __m128 factor_1{_mm_mul_ps(lambda,lambda)};
+    return (_mm_add_ps(vC1,_mm_mul_ps(_mm_sub_ps(c,vC1),factor_1)));
+}
+
+/* 
+    False branch of above-pasted code
+*/
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif  
+inline 
+__m128 
+np_econvol_uli_racine_false_br_sse_ps(const __m128 lambda,const __m128 c)
+{
+    __ATTR_ALIGN__(16) constexpr float constants[4] = {2.0f,2.0f,2.0f,2.0f};
+    const __m128 vC2{_mm_load_ps(&constants[0])};
+    return (_mm_mul_ps(lambda,_mm_fmadd_ps(lambda,_mm_sub_ps(c,vC2),vC2)));
+}
+
+/*
+   True branch of:
+   double np_econvol_unli_racine(const int same_cat, const double lambda, const int c){
+   const double inorm = 1.0/((c-1.0)*lambda + 1.0);
+   return ((same_cat)?(1.0 + (double)(c-1)*lambda*lambda):(lambda*(2.0+(double)(c-2)*lambda)))*inorm*inorm;
+}
+*/
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif  
+inline 
+__m128 
+np_econvol_unli_racine_true_br_sse_ps(const __m128 lambda,const __m128 c)
+{
+    __ATTR_ALIGN__(16) constexpr float constants[4] = {1.0f,1.0f,1.0f,1.0f};
+    const __m128 vC1{_mm_load_ps(&constants[0])};
+    const __m128 factor_1{_mm_sub_ps(c,vC1)};
+    return (_mm_fmadd_ps(lambda,_mm_mul_ps(lambda,factor_1),vC1));
+}
+
+/*
+    False branch of above-pasted code
+*/
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif  
+inline 
+__m128 
+np_econvol_unli_racine_true_br_sse_ps(const __m128 lambda,const __m128 c)
+{
+    __ATTR_ALIGN__(16) constexpr float constants[8] = {1.0f,1.0f,1.0f,1.0f,
+                                                       2.0f,2.0f,2.0f,2.0f};
+    const __m128 vC1{_mm_load_ps(&constants[0])};
+    const __m128 factor_1{_mm_fmadd_ps(_mm_sub_ps(c,vC1),lambda,vC1)};
+    const __m128 vC2{_mm_load_ps(&constants[4])};
+    const __m128 factor_2{_mm_mul_ps(lambda,_mm_fmadd_ps(lambda,_mm_sub_ps(c,vC2),vC2))};
+    const __m128 inorm{_mm_rcp14_ps(factor_1)};
+    return (_mm_mul_ps(factor_2,_mm_mul_ps(inorm,inorm)));
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif  
+inline
+__m128 
+np_econvol_onli_racine_sse_ps(const __m128 x,const __m128 y,
+                              const __m128 lambda)
+{
+    __ATTR_ALIGN__(16) constexpr float constants[4] = {1.0f,1.0f,1.0f,1.0f};
+    const __m128 vC1{_mm_load_ps(&constants[0])};
+    const __m128 cxy{_mm_floor_ps(gms::math::xmm4r4_abs(_mm_sub_ps(x,y)))};
+    const __m128 l2{_mm_mul_ps(lambda,lambda)};
+    const __m128 lnorm{_mm_div_ps(_mm_sub_ps(vC1,lambda),_mm_sub_ps(vC1,lambda))};
+    const __m128 lambda_to_cxypow{_mm_pow_ps(lambda,cxy)};
+    const __m128 factor_1{_mm_add_ps(_mm_div_ps(_mm_add_ps(vC1,l2),_mm_sub_ps(vC1,l2)),cxy)};
+    const __m128 factor_2{_mm_mul_ps(lnorm,lnorm)};
+    return (_mm_mul_ps(factor_2,_mm_mul_ps(lambda_to_cxypow,factor_1)));
 }
 
 
