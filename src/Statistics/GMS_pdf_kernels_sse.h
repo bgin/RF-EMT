@@ -1654,6 +1654,409 @@ np_econvol_onli_racine_sse_ps(const __m128 x,const __m128 y,
     return (_mm_mul_ps(factor_2,_mm_mul_ps(lambda_to_cxypow,factor_1)));
 }
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif  
+template<bool use_prefetching>
+__m128 np_econvol_owang_van_ryzin_sse_ps(const __m128 x,const __m128 y,
+                                         const __m128 lambda)
+{
+#if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
+    __ATTR_ALIGN__(16) constexpr float prefetched_constants[16] = 
+    { 
+                        0.5f,0.5f,0.5f,0.5f,
+                        1.0f,1.0f,1.0f,1.0f,
+                        2.0f,2.0f,2.0f,2.0f,
+                        0.0f,0.0f,0.0f,0.0f
+    };
+    if constexpr(use_prefetching==true)
+    {
+        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+    }
+       const __m128 vC05{_mm_load_ps(&prefetched_constants[0])};
+       const __m128 vC1{_mm_load_ps(&prefetched_constants[4])};
+       const __m128 vC2{_mm_load_ps(&prefetched_constants[8])};
+#else 
+       const __m128 vC05{_mm_set1_ps(0.5f)};
+       const __m128 vC1{_mm_set1_ps(1.0f)};
+       const __m128 vC2{_mm_set1_ps(2.0f)};
+#endif 
+       /*
+           Intermixed the false and true branch operations
+           due to unknown probablity density function (PDF)
+           of the comparison result: x == y.
+           Could have assumed the uniform density thus assigning
+           a value of 1/2 to the PDF, but the real distribution
+           must be measured rigouristically.
+       */
+       const __m128 one_m_lambda{_mm_sub_ps(vC1,lambda)};
+       const __m128 lambda_sqr{_mm_mul_ps(lambda,lambda)};
+       const __m128 cxy{_mm_floor_ps(gms::math::xmm4r4_abs(_mm_sub_ps(x,y)))};
+       const __m128 lnorm{_mm_mul_ps(vC05,one_m_lambda)};
+       const __m128 lambda_to_pow_cxy{_mm_pow_ps(lambda,cxy)};
+       const __m128 one_m_lambda_sqr{_mm_sub_ps(vC1,lambda_sqr)};
+       const __m128 left_term_br_true{_mm_mul_ps(vC05,_mm_mul_ps(one_m_lambda,one_m_lambda))};
+       const __m128 left_term_br_false{_mm_mul_ps(_mm_mul_ps(lnorm,lnorm),lambda_to_pow_cxy)};
+       const __m128 right_term_br_true{_mm_add_ps(vC1,_mm_rcp14_ps(one_m_lambda_sqr))};
+       const __m128 two_div_one_m_l2{_mm_div_ps(vC2,_mm_sub_ps(vC1,lambda_sqr))};
+       const __m128 true_br_term{_mm_mul_ps(left_term_br_true,right_term_br_true)};
+       const __mmask8 x_eq_y{_mm_cmp_ps_mask(x,y,_CMP_EQ_OQ)};
+       const __m128 right_term_br_false{_mm_add_ps(vC1,_mm_add_ps(cxy,two_div_one_m_l2))};
+       const __m128 false_br_term{_mm_mul_ps(left_term_br_false,right_term_br_false)};
+       return (_mm_mask_blend_ps(x_eq_y,false_br_term,true_br_term));
+}
+
+// Derivative kernels
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif  
+template<bool use_prefetching>
+__m128 np_deriv_gauss2_sse_ps(const __m128 z)
+{
+#if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
+    __ATTR_ALIGN__(16) constexpr float prefetched_constants[16] = 
+    {
+                        0.398942280401432677939946059934f,
+                        0.398942280401432677939946059934f,
+                        0.398942280401432677939946059934f,
+                        0.398942280401432677939946059934f,
+                       -0.5f,-0.5f,-0.5f,-0.5f,
+                        0.0f,0.0f,0.0f,0.0f,
+                        0.0f,0.0f,0.0f,0.0f
+    };
+    if constexpr(use_prefetching==true)
+    {
+        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+    }
+        const __m128 vC0398942280401432677939946059934{_mm_load_ps(&prefetched_constants[0])};
+        const __m128 vCN05{_mm_load_ps(&prefetched_constants[4])};
+#else 
+        const __m128 vC0398942280401432677939946059934{_mm_set1_ps(0.398942280401432677939946059934f)};
+        const __m128 vCN05{_mm_set1_ps(-0.5f)};
+#endif 
+        const __m128 neg_z{gms::math::negate_xmm4r4(z)};
+        const __m128 exp_arg{_mm_mul_ps(vCN05,_mm_mul_ps(z,z))};
+        const __m128 factor_1{_mm_mul_ps(neg_z,vC0398942280401432677939946059934)};
+        /*
+            ***WARNING***
+            The call of SVML exp kernel may not be inlined, thus causing a far jump
+            to the address space/range of SVML machine code implementation -- possible
+            L1I miss amd maybe a L2 miss also and the memory load can not be excluded.
+        */
+        const __m128 exp_term{_mm_exp_ps(exp_arg)};
+        return (_mm_mul_ps(factor_1,exp_term));
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif  
+template<bool use_prefetching>
+__m128 np_deriv_gauss4_sse_ps(const __m128 z)
+{
+#if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
+    __ATTR_ALIGN__(16) constexpr float prefetched_constants[16] = 
+    {
+                       -0.398942280401432677939946059934f,
+                       -0.398942280401432677939946059934f,
+                       -0.398942280401432677939946059934f,
+                       -0.398942280401432677939946059934f,
+                        2.5f,2.5f,2.5f,2.5f,
+                        0.5f,0.5f,0.5f,0.5f,
+                       -0.5f,-0.5f,-0.5f,-0.5f
+    };
+    if constexpr(use_prefetching==true)
+    {
+        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+    }
+        const __m128 vCN0398942280401432677939946059934{_mm_load_ps(&prefetched_constants[0])};
+        const __m128 vC25{_mm_load_ps(&prefetched_constants[4])};
+        const __m128 vC05{_mm_load_ps(&prefetched_constants[8])};
+        const __m128 vCN05{_mm_load_ps(&prefetched_constants[12])};
+#else 
+        const __m128 vCN0398942280401432677939946059934{_mm_set1_ps(-0.398942280401432677939946059934f)};
+        const __m128 vC25{_mm_set1_ps(2.5f)};
+        const __m128 vC05{_mm_set1_ps(0.5f)};
+        const __m128 vCN05{_mm_set1_ps(-0.5f)};
+#endif 
+        const __m128 factor_1{_mm_mul_ps(vCN0398942280401432677939946059934,z)};
+        const __m128 z_to_pow2{_mm_mul_ps(z,z)};
+        const __m128 exp_arg{_mm_mul_ps(vCN05,z_to_pow2)};
+        const __m128 factor_2{_mm_sub_ps(vC25,_mm_mul_ps(vC05,z_to_pow2))};
+         /*
+            ***WARNING***
+            The call of SVML exp kernel may not be inlined, thus causing a far jump
+            to the address space/range of SVML machine code implementation -- possible
+            L1I miss amd maybe a L2 miss also and the memory load can not be excluded.
+        */
+        const __m128 exp_term{_mm_exp_ps(exp_arg)};
+        return (_mm_mul_ps(factor_1,_mm_mul_ps(factor_2,exp_term)));
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif  
+template<bool use_prefetching>
+__m128 np_deriv_gauss6_sse_ps(const __m128 z)
+{
+#if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
+    __ATTR_ALIGN__(16) constexpr float prefetched_constants[16] = 
+    {
+                               -0.049867785050179084743f,
+                               -0.049867785050179084743f,
+                               -0.049867785050179084743f,
+                               -0.049867785050179084743f,
+                               -0.5f,-0.5f,-0.5f,-0.5f,
+                                35.0f,35.0f,35.0f,35.0f,
+                               -14.0f,-14.0f-14.0f,-14.0f
+    };
+    if constexpr(use_prefetching==true)
+    {
+        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+    }   
+        const __m128 vCN0049867785050179084743{_mm_load_ps(&prefetched_constants[0])};
+        const __m128 vCN05{_mm_load_ps(&prefetched_constants[4])};
+        const __m128 vC35{_mm_load_ps(&prefetched_constants[8])};
+        const __m128 vCN14{_mm_load_ps(&prefetched_constants[12])};
+#else 
+        const __m128 vCN0049867785050179084743{_mm_set1_ps(-0.049867785050179084743f)};
+        const __m128 vCN05{_mm_set1_ps(-0.5f)};
+        const __m128 vC35{_mm_set1_ps(35.0f)};
+        const __m128 vCN14{_mm_set1_ps(-14.0f)};
+#endif 
+        const __m128 factor_1{_mm_mul_ps(vCN0049867785050179084743,z)};
+        const __m128 z_to_pow2{_mm_mul_ps(z,z)};
+        const __m128 factor_2{_mm_fmadd_ps(_mm_add_ps(vCN14,z_to_pow2),z_to_pow2,vC35)};
+         /*
+            ***WARNING***
+            The call of SVML exp kernel may not be inlined, thus causing a far jump
+            to the address space/range of SVML machine code implementation -- possible
+            L1I miss amd maybe a L2 miss also and the memory load can not be excluded.
+        */
+        const __m128 exp_arg{_mm_mul_ps(vCN05,z_to_pow2)};
+        const __m128 exp_term{_mm_exp_ps(exp_arg)};
+        return (_mm_mul_ps(factor_1,_mm_mul_ps(exp_term,factor_2)));
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif  
+template<bool use_prefetching>
+__m128 np_deriv_gauss8_sse_ps(const __m128 z)
+{
+#if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
+    __ATTR_ALIGN__(16) constexpr float prefetched_constants[32] = 
+    {
+                       -0.398942280401432677939946059934f,
+                       -0.398942280401432677939946059934f,
+                       -0.398942280401432677939946059934f,
+                       -0.398942280401432677939946059934f,
+                        6.5625f,6.5625f,6.5625f,6.5625f,
+                       -3.9375f,-3.9375f,-3.9375f,-3.9375f,
+                        0.5625f,0.5625f,0.5625f,0.5625f,
+                        0.02083333333f,0.02083333333f,
+                        0.02083333333f,0.02083333333f,
+                       -0.5f,-0.5f,-0.5f,-0.5f,
+                        0.0f,0.0f,0.0f,0.0f,
+                        0.0f,0.0f,0.0f,0.0f
+    };
+    if constexpr(use_prefetching==true)
+    {
+        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+        _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+    } 
+        const __m128 vCN0398942280401432677939946059934{_mm_load_ps(&prefetched_constants[0])};
+        const __m128 vC65625{_mm_load_ps(&prefetched_constants[4])};
+        const __m128 vCN39375{_mm_load_ps(&prefetched_constants[8])};
+        const __m128 vC05625{_mm_load_ps(&prefetched_constants[12])};
+        const __m128 vC002083333333{_mm_load_ps(&prefetched_constants[16])};
+        const __m128 vCN05{_mm_load_ps(&prefetched_constants[20])};
+#else 
+        const __m128 vCN0398942280401432677939946059934{_mm_set1_ps(-0.398942280401432677939946059934)};
+        const __m128 vC65625{_mm_set1_ps(6.5625f)};
+        const __m128 vCN39375{_mm_set1_ps(3.9375f)};
+        const __m128 vC05625{_mm_set1_ps(0.5625f)};
+        const __m128 vC002083333333{_mm_set1_ps(0.02083333333f)};
+        const __m128 vCN05{_mm_set1_ps(-0.5f)};
+#endif
+        const __m128 factor_1{_mm_mul_ps(vCN0398942280401432677939946059934,z)};
+        const __m128 z_to_pow2{_mm_mul_ps(z,z)};
+        const __m128 factor_2{_mm_sub_ps(vC05625,_mm_mul_ps(vC002083333333,z_to_pow2))};
+        const __m128 exp_arg{_mm_mul_ps(vCN05,z_to_pow2)};
+        const __m128 horner_series{_mm_fmadd_ps(z_to_pow2,
+                                            _mm_fmadd_ps(factor_2,z_to_pow2,vCN39375),vC65625)};
+         /*
+            ***WARNING***
+            The call of SVML exp kernel may not be inlined, thus causing a far jump
+            to the address space/range of SVML machine code implementation -- possible
+            L1I miss amd maybe a L2 miss also and the memory load can not be excluded.
+        */
+        const __m128 exp_term{_mm_exp_ps(exp_arg)};
+        return (_mm_mul_ps(_mm_mul_ps(factor_1,horner_series),exp_term));
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+inline 
+__m128 np_deriv_epan2_sse_ps(const __m128 z)
+{
+       __ATTR_ALIGN__(16) constexpr float constants[4] = 
+       {
+                            -0.13416407864998738178f,
+                            -0.13416407864998738178f,
+                            -0.13416407864998738178f,
+                            -0.13416407864998738178f    
+       };
+       return (_mm_mul_ps(_mm_load_ps(&constants[0]),z));
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+inline 
+__m128 np_deriv_epan4_sse_ps(const __m128 z)
+{
+       __ATTR_ALIGN__(16) constexpr float constants[8] = 
+       {
+                           2.347871374742824e-1f,
+                           2.347871374742824e-1f,
+                           2.347871374742824e-1f,
+                           2.347871374742824e-1f,
+                           8.385254921942804e-1f,
+                           8.385254921942804e-1f,
+                           8.385254921942804e-1f,
+                           8.385254921942804e-1f
+       };
+       const __m128 z_to_pow2{_mm_mul_ps(z,z)};
+       return (_mm_mul_ps(z,_mm_fmsub_ps(_mm_load_ps(&constants[0]),z_to_pow2,_mm_load_ps(&constants[4]))));
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+template<bool use_prefetching>
+__m128 np_deriv_epan6_sse_ps(const __m128 z)
+{
+#if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
+    __ATTR_ALIGN__(16) constexpr float prefetched_constants[16] = 
+    {
+                          -2.567984320334919f,
+                          -2.567984320334919f,
+                          -2.567984320334919f,
+                          -2.567984320334919f,
+                           1.848948710641142f,
+                           1.848948710641142f,
+                           1.848948710641142f,
+                           1.848948710641142f,
+                           2.905490831007508e-1f,
+                           2.905490831007508e-1f,
+                           2.905490831007508e-1f,
+                           2.905490831007508e-1f,
+                           0.0f,0.0f,0.0f,0.0f
+    };
+    if constexpr(use_prefetching==true)
+    {
+        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+    }  
+        const __m128 vCN2567984320334919{_mm_load_ps(&prefetched_constants[0])};
+        const __m128 vC1848948710641142{_mm_load_ps(&prefetched_constants[4])};
+        const __m128 vC2905490831007508{_mm_load_ps(&prefetched_constants[8])};
+#else 
+        const __m128 vCN2567984320334919{_mm_set1_ps(-2.567984320334919f)};
+        const __m128 vC1848948710641142{_mm_set1_ps(1.848948710641142f)};
+        const __m128 vC2905490831007508{_mm_set1_ps(2.905490831007508e-1f)};
+#endif 
+        const __m128 z_to_pow2{_mm_mul_ps(z,z)};
+        const __m128 factor_1{_mm_sub_ps(vC1848948710641142,_mm_mul_ps(vC2905490831007508,z_to_pow2))};
+        const __m128 factor_2{_mm_fmadd_ps(factor_1,z_to_pow2,vCN2567984320334919)};
+        return (_mm_mul_ps(z,factor_2));
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+template<bool use_prefetching>
+__m128 np_deriv_epan8_sse_ps(const __m128 z)
+{
+    #if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
+    __ATTR_ALIGN__(16) constexpr float prefetched_constants[16] = 
+    {
+                              -5.777964720753567f,
+                              -5.777964720753567f,
+                              -5.777964720753567f,
+                              -5.777964720753567f,
+                               7.626913431394709f,
+                               7.626913431394709f,
+                               7.626913431394709f,
+                               7.626913431394709f,
+                              -2.83285356023232f,
+                              -2.83285356023232f,
+                              -2.83285356023232f,
+                              -2.83285356023232f,
+                               3.147615066924801e-1f,
+                               3.147615066924801e-1f,
+                               3.147615066924801e-1f,
+                               3.147615066924801e-1f
+    };
+    if constexpr(use_prefetching==true)
+    {
+        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+    }  
+        const __m128 vCN5777964720753567{_mm_load_ps(&prefetched_constants[0])};
+        const __m128 vC7626913431394709{_mm_load_ps(&prefetched_constants[4])};
+        const __m128 vCN283285356023232{_mm_load_ps(&prefetched_constants[8])};
+        const __m128 vC3147615066924801{_mm_load_ps(&prefetched_constants[12])};
+#else 
+        const __m128 vCN5777964720753567{_mm_set1_ps(-5.777964720753567f)};
+        const __m128 vC7626913431394709{_mm_set1_ps(7.626913431394709f)};
+        const __m128 vCN283285356023232{_mm_set1_ps(2.83285356023232f)};
+        const __m128 vC3147615066924801{_mm_set1_ps(3.147615066924801e-1f)};
+#endif 
+        const __m128 z_to_pow2{_mm_mul_ps(z,z)};
+        const __m128 horner_series{_mm_fmadd_ps(
+                                            _mm_fmadd_ps(
+                                                     _mm_fmadd_ps(z_to_pow2,vC3147615066924801,vCN283285356023232),
+                                                                                            z_to_pow2,vC7626913431394709),
+                                                                                                       z_to_pow2,vCN5777964720753567)};
+        return (_mm_mul_ps(z,horner_series));
+}
 
 
 } // np_standalone_funcs
