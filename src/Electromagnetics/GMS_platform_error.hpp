@@ -30,9 +30,7 @@ namespace gms {
 
 
 	              // L1D cache data prefetch
-		     __ATTR_ALWAYS_INLINE
-		     __ATTR_HOT__
-		     __ATTR_ALIGN__(32)
+		     __ATTR_ALWAYS_INLINE__
 		     static
 		     inline
 		     bool data_prefetch_r4_1(const PlatformErrAoS_R4_1 &pe) {
@@ -41,9 +39,7 @@ namespace gms {
 			    return (true);
 		     }
 
-		     __ATTR_ALWAYS_INLINE
-		     __ATTR_HOT__
-		     __ATTR_ALIGN__(32)
+		     __ATTR_ALWAYS_INLINE__
 		     static
 		     inline
 		     bool data_prefetch_r8_1(const PlatformErrAoS_R8_1 &pe) {
@@ -54,9 +50,7 @@ namespace gms {
 
 
 	            // Initialize PlatformErrorAoS_R4_1 data type
-		     __ATTR_ALWAYS_INLINE
-		     __ATTR_HOT__
-		     __ATTR_ALIGN__(32)
+		     __ATTR_ALWAYS_INLINE__
 		     static
 		     inline
 		     void initPlatformErrAoS_R4_1(const float xR,
@@ -70,7 +64,7 @@ namespace gms {
 						  const float xdx3,
 						  PlatformErrAoS_R4_1 &pe) {
 
-                            pe.R    = xR;
+                pe.R    = xR;
 			    pe.psi  = xpsi;
 			    pe.theta= xtheta;
 			    pe.da1  = xda1;
@@ -83,9 +77,7 @@ namespace gms {
 
 
 		     // Initialize PlatformErrorAoS_R8_1 data type
-		     __ATTR_ALWAYS_INLINE
-		     __ATTR_HOT__
-		     __ATTR_ALIGN__(32)
+		     __ATTR_ALWAYS_INLINE__
 		     static
 		     inline
 		     void initPlatformErrAoS_R8_1(const double xR,
@@ -99,7 +91,7 @@ namespace gms {
 						  const double xdx3,
 						  PlatformErrAoS_R8_1 &pe) {
 
-                            pe.R    = xR;
+                pe.R    = xR;
 			    pe.psi  = xpsi;
 			    pe.theta= xtheta;
 			    pe.da1  = xda1;
@@ -117,9 +109,7 @@ namespace gms {
 		     
 	             // Compute Radar platform azimut and elevation
 		     // measurement errors
-	             __ATTR_ALWAYS_INLINE
-		     __ATTR_HOT__
-		     __ATTR_ALIGN__(32)
+	         __ATTR_ALWAYS_INLINE__
 		     static
 		     inline
 		     void platform_orient_errors_r4_1(const PlatformErrAoS_R4_1 &pe,
@@ -176,9 +166,7 @@ namespace gms {
 		   }
 
 
-		     __ATTR_ALWAYS_INLINE
-		     __ATTR_HOT__
-		     __ATTR_ALIGN__(32)
+		     __ATTR_ALWAYS_INLINE__
 		     static
 		     inline
 		     void platform_orient_errors_r8_1(const PlatformErrAoS_R8_1 &pe,
@@ -193,7 +181,7 @@ namespace gms {
 			   const double czpsi = std::cos(z*xpsi);
 			   const double szpsi = std::sin(z*xpsi);
 			   const double thc   = 90.0-xth;
-                           const double xda1  = pe.da1;
+               const double xda1  = pe.da1;
 			   const double czth  = std::cos(z*xth);
 			   const double szth  = std::sin(z*xth);
 			   const double arg1  = z*xda1/60.0;
@@ -227,7 +215,7 @@ namespace gms {
 			      dpsi1 = (std::acos(U)-zpsi)/z*60.0;
 			   }
 			   else {
-                              dpsi1 = (PI2-std::acos(U)-zpsi)/z*60.0; 
+                    dpsi1 = (PI2-std::acos(U)-zpsi)/z*60.0; 
 			   }
 			   const float V     = C012/(Asqr+Bsqr+Csqr);
 			   dthi = -((std::acos(V)-z*xth)/z*60.0);
@@ -237,9 +225,7 @@ namespace gms {
 
 		   // Platform position errors caused by the angular and range
 		   // measurements.
-		     __ATTR_ALWAYS_INLINE
-		     __ATTR_HOT__
-		     __ATTR_ALIGN__(32)
+		     __ATTR_ALWAYS_INLINE__
 		     static
 		     inline
 		     void platform_pos_errors_r4_1(PlatformErrAoS_R4_1 &pe,
@@ -271,7 +257,7 @@ namespace gms {
 			  const float eta3  = cephes_atanf(num/xdx3+tb);
 			  const float seta3 = cephes_sinf(eta3);
 			  const float ceta3 = cephes_cosf(eta3);
-			  const float lterm = cephes_cosf(zpsi)*cephes_sinf(zpsi)
+			  const float lterm = cephes_cosf(zpsi)*cephes_sinf(zpsi);
 			  const float rterm = eta1R*cephes_cosf(eta2)*seta3;
 			  const float D0    = lterm-rterm;
 			  const float lterm2= cephes_sinf(zpsi)*szth;
@@ -299,9 +285,7 @@ namespace gms {
 		    }
 
 
-		     __ATTR_ALWAYS_INLINE
-		     __ATTR_HOT__
-		     __ATTR_ALIGN__(32)
+		     __ATTR_ALWAYS_INLINE__
 		     static
 		     inline
 		     void platform_pos_errors_r8_1(PlatformErrAoS_R8_1 &pe,
@@ -333,7 +317,7 @@ namespace gms {
 			  const doubl eta3   = std::atan(num/xdx3+tb);
 			  const double seta3 = std::sin(eta3);
 			  const double ceta3 = std::cos(eta3);
-			  const double lterm = std::cos(zpsi)*std::sin(zpsi)
+			  const double lterm = std::cos(zpsi)*std::sin(zpsi);
 			  const double rterm = eta1R*std::cos(eta2)*seta3;
 			  const double D0    = lterm-rterm;
 			  const double lterm2= cephes_sinf(zpsi)*szth;
@@ -363,9 +347,7 @@ namespace gms {
 
 		    // Monopulse antenna pattern as a voltage sum pattern
 		    // of the angle from the (beamwidth) normalized axis pattern
-		     __ATTR_ALWAYS_INLINE
-		     __ATTR_HOT__
-		     __ATTR_ALIGN__(32)
+		     __ATTR_ALWAYS_INLINE__
 		     static
 		     inline
 		     float v_sum_pattern_r4_1(const float u) {
@@ -375,9 +357,7 @@ namespace gms {
 			     
 		     }
 
-		     __ATTR_ALWAYS_INLINE
-		     __ATTR_HOT__
-		     __ATTR_ALIGN__(32)
+		     __ATTR_ALWAYS_INLINE__
 		     static
 		     inline
 		     double v_sum_pattern_r8_1(const double u) {
@@ -390,9 +370,7 @@ namespace gms {
 
 		    // Monopulse antenna pattern as a voltage differential pattern
 		    // of the angle from the (beamwidth) normalized axis pattern
-		     __ATTR_ALWAYS_INLINE
-		     __ATTR_HOT__
-		     __ATTR_ALIGN__(32)
+		     __ATTR_ALWAYS_INLINE__		    
 		     static
 		     inline
 		     float v_diff_pattern_r4_1(const float u) {
@@ -401,9 +379,7 @@ namespace gms {
 		    }
 
 
-		     __ATTR_ALWAYS_INLINE
-		     __ATTR_HOT__
-		     __ATTR_ALIGN__(32)
+		     __ATTR_ALWAYS_INLINE__		   
 		     static
 		     inline
 		     double v_diff_pattern_r8_1(const double u) {
@@ -412,9 +388,7 @@ namespace gms {
 		    }
 
                     // Calculation of the elevation multipath error.
-		     __ATTR_ALWAYS_INLINE
-		     __ATTR_HOT__
-		     __ATTR_ALIGN__(32)
+		     __ATTR_ALWAYS_INLINE__
 		     static
 		     inline
 		     float elev_multipath_err_r4_1(const PropagationErrAoS_R4_1 &pe,
@@ -461,9 +435,7 @@ namespace gms {
 		    }
 
 
-		     __ATTR_ALWAYS_INLINE
-		     __ATTR_HOT__
-		     __ATTR_ALIGN__(32)
+		     __ATTR_ALWAYS_INLINE__
 		     static
 		     inline
 		     double elev_multipath_err_r8_1(const PropagationErrAoS_R8_1 &pe,
@@ -511,9 +483,7 @@ namespace gms {
 
 
 		    // Elevation error due to atmospheric refraction
-		     __ATTR_ALWAYS_INLINE
-		     __ATTR_HOT__
-		     __ATTR_ALIGN__(32)
+		     __ATTR_ALWAYS_INLINE__
 		     static
 		     inline
 		     float elev_refract_error_r4_1(const PropagationErrAoS_R4_1 &pe,
@@ -575,10 +545,10 @@ namespace gms {
 			    else if(tht>=0.02f && tht<=0.2f) {
                                a = 0.00005f*cthf*(1.0f+1.4f*lgth);
 			    }
-			    else if(thf>0.2f) {
+			    else if(tht>0.2f) {
                                a = 0.0f;
 			    }
-			    const float rtrm = 1.0f+(0.001f/((0.01f+tht)*(0.01f+tht));
+			    const float rtrm = 1.0f+(0.001f/((0.01f+tht))*(0.01f+tht));
 			    if(tht>=0.0f && tht<=0.001f) {
                                dth = 0.019f;
 			    }
@@ -592,9 +562,7 @@ namespace gms {
 
 
 		      // Elevation error due to atmospheric refraction
-		     __ATTR_ALWAYS_INLINE
-		     __ATTR_HOT__
-		     __ATTR_ALIGN__(32)
+		     __ATTR_ALWAYS_INLINE__
 		     static
 		     inline
 		     double elev_refract_error_r8_1(const PropagationErrAoS_R8_1 &pe,
@@ -656,10 +624,10 @@ namespace gms {
 			    else if(tht>=0.02 && tht<=0.2) {
                                a = 0.00005*cthf*(1.0+1.4*lgth);
 			    }
-			    else if(thf>0.2) {
+			    else if(tht>0.2) {
                                a = 0.0;
 			    }
-			    const double rtrm = 1.0+(0.001/((0.01+tht)*(0.01+tht));
+			    const double rtrm = 1.0+(0.001/((0.01+tht))*(0.01+tht));
 			    if(tht>=0.0 && tht<=0.001) {
                                dth = 0.019;
 			    }
@@ -675,13 +643,5 @@ namespace gms {
     }
 
 }
-
-
-
-
-
-
-
-
 
 #endif /*__GMS_PLATFORM_ERROR_HPP__*/
