@@ -794,9 +794,10 @@ __m128 np_score_onli_racine_sse_ps(const __m128 vx,const __m128 vy,
     const __m128   lambda_to_cxypow{_mm_pow_ps(vlambda,_mm_sub_ps(cxy,vC1))};
     const __mmask8 cxy_neq_0{_mm_cmp_ps_mask(cxy,vC0,_CMP_NEQ_OQ)};
     const __m128   term1{_mm_sub_ps(vC1,_mm_mul_ps(vlambda,vlambda))};
+    const __mmask8 mask_or{cxy_neq_0 | lambda_neq_0};
     const __m128   term2{_mm_fmsub_ps(cxy,term1,_mm_add_ps(vlambda,vlambda))};
-    // Must be reimplemented by using kunpckbw or similiar intrinsic!!
-    return (_mm_mask_blend_ps(_kor_mask8(cxy_neq_0,lambda_neq_0),vCn2,_mm_mul_ps(lambda_to_cxypow,term2)));
+    return (_mm_mask_blend_ps(mask_or,vCn2,_mm_mul_ps(lambda_to_cxypow,term2)));
+    //return (_mm_mask_blend_ps(_kor_mask8(cxy_neq_0,lambda_neq_0),vCn2,_mm_mul_ps(lambda_to_cxypow,term2)));
 }
 
 // the simple convolution kernels
@@ -2099,33 +2100,40 @@ __m128 np_cdf_gauss2_sse_ps(const __m128 z)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_prefetching>
+template<bool use_prefetching,bool optimize_out_rip_store>
 __m128 np_cdf_gauss4_sse_ps(const __m128 z)
 {
-#if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
-    __ATTR_ALIGN__(16) constexpr const float prefetched_constants[16] = 
+    __m128 vC05;
+    __m128 vC07071067810;
+    __m128 vC01994711401;
+    __m128 vCN05;
+    if constexpr(static_cast<std::int32_t>(optimize_out_rip_store)==static_cast<std::int32_t>(true))
     {
+        __ATTR_ALIGN__(16) constexpr const float prefetched_constants[16] = 
+        {
                         0.5f,0.5f,0.5f,0.5f,
                         0.7071067810f,0.7071067810f,
                         0.7071067810f,0.7071067810f,
                         0.1994711401f,0.1994711401f,
                         0.1994711401f,0.1994711401f,
                        -0.5f,-0.5f,-0.5f,-0.5f
-    };
-    if constexpr(static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
+        };
+        if constexpr(static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
+        {
+            _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+        } 
+        vC05          = _mm_load_ps((const float*)&prefetched_constants[0]);
+        vC07071067810 = _mm_load_ps((const float*)&prefetched_constants[4]);
+        vC01994711401 = _mm_load_ps((const float*)&prefetched_constants[8]);
+        vCN05         = _mm_load_ps((const float*)&prefetched_constants[12]);
+    }
+    else 
     {
-        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+        vC05          = _mm_set1_ps(0.5f);
+        vC07071067810 = _mm_set1_ps(0.7071067810f);
+        vC01994711401 = _mm_set1_ps(0.1994711401f);
+        vCN05         = _mm_set1_ps(-0.5f);
     } 
-        const __m128 vC05{_mm_load_ps((const float*)&prefetched_constants[0])};
-        const __m128 vC07071067810{_mm_load_ps((const float*)&prefetched_constants[4])};
-        const __m128 vC01994711401{_mm_load_ps((const float*)&prefetched_constants[8])};
-        const __m128 vCN05{_mm_load_ps((const float*)&prefetched_constants[12])};
-#else 
-        const __m128 vC05{_mm_set1_ps(0.5f)};
-        const __m128 vC07071067810{_mm_set1_ps(0.7071067810f)};
-        const __m128 vC01994711401{_mm_set1_ps(0.1994711401f)};
-        const __m128 vCN05{_mm_set1_ps(-0.5f)};
-#endif 
         const __m128 z_to_pow2{_mm_mul_ps(z,z)};
         const __m128 exp_arg{_mm_mul_ps(vCN05,z_to_pow2)};
         const __m128 erf_arg{_mm_mul_ps(vC07071067810,z)};
@@ -2142,12 +2150,18 @@ __m128 np_cdf_gauss4_sse_ps(const __m128 z)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_prefetching>
+template<bool use_prefetching,bool optimize_out_rip_store>
 __m128 np_cdf_gauss6_sse_ps(const __m128 z)
 {
-#if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
-    __ATTR_ALIGN__(16) constexpr float prefetched_constants[32] = 
+    __m128 vC05;
+    __m128 vCN05; 
+    __m128 vC07071067810f; 
+    __m128 vC03490744952f; 
+    __m128 vC004986778504f; 
+    if constexpr(static_cast<std::int32_t>(optimize_out_rip_store)==static_cast<std::int32_t>(true))
     {
+        __ATTR_ALIGN__(16) constexpr float prefetched_constants[32] = 
+        {
                         0.5f,0.5f,0.5f,0.5f,
                        -0.5f,-0.5f,-0.5f,-0.5f,
                         0.7071067810f,0.7071067810f,
@@ -2159,31 +2173,33 @@ __m128 np_cdf_gauss6_sse_ps(const __m128 z)
                         0.0f,0.0f,0.0f,0.0f,
                         0.0f,0.0f,0.0f,0.0f,
                         0.0f,0.0f,0.0f,0.0f
-    };
-    if constexpr(static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
-    {
-        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
-        _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+        };
+        if constexpr(static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
+        {
+            _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+            _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+        }
+            vC05            = _mm_load_ps((const float*)&prefetched_constants[0]);
+            vCN05           = _mm_load_ps((const float*)&prefetched_constants[4]);
+            vC07071067810f  = _mm_load_ps((const float*)&prefetched_constants[8]);
+            vC03490744952f  = _mm_load_ps((const float*)&prefetched_constants[12]);
+            vC004986778504f = _mm_load_ps((const float*)&prefetched_constants[16]);
     }
-        const __m128 vC05{_mm_load_ps((const float*)&prefetched_constants[0])};
-        const __m128 vCN05{_mm_load_ps((const float*)&prefetched_constants[4])};
-        const __m128 vC07071067810f{_mm_load_ps((const float*)&prefetched_constants[8])};
-        const __m128 vC03490744952f{_mm_load_ps((const float*)&prefetched_constants[12])};
-        const __m128 vC004986778504f{_mm_load_ps((const float*)&prefetched_constants[16])};
-#else 
-        const __m128 vC05{_mm_set1_ps(0.5f)};
-        const __m128 vCN05{_mm_set1_ps(-0.5f)};
-        const __m128 vC07071067810f{_mm_set1_ps(0.7071067810f)};
-        const __m128 vC03490744952f{_mm_set1_ps(0.3490744952f)};
-        const __m128 vC004986778504f{_mm_set1_ps(0.04986778504f)};
-#endif 
-        const __m128 z_to_pow2{_mm_mul_ps(z,z)};
-        const __m128 erf_arg{_mm_mul_ps(vC07071067810f,z)};
-        const __m128 erf_val{_mm_erf_ps(erf_arg)};
-        const __m128 factor_1{_mm_sub_ps(vC03490744952f,_mm_mul_ps(vC004986778504f,z))};
-        const __m128 exp_arg{_mm_mul_ps(vCN05,z_to_pow2)};
-        const __m128 exp_val{_mm_exp_ps(exp_arg)};
-        return (_mm_fmadd_ps(vC05,erf_val,_mm_fmadd_ps(z,_mm_mul_ps(exp_val,factor_1),vC05)));
+    else 
+    { 
+            vC05            = _mm_set1_ps(0.5f);
+            vCN05           = _mm_set1_ps(-0.5f);
+            vC07071067810f  = _mm_set1_ps(0.7071067810f);
+            vC03490744952f  = _mm_set1_ps(0.3490744952f);
+            vC004986778504f = _mm_set1_ps(0.04986778504f);
+    } 
+            const __m128 z_to_pow2{_mm_mul_ps(z,z)};
+            const __m128 erf_arg{_mm_mul_ps(vC07071067810f,z)};
+            const __m128 erf_val{_mm_erf_ps(erf_arg)};
+            const __m128 factor_1{_mm_sub_ps(vC03490744952f,_mm_mul_ps(vC004986778504f,z))};
+            const __m128 exp_arg{_mm_mul_ps(vCN05,z_to_pow2)};
+            const __m128 exp_val{_mm_exp_ps(exp_arg)};
+            return (_mm_fmadd_ps(vC05,erf_val,_mm_fmadd_ps(z,_mm_mul_ps(exp_val,factor_1),vC05)));
 }
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
@@ -2193,12 +2209,19 @@ __m128 np_cdf_gauss6_sse_ps(const __m128 z)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_prefetching>
+template<bool use_prefetching,bool optimize_out_rip_store>
 __m128 np_cdf_gauss8_sse_ps(const __m128 z)
 {
-#if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
-    __ATTR_ALIGN__(16) constexpr const float prefetched_constants[32] = 
+    __m128 vC05;            
+    __m128 vC07071067810;   
+    __m128 vCN05;           
+    __m128 vC04737439578;   
+    __m128 vCN01329807601;  
+    __m128 vC0008311297511;
+    if constexpr(static_cast<std::int32_t>(optimize_out_rip_store)==static_cast<std::int32_t>(true))
     {
+        __ATTR_ALIGN__(16) constexpr const float prefetched_constants[32] = 
+        {
                         0.5f,0.5f,0.5f,0.5f,
                         0.7071067810f,0.7071067810f,
                         0.7071067810f,0.7071067810f,
@@ -2211,28 +2234,30 @@ __m128 np_cdf_gauss8_sse_ps(const __m128 z)
                         0.008311297511f,0.008311297511f,
                         0.0f,0.0f,0.0f,0.0f,
                         0.0f,0.0f,0.0f,0.0f
-    };
-    if constexpr(static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
-    {
-        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
-        _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+        };
+        if constexpr(static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
+        {
+            _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+            _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+        }
+        vC05            = _mm_load_ps((const float*)&prefetched_constants[0]);
+        vC07071067810   = _mm_load_ps((const float*)&prefetched_constants[4]);
+        vCN05           = _mm_load_ps((const float*)&prefetched_constants[8]);
+        vC04737439578   = _mm_load_ps((const float*)&prefetched_constants[12]);
+        vCN01329807601  = _mm_load_ps((const float*)&prefetched_constants[16]);
+        vC0008311297511 = _mm_load_ps((const float*)&prefetched_constants[20]);
     }
-        const __m128 vC05{_mm_load_ps((const float*)&prefetched_constants[0])};
-        const __m128 vC07071067810{_mm_load_ps((const float*)&prefetched_constants[4])};
-        const __m128 vCN05{_mm_load_ps((const float*)&prefetched_constants[8])};
-        const __m128 vC04737439578{_mm_load_ps((const float*)&prefetched_constants[12])};
-        const __m128 vCN01329807601{_mm_load_ps((const float*)&prefetched_constants[16])};
-        const __m128 vC0008311297511{_mm_load_ps((const float*)&prefetched_constants[20])};
-#else 
-        const __m128 vC05{_mm_set1_ps(0.5f)};
-        const __m128 vC07071067810{_mm_set1_ps(0.7071067810f)};
-        const __m128 vCN05{_mm_set1_ps(-0.5f)};
-        const __m128 vC04737439578{_mm_set1_ps(0.4737439578f)};
-        const __m128 vCN01329807601{_mm_set1_ps(-0.1329807601f)};
-        const __m128 vC0008311297511{_mm_set1_ps(0.008311297511f)};
-#endif 
+    else 
+    {
+        vC05            = _mm_set1_ps(0.5f);
+        vC07071067810   = _mm_set1_ps(0.7071067810f);
+        vCN05           = _mm_set1_ps(-0.5f);
+        vC04737439578   = _mm_set1_ps(0.4737439578f);
+        vCN01329807601  = _mm_set1_ps(-0.1329807601f);
+        vC0008311297511 = _mm_set1_ps(0.008311297511f);
+    }
         const __m128 z_to_pow2{_mm_mul_ps(z,z)};
-        const __m128 erf_arg{_mm_mul_ps(vC07071067810f,z)};
+        const __m128 erf_arg{_mm_mul_ps(vC07071067810,z)};
         const __m128 erf_val{_mm_erf_ps(erf_arg)};
         const __m128 horner_series{_mm_fmadd_ps(
                                       _mm_fmadd_ps(z_to_pow2,vC0008311297511,vCN01329807601),
@@ -2282,34 +2307,91 @@ __m128 np_cdf_gauss8_sse_ps(const __m128 z)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_prefetching>
+template<bool use_prefetching,bool optimize_out_rip_store>
 __m128 np_cdf_epan2_sse_ps(const __m128 z)
 {
-#if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
-    __ATTR_ALIGN__(16) constexpr const float prefetched_constants[16] = 
+    __m128 vC03354101967;
+    __m128 vC002236067978; 
+    __m128 vC05;
+    if constexpr(static_cast<std::int32_t>(optimize_out_rip_store)==static_cast<std::int32_t>(true))
     {
+        __ATTR_ALIGN__(16) constexpr const float prefetched_constants[16] = 
+        {
                                 0.3354101967f,0.3354101967f,
                                 0.3354101967f,0.3354101967f,
                                 0.02236067978f,0.02236067978f,
                                 0.02236067978f,0.02236067978f,
                                 0.5f,0.5f,0.5f,0.5f,
                                 0.0f,0.0f,0.0f,0.0f
-    };
-    if constexpr(static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
-    {
-        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+        };
+        if constexpr(static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
+        {
+            _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+        }
+            vC03354101967   = _mm_load_ps((const float*)&prefetched_constants[0]);
+            vC002236067978  = _mm_load_ps((const float*)&prefetched_constants[4]);
+            vC05            = _mm_load_ps((const float*)&prefetched_constants[8]);
     }
-        const __m128 vC03354101967{_mm_load_ps((const float*)&prefetched_constants[0])};
-        const __m128 vC002236067978{_mm_load_ps((const float*)&prefetched_constants[4])};
-        const __m128 vC05{_mm_load_ps((const float*)&prefetched_constants[8])};
-#else 
-        const __m128 vC03354101967{_mm_set1_ps(0.3354101967f)};
-        const __m128 vC002236067978{_mm_set1_ps(0.02236067978f)};
-        const __m128 vC05{_mm_set1_ps(0.5f)};
-#endif 
+    else
+    {
+            vC03354101967   = _mm_set1_ps(0.3354101967f);
+            vC002236067978  =_mm_set1_ps(0.02236067978f);
+            vC05            = _mm_set1_ps(0.5f);
+    }
+            const __m128 z_to_pow2{_mm_mul_ps(z,z)};
+            const __m128 factor_1{_mm_sub_ps(vC03354101967,_mm_mul_ps(vC002236067978,z_to_pow2))};
+            return (_mm_fmadd_ps(z,factor_1,vC05));
+}
+
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+template<bool use_prefetching,bool optimize_out_rip_store>
+__m128 np_cdf_epan4_sse_ps(const __m128 z)
+{   
+    __m128 vC05;
+    __m128 vC06288941188f;
+    __m128 vCN01397542486;
+    __m128 vC001173935688;
+    if constexpr(static_cast<std::int32_t>(optimize_out_rip_store)==static_cast<std::int32_t>(true))
+    {
+        __ATTR_ALIGN__(16) constexpr const float prefetched_constants[16] = 
+        {
+                           0.5f,0.5f,0.5f,0.5f,
+                           0.6288941188f,0.6288941188f,
+                           0.6288941188f,0.6288941188f,
+                          -0.1397542486f,-0.1397542486f,
+                          -0.1397542486f,-0.1397542486f,
+                           0.01173935688f,0.01173935688f,
+                           0.01173935688f,0.01173935688f
+        };
+        if constexpr(static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
+        {
+             _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+        }
+        vC05            = _mm_load_ps((const float*)&prefetched_constants[0]);
+        vC06288941188f  = _mm_load_ps((const float*)&prefetched_constants[4]);
+        vCN01397542486  = _mm_load_ps((const float*)&prefetched_constants[8]);
+        vC001173935688  = _mm_load_ps((const float*)&prefetched_constants[12]);
+    }
+    else 
+    {
+        vC05            = _mm_set1_ps(0.5f);
+        vC06288941188f  = _mm_set1_ps(0.6288941188f);
+        vCN01397542486  = _mm_set1_ps(-0.1397542486f);
+        vC001173935688  = _mm_set1_ps(0.01173935688f);
+    } 
         const __m128 z_to_pow2{_mm_mul_ps(z,z)};
-        const __m128 factor_1{_mm_sub_ps(vC03354101967,_mm_mul_ps(vC002236067978,z_to_pow2))};
-        return (_mm_fmadd_ps(z,factor_1,vC05));
+        return (_mm_fmadd_ps(
+                         _mm_fmadd_ps(
+                                  _mm_fmadd_ps(z_to_pow2,vC001173935688,vCN01397542486),
+                                                                        z_to_pow2,vC06288941188f),
+                                                                                                z,vC05));
 }
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
@@ -2319,41 +2401,125 @@ __m128 np_cdf_epan2_sse_ps(const __m128 z)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_prefetching>
-__m128 np_cdf_epan2_sse_ps(const __m128 z)
+template<bool use_prefetching,bool optimize_out_rip_store>
+__m128 np_cdf_epan6_sse_ps(const __m128 z)
 {
-#if (PDF_KERNELS_SSE_OPTIMIZE_OUT_RIP_RODATA_STORE) == 1
-    __ATTR_ALIGN__(16) constexpr const float prefetched_constants[16] = 
+    __m128 vC05;
+    __m128 vC09171372566;
+    __m128 vCN04279973864;
+    __m128 vC009244743547;
+    __m128 vC0006917835307;
+    if constexpr(static_cast<std::int32_t>(optimize_out_rip_store)==static_cast<std::int32_t>(true))
     {
-                           0.5f,0.5f,0.5f,0.5f,
-                           0.6288941188f,0.6288941188f,
-                           0.6288941188f,0.6288941188f,
-                          -0.1397542486f,-0.1397542486f,
-                          -0.1397542486f,-0.1397542486f,
-                           0.01173935688f,0.01173935688f,
-                           0.01173935688f,0.01173935688f
-    };
-    if constexpr(static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
-    {
-        _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+        __ATTR_ALIGN__(16) constexpr const float prefetched_constants[32] = 
+        {
+                        0.5f,0.5f,0.5f,0.5f,
+                        0.9171372566f,0.9171372566f,
+                        0.9171372566f,0.9171372566f,
+                       -0.4279973864f,-0.4279973864f,
+                       -0.4279973864f,-0.4279973864f,
+                        0.09244743547f,0.09244743547f,
+                        0.09244743547f,0.09244743547f,
+                        0.006917835307f,0.006917835307f,
+                        0.006917835307f,0.006917835307f,
+                        0.0f,0.0f,0.0f,0.0f,
+                        0.0f,0.0f,0.0f,0.0f,
+                        0.0f,0.0f,0.0f,0.0f
+        };
+        if constexpr(static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
+        {
+            _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+            _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+        }
+            vC05            = _mm_load_ps((const float*)&prefetched_constants[0]);
+            vC09171372566   = _mm_load_ps((const float*)&prefetched_constants[4]);
+            vCN04279973864  = _mm_load_ps((const float*)&prefetched_constants[8]);
+            vC009244743547  = _mm_load_ps((const float*)&prefetched_constants[12]);
+            vC0006917835307 = _mm_load_ps((const float*)&prefetched_constants[16]);
     }
-        const __m128 vC05{_mm_load_ps((const float*)&prefetched_constants[0])};
-        const __m128 vC06288941188f{_mm_load_ps((const float*)&prefetched_constants[4])};
-        const __m128 vCN01397542486{_mm_load_ps((const float*)&prefetched_constants[8])};
-        const __m128 vC001173935688{_mm_load_ps((const float*)&prefetched_constants[12])};
-#else 
-        const __m128 vC05{_mm_set1_ps(0.5f)};
-        const __m128 vC06288941188f{_mm_set1_ps(0.6288941188f)};
-        const __m128 vCN01397542486{_mm_set1_ps(-0.1397542486f)};
-        const __m128 vC001173935688{_mm_set1_ps(0.01173935688f)};
-#endif 
+    else 
+    {
+            vC05            = _mm_set1_ps(0.5f);
+            vC09171372566   = _mm_set1_ps(0.9171372566f);
+            vCN04279973864  = _mm_set1_ps(-0.4279973864f);
+            vC009244743547  = _mm_set1_ps(0.09244743547f);
+            vC0006917835307 = _mm_set1_ps(0.006917835307f);
+    }
         const __m128 z_to_pow2{_mm_mul_ps(z,z)};
+        const __m128 factor_1{_mm_sub_ps(vC009244743547,
+                                     _mm_mul_ps(vC0006917835307,z_to_pow2))};
         return (_mm_fmadd_ps(
                          _mm_fmadd_ps(
-                                  _mm_fmadd_ps(z_to_pow2,vC001173935688,vCN01397542486),
-                                                                        z_to_pow2,vC06288941188f),
-                                                                                                z,vC05));
+                                  _mm_fmadd_ps(factor_1,z_to_pow2,vCN04279973864),
+                                                        z_to_pow2,vC009244743547),z,vC05));
 }
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+template<bool use_prefetching,bool optimize_out_rip_store>
+__m128 np_cdf_epan8_sse_ps(const __m128 z)
+{
+    __m128 vC05;
+    __m128 vC1203742649;
+    __m128 vCN09629941194;
+    __m128 vC03813456714;
+    __m128 vCN006744889424;
+    __m128 vC0004371687590;
+    if constexpr(static_cast<std::int32_t>(optimize_out_rip_store)==static_cast<std::int32_t>(true))
+    {    
+        __ATTR_ALIGN__(16) constexpr const float prefetched_constants[32] = 
+        {
+                        0.5f,0.5f,0.5f,0.5f,
+                        1.203742649f,1.203742649f,
+                        1.203742649f,1.203742649f,
+                       -0.9629941194f,-0.9629941194f,
+                       -0.9629941194f,-0.9629941194f,
+                        0.3813456714f,0.3813456714f,
+                        0.3813456714f,0.3813456714f,
+                       -0.06744889424f,-0.06744889424f,
+                       -0.06744889424f,-0.06744889424f,
+                        0.004371687590f,0.004371687590f,
+                        0.004371687590f,0.004371687590f,
+                        0.0f,0.0f,0.0f,0.0f,
+                        0.0f,0.0f,0.0f,0.0f
+        };
+        if constexpr(static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
+        {
+            _mm_prefetch((const char*)&prefetched_constants[0],_MM_HINT_T0);
+            _mm_prefetch((const char*)&prefetched_constants[16],_MM_HINT_T0);
+        }
+            vC05            = _mm_load_ps((const float*)&prefetched_constants[0]);
+            vC1203742649    = _mm_load_ps((const float*)&prefetched_constants[4]);
+            vCN09629941194  = _mm_load_ps((const float*)&prefetched_constants[8]);
+            vC03813456714   = _mm_load_ps((const float*)&prefetched_constants[12]);
+            vCN006744889424 = _mm_load_ps((const float*)&prefetched_constants[16]);
+            vC0004371687590 = _mm_load_ps((const float*)&prefetched_constants[20]);
+    }
+    else 
+    {
+            vC05            =_mm_set1_ps(0.5f);
+            vC1203742649    = _mm_set1_ps(1.203742649f);
+            vCN09629941194  = _mm_set1_ps(-0.9629941194f);
+            vC03813456714   = _mm_set1_ps(0.3813456714f);
+            vCN006744889424 = _mm_set1_ps(-0.06744889424f);
+            vC0004371687590 = _mm_set1_ps(0.004371687590f);
+    }
+        const __m128 z_to_pow2{_mm_mul_ps(z,z)};
+        const __m128 factor_1{_mm_fmadd_ps(z_to_pow2,vC0004371687590,vCN006744889424)};
+        return (_mm_fmadd_ps(
+                         _mm_fmadd_ps(
+                                  _mm_fmadd_ps(
+                                           _mm_fmadd_ps(factor_1,z_to_pow2,vC03813456714),
+                                                                     z_to_pow2,vCN09629941194),
+                                                                             z_to_pow2,vC1203742649),z,vC05));
+}
+
+
 
 } // np_standalone_funcs
 
