@@ -48,13 +48,15 @@ namespace file_info
 #include <limits>
 #include "GMS_config.h"
 
+
 namespace gms 
 {
 
 namespace math 
 {
 
-namespace {
+namespace 
+{
 
 __ATTR_ALWAYS_INLINE__		    
 static inline 
@@ -122,6 +124,7 @@ __m128 _mm_ceph_cosf_ps(const __m128 xx)
 	const __m128i  i_4{  _mm_set1_epi32(4)};
 	const __m128i  i_0{  _mm_set1_epi32(0)};
 	const __m128i  i_2{  _mm_set1_epi32(2)};
+    
     __m128  x;
 	__m128  y;
 	__m128  z;
@@ -149,8 +152,8 @@ __m128 _mm_ceph_cosf_ps(const __m128 xx)
 	x          = _mm_mask_blend_ps(x_lt_0,x,_mm_negate_ps(x));
     x_gt_T24M1 = _mm_cmp_ps_mask(x,T24M1,_CMP_GT_OQ);
 	if(__builtin_expect(x_gt_T24M1==0xFF,0)) {return infinity;}
-    j          = _mm_cvtps_epi32(_mm_mul_ps(FOPI,x));
-    y          = _mm_cvtepi32_ps(j);
+    j          = _mm_cvtps_epi64(_mm_mul_ps(FOPI,x));
+    y          = _mm_cvtepi64_ps(j);
     j_and_1    = _mm_and_si128(j,i_one);
 	mask_j_and_1= _mm_cmp_epi32_mask(j_and_1,i_0,_MM_CMPINT_NE);
     j          = _mm_mask_blend_epi32(mask_j_and_1,j,_mm_add_epi32(j,i_one));
@@ -169,7 +172,8 @@ __m128 _mm_ceph_cosf_ps(const __m128 xx)
     z          = _mm_mul_ps(x,x);
     j_eq_1     = _mm_cmp_epi32_mask(j,i_one,_MM_CMPINT_EQ);
 	j_eq_2     = _mm_cmp_epi32_mask(j,i_2,_MM_CMPINT_EQ);
-	const __mmask8 j_eq1_or_j_eq_2{_kor_mask8(j_eq_1,j_eq_2)};
+	//const __mmask8 j_eq1_or_j_eq_2{_kor_mask8(j_eq_1,j_eq_2)};
+	const __mmask8 j_eq1_or_j_eq_2 = j_eq_1 | j_eq_2;
     y_true     = _mm_fmadd_ps(_mm_mul_ps(_mm_fmsub_ps(_mm_fmadd_ps(C19515295891E4,z,C83321608736E3),z,C16666654611E1),z),x,x);
 	y_false    = _mm_mul_ps(_mm_mul_ps(_mm_fmadd_ps(_mm_fmsub_ps(C2443315711809948E005,z,C1388731625493765E003),z,C4166664568298827E002),z),z);
 	y_false    = _mm_sub_ps(y_false,_mm_mul_ps(C05,z));
@@ -179,6 +183,7 @@ __m128 _mm_ceph_cosf_ps(const __m128 xx)
 	y          = _mm_mask_blend_ps(sign_lt_0,y,_mm_negate_ps(y));
 	return (y);
 }
+
 
 __ATTR_ALWAYS_INLINE__
 static inline 
@@ -264,7 +269,8 @@ __m256 _mm256_ceph_cosf_ps(const __m256 xx)
     z          = _mm256_mul_ps(x,x);
     j_eq_1     = _mm256_cmp_epi32_mask(j,i_one,_MM_CMPINT_EQ);
 	j_eq_2     = _mm256_cmp_epi32_mask(j,i_2,_MM_CMPINT_EQ);
-	const __mmask8 j_eq1_or_j_eq_2{_kor_mask8(j_eq_1,j_eq_2)};
+	//const __mmask8 j_eq1_or_j_eq_2{_kor_mask8(j_eq_1,j_eq_2)};
+	const __mmask8 j_eq1_or_j_eq_2 = j_eq_1 | j_eq_2;
     y_true     = _mm256_fmadd_ps(_mm256_mul_ps(_mm256_fmsub_ps(_mm256_fmadd_ps(C19515295891E4,z,C83321608736E3),z,C16666654611E1),z),x,x);
 	y_false    = _mm256_mul_ps(_mm256_mul_ps(_mm256_fmadd_ps(_mm256_fmsub_ps(C2443315711809948E005,z,C1388731625493765E003),z,C4166664568298827E002),z),z);
 	y_false    = _mm256_sub_ps(y_false,_mm256_mul_ps(C05,z));
@@ -359,7 +365,8 @@ __m512 _mm512_ceph_cosf_ps(const __m512 xx)
     z          = _mm512_mul_ps(x,x);
     j_eq_1     = _mm512_cmp_epi32_mask(j,i_one,_MM_CMPINT_EQ);
 	j_eq_2     = _mm512_cmp_epi32_mask(j,i_2,_MM_CMPINT_EQ);
-	const __mmask16 j_eq_1_or_j_eq_2{_kor_mask16(j_eq_1,j_eq_2)};
+	//const __mmask16 j_eq_1_or_j_eq_2{_kor_mask16(j_eq_1,j_eq_2)};
+	const __mmask16 j_eq_1_or_j_eq_2 = j_eq_1 | j_eq_2;
     y_true     = _mm512_fmadd_ps(_mm512_mul_ps(_mm512_fmsub_ps(_mm512_fmadd_ps(C19515295891E4,z,C83321608736E3),z,C16666654611E1),z),x,x);
 	y_false    = _mm512_mul_ps(_mm512_mul_ps(_mm512_fmadd_ps(_mm512_fmsub_ps(C2443315711809948E005,z,C1388731625493765E003),z,C4166664568298827E002),z),z);
 	y_false    = _mm512_sub_ps(y_false,_mm512_mul_ps(C05,z));
