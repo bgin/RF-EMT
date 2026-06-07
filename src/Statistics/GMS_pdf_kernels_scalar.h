@@ -55,11 +55,12 @@ namespace file_info
 
 #include <cstdint>
 #include <cmath>
+#include "GMS_config.h"
+#include "GMS_compare_fp_safe.h"
 #if (USE_OPENMP) == 1
 #include <omp.h>
 #endif
-#include "GMS_config.h"
-#include "GMS_compare_fp_safe.h"
+
 
 namespace gms
 {
@@ -412,11 +413,11 @@ __ATTR_ALWAYS_INLINE__
 static inline 
 float np_owang_van_ryzin_r4(const float x, const float y, 
                             const float lambda,
-                            const float epsilon)
+                            const std::int32_t max_ulps)
 {
      const float term{1.0f-lambda};
      const float ipow_arg{static_cast<float>(static_cast<std::int32_t>(std::fabs(x-y)))};
-     return (gms::approximatelyEqual(x,y,epsilon))?term:std::pow(lambda,ipow_arg)*term*0.5f;
+     return (gms::almostEqual2sComplement(x,y,max_ulps))?term:std::pow(lambda,ipow_arg)*term*0.5f;
 }
 
 #if (USE_OPENMP) == 1
@@ -426,11 +427,11 @@ __ATTR_ALWAYS_INLINE__
 static inline 
 float np_score_owang_van_ryzin_r4(const float x, const float y, 
                                   const float lambda,
-                                  const float epsilon)
+                                  const std::int32_t max_ulps)
 {
     const float fabs_term{std::fabs(x-y)};
     const float ipow_arg{static_cast<float>(static_cast<std::int32_t>(std::fabs(x-y)))};
-    return (gms::approximatelyEqual(x,y,epsilon))?-1.0f:(0.5*std::pow(lambda,ipow_arg)*(fabs_term/lambda-2.0f));
+    return (gms::almostEqual2sComplement(x,y,max_ulps))?-1.0f:0.5*std::pow(lambda,ipow_arg)*(fabs_term/lambda-2.0f);
 }
 
 #if (USE_OPENMP) == 1
@@ -845,11 +846,12 @@ float np_adaptconvol_epan2_total_r4(const float x, const float y,
 __ATTR_ALWAYS_INLINE__
 static inline 
 float kernel_ordered_van_ryzin_wang(const float x,const float y,
-                                    const float lambda,const float epsilon)
+                                    const float lambda,
+                                    const std::int32_t max_ulps)
 {
     float ret_val{};
     const float one_m_lambda{1.0f-lambda};
-    const bool x_eq_y = gms::approximatelyEqual(x,y,epsilon);
+    const bool x_eq_y = gms::almostEqual2sComplement(x,y,max_ulps);
     ret_val = (x_eq_y) ? one_m_lambda : std::pow(lambda,ceph_floorf(std::fabs(x-y)))*one_m_lambda*0.5f;
     return (ret_val);
 }
@@ -860,10 +862,11 @@ float kernel_ordered_van_ryzin_wang(const float x,const float y,
 __ATTR_ALWAYS_INLINE__
 static inline 
 float kernel_ordered_qi(const float x,const float y,
-                        const float lambda,const float epsilon)
+                        const float lambda,
+                        const std::int32_t max_ulps)
 {
     float ret_val{};
-    const bool x_eq_y = gms::approximatelyEqual(x,y,epsilon);
+    const bool x_eq_y = gms::almostEqual2sComplement(x,y,max_ulps);
     ret_val = (x_eq_y) ? 1.0f : std::pow(lambda,ceph_floorf(std::fabs(x-y)));
     return (ret_val);
 }
@@ -873,11 +876,13 @@ float kernel_ordered_qi(const float x,const float y,
 #endif
 __ATTR_ALWAYS_INLINE__
 static inline 
-float kernel_unordered_aitchenson_aitken_0(const float x,const float y,const float lambda,
-                                           const float c,const float epsilon)
+float kernel_unordered_aitchenson_aitken_0(const float x,const float y,
+                                           const float lambda,
+                                           const float c,
+                                           const std::int32_t max_ulps)
 {
     float ret_val{};
-    const bool x_eq_y = gms::approximatelyEqual(x,y,epsilon);
+    const bool x_eq_y = gms::almostEqual2sComplement(x,y,max_ulps);
     ret_val = (x_eq_y) ? 1.0f-lambda : lambda/(c-1.0f);
     return (ret_val);
 }
@@ -888,10 +893,11 @@ float kernel_unordered_aitchenson_aitken_0(const float x,const float y,const flo
 __ATTR_ALWAYS_INLINE__
 static inline 
 float kernel_unordered_aitchenson_aitken_1(const float x,const float y,
-                                           const float lambda,const float epsilon)
+                                           const float lambda,
+                                           const std::int32_t max_ulps)
 {
     float ret_val{};
-    const bool x_eq_y = gms::approximatelyEqual(x,y,epsilon);
+    const bool x_eq_y = gms::almostEqual2sComplement(x,y,max_ulps);
     ret_val = (x_eq_y) ? 1.0f : lambda;
     return (ret_val);
 }
@@ -990,7 +996,7 @@ enum class kernel_unordered_funcs : int32_t
 template<kernel_ordered_funcs kernel_ordered>
 float kernel_ordered_convolution(float * __restrict c_vals,const std::int32_t c_len,
                                  const float x, const float y, const float lambda,
-                                 const float epsilon)
+                                 const std::int32_t max_ulps)
 {
     
 #if defined(__INTEL_COMPILER) || defined(__ICC)
@@ -1008,8 +1014,8 @@ float kernel_ordered_convolution(float * __restrict c_vals,const std::int32_t c_
         for(std::int32_t i = 0;i != c_len; ++i) 
         {
             const float curr_val{ptr_c_vals[i]};
-            const float left_kern_val{kernel_ordered_van_ryzin_wang(x,curr_val,lambda,epsilon)};
-            const float right_kern_val{kernel_ordered_van_ryzin_wang(y,curr_val,lambda,epsilon)};
+            const float left_kern_val{kernel_ordered_van_ryzin_wang(x,curr_val,lambda,max_ulps)};
+            const float right_kern_val{kernel_ordered_van_ryzin_wang(y,curr_val,lambda,max_ulps)};
             kernel_sum += (left_kern_val*right_kern_val);
         }
         return (kernel_sum);
@@ -1022,8 +1028,8 @@ float kernel_ordered_convolution(float * __restrict c_vals,const std::int32_t c_
         for(std::int32_t i = 0;i != c_len; ++i) 
         {
             const float curr_val{ptr_c_vals[i]};
-            const float left_kern_val{kernel_ordered_qi(x,curr_val,lambda,epsilon)};
-            const float right_kern_val{kernel_ordered_qi(y,curr_val,lambda,epsilon)};
+            const float left_kern_val{kernel_ordered_qi(x,curr_val,lambda,max_ulps)};
+            const float right_kern_val{kernel_ordered_qi(y,curr_val,lambda,max_ulps)};
             kernel_sum += (left_kern_val*right_kern_val);
         }
         return (kernel_sum);
@@ -1032,8 +1038,11 @@ float kernel_ordered_convolution(float * __restrict c_vals,const std::int32_t c_
 }
 
 template<kernel_unordered_funcs kernel_unordered>
-float cdf_kernel_unordered(float * __restrict categorical_vals,const std::int32_t vals_len,const float c,
-                           const float x,const float y,const float lambda,const float epsilon)
+float cdf_kernel_unordered(float * __restrict categorical_vals,
+                           const std::int32_t vals_len,const float c,
+                           const float x,const float y,
+                           const float lambda,const float epsilon,
+                           const std::int32_t max_ulps)
 {
 #if defined(__INTEL_COMPILER) || defined(__ICC)
     float * __restrict ptr_categorical_vals = &categorical_vals[0];
@@ -1053,7 +1062,7 @@ float cdf_kernel_unordered(float * __restrict categorical_vals,const std::int32_
             const bool  current_value_le_x = gms::definitelyLessThan(current_value,x,epsilon);
             if(current_value_le_x)
             {
-                kernel_sum += kernel_unordered_aitchenson_aitken_0(current_value,y,lambda,c,epsilon);
+                kernel_sum += kernel_unordered_aitchenson_aitken_0(current_value,y,lambda,c,max_ulps);
             }
         }
         return (kernel_sum);
@@ -1069,7 +1078,7 @@ float cdf_kernel_unordered(float * __restrict categorical_vals,const std::int32_
             const bool  current_value_le_x = gms::definitelyLessThan(current_value,x,epsilon);
             if(current_value_le_x)
             {
-                kernel_sum += kernel_unordered_aitchenson_aitken_1(current_value,y,lambda,epsilon);
+                kernel_sum += kernel_unordered_aitchenson_aitken_1(current_value,y,lambda,max_ulps);
             }
         }
         return (kernel_sum);
@@ -1079,7 +1088,7 @@ float cdf_kernel_unordered(float * __restrict categorical_vals,const std::int32_
 template<kernel_unordered_funcs kernel_unordered>
 float kernel_unordered_convolution(float * __restrict c_vals,const std::int32_t c_vals_len,
                                    const float x,const float y,const float lambda,const float c,
-                                   const float epsilon)
+                                   const std::int32_t max_ulps)
 {
 #if defined(__INTEL_COMPILER) || defined(__ICC)
     float * __restrict ptr_c_vals = &c_vals[0];
@@ -1096,8 +1105,8 @@ float kernel_unordered_convolution(float * __restrict c_vals,const std::int32_t 
         for(std::int32_t i = 0;i != c_vals_len; ++i) 
         {
             const float current_value{ptr_c_vals[i]};
-            const float left_kern_val{kernel_unordered_aitchenson_aitken_0(x,current_value,lambda,c,epsilon)};
-            const float right_kern_val{kernel_unordered_aitchenson_aitken_0(y,current_value,lambda,c,epsilon)};
+            const float left_kern_val{kernel_unordered_aitchenson_aitken_0(x,current_value,lambda,c,max_ulps)};
+            const float right_kern_val{kernel_unordered_aitchenson_aitken_0(y,current_value,lambda,c,max_ulps)};
             kernel_sum += (left_kern_val*right_kern_val);
         }
         return (kernel_sum);
@@ -1110,8 +1119,8 @@ float kernel_unordered_convolution(float * __restrict c_vals,const std::int32_t 
         for(std::int32_t i = 0;i != c_vals_len; ++i) 
         {
             const float current_value{ptr_c_vals[i]};
-            const float left_kern_val{kernel_unordered_aitchenson_aitken_1(x,current_value,lambda,epsilon)};
-            const float right_kern_val{kernel_unordered_aitchenson_aitken_1(y,current_value,lambda,epsilon)};
+            const float left_kern_val{kernel_unordered_aitchenson_aitken_1(x,current_value,lambda,max_ulps)};
+            const float right_kern_val{kernel_unordered_aitchenson_aitken_1(y,current_value,lambda,max_ulps)};
             kernel_sum += (left_kern_val*right_kern_val);
         }
         return (kernel_sum);
@@ -1262,8 +1271,6 @@ void init_kernel_density_asymptotic_constants(const float num_var_continous,
          return;
     }
 }
-
-
 
 
 } //np_standalone_funcs
