@@ -46,6 +46,7 @@ namespace file_info
 
 #include <immintrin.h>
 #include <limits>
+#include <cstdint>
 #include "GMS_config.h"
 
 
@@ -87,6 +88,13 @@ _mm512_negate_ps(const __m512 v)
 
 }
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m128 _mm_ceph_cosf_ps(const __m128 xx) 
@@ -184,7 +192,13 @@ __m128 _mm_ceph_cosf_ps(const __m128 xx)
 	return (y);
 }
 
-
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=AVX
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx")
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m256 _mm256_ceph_cosf_ps(const __m256 xx) 
@@ -281,6 +295,13 @@ __m256 _mm256_ceph_cosf_ps(const __m256 xx)
 	return (y);
 }
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=AVX512F
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512f")
+#endif
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m512 _mm512_ceph_cosf_ps(const __m512 xx) 
@@ -382,45 +403,488 @@ __m512 _mm512_ceph_cosf_ps(const __m512 xx)
 
 namespace vec_cos_contstants
 {
+
 __ATTR_ALIGN__(16)
-__attribute__((section(".rodata"))) constexpr const static float mm_ceph_cos_ps_constants[80] = 
+__attribute__((section(".rodata"))) 
+constexpr const static float prefetched_constants_4x_f32[80] = 
 {
-                                             0.7853981633974483096f,0.7853981633974483096f,
-											 0.7853981633974483096f,0.7853981633974483096f,
-											 1.27323954473516f,     1.27323954473516f,
-											 1.27323954473516f,     1.27323954473516f,
-											 0.78515625f,           0.78515625f,
-											 0.78515625f,           0.78515625f,
-											 2.4187564849853515625e-4f,2.4187564849853515625e-4f,
-											 2.4187564849853515625e-4f,2.4187564849853515625e-4f,
-											 3.77489497744594108e-8f,3.77489497744594108e-8f,
-											 3.77489497744594108e-8f,3.77489497744594108e-8f,
-											 8192.0f,8192.0f,        8192.0f,8192.0f,
-											 16777215.0f,16777215.0f,16777215.0f,16777215.0f,
-											-1.9515295891E-4,       -1.9515295891E-4,
-											-1.9515295891E-4,       -1.9515295891E-4,
-											 8.3321608736E-3,        8.3321608736E-3,
-											 8.3321608736E-3,        8.3321608736E-3,
-											 1.6666654611E-1,        1.6666654611E-1,
-											 1.6666654611E-1,        1.6666654611E-1,
-											 2.443315711809948E-005,2.443315711809948E-005,
-											 2.443315711809948E-005,2.443315711809948E-005,
-											 1.388731625493765E-003,1.388731625493765E-003,
-											 1.388731625493765E-003,1.388731625493765E-003,
-											 4.166664568298827E-002,4.166664568298827E-002,
-											 4.166664568298827E-002,4.166664568298827E-002,
-											 0.5f,0.5f,0.5f,0.5f,0.0f,0.0f,0.0f,0.0f,
-											 std::numeric_limits<float>::infinity(),
-											 std::numeric_limits<float>::infinity(),
-											 std::numeric_limits<float>::infinity(),
-											 std::numeric_limits<float>::infinity(),
-											 1.0f,1.0f,1.0f,1.0f,
-											 0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //padding to 5*64bytes (L1D-cache line size)
-											 0.0f,0.0f,0.0f // padding to 5*64bytes (L1D-cache line size)
+    0.7853981633974483096f,0.7853981633974483096f,
+	0.7853981633974483096f,0.7853981633974483096f,
+	1.27323954473516f,     1.27323954473516f,
+	1.27323954473516f,     1.27323954473516f,
+	0.78515625f,           0.78515625f,
+	0.78515625f,           0.78515625f,
+	2.4187564849853515625e-4f,2.4187564849853515625e-4f,
+	2.4187564849853515625e-4f,2.4187564849853515625e-4f,
+	3.77489497744594108e-8f,3.77489497744594108e-8f,
+	3.77489497744594108e-8f,3.77489497744594108e-8f,
+	8192.0f,8192.0f,        8192.0f,8192.0f,
+	16777215.0f,16777215.0f,16777215.0f,16777215.0f,
+   -1.9515295891E-4,       -1.9515295891E-4,
+   -1.9515295891E-4,       -1.9515295891E-4,
+	8.3321608736E-3,        8.3321608736E-3,
+	8.3321608736E-3,        8.3321608736E-3,
+    1.6666654611E-1,        1.6666654611E-1,
+	1.6666654611E-1,        1.6666654611E-1,
+	2.443315711809948E-005,2.443315711809948E-005,
+	2.443315711809948E-005,2.443315711809948E-005,
+	1.388731625493765E-003,1.388731625493765E-003,
+	1.388731625493765E-003,1.388731625493765E-003,
+	4.166664568298827E-002,4.166664568298827E-002,
+	4.166664568298827E-002,4.166664568298827E-002,
+	0.5f,0.5f,0.5f,0.5f,0.0f,0.0f,0.0f,0.0f,
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	1.0f,1.0f,1.0f,1.0f,
+	0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //padding to 5*64bytes (L1D-cache line size)
+	0.0f,0.0f,0.0f // padding to 5*64bytes (L1D-cache line size)
 
 };
 
+__ATTR_ALIGN__(16)
+__attribute__((section(".rodata"))) 
+constexpr const static std::int32_t prefetched_constants_4x_i32[32] = 
+{
+    1,1,1,1,
+	7,7,7,7,
+	3,3,3,3,
+    4,4,4,4,
+	0,0,0,0,
+	2,2,2,2,
+   -1,-1,-1,-1,
+	0,0,0,0 // padding values to cache full lines alignment
+};
+
+__ATTR_ALIGN__(16)
+__attribute__((section(".rodata"))) 
+constexpr const static float prefetched_constants_8x_f32[160] =
+{
+    0.7853981633974483096f,0.7853981633974483096f,
+	0.7853981633974483096f,0.7853981633974483096f,
+	0.7853981633974483096f,0.7853981633974483096f,
+	0.7853981633974483096f,0.7853981633974483096f,
+	1.27323954473516f,     1.27323954473516f,
+	1.27323954473516f,     1.27323954473516f,
+	1.27323954473516f,     1.27323954473516f,
+	1.27323954473516f,     1.27323954473516f,
+	0.78515625f,           0.78515625f,
+	0.78515625f,           0.78515625f,
+	0.78515625f,           0.78515625f,
+	0.78515625f,           0.78515625f,
+	2.4187564849853515625e-4f,2.4187564849853515625e-4f,
+	2.4187564849853515625e-4f,2.4187564849853515625e-4f,
+	2.4187564849853515625e-4f,2.4187564849853515625e-4f,
+	2.4187564849853515625e-4f,2.4187564849853515625e-4f,
+	3.77489497744594108e-8f,3.77489497744594108e-8f,
+	3.77489497744594108e-8f,3.77489497744594108e-8f,
+	3.77489497744594108e-8f,3.77489497744594108e-8f,
+	3.77489497744594108e-8f,3.77489497744594108e-8f,
+	8192.0f,8192.0f,        8192.0f,8192.0f,
+	8192.0f,8192.0f,        8192.0f,8192.0f,
+	16777215.0f,16777215.0f,16777215.0f,16777215.0f,
+	16777215.0f,16777215.0f,16777215.0f,16777215.0f,
+   -1.9515295891E-4,       -1.9515295891E-4,
+   -1.9515295891E-4,       -1.9515295891E-4,
+   -1.9515295891E-4,       -1.9515295891E-4,
+   -1.9515295891E-4,       -1.9515295891E-4,
+    8.3321608736E-3,        8.3321608736E-3,
+	8.3321608736E-3,        8.3321608736E-3,
+	8.3321608736E-3,        8.3321608736E-3,
+	8.3321608736E-3,        8.3321608736E-3,
+	1.6666654611E-1,        1.6666654611E-1,
+	1.6666654611E-1,        1.6666654611E-1,
+	1.6666654611E-1,        1.6666654611E-1,
+	1.6666654611E-1,        1.6666654611E-1,
+	2.443315711809948E-005,2.443315711809948E-005,
+	2.443315711809948E-005,2.443315711809948E-005,
+	2.443315711809948E-005,2.443315711809948E-005,
+	2.443315711809948E-005,2.443315711809948E-005,
+	1.388731625493765E-003,1.388731625493765E-003,
+	1.388731625493765E-003,1.388731625493765E-003,
+	1.388731625493765E-003,1.388731625493765E-003,
+	1.388731625493765E-003,1.388731625493765E-003,
+	4.166664568298827E-002,4.166664568298827E-002,
+	4.166664568298827E-002,4.166664568298827E-002,
+	4.166664568298827E-002,4.166664568298827E-002,
+	4.166664568298827E-002,4.166664568298827E-002,
+	0.5f,0.5f,0.5f,0.5f,0.5f,0.5f,0.5f,0.5f,
+	0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,
+	0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //padding to 10*64bytes (L1D-cache line size)
+	0.0f,0.0f,0.0f, // padding to 10*64bytes (L1D-cache line size)
+	0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //padding to 10*64bytes (L1D-cache line size)
+	0.0f,0.0f,0.0f // padding to 10*64bytes (L1D-cache line size)
+}; 
+
+__ATTR_ALIGN__(16)
+__attribute__((section(".rodata"))) 
+constexpr const static std::int32_t prefetched_constants_8x_i32[64] = 
+{
+    1,1,1,1,
+	1,1,1,1,
+	7,7,7,7,
+	7,7,7,7,
+	3,3,3,3,
+	3,3,3,3,
+	4,4,4,4,
+	4,4,4,4,
+	0,0,0,0,
+	0,0,0,0,
+	2,2,2,2,
+	2,2,2,2,
+   -1,-1,-1,-1,
+   -1,-1,-1,-1,
+    0,0,0,0, // padding values to cache full lines alignment
+	0,0,0,0 // padding values to cache full lines alignment
+};
+
+__ATTR_ALIGN__(16)
+__attribute__((section(".rodata"))) 
+constexpr const static float prefetched_constants_16x_f32[320] =
+{
+    0.7853981633974483096f,0.7853981633974483096f,
+	0.7853981633974483096f,0.7853981633974483096f,
+	0.7853981633974483096f,0.7853981633974483096f,
+	0.7853981633974483096f,0.7853981633974483096f,
+	0.7853981633974483096f,0.7853981633974483096f,
+	0.7853981633974483096f,0.7853981633974483096f,
+	0.7853981633974483096f,0.7853981633974483096f,
+	0.7853981633974483096f,0.7853981633974483096f,
+	1.27323954473516f,     1.27323954473516f,
+	1.27323954473516f,     1.27323954473516f,
+	1.27323954473516f,     1.27323954473516f,
+	1.27323954473516f,     1.27323954473516f,
+	1.27323954473516f,     1.27323954473516f,
+	1.27323954473516f,     1.27323954473516f,
+	1.27323954473516f,     1.27323954473516f,
+	1.27323954473516f,     1.27323954473516f,
+	0.78515625f,           0.78515625f,
+	0.78515625f,           0.78515625f,
+	0.78515625f,           0.78515625f,
+	0.78515625f,           0.78515625f,
+	0.78515625f,           0.78515625f,
+	0.78515625f,           0.78515625f,
+	0.78515625f,           0.78515625f,
+	0.78515625f,           0.78515625f,
+	2.4187564849853515625e-4f,2.4187564849853515625e-4f,
+	2.4187564849853515625e-4f,2.4187564849853515625e-4f,
+	2.4187564849853515625e-4f,2.4187564849853515625e-4f,
+	2.4187564849853515625e-4f,2.4187564849853515625e-4f,
+	2.4187564849853515625e-4f,2.4187564849853515625e-4f,
+	2.4187564849853515625e-4f,2.4187564849853515625e-4f,
+	2.4187564849853515625e-4f,2.4187564849853515625e-4f,
+	2.4187564849853515625e-4f,2.4187564849853515625e-4f,
+	3.77489497744594108e-8f,3.77489497744594108e-8f,
+	3.77489497744594108e-8f,3.77489497744594108e-8f,
+	3.77489497744594108e-8f,3.77489497744594108e-8f,
+	3.77489497744594108e-8f,3.77489497744594108e-8f,
+	3.77489497744594108e-8f,3.77489497744594108e-8f,
+	3.77489497744594108e-8f,3.77489497744594108e-8f,
+	3.77489497744594108e-8f,3.77489497744594108e-8f,
+	3.77489497744594108e-8f,3.77489497744594108e-8f,
+	8192.0f,8192.0f,        8192.0f,8192.0f,
+	8192.0f,8192.0f,        8192.0f,8192.0f,
+	8192.0f,8192.0f,        8192.0f,8192.0f,
+	8192.0f,8192.0f,        8192.0f,8192.0f,
+	16777215.0f,16777215.0f,16777215.0f,16777215.0f,
+	16777215.0f,16777215.0f,16777215.0f,16777215.0f,
+	16777215.0f,16777215.0f,16777215.0f,16777215.0f,
+	16777215.0f,16777215.0f,16777215.0f,16777215.0f,
+   -1.9515295891E-4,       -1.9515295891E-4,
+   -1.9515295891E-4,       -1.9515295891E-4,
+   -1.9515295891E-4,       -1.9515295891E-4,
+   -1.9515295891E-4,       -1.9515295891E-4,
+   -1.9515295891E-4,       -1.9515295891E-4,
+   -1.9515295891E-4,       -1.9515295891E-4,
+   -1.9515295891E-4,       -1.9515295891E-4,
+   -1.9515295891E-4,       -1.9515295891E-4,
+    8.3321608736E-3,        8.3321608736E-3,
+	8.3321608736E-3,        8.3321608736E-3,
+	8.3321608736E-3,        8.3321608736E-3,
+	8.3321608736E-3,        8.3321608736E-3,
+	8.3321608736E-3,        8.3321608736E-3,
+	8.3321608736E-3,        8.3321608736E-3,
+	8.3321608736E-3,        8.3321608736E-3,
+	8.3321608736E-3,        8.3321608736E-3,
+	1.6666654611E-1,        1.6666654611E-1,
+	1.6666654611E-1,        1.6666654611E-1,
+	1.6666654611E-1,        1.6666654611E-1,
+	1.6666654611E-1,        1.6666654611E-1,
+	1.6666654611E-1,        1.6666654611E-1,
+	1.6666654611E-1,        1.6666654611E-1,
+	1.6666654611E-1,        1.6666654611E-1,
+	1.6666654611E-1,        1.6666654611E-1,
+	2.443315711809948E-005,2.443315711809948E-005,
+	2.443315711809948E-005,2.443315711809948E-005,
+	2.443315711809948E-005,2.443315711809948E-005,
+	2.443315711809948E-005,2.443315711809948E-005,
+	2.443315711809948E-005,2.443315711809948E-005,
+	2.443315711809948E-005,2.443315711809948E-005,
+	2.443315711809948E-005,2.443315711809948E-005,
+	2.443315711809948E-005,2.443315711809948E-005,
+	1.388731625493765E-003,1.388731625493765E-003,
+	1.388731625493765E-003,1.388731625493765E-003,
+	1.388731625493765E-003,1.388731625493765E-003,
+	1.388731625493765E-003,1.388731625493765E-003,
+	1.388731625493765E-003,1.388731625493765E-003,
+	1.388731625493765E-003,1.388731625493765E-003,
+	1.388731625493765E-003,1.388731625493765E-003,
+	1.388731625493765E-003,1.388731625493765E-003,
+	4.166664568298827E-002,4.166664568298827E-002,
+	4.166664568298827E-002,4.166664568298827E-002,
+	4.166664568298827E-002,4.166664568298827E-002,
+	4.166664568298827E-002,4.166664568298827E-002,
+	4.166664568298827E-002,4.166664568298827E-002,
+	4.166664568298827E-002,4.166664568298827E-002,
+	4.166664568298827E-002,4.166664568298827E-002,
+	4.166664568298827E-002,4.166664568298827E-002,
+	0.5f,0.5f,0.5f,0.5f,0.5f,0.5f,0.5f,0.5f,
+	0.5f,0.5f,0.5f,0.5f,0.5f,0.5f,0.5f,0.5f,
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	std::numeric_limits<float>::infinity(),
+	1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,
+	1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,1.0f,
+	0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //padding to 20*64bytes (L1D-cache line size)
+	0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //padding to 20*64bytes (L1D-cache line size)
+	0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //padding to 20*64bytes (L1D-cache line size)
+	0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //padding to 20*64bytes (L1D-cache line size)
+	0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //padding to 20*64bytes (L1D-cache line size)
+	0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //padding to 20*64bytes (L1D-cache line size)
+};
+
+__ATTR_ALIGN__(16)
+__attribute__((section(".rodata"))) 
+constexpr const static std::int32_t prefetched_constants_16x_i32[128] =
+{
+    1,1,1,1,
+	1,1,1,1,
+	1,1,1,1,
+	1,1,1,1,
+	7,7,7,7,
+	7,7,7,7,
+	7,7,7,7,
+	7,7,7,7,
+	3,3,3,3,
+	3,3,3,3,
+	3,3,3,3,
+	3,3,3,3,
+	4,4,4,4,
+	4,4,4,4,
+	4,4,4,4,
+	4,4,4,4,
+	0,0,0,0,
+	0,0,0,0,
+	0,0,0,0,
+	0,0,0,0,
+	2,2,2,2,
+	2,2,2,2,
+	2,2,2,2,
+	2,2,2,2,
+   -1,-1,-1,-1,
+   -1,-1,-1,-1,
+   -1,-1,-1,-1,
+   -1,-1,-1,-1,
+    0,0,0,0, // padding values to cache full lines alignment
+	0,0,0,0, // padding values to cache full lines alignment
+	0,0,0,0, // padding values to cache full lines alignment
+	0,0,0,0 // padding values to cache full lines alignment
+}; 
+
 } // vec_cos_constants
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+template<bool use_prefetching,bool optimize_out_rip_store>
+inline static __m128 _mm_ceph_cosf_ps_v2(const __m128 xx) 
+{
+	
+	    /* These are for a 24-bit significand: 
+           constexpr float PIO4F =  0.7853981633974483096f;
+           constexpr float FOPI  = 1.27323954473516f;
+           constexpr float DP1 = 0.78515625f;
+           constexpr float DP2 = 2.4187564849853515625e-4f;
+           constexpr float DP3 = 3.77489497744594108e-8f;
+           constexpr float lossth = 8192.f;
+           constexpr float T24M1 = 16777215.f;
+	     */
+	__m128 PIO4F;
+	__m128 FOPI;
+	__m128 DP1;
+	__m128 DP2;
+	__m128 DP3;
+	__m128 lossth;
+	__m128 T24M1;
+	__m128 C19515295891E4;
+	__m128 C83321608736E3;
+	__m128 C16666654611E1;
+	__m128 C2443315711809948E005;
+	__m128 C1388731625493765E003;
+	__m128 C4166664568298827E002;
+	__m128 C05;
+	__m128 zero;
+	__m128 infinity;
+	__m128  f_one;
+	__m128i i_one;   
+	__m128i  i_7;
+	__m128i  i_3;
+	__m128i  i_4;
+	__m128i  i_0;
+	__m128i  i_2;
+    
+	if constexpr(static_cast<std::int32_t>(optimize_out_rip_store)==static_cast<std::int32_t>(true))
+    {
+	    const float *        __restrict__ ptr_prefetched_constants_4x_f32 = &vec_cos_contstants::prefetched_constants_4x_f32[0];
+		const std::int32_t * __restrict__ ptr_prefetched_constants_4x_i32 = &vec_cos_contstants::prefetched_constants_4x_i32[0];
+		if constexpr(static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
+        {
+              _mm_prefetch((const char*)&ptr_prefetched_constants_4x_f32[0],_MM_HINT_T0);
+			  _mm_prefetch((const char*)&ptr_prefetched_constants_4x_i32[0],_MM_HINT_T0);
+			  _mm_prefetch((const char*)&ptr_prefetched_constants_4x_f32[16],_MM_HINT_T0);
+			  _mm_prefetch((const char*)&ptr_prefetched_constants_4x_i32[16],_MM_HINT_T0);
+			  _mm_prefetch((const char*)&ptr_prefetched_constants_4x_f32[32],_MM_HINT_T0);
+			  _mm_prefetch((const char*)&ptr_prefetched_constants_4x_f32[48],_MM_HINT_T0);
+			  _mm_prefetch((const char*)&ptr_prefetched_constants_4x_f32[64],_MM_HINT_T0);
+		}
+		PIO4F                            =  _mm_load_ps((const float*)&ptr_prefetched_constants_4x_f32[0]);
+	    FOPI                             =  _mm_load_ps((const float*)&ptr_prefetched_constants_4x_f32[4]);
+	    DP1                              =  _mm_load_ps((const float*)&ptr_prefetched_constants_4x_f32[8]);
+	    DP2                              =  _mm_load_ps((const float*)&ptr_prefetched_constants_4x_f32[12]);
+	    DP3                              =  _mm_load_ps((const float*)&ptr_prefetched_constants_4x_f32[16]);
+	    lossth                           =  _mm_load_ps((const float*)&ptr_prefetched_constants_4x_f32[20]);
+	    T24M1                            =  _mm_load_ps((const float*)&ptr_prefetched_constants_4x_f32[24]);
+	    C19515295891E4                   =  _mm_load_ps((const float*)&ptr_prefetched_constants_4x_f32[28]);
+	    C83321608736E3                   =  _mm_load_ps((const float*)&ptr_prefetched_constants_4x_f32[32]);
+	    C16666654611E1                   =  _mm_load_ps((const float*)&ptr_prefetched_constants_4x_f32[36]);
+	    C2443315711809948E005            =  _mm_load_ps((const float*)&ptr_prefetched_constants_4x_f32[40]);
+	    C1388731625493765E003            =  _mm_load_ps((const float*)&ptr_prefetched_constants_4x_f32[44]);
+	    C4166664568298827E002            =  _mm_load_ps((const float*)&ptr_prefetched_constants_4x_f32[48]);
+	    C05                              =  _mm_load_ps((const float*)&ptr_prefetched_constants_4x_f32[52]);
+	    zero                             =  _mm_load_ps((const float*)&ptr_prefetched_constants_4x_f32[56]);
+	    infinity                         =  _mm_load_ps((const float*)&ptr_prefetched_constants_4x_f32[60]);
+		f_one                            =  _mm_load_ps((const float*)&ptr_prefetched_constants_4x_f32[64]);
+        
+		i_one                            =  _mm_load_epi32((const std::int32_t*)&ptr_prefetched_constants_4x_i32[0]);
+	    i_7                              =  _mm_load_epi32((const std::int32_t*)&ptr_prefetched_constants_4x_i32[4]);
+	    i_3                              =  _mm_load_epi32((const std::int32_t*)&ptr_prefetched_constants_4x_i32[8]);
+	    i_4                              =  _mm_load_epi32((const std::int32_t*)&ptr_prefetched_constants_4x_i32[12]);
+	    i_0                              =  _mm_load_epi32((const std::int32_t*)&ptr_prefetched_constants_4x_i32[16]);
+	    i_2                              =  _mm_load_epi32((const std::int32_t*)&ptr_prefetched_constants_4x_i32[20]);
+
+	}
+	else 
+	{
+	    PIO4F                            =  _mm_set1_ps(0.7853981633974483096f);
+	    FOPI                             =  _mm_set1_ps(1.27323954473516f);
+	    DP1                              =  _mm_set1_ps(0.78515625f);
+	    DP2                              =  _mm_set1_ps(2.4187564849853515625e-4f);
+	    DP3                              =  _mm_set1_ps(3.77489497744594108e-8f);
+	    lossth                           =  _mm_set1_ps(8192.0f);
+	    T24M1                            =  _mm_set1_ps(16777215.0f);
+	    C19515295891E4                   =  _mm_set1_ps(-1.9515295891E-4);
+	    C83321608736E3                   =  _mm_set1_ps(8.3321608736E-3);
+	    C16666654611E1                   =  _mm_set1_ps(1.6666654611E-1);
+	    C2443315711809948E005            =  _mm_set1_ps(2.443315711809948E-005);
+	    C1388731625493765E003            =  _mm_set1_ps(1.388731625493765E-003);
+	    C4166664568298827E002            =  _mm_set1_ps(4.166664568298827E-002);
+	    C05                              =  _mm_set1_ps(0.5f);
+	    zero                             =  _mm_setzero_ps();
+	    infinity                         =  _mm_set1_ps(std::numeric_limits<float>::infinity());
+	    i_one                            =  _mm_set1_epi32(1);
+        f_one                            =  _mm_set1_ps(1.0f);
+	    i_7                              =  _mm_set1_epi32(7);
+	    i_3                              =  _mm_set1_epi32(3);
+	    i_4                              =  _mm_set1_epi32(4);
+	    i_0                              =  _mm_set1_epi32(0);
+	    i_2                              =  _mm_set1_epi32(2);
+   }
+    __m128  x;
+	__m128  y;
+	__m128  z;
+	__m128  x_true;
+	__m128  x_false;
+	__m128  y_true;
+	__m128  y_false;
+	__m128i  neg_sign;
+	__m128i j;
+	__m128i j_and_1;
+    __m128i sign;
+	__mmask8 x_lt_0{};
+	__mmask8 x_gt_T24M1{};
+	__mmask8 mask_j_and_1{};
+	__mmask8 j_gt_3{};
+	__mmask8 j_gt_1{};
+	__mmask8 x_gt_lossth{};
+	__mmask8 j_eq_1{};
+	__mmask8 j_eq_2{};
+	__mmask8 sign_lt_0;
+	sign       = _mm_set1_epi32(1);
+	x          = xx;
+	neg_sign   = _mm_sub_epi32(i_0,sign);
+    x_lt_0     = _mm_cmp_ps_mask(x,zero,_CMP_LT_OQ);
+	x          = _mm_mask_blend_ps(x_lt_0,x,_mm_negate_ps(x));
+    x_gt_T24M1 = _mm_cmp_ps_mask(x,T24M1,_CMP_GT_OQ);
+	if(__builtin_expect(x_gt_T24M1==0xFF,0)) {return infinity;}
+	// originally was an error at 0x401366 <_ZN17_INTERNALea15ae0b3gms4math19_mm_ceph_cosf_ps_v2ILb1ELb1EEE6__m128S3_+166>:	vcvtps2qq xmm2,xmm14 [xmm2{3469,313}]
+    j          = _mm_cvtps_epi32(_mm_mul_ps(FOPI,x)); 
+    y          = _mm_cvtepi32_ps(j);
+    j_and_1    = _mm_and_si128(j,i_one);
+	mask_j_and_1= _mm_cmp_epi32_mask(j_and_1,i_0,_MM_CMPINT_NE);
+    j          = _mm_mask_blend_epi32(mask_j_and_1,j,_mm_add_epi32(j,i_one));
+	y          = _mm_mask_blend_ps(mask_j_and_1,y,_mm_add_ps(y,f_one));
+    j          = _mm_and_si128(j,i_7);
+    j_gt_3     = _mm_cmp_epi32_mask(j,i_3,_MM_CMPINT_GT);
+	j          = _mm_mask_blend_epi32(j_gt_3,j,_mm_sub_epi32(j,i_4));
+	sign       = _mm_mask_blend_epi32(j_gt_3,sign,neg_sign);
+    j_gt_1     = _mm_cmp_epi32_mask(j,i_one,_MM_CMPINT_GT);
+    sign       = _mm_mask_blend_epi32(j_gt_1,sign,neg_sign);
+	x_gt_lossth= _mm_cmp_ps_mask(x,lossth,_CMP_GT_OQ);
+	x_true     = _mm_sub_ps(x,_mm_mul_ps(y,PIO4F));
+	//x_false  = ((x-y*DP1)-y*DP2)-y*DP3;
+	x_false    = _mm_sub_ps(_mm_sub_ps(_mm_sub_ps(x,_mm_mul_ps(y,DP1)),_mm_mul_ps(y,DP2)),_mm_mul_ps(y,DP3));
+	x          = _mm_mask_blend_ps(x_gt_lossth,x_false,x_true);
+    z          = _mm_mul_ps(x,x);
+    j_eq_1     = _mm_cmp_epi32_mask(j,i_one,_MM_CMPINT_EQ);
+	j_eq_2     = _mm_cmp_epi32_mask(j,i_2,_MM_CMPINT_EQ);
+	//const __mmask8 j_eq1_or_j_eq_2{_kor_mask8(j_eq_1,j_eq_2)};
+	const __mmask8 j_eq1_or_j_eq_2 = j_eq_1 | j_eq_2;
+    y_true     = _mm_fmadd_ps(_mm_mul_ps(_mm_fmsub_ps(_mm_fmadd_ps(C19515295891E4,z,C83321608736E3),z,C16666654611E1),z),x,x);
+	y_false    = _mm_mul_ps(_mm_mul_ps(_mm_fmadd_ps(_mm_fmsub_ps(C2443315711809948E005,z,C1388731625493765E003),z,C4166664568298827E002),z),z);
+	y_false    = _mm_sub_ps(y_false,_mm_mul_ps(C05,z));
+	y_false    = _mm_add_ps(y_false,f_one);
+	y          = _mm_mask_blend_ps(j_eq1_or_j_eq_2,y_false,y_true);
+    sign_lt_0  = _mm_cmp_epi32_mask(sign,i_0,_MM_CMPINT_LT);
+	y          = _mm_mask_blend_ps(sign_lt_0,y,_mm_negate_ps(y));
+	return (y);
+}
 
 
 } //math
