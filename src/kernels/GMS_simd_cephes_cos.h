@@ -650,6 +650,152 @@ __m256 _mm256_ceph_cosf_ps(__m256 x)
     return (y);
 }
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=AVX2
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx2")
+#endif
+template<bool use_prefetching,bool optimize_out_rip_store>
+inline static __m256 _mm256_ceph_cosf_ps_v2(__m256 x) 
+{
+   __m256i inv_sign_mask;
+   __m256i sign_mask;
+   __m256i ONE;
+   __m256i ONEINV;
+   __m256i TWO;
+   __m256i FOUR;
+   __m256  FOPI;
+   __m256  DP1N;
+	__m256  DP2N;
+	__m256  DP3N;
+   __m256  C2443315711809948E005;
+   __m256  CN1388731625493765E003;
+   __m256  C4166664568298827E002;
+   __m256  C05;
+   __m256  C1;
+   __m256  CN19515295891E4;
+   __m256  C83321608736E3;
+   __m256  CN16666654611E1;
+   __m256  xmm1;
+   __m256  xmm2;
+   __m256  xmm3;
+   __m256  y;
+   __m256i emm0;
+   __m256i emm2;
+
+   if constexpr(static_cast<std::int32_t>(optimize_out_rip_store)==static_cast<std::int32_t>(true))
+   {
+	   const float *        __restrict__ ptr_prefetched_constants_8x_f32 = &simd_cos_constants::prefetched_constants_8x_f32[0];
+		const std::int32_t * __restrict__ ptr_prefetched_constants_8x_i32 = &simd_cos_constants::prefetched_constants_8x_i32[0];
+      if constexpr(static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
+      {
+            _mm_prefetch((const char*)&ptr_prefetched_constants_8x_i32[0],_MM_HINT_T0);
+            _mm_prefetch((const char*)&ptr_prefetched_constants_8x_f32[0],_MM_HINT_T0);
+            _mm_prefetch((const char*)&ptr_prefetched_constants_8x_i32[16],_MM_HINT_T0);
+            _mm_prefetch((const char*)&ptr_prefetched_constants_8x_f32[16],_MM_HINT_T0);
+            _mm_prefetch((const char*)&ptr_prefetched_constants_8x_i32[32],_MM_HINT_T0);
+            _mm_prefetch((const char*)&ptr_prefetched_constants_8x_f32[32],_MM_HINT_T0);
+            _mm_prefetch((const char*)&ptr_prefetched_constants_8x_f32[48],_MM_HINT_T0);
+            _mm_prefetch((const char*)&ptr_prefetched_constants_8x_f32[64],_MM_HINT_T0);
+            _mm_prefetch((const char*)&ptr_prefetched_constants_8x_f32[80],_MM_HINT_T0);
+      }
+      inv_sign_mask          = _mm256_load_epi32((const std::int32_t*)&ptr_prefetched_constants_8x_i32[0]);
+      FOPI                   = _mm256_load_ps((const float*)&ptr_prefetched_constants_8x_f32[0]);
+      sign_mask              = _mm256_load_epi32((const std::int32_t*)&ptr_prefetched_constants_8x_i32[8]);
+      DP1N                   = _mm256_load_ps((const float*)&ptr_prefetched_constants_8x_f32[8]);
+      ONE                    = _mm256_load_epi32((const std::int32_t*)&ptr_prefetched_constants_8x_i32[16]);
+      DP2N                   = _mm256_load_ps((const float*)&ptr_prefetched_constants_8x_f32[16]);
+      ONEINV                 = _mm256_load_epi32((const std::int32_t*)&ptr_prefetched_constants_8x_i32[24]);
+      DP3N                   = _mm256_load_ps((const float*)&ptr_prefetched_constants_8x_f32[24]);
+      TWO                    = _mm256_load_epi32((const std::int32_t*)&ptr_prefetched_constants_8x_i32[32]);
+      C2443315711809948E005  = _mm256_load_ps((const float*)&ptr_prefetched_constants_8x_f32[32]);
+      FOUR                   = _mm256_load_epi32((const std::int32_t*)&ptr_prefetched_constants_8x_i32[40]);
+      CN1388731625493765E003 = _mm256_load_ps((const float*)&ptr_prefetched_constants_8x_f32[40]);
+      C4166664568298827E002  = _mm256_load_ps((const float*)&ptr_prefetched_constants_8x_f32[48]);
+      C05                    = _mm256_load_ps((const float*)&ptr_prefetched_constants_8x_f32[56]);
+      C1                     = _mm256_load_ps((const float*)&ptr_prefetched_constants_8x_f32[64]);
+      CN19515295891E4        = _mm256_load_ps((const float*)&ptr_prefetched_constants_8x_f32[72]);
+      C83321608736E3         = _mm256_load_ps((const float*)&ptr_prefetched_constants_8x_f32[80]);
+      CN16666654611E1        = _mm256_load_ps((const float*)&ptr_prefetched_constants_8x_f32[88]);
+   }
+   else 
+   {
+      inv_sign_mask          = _mm256_set1_epi32(~0x80000000);
+      sign_mask              = _mm256_set1_epi32(static_cast<std::int32_t>(0x80000000));
+      ONE                    = _mm256_set1_epi32(1);
+      ONEINV                 = _mm256_set1_epi32(~1);
+      TWO                    = _mm256_set1_epi32(2);
+      FOUR                   = _mm256_set1_epi32(4);
+      FOPI                   = _mm256_set1_ps(1.27323954473516f);
+      DP1N                   = _mm256_set1_ps(-0.78515625f);
+	   DP2N                   = _mm256_set1_ps(-2.4187564849853515625e-4f);
+	   DP3N                   = _mm256_set1_ps(-3.77489497744594108e-8f);
+      C2443315711809948E005  = _mm256_set1_ps(2.443315711809948E-005f);
+      CN1388731625493765E003 = _mm256_set1_ps(-1.388731625493765E-003f);
+      C4166664568298827E002  = _mm256_set1_ps(4.166664568298827E-002f);
+      C05                    = _mm256_set1_ps(0.5f);
+      C1                     = _mm256_set1_ps(1.0f);
+      CN19515295891E4        = _mm256_set1_ps(-1.9515295891E-4f);
+      C83321608736E3         = _mm256_set1_ps(8.3321608736E-3f);
+      CN16666654611E1        = _mm256_set1_ps(-1.6666654611E-1f);
+   }
+
+    /*
+        Unfortunately the achieved accurracy is between the 2ULP to 3ULP
+        and it is completely dependent upon the radian's range of the input data.
+    */
+    x           = _mm256_and_ps(x,*(__m256*)&inv_sign_mask);
+    y           = _mm256_mul_ps(x,FOPI);
+    emm2        = _mm256_cvttps_epi32(y);
+    emm2        = _mm256_add_epi32(emm2,ONE);
+    emm2        = _mm256_and_si256(emm2,ONEINV);
+    y           = _mm256_cvtepi32_ps(emm2);
+    emm2        = _mm256_sub_epi32(emm2,TWO);
+    emm0        = _mm256_andnot_si256(emm2,FOUR);
+    emm0        = _mm256_slli_epi32(emm0,29);
+    emm2        = _mm256_and_si256(emm2,TWO);
+    emm2        = _mm256_cmpeq_epi32(emm2,_mm256_setzero_si256());
+    __m256 sign = _mm256_castsi256_ps(emm0);
+    __m256 mask = _mm256_castsi256_ps(emm2);
+    xmm1        = _mm256_mul_ps(y,DP1N);
+    x           = _mm256_add_ps(x,xmm1);
+    xmm2        = _mm256_mul_ps(y,DP2N);
+    x           = _mm256_add_ps(x,xmm2);
+    xmm3        = _mm256_mul_ps(y,DP3N);
+    x           = _mm256_add_ps(x,xmm3);
+    __m256 z    = _mm256_mul_ps(x,x);
+    // Long dependency chain which may stall pipeline on the 'y' register interdependent result computation
+    // Shall be considering the Estrin's scheme (if possible).
+    y           = C2443315711809948E005;
+    y           = _mm256_mul_ps(y,z);
+    y           = _mm256_add_ps(y,CN1388731625493765E003);
+    y           = _mm256_mul_ps(y,z);
+    y           = _mm256_add_ps(y,C4166664568298827E002);
+    y           = _mm256_mul_ps(y,z);
+    y           = _mm256_mul_ps(y,z);
+    __m256 tmp  = _mm256_mul_ps(z,C05);
+    y           = _mm256_sub_ps(y,tmp);
+    y           = _mm256_add_ps(y,C1);
+    __m256 y2   = CN19515295891E4;
+    // Long dependency chain which may stall pipeline on the 'y2' register interdependent result computation
+    // Shall be considering the Estrin's scheme (if possible).
+    y2          = _mm256_mul_ps(y2,z);
+    y2          = _mm256_add_ps(y2,C83321608736E3);
+    y2          = _mm256_mul_ps(y2,z);
+    y2          = _mm256_add_ps(y2,CN16666654611E1);
+    y2          = _mm256_mul_ps(y2,z);
+    y2          = _mm256_mul_ps(y2,x);
+    y2          = _mm256_add_ps(y2,x);
+    xmm3        = mask;
+    y2          = _mm256_and_ps(xmm3,y2);
+    y           = _mm256_andnot_ps(xmm3,y);
+    y           = _mm256_add_ps(y,y2);
+    y           = _mm256_xor_ps(y,sign);
+    return (y);
+}
+
 
 } // math
 
