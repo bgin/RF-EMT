@@ -796,6 +796,108 @@ inline static __m256 _mm256_ceph_cosf_ps_v2(__m256 x)
     return (y);
 }
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512f")
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m512 _mm512_ceph_cosf_ps(__m512 x) 
+{
+
+    const  __m512i inv_sign_mask{_mm512_set1_epi32(~0x80000000)};
+    const  __m512i sign_mask{_mm512_set1_epi32(static_cast<std::int32_t>(0x80000000))};
+    const  __m512i ONE{_mm512_set1_epi32(1)};
+    const  __m512i ONEINV{_mm512_set1_epi32(~1)};
+    const  __m512i TWO{_mm512_set1_epi32(2)};
+    const  __m512i FOUR{_mm512_set1_epi32(4)};
+    const  __m512  FOPI{_mm512_set1_ps(1.27323954473516f)};
+    const  __m512  DP1N{_mm512_set1_ps(-0.78515625f)};
+	 const  __m512  DP2N{_mm512_set1_ps(-2.4187564849853515625e-4f)};
+	 const  __m512  DP3N{_mm512_set1_ps(-3.77489497744594108e-8f)};
+    const  __m512  C2443315711809948E005{_mm512_set1_ps(2.443315711809948E-005f)};
+    const  __m512  CN1388731625493765E003{_mm512_set1_ps(-1.388731625493765E-003f)};
+    const  __m512  C4166664568298827E002{_mm512_set1_ps(4.166664568298827E-002f)};
+    const  __m512  C05{_mm512_set1_ps(0.5f)};
+    const  __m512  C1{_mm512_set1_ps(1.0f)};
+    const  __m512  CN19515295891E4{_mm512_set1_ps(-1.9515295891E-4f)};
+    const  __m512  C83321608736E3{_mm512_set1_ps(8.3321608736E-3f)};
+    const  __m512  CN16666654611E1{_mm512_set1_ps(-1.6666654611E-1f)};
+    __m512  zmm1;
+    __m512  zmm2;
+    __m512  zmm3;
+    __m512  y;
+    __m512i emm0;
+    __m512i emm2;
+    __mmask16 emm2_eq_zero;
+    /*
+        Unfortunately the achieved accurracy is between the 2ULP to 3ULP
+        and it is completely dependent upon the radian's range of the input data.
+        The full precision with an error of 0ULP!! is attained only in the range
+        of [-PI,+PI]
+    */
+    x               = _mm512_and_ps(x,*(__m512*)&inv_sign_mask);
+    y               = _mm512_mul_ps(x,FOPI);
+    emm2            = _mm512_cvttps_epi32(y);
+    emm2            = _mm512_add_epi32(emm2,ONE);
+    emm2            = _mm512_and_si512(emm2,ONEINV);
+    y               = _mm512_cvtepi32_ps(emm2);
+    emm2            = _mm512_sub_epi32(emm2,TWO);
+    emm0            = _mm512_andnot_si512(emm2,FOUR);
+    emm0            = _mm512_slli_epi32(emm0,29);
+    emm2            = _mm512_and_si512(emm2,TWO);
+    // Temporary workaround, shall be looking for more efficient implementation
+    __m256i lo_emm2 = _mm512_extracti32x8_epi32(emm2,0);
+    __m256i hi_emm2 = _mm512_extracti32x8_epi32(emm2,1);
+    lo_emm2         = _mm256_cmpeq_epi32(lo_emm2,_mm256_setzero_si256());
+    hi_emm2         = _mm256_cmpeq_epi32(hi_emm2,_mm256_setzero_si256());
+    // Causing wrong values.
+    //emm2_eq_zero = _mm512_cmp_epi32_mask(emm2,_mm512_setzero_si512(),_MM_CMPINT_EQ);
+    //emm2        = _mm512_mask_mov_epi32(_mm512_setzero_si512(),emm2_eq_zero,ONE);
+    emm2            = _mm512_inserti32x8(emm2,lo_emm2,0);
+    emm2            = _mm512_inserti32x8(emm2,hi_emm2,1);
+    __m512 sign     = _mm512_castsi512_ps(emm0);
+    __m512 mask     = _mm512_castsi512_ps(emm2);
+    zmm1            = _mm512_mul_ps(y,DP1N);
+    x               = _mm512_add_ps(x,zmm1);
+    zmm2            = _mm512_mul_ps(y,DP2N);
+    x               = _mm512_add_ps(x,zmm2);
+    zmm3            = _mm512_mul_ps(y,DP3N);
+    x               = _mm512_add_ps(x,zmm3);
+    __m512 z        = _mm512_mul_ps(x,x);
+    // Long dependency chain which may stall pipeline on the 'y' register interdependent result computation
+    // Shall be considering the Estrin's scheme (if possible).
+    y               = C2443315711809948E005;
+    y               = _mm512_mul_ps(y,z);
+    y               = _mm512_add_ps(y,CN1388731625493765E003);
+    y               = _mm512_mul_ps(y,z);
+    y               = _mm512_add_ps(y,C4166664568298827E002);
+    y               = _mm512_mul_ps(y,z);
+    y               = _mm512_mul_ps(y,z);
+    __m512 tmp      = _mm512_mul_ps(z,C05);
+    y               = _mm512_sub_ps(y,tmp);
+    y               = _mm512_add_ps(y,C1);
+    __m512 y2       = CN19515295891E4;
+    // Long dependency chain which may stall pipeline on the 'y2' register interdependent result computation
+    // Shall be considering the Estrin's scheme (if possible).
+    y2              = _mm512_mul_ps(y2,z);
+    y2              = _mm512_add_ps(y2,C83321608736E3);
+    y2              = _mm512_mul_ps(y2,z);
+    y2              = _mm512_add_ps(y2,CN16666654611E1);
+    y2              = _mm512_mul_ps(y2,z);
+    y2              = _mm512_mul_ps(y2,x);
+    y2              = _mm512_add_ps(y2,x);
+    zmm3            = mask;
+    y2              = _mm512_and_ps(zmm3,y2);
+    y               = _mm512_andnot_ps(zmm3,y);
+    y               = _mm512_add_ps(y,y2);
+    y               = _mm512_xor_ps(y,sign);
+    return (y);
+}
+
 
 } // math
 
