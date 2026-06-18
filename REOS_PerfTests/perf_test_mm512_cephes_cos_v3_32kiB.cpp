@@ -109,7 +109,7 @@ void print_thread_affinity()
 
 __attribute__((hot))
 __attribute__((noinline))
-void perf_test_mm512_cephes_cos_ps_v3_64B(const float * __restrict__,
+void perf_test_mm512_cephes_cos_ps_v3_32kiB(const float * __restrict__,
                                         float * __restrict__,
                                         unsigned __int64 * __restrict__ ,
                                         unsigned __int64 * __restrict__ ,
@@ -122,7 +122,7 @@ void perf_test_mm512_cephes_cos_ps_v3_64B(const float * __restrict__,
 
 __attribute__((hot))
 __attribute__((noinline))
-void perf_test_mm512_cephes_cos_ps_v3_64B(const float * __restrict__ cos_args,
+void perf_test_mm512_cephes_cos_ps_v3_32kiB(const float * __restrict__ cos_args,
                                         float * __restrict__ cos_values,
                                         unsigned __int64 * __restrict__ cephes_cos_s,
                                         unsigned __int64 * __restrict__ cephes_cos_e,
@@ -187,7 +187,7 @@ void perf_test_mm512_cephes_cos_ps_v3_64B(const float * __restrict__ cos_args,
 
 __attribute__((hot))
 __attribute__((noinline))
-void perf_test_svml_mm512_cos_ps_64B(const float * __restrict__ ,
+void perf_test_svml_mm512_cos_ps_32kiB(const float * __restrict__ ,
                                     float * __restrict__ ,
                                     unsigned __int64 * __restrict__ ,
                                     unsigned __int64 * __restrict__ ,
@@ -200,7 +200,7 @@ void perf_test_svml_mm512_cos_ps_64B(const float * __restrict__ ,
 
 __attribute__((hot))
 __attribute__((noinline))
-void perf_test_svml_mm512_cos_ps_64B(const float * __restrict__ cos_args,
+void perf_test_svml_mm512_cos_ps_32kiB(const float * __restrict__ cos_args,
                                     float * __restrict__ cos_values,
                                     unsigned __int64 * __restrict__ svml_cos_s,
                                     unsigned __int64 * __restrict__ svml_cos_e,
@@ -405,7 +405,7 @@ void test_runner_omp_sections_1st_seq()
 {
     #pragma omp section 
     {
-        perf_test_svml_mm512_cos_ps_64B(&cos_data_in[0],
+        perf_test_svml_mm512_cos_ps_32kiB(&cos_data_in[0],
                                         &svml_cos_results[0],
                                         &svml_cos_ps_s[0],
                                         &svml_cos_ps_e[0],
@@ -420,7 +420,7 @@ void test_runner_omp_sections_1st_seq()
 
     #pragma omp section 
     {
-        perf_test_mm512_cephes_cos_ps_v3_64B(&cos_data_in[0],
+        perf_test_mm512_cephes_cos_ps_v3_32kiB(&cos_data_in[0],
                                           &cephes_cos_results[0],
                                           &cephes_cos_ps_s[0],
                                           &cephes_cos_ps_e[0],
@@ -540,8 +540,599 @@ void test_runner_omp_sections_1st_seq()
      if(cephes_cos_results!=NULL && sz_gt_0) {gms_mm_free(cephes_cos_results);}
 }
 
+__attribute__((hot))
+void test_runner_omp_sections_2st_seq();
+
+void test_runner_omp_sections_2st_seq()
+{
+    using namespace gms::common;
+    constexpr int32_t n_runs{10};
+    constexpr int32_t n_samples{50};
+    constexpr int32_t n_total{n_runs*n_samples};
+    constexpr int32_t sz{n_total*16};
+    constexpr std::size_t sz_bytes{static_cast<std::size_t>(sz)*sizeof(float)};
+    unsigned __int64 svml_cos_ps_s[n_total]        = {UINT64_MAX};
+    unsigned __int64 svml_cos_ps_e[n_total]        = {UINT64_MAX}; 
+    unsigned __int64 svml_cos_ps_d[n_total]        = {UINT64_MAX};
+    unsigned __int64 cephes_cos_ps_s[n_total]      = {UINT64_MAX};
+    unsigned __int64 cephes_cos_ps_e[n_total]      = {UINT64_MAX};
+    unsigned __int64 cephes_cos_ps_d[n_total]      = {UINT64_MAX};
+    std::uint32_t    svml_cos_tsc_aux_s[n_total]   = {UINT32_MAX};
+    std::uint32_t    svml_cos_tsc_aux_e[n_total]   = {UINT32_MAX};
+    std::uint32_t    cephes_cos_tsc_aux_s[n_total] = {UINT32_MAX};
+    std::uint32_t    cephes_cos_tsc_aux_e[n_total] = {UINT32_MAX};
+    float       * __restrict__ cos_data_in        = NULL;
+    float       * __restrict__ cephes_cos_results = NULL;
+    float       * __restrict__ svml_cos_results   = NULL;
+    cos_data_in        = reinterpret_cast<float * __restrict__>(gms_mm_malloc(sz_bytes,64ull));
+    cephes_cos_results = reinterpret_cast<float * __restrict__>(gms_mm_malloc(sz_bytes,64ull));
+    svml_cos_results   = reinterpret_cast<float * __restrict__>(gms_mm_malloc(sz_bytes,64ull));
+    thread_local std::uniform_real_distribution<float> cos_rand_in;
+    thread_local std::uniform_int_distribution<std::int32_t> rand_rad_range;
+    thread_local std::uint64_t seed{};
+    thread_local std::uint64_t seed_range{};
+    float lo;
+    float hi;
+    seed_range = __rdtsc();
+    rand_rad_range = std::uniform_int_distribution<std::int32_t>(0,1);
+    auto rand_rad_range_gen{std::mt19937(seed_range)};
+    const std::int32_t which_range{rand_rad_range.operator()(rand_rad_range_gen)};
+    if(which_range==1)
+    {
+        lo = -3.14159265358979324f;
+        hi = +3.14159265358979324f;
+        std::printf("[UNIT_TEST]: Input range: lo=%.7f(rad),hi=%.7f(rad)\n",lo,hi);
+    }
+    else if(which_range==0)
+    {
+        lo = -3.14159265358979324f*8192.0f;
+        hi = +3.14159265358979324f*8192.0f;
+        std::printf("[UNIT_TEST]: Input range: lo=%.7f(rad),hi=%.7f(rad)\n",lo,hi);
+    }
+    seed = __rdtsc();
+    cos_rand_in = std::uniform_real_distribution<float>(lo,hi);
+    auto rand_uni_gen{std::mt19937(seed)};
+    for(std::size_t i = 0ull; i != ROUND_TO_EIGHT(sz,7); i += 8ull)
+    {
+         const float in_cos_arg_1{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+0ull] = in_cos_arg_1;
+         const float in_cos_arg_2{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+1ull] = in_cos_arg_2;
+         const float in_cos_arg_3{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+2ull] = in_cos_arg_3;
+         const float in_cos_arg_4{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+3ull] = in_cos_arg_4;
+         const float in_cos_arg_5{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+4ull] = in_cos_arg_5;
+         const float in_cos_arg_6{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+5ull] = in_cos_arg_6;
+         const float in_cos_arg_7{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+6ull] = in_cos_arg_7;
+         const float in_cos_arg_8{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+7ull] = in_cos_arg_8;
+    }
+    
+    uint32_t svml_cos_tid;
+    uint32_t cephes_cos_tid;
+    int32_t setenv_ret;
+    setenv_ret = setenv("OMP_PROC_BIND","true",1);
+    if(setenv_ret==-1)
+    {
+        printf("[**ERROR**]: -- setenv reported an error=%d\n",setenv_ret);
+    }
+    setenv_ret = setenv("OMP_PROC_BIND","spread",1);
+    if(setenv_ret==-1)
+    {
+        printf("[**ERROR**]: -- setenv reported an error=%d\n",setenv_ret);
+    }
+#pragma omp parallel sections 
+{
+    #pragma omp section 
+    {
+        thread_local std::uniform_int_distribution<std::int32_t> rand_kernel_picker;
+        thread_local std::uint64_t seed{};
+        thread_local std::int32_t which_kernel_pick{};
+        seed = __rdtsc();
+        rand_kernel_picker = std::uniform_int_distribution<std::int32_t>(0,1);
+        thread_local std::mt19937 rand_gen(seed);
+        which_kernel_pick = rand_kernel_picker.operator()(rand_gen);
+        if(which_kernel_pick==1)
+        {
+           perf_test_svml_mm512_cos_ps_32kiB(&cos_data_in[0],
+                                        &svml_cos_results[0],
+                                        &svml_cos_ps_s[0],
+                                        &svml_cos_ps_e[0],
+                                        &svml_cos_ps_d[0],
+                                        &svml_cos_tsc_aux_s[0],
+                                        &svml_cos_tsc_aux_e[0],
+                                        n_runs,
+                                        n_samples,
+                                        svml_cos_tid);
+        }
+        else if(which_kernel_pick==0)
+        {
+            perf_test_mm512_cephes_cos_ps_v3_32kiB(&cos_data_in[0],
+                                          &cephes_cos_results[0],
+                                          &cephes_cos_ps_s[0],
+                                          &cephes_cos_ps_e[0],
+                                          &cephes_cos_ps_d[0],
+                                          &cephes_cos_tsc_aux_s[0],
+                                          &cephes_cos_tsc_aux_e[0],
+                                          n_runs,
+                                          n_samples,
+                                          cephes_cos_tid);
+        }
+        print_thread_affinity();
+    }
+
+    #pragma omp section 
+    {
+        thread_local std::uniform_int_distribution<std::int32_t> rand_kernel_picker;
+        thread_local std::uint64_t seed{};
+        thread_local std::int32_t which_kernel_pick{};
+        seed = __rdtsc();
+        rand_kernel_picker = std::uniform_int_distribution<std::int32_t>(0,1);
+        thread_local std::mt19937 rand_gen(seed);
+        which_kernel_pick = rand_kernel_picker.operator()(rand_gen);
+        if(which_kernel_pick==1)
+        {
+            perf_test_mm512_cephes_cos_ps_v3_32kiB(&cos_data_in[0],
+                                          &cephes_cos_results[0],
+                                          &cephes_cos_ps_s[0],
+                                          &cephes_cos_ps_e[0],
+                                          &cephes_cos_ps_d[0],
+                                          &cephes_cos_tsc_aux_s[0],
+                                          &cephes_cos_tsc_aux_e[0],
+                                          n_runs,
+                                          n_samples,
+                                          cephes_cos_tid);
+        }
+        else if(which_kernel_pick==0)
+        {
+            perf_test_svml_mm512_cos_ps_32kiB(&cos_data_in[0],
+                                        &svml_cos_results[0],
+                                        &svml_cos_ps_s[0],
+                                        &svml_cos_ps_e[0],
+                                        &svml_cos_ps_d[0],
+                                        &svml_cos_tsc_aux_s[0],
+                                        &svml_cos_tsc_aux_e[0],
+                                        n_runs,
+                                        n_samples,
+                                        svml_cos_tid);
+        }
+        print_thread_affinity();
+    }
+}
+     
+     printf(ANSI_COLOR_GREEN "[PERF-TEST]:  svml_mm512_cos_ps: Started!!\n");
+     printf(ANSI_COLOR_GREEN "[PERF-TEST] -- Executed by Core=%d \n",svml_cos_tid);
+     for(int32_t __i{0}; __i != n_runs; ++__i)
+     {
+         for(int32_t __j{0}; __j != n_samples; ++__j) 
+         {  
+            unsigned __int64 s{svml_cos_ps_s[__i*n_samples+__j]};
+            unsigned __int64 e{svml_cos_ps_e[__i*n_samples+__j]};
+            unsigned __int64 d{svml_cos_ps_d[__i*n_samples+__j]};
+            std::uint32_t tas{svml_cos_tsc_aux_s[__i*n_samples+__j]}; // tsc_aux_s
+            std::uint32_t tac{svml_cos_tsc_aux_e[__i*n_samples+__j]}; // tsc_aux_e
+            printf(ANSI_COLOR_GREEN "[PMC: RDTSCP] -- Run=%d, start=%llu,end=%llu,delta=%llu,tas=%d,tac=%d\n",__i,s,e,d,tas,tac);
+         }
+     }
+     printf(ANSI_COLOR_GREEN "[PERF-TEST]: svml_mm512_cos_ps: Finished -- dumping-results" ANSI_RESET_ALL"\n\n");
+
+     printf(ANSI_COLOR_WHITE "[PERF-TEST]:  _mm512_cephes_cosf_ps_v3: Started!!\n");
+     printf(ANSI_COLOR_WHITE "[PERF-TEST]: -- Executed by Core=%d \n",cephes_cos_tid);
+     for(int32_t __i{0}; __i != n_runs; ++__i)
+     {
+         for(int32_t __j{0}; __j != n_samples; ++__j) 
+         {  
+            unsigned __int64 s{cephes_cos_ps_s[__i*n_samples+__j]};
+            unsigned __int64 e{cephes_cos_ps_e[__i*n_samples+__j]};
+            unsigned __int64 d{cephes_cos_ps_d[__i*n_samples+__j]};
+            std::uint32_t tas{cephes_cos_tsc_aux_s[__i*n_samples+__j]}; // tsc_aux_s
+            std::uint32_t tac{cephes_cos_tsc_aux_e[__i*n_samples+__j]}; // tsc_aux_e
+            printf(ANSI_COLOR_WHITE "[PMC: RDTSCP] -- Run=%d, start=%llu,end=%llu,delta=%llu,tas=%d,tac=%d\n",__i,s,e,d,tas,tac);
+         }
+     }
+     printf(ANSI_COLOR_BLUE "[PERF-TEST]: _mm512_cephes_cosf_ps_v3: Finished -- dumping-results" ANSI_RESET_ALL"\n\n");
+#if 1
+     printf(ANSI_COLOR_MAGENTA "[PERF-TEST]: Result Comparison (using safe floating-point compare as an integer)\n");
+     float svml_result{};
+     float cephes_result{};
+     bool fcomp_result{};
+     for(std::size_t i = 0;i != ROUND_TO_FOUR(sz,3ull); i += 4ull) 
+     {
+        svml_result   = svml_cos_results[i+0ull];
+        cephes_result = cephes_cos_results[i+0ull];
+        fcomp_result    = almostEqual2sComplement(svml_result,cephes_result,7);
+        if(!fcomp_result) 
+        {
+            printf(ANSI_COLOR_RED "[PERF-TEST]: ***FAILED***, svml_cos=%.7f,cephes_cos=%.7f\n",svml_result,cephes_result);
+            printNumber("_mm512_cos_ps",svml_result,0);
+            printNumber("_mm512_cephes_cosf_ps_v3",cephes_result,0);
+        }
+        else
+        {
+            printf(ANSI_COLOR_CYAN "[PERF-TEST]: ***CORRECT***, svml_cos=%.7f,cephes_cos=%.7f\n",svml_result,cephes_result);
+            printNumber("_mm512_cos_ps",svml_result,0);
+            printNumber("_mm512_cephes_cosf_ps_v3",cephes_result,0);
+        }
+        svml_result   = svml_cos_results[i+1ull];
+        cephes_result = cephes_cos_results[i+1ull];
+        fcomp_result    = almostEqual2sComplement(svml_result,cephes_result,7);
+        if(!fcomp_result) 
+        {
+            printf(ANSI_COLOR_RED "[PERF-TEST]: ***FAILED***, svml_cos=%.7f,cephes_cos=%.7f\n",svml_result,cephes_result);
+            printNumber("_mm512_cos_ps",svml_result,0);
+            printNumber("_mm512_cephes_cosf_ps_v3",cephes_result,0);
+        }
+        else
+        {
+            printf(ANSI_COLOR_CYAN "[PERF-TEST]: ***CORRECT***, svml_cos=%.7f,cephes_cos=%.7f\n",svml_result,cephes_result);
+            printNumber("_mm512_cos_ps",svml_result,0);
+            printNumber("_mm512_cephes_cosf_ps_v3",cephes_result,0);
+        }
+        svml_result   = svml_cos_results[i+2ull];
+        cephes_result = cephes_cos_results[i+2ull];
+        fcomp_result    = almostEqual2sComplement(svml_result,cephes_result,7);
+        if(!fcomp_result) 
+        {
+            printf(ANSI_COLOR_RED "[PERF-TEST]: ***FAILED***, svml_cos=%.7f,cephes_cos=%.7f\n",svml_result,cephes_result);
+            printNumber("_mm512_cos_ps",svml_result,0);
+            printNumber("_mm512_cephes_cosf_ps_v3",cephes_result,0);
+        }
+        else
+        {
+            printf(ANSI_COLOR_CYAN "[PERF-TEST]: ***CORRECT***, svml_cos=%.7f,cephes_cos=%.7f\n",svml_result,cephes_result);
+            printNumber("_mm512_cos_ps",svml_result,0);
+            printNumber("_mm512_cephes_cosf_ps_v3",cephes_result,0);
+        }
+        svml_result   = svml_cos_results[i+3ull];
+        cephes_result = cephes_cos_results[i+3ull];
+        fcomp_result    = almostEqual2sComplement(svml_result,cephes_result,7);
+        if(!fcomp_result) 
+        {
+            printf(ANSI_COLOR_RED "[PERF-TEST]: ***FAILED***, svml_cos=%.7f,cephes_cos=%.7f\n",svml_result,cephes_result);
+            printNumber("_mm512_cos_ps",svml_result,0);
+            printNumber("_mm512_cephes_cosf_ps_v3",cephes_result,0);
+        }
+        else
+        {
+            printf(ANSI_COLOR_CYAN "[PERF-TEST]: ***CORRECT***, svml_cos=%.7f,cephes_cos=%.7f\n",svml_result,cephes_result);
+            printNumber("_mm512_cos_ps",svml_result,0);
+            printNumber("_mm512_cephes_cosf_ps_v3",cephes_result,0);
+        }
+     }
+#endif 
+     const bool sz_gt_0 = sz > 0ull;
+     if(cos_data_in!=NULL && sz_gt_0)        {gms_mm_free(cos_data_in);}
+     if(svml_cos_results!=NULL && sz_gt_0)   {gms_mm_free(svml_cos_results);}
+     if(cephes_cos_results!=NULL && sz_gt_0) {gms_mm_free(cephes_cos_results);}
+}
+
+__attribute__((hot))
+void test_runner_svml_cosf16_l0_single_thread(const int32_t, const int32_t);
+
+void test_runner_svml_cosf16_l0_single_thread(const int32_t cpu_core, const int32_t priority)
+{
+    using namespace gms::common;
+    constexpr int32_t n_runs{10};
+    constexpr int32_t n_samples{50};
+    constexpr int32_t n_total{n_runs*n_samples};
+    constexpr int32_t sz{n_total*16};
+    constexpr std::size_t sz_bytes{static_cast<std::size_t>(sz)*sizeof(float)};
+    unsigned __int64 svml_cos_ps_s[n_total]        = {UINT64_MAX};
+    unsigned __int64 svml_cos_ps_e[n_total]        = {UINT64_MAX}; 
+    unsigned __int64 svml_cos_ps_d[n_total]        = {UINT64_MAX};
+    std::uint32_t    svml_cos_tsc_aux_s[n_total]   = {UINT32_MAX};
+    std::uint32_t    svml_cos_tsc_aux_e[n_total]   = {UINT32_MAX};
+    float       * __restrict__ cos_data_in        = NULL;
+    float       * __restrict__ svml_cos_results   = NULL;
+    cos_data_in        = reinterpret_cast<float * __restrict__>(gms_mm_malloc(sz_bytes,64ull));
+    svml_cos_results   = reinterpret_cast<float * __restrict__>(gms_mm_malloc(sz_bytes,64ull));
+    thread_local std::uniform_real_distribution<float> cos_rand_in;
+    thread_local std::uniform_int_distribution<std::int32_t> rand_rad_range;
+    thread_local std::uint64_t seed{};
+    thread_local std::uint64_t seed_range{};
+    float lo;
+    float hi;
+    seed_range = __rdtsc();
+    rand_rad_range = std::uniform_int_distribution<std::int32_t>(0,1);
+    auto rand_rad_range_gen{std::mt19937(seed_range)};
+    const std::int32_t which_range{rand_rad_range.operator()(rand_rad_range_gen)};
+    if(which_range==1)
+    {
+        lo = -3.14159265358979324f;
+        hi = +3.14159265358979324f;
+        std::printf("[UNIT_TEST]: Input range: lo=%.7f(rad),hi=%.7f(rad)\n",lo,hi);
+    }
+    else if(which_range==0)
+    {
+        lo = -3.14159265358979324f*8192.0f;
+        hi = +3.14159265358979324f*8192.0f;
+        std::printf("[UNIT_TEST]: Input range: lo=%.7f(rad),hi=%.7f(rad)\n",lo,hi);
+    }
+    seed = __rdtsc();
+    cos_rand_in = std::uniform_real_distribution<float>(lo,hi);
+    auto rand_uni_gen{std::mt19937(seed)};
+    for(std::size_t i = 0ull; i != ROUND_TO_EIGHT(sz,7); i += 8ull)
+    {
+         const float in_cos_arg_1{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+0ull] = in_cos_arg_1;
+         const float in_cos_arg_2{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+1ull] = in_cos_arg_2;
+         const float in_cos_arg_3{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+2ull] = in_cos_arg_3;
+         const float in_cos_arg_4{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+3ull] = in_cos_arg_4;
+         const float in_cos_arg_5{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+4ull] = in_cos_arg_5;
+         const float in_cos_arg_6{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+5ull] = in_cos_arg_6;
+         const float in_cos_arg_7{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+6ull] = in_cos_arg_7;
+         const float in_cos_arg_8{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+7ull] = in_cos_arg_8;
+    }
+    
+    uint32_t svml_cos_tid;
+    int32_t setenv_ret;
+    int32_t status;
+    setenv_ret = setenv("OMP_PROC_BIND","true",1);
+    if(setenv_ret==-1)
+    {
+        printf("[**ERROR**]: -- setenv reported an error=%d\n",setenv_ret);
+    }
+    setenv_ret = setenv("OMP_PROC_BIND","spread",1);
+    if(setenv_ret==-1)
+    {
+        printf("[**ERROR**]: -- setenv reported an error=%d\n",setenv_ret);
+    }
+    status = set_affinity_and_priority(cpu_core,priority);
+    if(status > 0)
+    { 
+       int32_t which = PRIO_PROCESS;
+       id_t pid      = getpid();
+       errno         = 0;
+       int32_t nice  = getpriority(which,pid);
+       printf("[***ERROR***]: set_affinity_and_priority status:%d,errno=%d,pid=%d,nice=%d\n",status,errno,pid,nice);
+    }
+
+    perf_test_svml_mm512_cos_ps_32kiB(&cos_data_in[0],
+                                    &svml_cos_results[0],
+                                    &svml_cos_ps_s[0],
+                                    &svml_cos_ps_e[0],
+                                    &svml_cos_ps_d[0],
+                                    &svml_cos_tsc_aux_s[0],
+                                    &svml_cos_tsc_aux_e[0],
+                                    n_runs,
+                                    n_samples,
+                                    svml_cos_tid);
+    print_thread_affinity();
+     
+    printf(ANSI_COLOR_GREEN "[PERF-TEST]:  svml_mm512_cos_ps: Started!!\n");
+    printf(ANSI_COLOR_GREEN "[PERF-TEST] -- Executed by Core=%d \n",svml_cos_tid);
+    for(int32_t __i{0}; __i != n_runs; ++__i)
+    {
+        for(int32_t __j{0}; __j != n_samples; ++__j) 
+        {  
+            unsigned __int64 s{svml_cos_ps_s[__i*n_samples+__j]};
+            unsigned __int64 e{svml_cos_ps_e[__i*n_samples+__j]};
+            unsigned __int64 d{svml_cos_ps_d[__i*n_samples+__j]};
+            std::uint32_t tas{svml_cos_tsc_aux_s[__i*n_samples+__j]}; // tsc_aux_s
+            std::uint32_t tac{svml_cos_tsc_aux_e[__i*n_samples+__j]}; // tsc_aux_e
+            printf(ANSI_COLOR_GREEN "[PMC: RDTSCP] -- Run=%d, start=%llu,end=%llu,delta=%llu,tas=%d,tac=%d\n",__i,s,e,d,tas,tac);
+        }
+    }
+     printf(ANSI_COLOR_GREEN "[PERF-TEST]: svml_mm512_cos_ps: Finished -- dumping-results" ANSI_RESET_ALL"\n\n");
+
+#if 1
+     printf(ANSI_COLOR_MAGENTA "[PERF-TEST]: Result Comparison (using safe floating-point compare as an integer)\n");
+     float svml_result{};
+     float cephes_result{};
+     bool fcomp_result{};
+     for(std::size_t i = 0;i != ROUND_TO_FOUR(sz,3ull); i += 4ull) 
+     {
+        svml_result   = svml_cos_results[i+0ull];
+        printNumber("_mm512_cos_ps",svml_result,0);
+        svml_result   = svml_cos_results[i+1ull];       
+        printNumber("_mm512_cos_ps",svml_result,0);           
+        svml_result   = svml_cos_results[i+2ull];     
+        printNumber("_mm512_cos_ps",svml_result,0);      
+        svml_result   = svml_cos_results[i+3ull];       
+        printNumber("_mm512_cos_ps",svml_result,0);
+                  
+     }
+#endif 
+     const bool sz_gt_0 = sz > 0ull;
+     if(cos_data_in!=NULL && sz_gt_0)        {gms_mm_free(cos_data_in);}
+     if(svml_cos_results!=NULL && sz_gt_0)   {gms_mm_free(svml_cos_results);}
+}
+
+__attribute__((hot))
+void test_runner_mm512_cephes_cosf_ps_v3_single_thread(const int32_t,const int32_t);
+
+void test_runner_mm512_cephes_cosf_ps_v3_single_thread(const int32_t cpu_core,const int32_t priority)
+{
+    using namespace gms::common;
+    constexpr int32_t n_runs{10};
+    constexpr int32_t n_samples{50};
+    constexpr int32_t n_total{n_runs*n_samples};
+    constexpr int32_t sz{n_total*16};
+    constexpr std::size_t sz_bytes{static_cast<std::size_t>(sz)*sizeof(float)};
+    unsigned __int64 cephes_cos_ps_s[n_total]      = {UINT64_MAX};
+    unsigned __int64 cephes_cos_ps_e[n_total]      = {UINT64_MAX};
+    unsigned __int64 cephes_cos_ps_d[n_total]      = {UINT64_MAX};
+    std::uint32_t    cephes_cos_tsc_aux_s[n_total] = {UINT32_MAX};
+    std::uint32_t    cephes_cos_tsc_aux_e[n_total] = {UINT32_MAX};
+    float       * __restrict__ cos_data_in        = NULL;
+    float       * __restrict__ cephes_cos_results = NULL;
+    cos_data_in        = reinterpret_cast<float * __restrict__>(gms_mm_malloc(sz_bytes,64ull));
+    cephes_cos_results = reinterpret_cast<float * __restrict__>(gms_mm_malloc(sz_bytes,64ull));
+    thread_local std::uniform_real_distribution<float> cos_rand_in;
+    thread_local std::uniform_int_distribution<std::int32_t> rand_rad_range;
+    thread_local std::uint64_t seed{};
+    thread_local std::uint64_t seed_range{};
+    float lo;
+    float hi;
+    seed_range = __rdtsc();
+    rand_rad_range = std::uniform_int_distribution<std::int32_t>(0,1);
+    auto rand_rad_range_gen{std::mt19937(seed_range)};
+    const std::int32_t which_range{rand_rad_range.operator()(rand_rad_range_gen)};
+    if(which_range==1)
+    {
+        lo = -3.14159265358979324f;
+        hi = +3.14159265358979324f;
+        std::printf("[UNIT_TEST]: Input range: lo=%.7f(rad),hi=%.7f(rad)\n",lo,hi);
+    }
+    else if(which_range==0)
+    {
+        lo = -3.14159265358979324f*8192.0f;
+        hi = +3.14159265358979324f*8192.0f;
+        std::printf("[UNIT_TEST]: Input range: lo=%.7f(rad),hi=%.7f(rad)\n",lo,hi);
+    }
+    seed = __rdtsc();
+    cos_rand_in = std::uniform_real_distribution<float>(lo,hi);
+    auto rand_uni_gen{std::mt19937(seed)};
+    for(std::size_t i = 0ull; i != ROUND_TO_EIGHT(sz,7); i += 8ull)
+    {
+         const float in_cos_arg_1{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+0ull] = in_cos_arg_1;
+         const float in_cos_arg_2{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+1ull] = in_cos_arg_2;
+         const float in_cos_arg_3{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+2ull] = in_cos_arg_3;
+         const float in_cos_arg_4{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+3ull] = in_cos_arg_4;
+         const float in_cos_arg_5{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+4ull] = in_cos_arg_5;
+         const float in_cos_arg_6{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+5ull] = in_cos_arg_6;
+         const float in_cos_arg_7{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+6ull] = in_cos_arg_7;
+         const float in_cos_arg_8{cos_rand_in.operator()(rand_uni_gen)};
+         cos_data_in[i+7ull] = in_cos_arg_8;
+    }
+    
+    uint32_t cephes_cos_tid;
+    int32_t setenv_ret;
+    int32_t status{};
+    setenv_ret = setenv("OMP_PROC_BIND","true",1);
+    if(setenv_ret==-1)
+    {
+        printf("[**ERROR**]: -- setenv reported an error=%d\n",setenv_ret);
+    }
+    setenv_ret = setenv("OMP_PROC_BIND","spread",1);
+    if(setenv_ret==-1)
+    {
+        printf("[**ERROR**]: -- setenv reported an error=%d\n",setenv_ret);
+    }
+    status = set_affinity_and_priority(cpu_core,priority);
+    if(status > 0)
+    { 
+       int32_t which = PRIO_PROCESS;
+       id_t pid      = getpid();
+       errno         = 0;
+       int32_t nice  = getpriority(which,pid);
+       printf("[***ERROR***]: set_affinity_and_priority status:%d,errno=%d,pid=%d,nice=%d\n",status,errno,pid,nice);
+    }
+    perf_test_mm512_cephes_cos_ps_v3_32kiB(&cos_data_in[0],
+                                          &cephes_cos_results[0],
+                                          &cephes_cos_ps_s[0],
+                                          &cephes_cos_ps_e[0],
+                                          &cephes_cos_ps_d[0],
+                                          &cephes_cos_tsc_aux_s[0],
+                                          &cephes_cos_tsc_aux_e[0],
+                                          n_runs,
+                                          n_samples,
+                                          cephes_cos_tid);    
+    print_thread_affinity();
+    printf(ANSI_COLOR_WHITE "[PERF-TEST]:  _mm512_cephes_cosf_ps_v3: Started!!\n");
+    printf(ANSI_COLOR_WHITE "[PERF-TEST]: -- Executed by Core=%d \n",cephes_cos_tid);
+    for(int32_t __i{0}; __i != n_runs; ++__i)
+    {
+         for(int32_t __j{0}; __j != n_samples; ++__j) 
+         {  
+            unsigned __int64 s{cephes_cos_ps_s[__i*n_samples+__j]};
+            unsigned __int64 e{cephes_cos_ps_e[__i*n_samples+__j]};
+            unsigned __int64 d{cephes_cos_ps_d[__i*n_samples+__j]};
+            std::uint32_t tas{cephes_cos_tsc_aux_s[__i*n_samples+__j]}; // tsc_aux_s
+            std::uint32_t tac{cephes_cos_tsc_aux_e[__i*n_samples+__j]}; // tsc_aux_e
+            printf(ANSI_COLOR_WHITE "[PMC: RDTSCP] -- Run=%d, start=%llu,end=%llu,delta=%llu,tas=%d,tac=%d\n",__i,s,e,d,tas,tac);
+         }
+     }
+     printf(ANSI_COLOR_BLUE "[PERF-TEST]: _mm512_cephes_cosf_ps_v3: Finished -- dumping-results" ANSI_RESET_ALL"\n\n");
+
+     float cephes_result{};
+     for(std::size_t i = 0;i != ROUND_TO_FOUR(sz,3ull); i += 4ull) 
+     {
+      
+        cephes_result = cephes_cos_results[i+0ull];       
+        printNumber("_mm512_cephes_cosf_ps_v3",cephes_result,0);       
+        cephes_result = cephes_cos_results[i+1ull];         
+        printNumber("_mm512_cephes_cosf_ps_v3",cephes_result,0);       
+        cephes_result = cephes_cos_results[i+2ull];       
+        printNumber("_mm512_cephes_cosf_ps_v3",cephes_result,0);       
+        cephes_result = cephes_cos_results[i+3ull];
+        printNumber("_mm512_cephes_cosf_ps_v3",cephes_result,0);
+       
+     }
+     const bool sz_gt_0 = sz > 0ull;
+     if(cos_data_in!=NULL && sz_gt_0)        {gms_mm_free(cos_data_in);}
+     if(cephes_cos_results!=NULL && sz_gt_0) {gms_mm_free(cephes_cos_results);}
+}
+
+__attribute__((hot))
+void test_runner_mm512_cephes_cosf_ps_v3_parallel();
+
+void test_runner_mm512_cephes_cosf_ps_v3_parallel()
+{
+    thread_local std::uniform_int_distribution<std::int32_t> rand_thread_prio;
+    thread_local std::uint64_t prio_seed{};
+    thread_local std::int32_t priority{};
+    thread_local std::mt19937 rand_prio_gen;
+    int32_t tid{};
+#pragma omp parallel private(tid) num_threads(omp_get_max_threads())
+{
+    rand_thread_prio = std::uniform_int_distribution<std::int32_t>(0,99);
+    prio_seed        = __rdtsc();
+    rand_prio_gen    = std::mt19937(prio_seed);
+    priority         = rand_thread_prio.operator()(rand_prio_gen);
+    tid              = omp_get_thread_num();
+    test_runner_mm512_cephes_cosf_ps_v3_single_thread(tid,priority);
+}
+
+}
+
+__attribute__((hot))
+void test_runner_svml_cosf16_l0_parallel();
+
+void test_runner_svml_cosf16_l0_parallel()
+{
+    thread_local std::uniform_int_distribution<std::int32_t> rand_thread_prio;
+    thread_local std::uint64_t prio_seed{};
+    thread_local std::int32_t priority{};
+    thread_local std::mt19937 rand_prio_gen;
+    int32_t tid{};
+#pragma omp parallel private(tid) num_threads(omp_get_max_threads())
+{
+    rand_thread_prio = std::uniform_int_distribution<std::int32_t>(0,99);
+    prio_seed        = __rdtsc();
+    rand_prio_gen    = std::mt19937(prio_seed);
+    priority         = rand_thread_prio.operator()(rand_prio_gen);
+    tid              = omp_get_thread_num();
+    test_runner_svml_cosf16_l0_single_thread(tid,priority);
+}
+
+}
+
 int main()
 {
     test_runner_omp_sections_1st_seq();
+    test_runner_omp_sections_2st_seq();
+    test_runner_svml_cosf16_l0_single_thread(4,99);
+    test_runner_mm512_cephes_cosf_ps_v3_single_thread(5,99);
+    test_runner_mm512_cephes_cosf_ps_v3_parallel();
+    test_runner_svml_cosf16_l0_parallel();
     return 0;
 }
