@@ -220,6 +220,55 @@ return (_mm_fmadd_ps(x,horner_scheme,factor));
 #endif
 __ATTR_ALWAYS_INLINE__
 static inline 
+__m128d 
+simd_fast_log_approx_2xf64(const __m128d val) 
+{
+const __m128d C0693147180559945309{_mm_set1_pd(0.693147180559945309)};
+const __m128d C38452996567427771004em3{_mm_set1_pd(3.8452996567427771004e-3)};
+const __m128d CN58063046913513248806em2{_mm_set1_pd(-5.8063046913513248806e-2)};
+const __m128d C03933681393710522449{_mm_set1_pd(0.3933681393710522449)};
+const __m128d CN15768742873140365359{_mm_set1_pd(-1.5768742873140365359)};
+const __m128d C41526922366643242018{_mm_set1_pd(4.1526922366643242018)};
+const __m128d CN75448441898968122224{_mm_set1_pd(-7.5448441898968122224)};
+const __m128d C96834305233551590662{_mm_set1_pd(9.6834305233551590662)};
+const __m128d CN89283961901995856725{_mm_set1_pd(-8.9283961901995856725)};
+const __m128d C63599808385417079442{_mm_set1_pd(6.3599808385417079442)};
+const __m128d CN71157470503155781879{_mm_set1_pd(-711.57470503155781879)};
+const __m128d CNINFINITY{_mm_set1_pd(-(double)INFINITY)};
+const __m128i C0xFFFFFFFFFFFFF{_mm_set1_epi64x(0xFFFFFFFFFFFFF)};
+const __m128i C0x3FF0000000000000{_mm_set1_epi64x(0x3FF0000000000000)};
+/////////////////////////////////////////////////////////////////////////
+union {__m128d v_f; __m128i v_i;} valu;
+__m128d exp,addcst,x;
+valu.v_f = val;
+exp      = _mm_cvtepi64_pd(_mm_srai_epi64(valu.v_i,52));
+__mmask8 val_gt_0 = _mm_cmp_pd_mask(val,_mm_setzero_pd(),_CMP_GT_OQ);
+valu.v_i = _mm_or_epi64(_mm_and_si128(valu.v_i,C0xFFFFFFFFFFFFF),C0x3FF0000000000000);
+addcst   = _mm_mask_mov_pd(CNINFINITY,val_gt_0,CN71157470503155781879);
+x        = valu.v_f;
+__m128d factor{_mm_fmadd_pd(C0693147180559945309,exp,addcst)};
+__m128d horner_scheme = _mm_fmadd_pd(
+                           _mm_fmadd_pd(
+                              _mm_fmadd_pd(
+                                 _mm_fmadd_pd(
+                                    _mm_fmadd_pd(
+                                       _mm_fmadd_pd(
+                                          _mm_fmadd_pd(
+                                              _mm_fmadd_pd(C38452996567427771004em3,x,CN58063046913513248806em2),x,C03933681393710522449),
+                                                                  x,CN15768742873140365359),x,C41526922366643242018),x,CN75448441898968122224),
+                                                                           x,C96834305233551590662),x,CN89283961901995856725),x,C63599808385417079442);
+return (_mm_fmadd_pd(x,horner_scheme,factor));
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline 
 __m128 
 simd_fast_cos_approx_4xf32(const __m128 val)
 {
@@ -285,6 +334,63 @@ __m128d cos_horner_scheme = _mm_fmadd_pd(
 return (cos_horner_scheme);                                                                        
 }
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128 
+simd_fast_sin_approx_4xf32(const __m128 val)
+{
+   /* Correct only in [-pi, pi]
+   Absolute error bounded by 6e-6
+   Continuous error */
+const __m128 C21478401777em6{_mm_set1_ps(2.1478401777e-6f)};
+const __m128 CN19264918228em4{_mm_set1_ps(-1.9264918228e-4f)};
+const __m128 C83089787513em3{_mm_set1_ps(8.3089787513e-3f)};
+const __m128 CN01666243672{_mm_set1_ps(-0.1666243672f)};
+const __m128 C09999793767{_mm_set1_ps(0.9999793767f)};
+__m128 val2 = _mm_mul_ps(val,val);
+__m128 sin_horner_scheme = _mm_fmadd_ps(
+                              _mm_fmadd_ps(
+                                 _mm_fmadd_ps(
+                                    _mm_fmadd_ps(C21478401777em6,val2,CN19264918228em4),
+                                                     val2,C83089787513em3),val2,CN01666243672),
+                                                                               val2,C09999793767);
+return (_mm_mul_ps(val,sin_horner_scheme));
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128d
+simd_fast_sin_approx_2xf64(const __m128d val)
+{
+   /* Correct only in [-pi, pi]
+   Absolute error bounded by 2e-9
+   Continuous error */
+__m128d val2 = _mm_mul_pd(val,val);
+const __m128d C0{_mm_set1_pd(1.3451481340051383601e-10)};
+const __m128d C1{_mm_set1_pd(-2.4676970823046321831e-8)};
+const __m128d C2{_mm_set1_pd(2.7529454331962521774e-6)};
+const __m128d C3{_mm_set1_pd(-1.9840155355055654144e-4)};
+const __m128d C4{_mm_set1_pd(8.3333103922589284663e-3)};
+const __m128d C5{_mm_set1_pd(-0.1666666458182987439)};
+const __m128d C6{_mm_set1_pd(0.9999999945159759653)};
+__m128d sin_horner_scheme = _mm_fmadd_pd(_mm_fmadd_pd(_mm_fmadd_pd(_mm_fmadd_pd(
+                                     _mm_fmadd_pd(_mm_fmadd_pd(C0,val2,C1),val2,C2),val2,C3),val2,C4),val2,C5),val2,C6);
+return (_mm_mul_pd(val,sin_horner_scheme));
+}
 
 
 /*
