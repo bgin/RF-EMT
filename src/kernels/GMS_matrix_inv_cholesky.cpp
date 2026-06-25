@@ -97,7 +97,8 @@
     do{\
        GET_AxAH(matGRe[1][0], matGIm[1][0], temp0);\
        matGRe[1][1] = _mm512_sub_ps(matBRe[1][1], temp0);\
-       matD[1] = _mm512_rsqrt14_ps(matGRe[1][1]);\
+       __mmask16 k1 = _mm512_cmp_ps_mask(matGRe[1][1],_mm512_setzero_ps(),_CMP_LE_OQ);\
+       matD[1] = _mm512_rsqrt14_ps(_mm512_mul_ps(vneg_one,matGRe[1][1]));\
        matND[1] = _mm512_sub_ps(vzero, matD[1]);\
     }while(0);\
 }
@@ -545,6 +546,7 @@ gms::math
     __m512 matND[MAT_SQR_SIZE_2];
     __m512 temp0, temp1;
     const __m512 vzero{_mm512_setzero_ps()};
+    const __m512 vneg_one{_mm512_set1_ps(-1.0f)};
     //////////////////////////////////////////////////////////////
     if constexpr (static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
     {
