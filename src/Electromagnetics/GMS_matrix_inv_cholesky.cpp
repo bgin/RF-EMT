@@ -97,23 +97,23 @@
     do{\
        GET_AxAH(matGRe[1][0], matGIm[1][0], temp0);\
        matGRe[1][1] = _mm512_sub_ps(matBRe[1][1], temp0);\
-       __mmask16 k1 = _mm512_cmp_ps_mask(matGRe[1][1],_mm512_setzero_ps(),_CMP_LE_OQ);\
-       matD[1] = _mm512_rsqrt14_ps(_mm512_mul_ps(vneg_one,matGRe[1][1]));\
+       matD[1] = _mm512_rsqrt14_ps(matGRe[1][1]);\
        matND[1] = _mm512_sub_ps(vzero, matD[1]);\
     }while(0);\
 }
 
 // get G11
-#define GET_G11_RSQR28(matGRe, matGIm, matBRe, matD, matND, temp0)\
+#define GET_G11_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0)\
 {\
     do{\
        GET_AxAH(matGRe[1][0], matGIm[1][0], temp0);\
        matGRe[1][1] = _mm512_sub_ps(matBRe[1][1], temp0);\
-       __mmask16 k1 = _mm512_cmp_ps_mask(matGRe[1][1],_mm512_setzero_ps(),_CMP_LE_OQ);\
-       matD[1] = _mm512_rsqrt28_ps(matGRe[1][1]);\
+       __mmask16 k1 = _mm512_cmp_ps_mask(matGRe[1][1],vzero,_CMP_LT_OQ);\
+       matD[1] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k1,matGRe[1][1],_mm512_mul_ps(vneg_one,matGRe[1][1])));\
        matND[1] = _mm512_sub_ps(vzero, matD[1]);\
     }while(0);\
 }
+
 
 // get column 1 of matrix G
 #define GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, j, temp0, temp1)\
@@ -135,21 +135,21 @@
         GET_AxAH(matGRe[2][1], matGIm[2][1], temp1);\
         matGRe[2][2] = _mm512_sub_ps(matBRe[2][2], temp0);\
         matGRe[2][2] = _mm512_sub_ps(matGRe[2][2], temp1);\
-        __mmask16 k1 = _mm512_cmp_ps_mask(matGRe[2][2],_mm512_setzero_ps(),_CMP_LE_OQ);\
         matD[2] = _mm512_rsqrt14_ps(matGRe[2][2]);\
         matND[2] = _mm512_sub_ps(vzero, matD[2]);\
     }while(0);\
 }
 
-#define GET_G22_RSQR28(matGRe, matGIm, matBRe, matD, matND, temp0, temp1)\
+// get G22
+#define GET_G22_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1)\
 {\
     do{\
         GET_AxAH(matGRe[2][0], matGIm[2][0], temp0);\
         GET_AxAH(matGRe[2][1], matGIm[2][1], temp1);\
         matGRe[2][2] = _mm512_sub_ps(matBRe[2][2], temp0);\
         matGRe[2][2] = _mm512_sub_ps(matGRe[2][2], temp1);\
-        __mmask16 k1 = _mm512_cmp_ps_mask(matGRe[2][2],_mm512_setzero_ps(),_CMP_LE_OQ);\
-        matD[2] = _mm512_rsqrt28_ps(matGRe[2][2]);\
+        __mmask16 k2 = _mm512_cmp_ps_mask(matGRe[2][2],vzero,_CMP_LT_OQ);\
+        matD[2] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k1,matGRe[2][2],_mm512_mul_ps(vneg_one,matGRe[2][2])));\
         matND[2] = _mm512_sub_ps(vzero, matD[2]);\
     }while(0);\
 }
@@ -185,7 +185,7 @@
 }
 
 // get G33
-#define GET_G33_RSQR28(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2)\
+#define GET_G33_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2)\
 {\
     do{\
         GET_AxAH(matGRe[3][0], matGIm[3][0], temp0);\
@@ -194,7 +194,8 @@
         matGRe[3][3] = _mm512_sub_ps(matBRe[3][3], temp0);\
         matGRe[3][3] = _mm512_sub_ps(matGRe[3][3], temp1);\
         matGRe[3][3] = _mm512_sub_ps(matGRe[3][3], temp2);\
-        matD[3] = _mm512_rsqrt28_ps(matGRe[3][3]);\
+        __mmask16 k3 = _mm512_cmp_ps_mask(matGRe[3][3],vzero,_CMP_LT_OQ);\
+        matD[3] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k3,matGRe[3][3],_mm512_mul_ps(vneg_one,matGRe[3][3])));\
         matND[3] = _mm512_sub_ps(vzero, matD[3]);\
     }while(0);\
 }
@@ -217,7 +218,6 @@
     }while(0);\
 }
 
-// get G44
 #define GET_G44(matGRe, matGIm, matBRe, matD, matND, temp0, temp1)\
 {\
     do{\
@@ -234,7 +234,8 @@
     }while(0);\
 }
 
-#define GET_G44_RSQR28(matGRe, matGIm, matBRe, matD, matND, temp0, temp1)\
+// get G44
+#define GET_G44_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1)\
 {\
     do{\
         GET_AxAH(matGRe[4][0], matGIm[4][0], temp0);\
@@ -245,12 +246,13 @@
         GET_AxAH(matGRe[4][3], matGIm[4][3], temp1);\
         matGRe[4][4] = _mm512_sub_ps(matGRe[4][4], temp0);\
         matGRe[4][4] = _mm512_sub_ps(matGRe[4][4], temp1);\
-        matD[4] = _mm512_rsqrt28_ps(matGRe[4][4]);\
+        __mmask16 k4 = _mm512_cmp_ps_mask(matGRe[4][4],vzero,_CMP_LT_OQ);\
+        matD[4] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k3,matGRe[4][4],_mm512_mul_ps(vneg_one,matGRe[4][4])));\
         matND[4] = _mm512_sub_ps(vzero, matD[4]);\
     }while(0);\
 }
 
-// get G55
+
 #define GET_G55(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2)\
 {\
     do{\
@@ -270,7 +272,7 @@
 }
 
 // get G55
-#define GET_G55_RSQR28(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2)\
+#define GET_G55_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2)\
 {\
     do{\
         GET_AxAH(matGRe[5][0], matGIm[5][0], temp0);\
@@ -283,12 +285,13 @@
         matGRe[5][5] = _mm512_sub_ps(matGRe[5][5], temp0);\
         matGRe[5][5] = _mm512_sub_ps(matGRe[5][5], temp1);\
         matGRe[5][5] = _mm512_sub_ps(matGRe[5][5], temp2);\
-        matD[5] = _mm512_rsqrt28_ps(matGRe[5][5]);\
+        __mmask16 k5 = _mm512_cmp_ps_mask(matGRe[5][5],vzero,_CMP_LT_OQ);\
+        matD[5] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k5,matGRe[5][5],_mm512_mul_ps(vneg_one,matGRe[5][5])));\
         matND[5] = _mm512_sub_ps(vzero, matD[5]);\
     }while(0);\
 }
 
-// get G66
+
 #define GET_G66(matGRe, matGIm, matBRe, matD, matND, temp0, temp1)\
 {\
     do{\
@@ -310,7 +313,7 @@
 }
 
 // get G66
-#define GET_G66_RSQR28(matGRe, matGIm, matBRe, matD, matND, temp0, temp1)\
+#define GET_G66_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1)\
 {\
     do{\
         GET_AxAH(matGRe[6][0], matGIm[6][0], temp0);\
@@ -325,12 +328,13 @@
         GET_AxAH(matGRe[6][5], matGIm[6][5], temp1);\
         matGRe[6][6] = _mm512_sub_ps(matGRe[6][6], temp0);\
         matGRe[6][6] = _mm512_sub_ps(matGRe[6][6], temp1);\
-        matD[6] = _mm512_rsqrt28_ps(matGRe[6][6]);\
+        __mmask16 k6 = _mm512_cmp_ps_mask(matGRe[6][6],vzero,_CMP_LT_OQ);\
+        matD[6] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k6,matGRe[6][6],_mm512_mul_ps(vneg_one,matGRe[6][6])));\
         matND[6] = _mm512_sub_ps(vzero, matD[6]);\
     }while(0);\
 }
 
-// get G77
+
 #define GET_G77(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2)\
 {\
     do{\
@@ -354,7 +358,7 @@
 }
 
 // get G77
-#define GET_G77_RSQR28(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2)\
+#define GET_G77_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2)\
 {\
     do{\
         GET_AxAH(matGRe[7][0], matGIm[7][0], temp0);\
@@ -371,12 +375,13 @@
         matGRe[7][7] = _mm512_sub_ps(matGRe[7][7], temp0);\
         matGRe[7][7] = _mm512_sub_ps(matGRe[7][7], temp1);\
         matGRe[7][7] = _mm512_sub_ps(matGRe[7][7], temp2);\
-        matD[7] = _mm512_rsqrt28_ps(matGRe[7][7]);\
+        __mmask16 k7 = _mm512_cmp_ps_mask(matGRe[7][7],vzero,_CMP_LT_OQ);\
+        matD[7] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k7,matGRe[7][7],_mm512_mul_ps(vneg_one,matGRe[7][7])));\
         matND[7] = _mm512_sub_ps(vzero, matD[7]);\
     }while(0);\
 }
 
-// get Gii, odd diagonal element
+
 #define GET_Gii_ODD(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, i)\
 {\
     do{\
@@ -395,7 +400,7 @@
 }
 
 // get Gii, odd diagonal element
-#define GET_Gii_ODD_RSQR28(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, i)\
+#define GET_Gii_ODD_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, i)\
 {\
     do{\
         GET_AxAH(matGRe[i][0], matGIm[i][0], temp0);\
@@ -407,12 +412,13 @@
            matGRe[i][i] = _mm512_sub_ps(matGRe[i][i], temp0);\
            matGRe[i][i] = _mm512_sub_ps(matGRe[i][i], temp1);\
         }\
-        matD[i] = _mm512_rsqrt28_ps(matGRe[i][i]);\
+        __mmask16 kii_odd = _mm512_cmp_ps_mask(matGRe[i][i],vzero,_CMP_LT_OQ);\
+        matD[i] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(kii_odd,matGRe[i][i],_mm512_mul_ps(vneg_one,matGRe[i][i])));\
         matND[i] = _mm512_sub_ps(vzero, matD[i]);\
     }while(0);\
 }
 
-// get Gii, even diagonal element
+
 #define GET_Gii_EVEN(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, i)\
 {\
     do{\
@@ -433,7 +439,7 @@
 }
 
 // get Gii, even diagonal element
-#define GET_Gii_EVEN_RSQR28(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, i)\
+#define GET_Gii_EVEN_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, i)\
 {\
     do{\
         GET_AxAH(matGRe[i][0], matGIm[i][0], temp0);\
@@ -447,10 +453,12 @@
            matGRe[i][i] = _mm512_sub_ps(matGRe[i][i], temp0);\
            matGRe[i][i] = _mm512_sub_ps(matGRe[i][i], temp1);\
         }\
-        matD[i] = _mm512_rsqrt28_ps(matGRe[i][i]);\
+        __mmask16 kii_even = _mm512_cmp_ps_mask(matGRe[i][i],vzero,_CMP_LT_OQ);\
+        matD[i] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(kii_even,matGRe[i][i],_mm512_mul_ps(vneg_one,matGRe[i][i])));\
         matND[i] = _mm512_sub_ps(vzero, matD[i]);\
     }while(0);\
 }
+
 
 //get odd column n of matrix G, j is row index, i is col index
 #define GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, j, i, temp0, temp1)\
@@ -527,7 +535,7 @@
     }while(0);\
 }
 
-template<bool use_prefetching,bool use_rsqrt28>
+template<bool use_prefetching,bool mitigate_nan>
 void 
 gms::math
 ::mat_inv_cholesky_2x2_16xf32(const __m512 matBRe[MAT_SQR_SIZE_2][MAT_SQR_SIZE_2],
@@ -551,7 +559,7 @@ gms::math
     const __m512 vzero{_mm512_setzero_ps()};
     const __m512 vneg_one{_mm512_set1_ps(-1.0f)};
     //////////////////////////////////////////////////////////////
-    if constexpr (static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
+    if constexpr(static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
     {
         const float * __restrict ptr_matBRe{reinterpret_cast<const float * __restrict>(&matBRe)};
         const float * __restrict ptr_matBIm{reinterpret_cast<const float * __restrict>(&matBIm)};
@@ -565,18 +573,14 @@ gms::math
         _mm_prefetch((const char*)&ptr_matBIm[48],_MM_HINT_T0);
     }
 
-    if constexpr (static_cast<std::int32_t>(use_rsqrt28)==static_cast<std::int32_t>(true))
-    {
-        GET_G00_RSQR28(matGRe,matBRe,matD,matND);
-        GET_G_COL0(matGRe,matGIm,matBRe,matBIm,matD,1);
-        GET_G11_RSQR28(matGRe,matGIm,matBRe,matD,matND,temp0);
-    }
+   
+    GET_G00(matGRe,matBRe,matD,matND);
+    GET_G_COL0(matGRe,matGIm,matBRe,matBIm,matD,1);
+    if constexpr(static_cast<std::int32_t>(mitigate_nan)==static_cast<std::int32_t>(true))
+        GET_G11_SAFE(matGRe,matGIm,matBRe,matD,matND,temp0);
     else 
-    {
-        GET_G00(matGRe,matBRe,matD,matND);
-        GET_G_COL0(matGRe,matGIm,matBRe,matBIm,matD,1);
         GET_G11(matGRe,matGIm,matBRe,matD,matND,temp0);
-    }
+    
     SET_Lii(matLRe,matLIm,matD,0);
     GET_L_i1i(matLRe,matLIm,matGRe,matGIm,matND,1,0);
     SET_Lii(matLRe,matLIm,matD,1);
@@ -622,11 +626,11 @@ gms::math
 template void 
 gms::math 
 ::mat_inv_cholesky_2x2_16xf32<false,false>(const __m512 matBRe[MAT_SQR_SIZE_2][MAT_SQR_SIZE_2],
-                                         const __m512 matBIm[MAT_SQR_SIZE_2][MAT_SQR_SIZE_2],
-                                         __m512       matInvBRe[MAT_SQR_SIZE_2][MAT_SQR_SIZE_2],
-                                         __m512       matInvBIm[MAT_SQR_SIZE_2][MAT_SQR_SIZE_2]);
+                                           const __m512 matBIm[MAT_SQR_SIZE_2][MAT_SQR_SIZE_2],
+                                           __m512       matInvBRe[MAT_SQR_SIZE_2][MAT_SQR_SIZE_2],
+                                           __m512       matInvBIm[MAT_SQR_SIZE_2][MAT_SQR_SIZE_2]);
 
-template<bool use_prefetching,bool use_rsqrt28>
+template<bool use_prefetching,bool mitigate_nan>
 void 
 gms::math
 ::mat_inv_cholesky_3x3_16xf32(const __m512 matBRe[MAT_SQR_SIZE_3][MAT_SQR_SIZE_3],
@@ -678,25 +682,20 @@ gms::math
         _mm_prefetch((const char*)&ptr_matBIm[128],_MM_HINT_T0);
     }
     
-    if constexpr(static_cast<std::int32_t>(use_rsqrt28)==static_cast<std::int32_t>(true))
-    {
-        GET_G00_RSQR28(matGRe,matBRe,matD,matND);
-        GET_G_COL0(matGRe,matGIm,matBRe,matBIm,matD,1);
-        GET_G_COL0(matGRe,matGIm,matBRe,matBIm,matD,2);
-        GET_G11_RSQR28(matGRe,matGIm,matBRe,matD,matND,temp0);
-        GET_G_COL1(matGRe,matGIm,matBRe,matBIm,matD,2,temp0,temp1);
-        GET_G22(matGRe,matGIm,matBRe,matD,matND,temp0,temp1);
-    }
+   
+    GET_G00(matGRe,matBRe,matD,matND);
+    GET_G_COL0(matGRe,matGIm,matBRe,matBIm,matD,1);
+    GET_G_COL0(matGRe,matGIm,matBRe,matBIm,matD,2);
+    if constexpr(static_cast<std::int32_t>(mitigate_nan)==static_cast<std::int32_t>(true))
+       GET_G11_SAFE(matGRe,matGIm,matBRe,matD,matND,temp0);
     else 
-    {
-        GET_G00(matGRe,matBRe,matD,matND);
-        GET_G_COL0(matGRe,matGIm,matBRe,matBIm,matD,1);
-        GET_G_COL0(matGRe,matGIm,matBRe,matBIm,matD,2);
-        GET_G11(matGRe,matGIm,matBRe,matD,matND,temp0);
-        GET_G_COL1(matGRe,matGIm,matBRe,matBIm,matD,2,temp0,temp1);
-        GET_G22(matGRe,matGIm,matBRe,matD,matND,temp0,temp1);
-    }
-
+       GET_G11(matGRe,matGIm,matBRe,matD,matND,temp0);
+    GET_G_COL1(matGRe,matGIm,matBRe,matBIm,matD,2,temp0,temp1);
+    if constexpr(static_cast<std::int32_t>(mitigate_nan)==static_cast<std::int32_t>(true))
+       GET_G22_SAFE(matGRe,matGIm,matBRe,matD,matND,temp0,temp1);
+    else 
+       GET_G22(matGRe,matGIm,matBRe,matD,matND,temp0,temp1);
+    
     SET_Lii(matLRe,matLIm,matD,0);
     GET_L_i1i(matLRe,matLIm,matGRe,matGIm,matND,1,0);
     GET_L_ji(matLRe,matLIm,matGRe,matGIm,matND,2,0,temp0,temp1);
