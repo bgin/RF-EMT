@@ -933,3 +933,228 @@ gms::math
                                            const __m512 matBIm[MAT_SQR_SIZE_3][MAT_SQR_SIZE_3],
                                            __m512       matInvBRe[MAT_SQR_SIZE_3][MAT_SQR_SIZE_3],
                                            __m512       matInvBIm[MAT_SQR_SIZE_3][MAT_SQR_SIZE_3]);
+
+
+template<bool use_prefetching,bool mitigate_nan>
+void 
+gms::math
+::mat_inv_cholesky_4x4_16xf32(const __m512 matBRe[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4],
+                              const __m512 matBIm[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4],
+                              __m512       matInvBRe[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4],
+                              __m512       matInvBIm[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4])
+{
+     __ATTR_ALIGN__(64) 
+    __m512 matGRe[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4];
+    __ATTR_ALIGN__(64)
+    __m512 matGIm[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4];
+    __ATTR_ALIGN__(64)
+    __m512 matLRe[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4];
+    __ATTR_ALIGN__(64)
+    __m512 matLIm[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4];
+    __ATTR_ALIGN__(64)
+    __m512 matD[MAT_SQR_SIZE_4];
+    __ATTR_ALIGN__(64)
+    __m512 matND[MAT_SQR_SIZE_4];
+    __m512 temp0, temp1, temp2;
+    __m512 matLReii;
+    __m512 matLReki;
+    __m512 matLImki;
+    __m512 matLRejj;
+    std::int32_t i,j,k;
+    const __m512 vzero{_mm512_setzero_ps()};
+    const __m512 vneg_one{_mm512_set1_ps(-1.0f)};
+    //////////////////////////////////////////////////////////////
+    if constexpr (static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
+    {
+        constexpr std::int32_t VEC_PS_LEN = 16;
+        const float * __restrict ptr_matBRe{reinterpret_cast<const float * __restrict>(&matBRe)};
+        const float * __restrict ptr_matBIm{reinterpret_cast<const float * __restrict>(&matBIm)};
+        for(i = 0;i != MAT_SQR_SIZE_4; ++i) 
+        {
+            register std::int32_t outer_idx = i*MAT_SQR_SIZE_4;
+            for(j = 0;j != MAT_SQR_SIZE_4; ++j)   
+            {
+                register std::int32_t inner_idx = (outer_idx+j)*VEC_PS_LEN;
+                _mm_prefetch((const char*)&ptr_matBRe[inner_idx],_MM_HINT_T0);
+                _mm_prefetch((const char*)&ptr_matBIm[inner_idx],_MM_HINT_T0);
+            }
+        }
+    }
+
+    GET_G00(matGRe, matBRe, matD, matND);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 1);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 2);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 3);
+
+    // Column 1
+    if constexpr(static_cast<std::int32_t>(mitigate_nan)==static_cast<std::int32_t>(true))
+    {
+       GET_G11_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0);
+    }
+    else 
+    {
+       GET_G11(matGRe, matGIm, matBRe, matD, matND, temp0);
+    }
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 2, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 3, temp0, temp1);
+
+    // Column 2
+    if constexpr(static_cast<std::int32_t>(mitigate_nan)==static_cast<std::int32_t>(true))
+    {
+       GET_G22_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    else 
+    {
+       GET_G22(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 3, temp0, temp1);
+
+    // Column 3
+    if constexpr(static_cast<std::int32_t>(mitigate_nan)==static_cast<std::int32_t>(true))
+    {
+       GET_G33_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+    else 
+    {
+       GET_G33(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+
+    SET_Lii(matLRe, matLIm, matD, 0);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 1, 0);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 2, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 3, 0, temp0, temp1);
+
+    // Column 1
+    SET_Lii(matLRe, matLIm, matD, 1);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 2, 1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 3, 1, temp0, temp1);
+
+    // Column 2
+    SET_Lii(matLRe, matLIm, matD, 2);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 3, 2);
+
+    // Column 3
+    SET_Lii(matLRe, matLIm, matD, 3);
+
+    for(i = 0; i < MAT_SQR_SIZE_4; ++i)
+    {
+        matLReii        = matLRe[i][i];
+        matInvBRe[i][i] = _mm512_mul_ps(matLReii,matLReii);
+        for(k = (i+1); k < MAT_SQR_SIZE_4; ++k) 
+        {
+            matLReki = matLRe[k][i];
+            matLImki = matLIm[k][i];
+            temp1    = _mm512_fmadd_ps(matLReki,matLReki,_mm512_mul_ps(matLImki,matLImki));
+            matInvBRe[i][i] = _mm512_add_ps(matInvBRe[i][i],temp1);
+        } 
+        matInvBIm[i][i] = vzero;
+    }
+
+    // Unrolled out loop (the i-loop)
+#if 0
+    for(j = 1;j < MAT_SQR_SIZE_4; ++j)   
+    {
+        matLRejj        = matLRe[j][j];
+        matInvBRe[0][j] = _mm512_mul_ps(matLRe[j][0],matLRejj);
+        matInvBRe[j][0] = _mm512_sub_ps(vzero,_mm512_mul_ps(matLIm[j][0],matLRejj));
+        for(k = (j+1); k < MAT_SQR_SIZE_4; k++)
+        {
+            GET_AxBH(matLRe[k][j],matLIm[k][j],matLRe[k][0],matLIm[k][0],temp1,temp2);
+            matInvBRe[0][j] = _mm512_add_ps(matInvBRe[0][j], temp1);
+            matInvBIm[0][j] = _mm512_add_ps(matInvBIm[0][j], temp2);
+        }
+        matInvBRe[j][0] = matInvBRe[0][j];
+        matInvBIm[j][0] = _mm512_sub_ps(vzero, matInvBIm[0][j]);
+    }
+
+    for(j = 2;j < MAT_SQR_SIZE_4; ++j)   
+    {
+        matLRejj        = matLRe[j][j];
+        matInvBRe[1][j] = _mm512_mul_ps(matLRe[j][1],matLRejj);
+        matInvBRe[j][1] = _mm512_sub_ps(vzero,_mm512_mul_ps(matLIm[j][1],matLRejj));
+        for(k = (j+1); k < MAT_SQR_SIZE_4; k++)
+        {
+            GET_AxBH(matLRe[k][j],matLIm[k][j],matLRe[k][1],matLIm[k][1],temp1,temp2);
+            matInvBRe[1][j] = _mm512_add_ps(matInvBRe[1][j], temp1);
+            matInvBIm[1][j] = _mm512_add_ps(matInvBIm[1][j], temp2);
+        }
+        matInvBRe[j][1] = matInvBRe[1][j];
+        matInvBIm[j][1] = _mm512_sub_ps(vzero, matInvBIm[1][j]);
+    }
+
+    for(j = 3;j < MAT_SQR_SIZE_4; ++j)   
+    {
+        matLRejj        = matLRe[j][j];
+        matInvBRe[2][j] = _mm512_mul_ps(matLRe[j][2],matLRejj);
+        matInvBRe[j][2] = _mm512_sub_ps(vzero,_mm512_mul_ps(matLIm[j][2],matLRejj));
+        for(k = (j+1); k < MAT_SQR_SIZE_4; k++)
+        {
+            GET_AxBH(matLRe[k][j],matLIm[k][j],matLRe[k][2],matLIm[k][2],temp1,temp2);
+            matInvBRe[2][j] = _mm512_add_ps(matInvBRe[2][j], temp1);
+            matInvBIm[2][j] = _mm512_add_ps(matInvBIm[2][j], temp2);
+        }
+        matInvBRe[j][2] = matInvBRe[0][j];
+        matInvBIm[j][2] = _mm512_sub_ps(vzero, matInvBIm[2][j]);
+    }
+
+    for(j = 4;j < MAT_SQR_SIZE_4; ++j)   
+    {
+        matLRejj        = matLRe[j][j];
+        matInvBRe[3][j] = _mm512_mul_ps(matLRe[j][3],matLRejj);
+        matInvBRe[j][3] = _mm512_sub_ps(vzero,_mm512_mul_ps(matLIm[j][3],matLRejj));
+        for(k = (j+1); k < MAT_SQR_SIZE_4; k++)
+        {
+            GET_AxBH(matLRe[k][j],matLIm[k][j],matLRe[k][3],matLIm[k][3],temp1,temp2);
+            matInvBRe[3][j] = _mm512_add_ps(matInvBRe[3][j], temp1);
+            matInvBIm[3][j] = _mm512_add_ps(matInvBIm[3][j], temp2);
+        }
+        matInvBRe[j][3] = matInvBRe[3][j];
+        matInvBIm[j][3] = _mm512_sub_ps(vzero, matInvBIm[3][j]);
+    }
+#endif 
+    for(i = 0; i < MAT_SQR_SIZE_4; ++i) 
+    {
+        for(j = (i+1);j < MAT_SQR_SIZE_4; ++j)   
+        {
+            matLRejj        = matLRe[j][j];
+            matInvBRe[i][j] = _mm512_mul_ps(matLRe[j][i],matLRejj);
+            matInvBRe[j][i] = _mm512_sub_ps(vzero,_mm512_mul_ps(matLIm[j][i],matLRejj));
+            for(k = (j+1); k < MAT_SQR_SIZE_4; k++)
+            {
+                GET_AxBH(matLRe[k][j],matLIm[k][j],matLRe[k][i],matLIm[k][i],temp1,temp2);
+                matInvBRe[i][j] = _mm512_add_ps(matInvBRe[i][j], temp1);
+                matInvBIm[i][j] = _mm512_add_ps(matInvBIm[i][j], temp2);
+            }
+            matInvBRe[j][i] = matInvBRe[i][j];
+            matInvBIm[j][i] = _mm512_sub_ps(vzero, matInvBIm[i][j]);
+        }
+    }
+}
+
+template void 
+gms::math 
+::mat_inv_cholesky_4x4_16xf32<true,true>(const __m512 matBRe[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4],
+                                         const __m512 matBIm[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4],
+                                         __m512       matInvBRe[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4],
+                                         __m512       matInvBIm[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4]);
+
+template void 
+gms::math 
+::mat_inv_cholesky_4x4_16xf32<false,true>(const __m512 matBRe[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4],
+                                         const __m512 matBIm[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4],
+                                         __m512       matInvBRe[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4],
+                                         __m512       matInvBIm[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4]);
+
+template void 
+gms::math 
+::mat_inv_cholesky_4x4_16xf32<true,false>(const __m512 matBRe[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4],
+                                         const __m512 matBIm[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4],
+                                         __m512       matInvBRe[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4],
+                                         __m512       matInvBIm[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4]);
+
+template void 
+gms::math 
+::mat_inv_cholesky_4x4_16xf32<false,false>(const __m512 matBRe[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4],
+                                           const __m512 matBIm[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4],
+                                           __m512       matInvBRe[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4],
+                                           __m512       matInvBIm[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4]);
