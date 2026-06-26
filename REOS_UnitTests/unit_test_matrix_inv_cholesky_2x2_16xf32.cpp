@@ -102,9 +102,9 @@ void unit_test_matrix_inv_cholesky_2x2()
             __ATTR_ALIGN__(64) __m512 matInvBRe[2][2];
             __ATTR_ALIGN__(64) __m512 matInvBIm[2][2];
              seed_re = __rdtsc();
-             auto rand_re{std::bind(std::uniform_real_distribution<float>(0.1f,1.0f),std::mt19937(seed_re))};
+             auto rand_re{std::bind(std::uniform_real_distribution<float>(1.0f,5.0f),std::mt19937(seed_re))};
              seed_im = __rdtsc();
-             auto rand_im{std::bind(std::uniform_real_distribution<float>(0.1f,1.0f),std::mt19937(seed_im))};
+             auto rand_im{std::bind(std::uniform_real_distribution<float>(1.0f,5.0f),std::mt19937(seed_im))};
              for(int32_t __i{0}; __i != nelems; ++__i)
              {
                  float rd_re = rand_re();
@@ -121,7 +121,7 @@ void unit_test_matrix_inv_cholesky_2x2()
             matBRe[1][1] = _mm512_load_ps((const float*)&buf_init_re[48]);
             matBIm[1][1] = _mm512_load_ps((const float*)&buf_init_im[48]);
             printf("[UNIT-TEST]: -- START: mat_inv_cholesky_2x2_16xf32<true,true>.\n");
-            gms::math::mat_inv_cholesky_2x2_16xf32<true,false>(matBRe,matBIm,
+            gms::math::mat_inv_cholesky_2x2_16xf32<true,true>(matBRe,matBIm,
                                                                matInvBRe,matInvBIm);
             ptr_invBRe = reinterpret_cast<const float * __restrict>(&matInvBRe);
             ptr_invBIm = reinterpret_cast<const float * __restrict>(&matInvBIm);
@@ -184,10 +184,12 @@ void unit_test_matrix_inv_cholesky_2x2()
              for(int32_t __i{0}; __i != nelems; ++__i)
              {
                  float rd_re = rand_re();
-                 if(rd_re<0.0f) continue;  /*rd_re = -1.0f*rd_re;*/
+                 if(rd_re<0.0f)  rd_re = -1.0f*rd_re;
+                 if(rd_re==0.0f) rd_re = 0.1f;
                  buf_init_re[__i] = rd_re;
                  float rd_im = rand_im();
-                 if(rd_im<0.0f) continue;  /*rd_im = -1.0f*rd_im;*/
+                 if(rd_im<0.0f)  rd_im = -1.0f*rd_im;
+                 if(rd_im==0.0f) rd_im = 0.1f;
                  buf_init_im[__i] = rd_im;
              }
             matBRe[0][0] = _mm512_load_ps((const float*)&buf_init_re[0]);
@@ -199,7 +201,7 @@ void unit_test_matrix_inv_cholesky_2x2()
             matBRe[1][1] = _mm512_load_ps((const float*)&buf_init_re[48]);
             matBIm[1][1] = _mm512_load_ps((const float*)&buf_init_im[48]);
             printf("[UNIT-TEST]: -- START: mat_inv_cholesky_2x2_16xf32<true,true>.\n");
-            gms::math::mat_inv_cholesky_2x2_16xf32<true,false>(matBRe,matBIm,
+            gms::math::mat_inv_cholesky_2x2_16xf32<true,true>(matBRe,matBIm,
                                                                matInvBRe,matInvBIm);
             ptr_invBRe = reinterpret_cast<const float * __restrict>(&matInvBRe);
             ptr_invBIm = reinterpret_cast<const float * __restrict>(&matInvBIm);
