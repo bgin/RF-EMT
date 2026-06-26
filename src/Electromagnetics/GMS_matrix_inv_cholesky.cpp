@@ -149,7 +149,7 @@
         matGRe[2][2] = _mm512_sub_ps(matBRe[2][2], temp0);\
         matGRe[2][2] = _mm512_sub_ps(matGRe[2][2], temp1);\
         __mmask16 k2 = _mm512_cmp_ps_mask(matGRe[2][2],vzero,_CMP_LT_OQ);\
-        matD[2] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k1,matGRe[2][2],_mm512_mul_ps(vneg_one,matGRe[2][2])));\
+        matD[2] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k2,matGRe[2][2],_mm512_mul_ps(vneg_one,matGRe[2][2])));\
         matND[2] = _mm512_sub_ps(vzero, matD[2]);\
     }while(0);\
 }
@@ -577,9 +577,13 @@ gms::math
     GET_G00(matGRe,matBRe,matD,matND);
     GET_G_COL0(matGRe,matGIm,matBRe,matBIm,matD,1);
     if constexpr(static_cast<std::int32_t>(mitigate_nan)==static_cast<std::int32_t>(true))
+    {
         GET_G11_SAFE(matGRe,matGIm,matBRe,matD,matND,temp0);
+    }
     else 
+    {
         GET_G11(matGRe,matGIm,matBRe,matD,matND,temp0);
+    }
     
     SET_Lii(matLRe,matLIm,matD,0);
     GET_L_i1i(matLRe,matLIm,matGRe,matGIm,matND,1,0);
@@ -687,15 +691,22 @@ gms::math
     GET_G_COL0(matGRe,matGIm,matBRe,matBIm,matD,1);
     GET_G_COL0(matGRe,matGIm,matBRe,matBIm,matD,2);
     if constexpr(static_cast<std::int32_t>(mitigate_nan)==static_cast<std::int32_t>(true))
+    {
        GET_G11_SAFE(matGRe,matGIm,matBRe,matD,matND,temp0);
+    }
     else 
+    {
        GET_G11(matGRe,matGIm,matBRe,matD,matND,temp0);
+    }
     GET_G_COL1(matGRe,matGIm,matBRe,matBIm,matD,2,temp0,temp1);
     if constexpr(static_cast<std::int32_t>(mitigate_nan)==static_cast<std::int32_t>(true))
+    {
        GET_G22_SAFE(matGRe,matGIm,matBRe,matD,matND,temp0,temp1);
+    }
     else 
+    {
        GET_G22(matGRe,matGIm,matBRe,matD,matND,temp0,temp1);
-    
+    }
     SET_Lii(matLRe,matLIm,matD,0);
     GET_L_i1i(matLRe,matLIm,matGRe,matGIm,matND,1,0);
     GET_L_ji(matLRe,matLIm,matGRe,matGIm,matND,2,0,temp0,temp1);
@@ -707,7 +718,7 @@ gms::math
     
     for(i = 0; i < MAT_SQR_SIZE_3; ++i) 
     {
-        matLReii        = matLReii[i][i];
+        matLReii        = matLRe[i][i];
         matInvBRe[i][i] = _mm512_mul_ps(matLReii,matLReii);
         for(k = (i+1); k < MAT_SQR_SIZE_3; ++k) 
         {
