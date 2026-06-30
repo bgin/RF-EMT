@@ -1051,7 +1051,7 @@ gms::math
     }
 
     // Unrolled out loop (the i-loop)
-#if 0
+#if 1
     for(j = 1;j < MAT_SQR_SIZE_4; ++j)   
     {
         matLRejj        = matLRe[j][j];
@@ -1112,6 +1112,8 @@ gms::math
         matInvBIm[j][3] = _mm512_sub_ps(vzero, matInvBIm[3][j]);
     }
 #endif 
+
+#if 0
     for(i = 0; i < MAT_SQR_SIZE_4; ++i) 
     {
         for(j = (i+1);j < MAT_SQR_SIZE_4; ++j)   
@@ -1129,6 +1131,7 @@ gms::math
             matInvBIm[j][i] = _mm512_sub_ps(vzero, matInvBIm[i][j]);
         }
     }
+#endif 
 }
 
 template void 
