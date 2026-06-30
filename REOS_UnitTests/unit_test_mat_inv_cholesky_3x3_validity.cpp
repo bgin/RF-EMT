@@ -8,7 +8,7 @@
 #include "GMS_matrix_inv_cholesky.h"
 #include "unit_test_mat_inv_cholesky_defines.h"
 /*
-   icpc -o unit_test_matrix_inv_cholesky_2x2_validity -fp-model fast=2 -ftz -ggdb -ipo -qopt-zmm-usage=high -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
+   icpc -o unit_test_matrix_inv_cholesky_3x3_validity -fp-model fast=2 -ftz -ggdb -ipo -qopt-zmm-usage=high -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
    GMS_config.h GMS_malloc.h GMS_matrix_inv_cholesky.h GMS_matrix_inv_cholesky.cpp unit_test_mat_inv_cholesky_defines.h unit_test_matrix_inv_cholesky_3x3_validity.cpp 
    ASM: 
    icpc -S -fverbose-asm -masm=intel -qopt-zmm-usage=high -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_config.h GMS_malloc.h GMS_matrix_inv_cholesky.h GMS_matrix_inv_cholesky.cpp unit_test_mat_inv_cholesky_defines.h unit_test_matrix_inv_cholesky_3x3_validity.cpp 
@@ -345,14 +345,16 @@ void unit_test_matrix_inv_cholesky_3x3_validity()
                 const bool  bre_cmp = almostEqual2sComplement(bre,bre_ref,7);
                 const bool  bim_cmp = almostEqual2sComplement(bim,bim_ref,7);
                 if(!bre_cmp)
-                {
+                {   
+                    ++bre_err_count;
                     [[maybe_unused]] std::int32_t 
                     printf_res_re =  printf("[UNIT-TEST]: ***FAILED*** -- (RF-EMT)bre=%.7f,(FlexRAN)bre_ref=%.7f,fail-count=%d\n",bre,bre_ref,bre_err_count);
                     printNumber("(RF-EMT)bre",bre,0);
                     printNumber("(FlexRAN)bre_ref",bre_ref,0);
                 }   
                 if(!bim_cmp)
-                { 
+                {   
+                    ++bim_err_count;
                     [[maybe_unused]] std::int32_t 
                     printf_res_im =  printf("[UNIT-TEST]:  ***FAILED*** -- (RF-EMT)bim=%.7f,(FlexRAN)bim_ref=%.7f,fail-count=%d\n",bim,bim_ref,bim_err_count);
                     printNumber("(RF-EMT)bim",bim,0);
