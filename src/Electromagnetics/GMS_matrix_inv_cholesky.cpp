@@ -115,6 +115,7 @@
     }while(0);\
 }
 
+
 // This version albeit ~4.66 times slower than VRSQRT14 version achieves 
 // minimize an approximation error of 2^-14 propagated by the usage of 
 // VRSQRT14 machine code instruction.
@@ -167,6 +168,7 @@
         matND[2] = _mm512_sub_ps(vzero, matD[2]);\
     }while(0);\
 }
+
 
 #define GET_G22_SAFE_MIN_APPROX_ERROR(matGRe, matGIm, matBRe, matD, matND, temp0, temp1)\
 {\
@@ -226,6 +228,7 @@
         matND[3] = _mm512_sub_ps(vzero, matD[3]);\
     }while(0);\
 }
+
 
 #define GET_G33_SAFE_MIN_APPROX_ERROR(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2)\
 {\
@@ -294,6 +297,7 @@
     }while(0);\
 }
 
+
 #define GET_G44_SAFE_MIN_APPROX_ERROR(matGRe, matGIm, matBRe, matD, matND, temp0, temp1)\
 {\
     do{\
@@ -349,6 +353,7 @@
         matND[5] = _mm512_sub_ps(vzero, matD[5]);\
     }while(0);\
 }
+
 
 #define GET_G55_SAFE_MIN_APPROX_ERROR(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2)\
 {\
@@ -411,6 +416,7 @@
         matND[6] = _mm512_sub_ps(vzero, matD[6]);\
     }while(0);\
 }
+
 
 #define GET_G66_SAFE_MIN_APPROX_ERROR(matGRe, matGIm, matBRe, matD, matND, temp0, temp1)\
 {\
@@ -479,6 +485,7 @@
     }while(0);\
 }
 
+
 #define GET_G77_SAFE_MIN_APPROX_ERROR(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2)\
 {\
     do{\
@@ -535,6 +542,24 @@
         }\
         __mmask16 kii_odd = _mm512_cmp_ps_mask(matGRe[i][i],vzero,_CMP_LT_OQ);\
         matD[i] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(kii_odd,matGRe[i][i],_mm512_mul_ps(vneg_one,matGRe[i][i])));\
+        matND[i] = _mm512_sub_ps(vzero, matD[i]);\
+    }while(0);\
+}
+
+
+#define GET_Gii_ODD(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, i)\
+{\
+    do{\
+        GET_AxAH(matGRe[i][0], matGIm[i][0], temp0);\
+        matGRe[i][i] = _mm512_sub_ps(matBRe[i][i], temp0);\
+        for (std::int32_t i1 = 1; i1 < i; i1+=2) \
+        {\
+           GET_AxAH(matGRe[i][i1], matGIm[i][i1], temp0);\
+           GET_AxAH(matGRe[i][i1+1], matGIm[i][i1+1], temp1);\
+           matGRe[i][i] = _mm512_sub_ps(matGRe[i][i], temp0);\
+           matGRe[i][i] = _mm512_sub_ps(matGRe[i][i], temp1);\
+        }\
+        matD[i] = _mm512_rsqrt14_ps(matGRe[i][i]);\
         matND[i] = _mm512_sub_ps(vzero, matD[i]);\
     }while(0);\
 }
@@ -596,6 +621,7 @@
         matND[i] = _mm512_sub_ps(vzero, matD[i]);\
     }while(0);\
 }
+
 
 #define GET_Gii_EVEN_SAFE_MIN_APPROX_ERROR(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, i)\
 {\
@@ -1660,3 +1686,239 @@ gms::math
                                            const __m512 matBIm[MAT_SQR_SIZE_6][MAT_SQR_SIZE_6],
                                            __m512       matInvBRe[MAT_SQR_SIZE_6][MAT_SQR_SIZE_6],
                                            __m512       matInvBIm[MAT_SQR_SIZE_6][MAT_SQR_SIZE_6]);
+
+template<bool use_prefetching,bool mitigate_nan>
+void 
+gms::math
+::mat_inv_cholesky_7x7_16xf32(const __m512 matBRe[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7],
+                              const __m512 matBIm[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7],
+                              __m512       matInvBRe[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7],
+                              __m512       matInvBIm[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7])
+{
+    __ATTR_ALIGN__(64) 
+    __m512 matGRe[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7];
+    __ATTR_ALIGN__(64)
+    __m512 matGIm[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7];
+    __ATTR_ALIGN__(64)
+    __m512 matLRe[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7];
+    __ATTR_ALIGN__(64)
+    __m512 matLIm[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7];
+    __ATTR_ALIGN__(64)
+    __m512 matD[MAT_SQR_SIZE_7];
+    __ATTR_ALIGN__(64)
+    __m512 matND[MAT_SQR_SIZE_7];
+    __m512 temp0, temp1, temp2;
+    __m512 matLReii;
+    __m512 matLReki;
+    __m512 matLImki;
+    __m512 matLRejj;
+    std::int32_t i,j,k;
+    const __m512 vzero{_mm512_setzero_ps()};
+    const __m512 vneg_one{_mm512_set1_ps(-1.0f)};
+    //////////////////////////////////////////////////////////////
+    if constexpr (static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
+    {
+        constexpr std::int32_t VEC_PS_LEN = 16;
+        const float * __restrict ptr_matBRe{reinterpret_cast<const float * __restrict>(&matBRe)};
+        const float * __restrict ptr_matBIm{reinterpret_cast<const float * __restrict>(&matBIm)};
+        for(i = 0;i != MAT_SQR_SIZE_5; ++i) 
+        {
+            register std::int32_t outer_idx = i*MAT_SQR_SIZE_6;
+            for(j = 0;j != MAT_SQR_SIZE_6; ++j)   
+            {
+                register std::int32_t inner_idx = (outer_idx+j)*VEC_PS_LEN;
+                _mm_prefetch((const char*)&ptr_matBRe[inner_idx],_MM_HINT_T0);
+                _mm_prefetch((const char*)&ptr_matBIm[inner_idx],_MM_HINT_T0);
+            }
+        }
+    }
+    const bool cond_mitigate_nan = static_cast<std::int32_t>(mitigate_nan)==static_cast<std::int32_t>(true);
+    /////////////////////////////////// get G, B = G*G', G is a lower triangular matrix
+    // Column 0
+    GET_G00(matGRe, matBRe, matD, matND);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 1);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 2);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 3);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 4);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 5);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 6);
+
+    // Column 1
+    if constexpr(cond_mitigate_nan)
+    {
+        GET_G11_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0);
+    }
+    else 
+    {
+        GET_G11(matGRe, matGIm, matBRe, matD, matND, temp0);
+    }
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 2, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 3, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 4, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 5, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 6, temp0, temp1);
+
+    // Column 2
+    if constexpr(cond_mitigate_nan)
+    {
+        GET_G22_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    else 
+    {
+        GET_G22(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 3, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 4, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 5, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 6, temp0, temp1);
+
+    // Column 3
+    if constexpr(cond_mitigate_nan)
+    {
+        GET_G33_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+    else 
+    {
+        GET_G33(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 4, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 5, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 6, temp0, temp1);
+
+    // Column 4
+    if constexpr(cond_mitigate_nan)
+    {
+        GET_G44_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    else 
+    {
+        GET_G44(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 5, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 6, 4, temp0, temp1);
+
+    // Column 5
+    if constexpr(cond_mitigate_nan)
+    {
+        GET_G55_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+    else 
+    {
+        GET_G55(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 6, 5, temp0, temp1);
+
+    // Column 6
+    if constexpr(cond_mitigate_nan)
+    {
+        GET_G66_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    else 
+    {
+        GET_G66(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+
+     // Column 0
+    SET_Lii(matLRe, matLIm, matD, 0);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 1, 0);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 2, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 3, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 4, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 5, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 6, 0, temp0, temp1);
+
+    // Column 1
+    SET_Lii(matLRe, matLIm, matD, 1);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 2, 1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 3, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 4, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 5, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 6, 1, temp0, temp1);
+
+    // Column 2
+    SET_Lii(matLRe, matLIm, matD, 2);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 3, 2);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 4, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 5, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 6, 2, temp0, temp1);
+
+    // Column 3
+    SET_Lii(matLRe, matLIm, matD, 3);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 4, 3);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 5, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 6, 3, temp0, temp1);
+
+    // Column 4
+    SET_Lii(matLRe, matLIm, matD, 4);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 5, 4);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 6, 4, temp0, temp1);
+
+    // Column 5
+    SET_Lii(matLRe, matLIm, matD, 5);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 6, 5);
+
+    // Column 6
+    SET_Lii(matLRe, matLIm, matD, 6);
+    
+     /////////////////////////////////// get invB = L'*L
+    for(i = 0; i < MAT_SQR_SIZE_7; ++i)
+    {
+        matLReii        = matLRe[i][i];
+        matInvBRe[i][i] = _mm512_mul_ps(matLReii,matLReii);
+        for(k = (i+1); k < MAT_SQR_SIZE_7; ++k) 
+        {
+            matLReki = matLRe[k][i];
+            matLImki = matLIm[k][i];
+            temp1    = _mm512_fmadd_ps(matLReki,matLReki,_mm512_mul_ps(matLImki,matLImki));
+            matInvBRe[i][i] = _mm512_add_ps(matInvBRe[i][i],temp1);
+        } 
+        matInvBIm[i][i] = vzero;
+    }
+
+    for(i = 0; i < MAT_SQR_SIZE_7; ++i) 
+    {
+        for(j = (i+1);j < MAT_SQR_SIZE_7; ++j)   
+        {
+            matLRejj        = matLRe[j][j];
+            matInvBRe[i][j] = _mm512_mul_ps(matLRe[j][i],matLRejj);
+            matInvBIm[i][j] = _mm512_sub_ps(vzero,_mm512_mul_ps(matLIm[j][i],matLRejj));
+            for(k = (j+1); k < MAT_SQR_SIZE_7; k++)
+            {
+                GET_AxBH(matLRe[k][j],matLIm[k][j],matLRe[k][i],matLIm[k][i],temp1,temp2);
+                matInvBRe[i][j] = _mm512_add_ps(matInvBRe[i][j], temp1);
+                matInvBIm[i][j] = _mm512_add_ps(matInvBIm[i][j], temp2);
+            }
+            matInvBRe[j][i] = matInvBRe[i][j];
+            matInvBIm[j][i] = _mm512_sub_ps(vzero, matInvBIm[i][j]);
+        }
+    }
+
+}
+
+template void 
+gms::math 
+::mat_inv_cholesky_7x7_16xf32<true,true>(const __m512 matBRe[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7],
+                                         const __m512 matBIm[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7],
+                                         __m512       matInvBRe[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7],
+                                         __m512       matInvBIm[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7]);
+
+template void 
+gms::math 
+::mat_inv_cholesky_7x7_16xf32<false,true>(const __m512 matBRe[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7],
+                                         const __m512 matBIm[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7],
+                                         __m512       matInvBRe[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7],
+                                         __m512       matInvBIm[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7]);
+
+template void 
+gms::math 
+::mat_inv_cholesky_7x7_16xf32<true,false>(const __m512 matBRe[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7],
+                                         const __m512 matBIm[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7],
+                                         __m512       matInvBRe[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7],
+                                         __m512       matInvBIm[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7]);
+
+template void 
+gms::math 
+::mat_inv_cholesky_7x7_16xf32<false,false>(const __m512 matBRe[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7],
+                                           const __m512 matBIm[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7],
+                                           __m512       matInvBRe[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7],
+                                           __m512       matInvBIm[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7]);
