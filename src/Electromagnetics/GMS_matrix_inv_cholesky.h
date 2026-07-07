@@ -299,6 +299,24 @@ mat_inv_cholesky_13x13_16xf32(const __m512 matBRe[MAT_SQR_SIZE_13][MAT_SQR_SIZE_
                               __m512       matInvBRe[MAT_SQR_SIZE_13][MAT_SQR_SIZE_13],
                               __m512       matInvBIm[MAT_SQR_SIZE_13][MAT_SQR_SIZE_13]);
 
+// An attempt to force a constexpr evaluation of the SIMD loop.
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512f")
+#endif
+template<bool use_prefetching,bool mitigate_nan,
+         std::int32_t N_VECS_13>
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+constexpr
+void        
+mat_inv_cholesky_13x13_16xf32_v2(const __m512 matBRe[N_VECS_13][N_VECS_13],
+                                 const __m512 matBIm[N_VECS_13][N_VECS_13],
+                                 __m512       matInvBRe[N_VECS_13][N_VECS_13],
+                                 __m512       matInvBIm[N_VECS_13][N_VECS_13]);
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 

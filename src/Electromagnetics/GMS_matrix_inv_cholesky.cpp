@@ -3962,7 +3962,7 @@ gms::math
 ::mat_inv_cholesky_13x13_16xf32<true,false>(const __m512 matBRe[MAT_SQR_SIZE_13][MAT_SQR_SIZE_13],
                                             const __m512 matBIm[MAT_SQR_SIZE_13][MAT_SQR_SIZE_13],
                                             __m512       matInvBRe[MAT_SQR_SIZE_13][MAT_SQR_SIZE_13],
-                                            __m512       matInvBIm[MAT_SQR_SIZE_12][MAT_SQR_SIZE_13]);
+                                            __m512       matInvBIm[MAT_SQR_SIZE_13][MAT_SQR_SIZE_13]);
 
 template void 
 gms::math 
@@ -3970,3 +3970,432 @@ gms::math
                                              const __m512 matBIm[MAT_SQR_SIZE_13][MAT_SQR_SIZE_13],
                                              __m512       matInvBRe[MAT_SQR_SIZE_13][MAT_SQR_SIZE_13],
                                              __m512       matInvBIm[MAT_SQR_SIZE_13][MAT_SQR_SIZE_13]);
+
+template<bool use_prefetching,bool mitigate_nan,
+         std::int32_t N_VECS_13>
+constexpr 
+void 
+gms::math
+::mat_inv_cholesky_13x13_16xf32_v2(const __m512 matBRe[N_VECS_13][N_VECS_13],
+                                   const __m512 matBIm[N_VECS_13][N_VECS_13],
+                                   __m512       matInvBRe[N_VECS_13][N_VECS_13],
+                                   __m512       matInvBIm[N_VECS_13][N_VECS_13])
+{
+    static_assert(13==N_VECS_13,"***ERROR*** -- N_VECS_13 != 13!!");
+    __ATTR_ALIGN__(64) 
+    __m512 matGRe[N_VECS_13][N_VECS_13];
+    __ATTR_ALIGN__(64)
+    __m512 matGIm[N_VECS_13][N_VECS_13];
+    __ATTR_ALIGN__(64)
+    __m512 matLRe[N_VECS_13][N_VECS_13];
+    __ATTR_ALIGN__(64)
+    __m512 matLIm[N_VECS_13][N_VECS_13];
+    __ATTR_ALIGN__(64)
+    __m512 matD[N_VECS_13];
+    __ATTR_ALIGN__(64)
+    __m512 matND[N_VECS_13];
+    __m512 temp0, temp1, temp2;
+    __m512 matLReii;
+    __m512 matLReki;
+    __m512 matLImki;
+    __m512 matLRejj;
+    std::int32_t i,j,k;
+    const __m512 vzero{_mm512_setzero_ps()};
+    const __m512 vneg_one{_mm512_set1_ps(-1.0f)};
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    if constexpr (static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
+    {
+        constexpr std::int32_t VEC_PS_LEN = 16;
+        const float * __restrict ptr_matBRe{reinterpret_cast<const float * __restrict>(&matBRe)};
+        const float * __restrict ptr_matBIm{reinterpret_cast<const float * __restrict>(&matBIm)};
+        for(i = 0;i != N_VECS_13; ++i) 
+        {
+            register std::int32_t outer_idx = i*MAT_SQR_SIZE_13;
+            for(j = 0;j != N_VECS_13; ++j)   
+            {
+                register std::int32_t inner_idx = (outer_idx+j)*VEC_PS_LEN;
+                _mm_prefetch((const char*)&ptr_matBRe[inner_idx],_MM_HINT_T0);
+                _mm_prefetch((const char*)&ptr_matBIm[inner_idx],_MM_HINT_T0);
+            }
+        }
+    }
+    const bool cond_nan_mitigation = static_cast<std::int32_t>(mitigate_nan)==static_cast<std::int32_t>(true);
+     // Column 0
+    GET_G00(matGRe, matBRe, matD, matND);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 1);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 2);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 3);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 4);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 5);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 6);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 7);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 8);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 9);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 10);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 11);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 12);
+
+    // Column 1
+    if constexpr(cond_nan_mitigation)
+    {
+        GET_G11_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0);
+    }
+    else 
+    {
+        GET_G11(matGRe, matGIm, matBRe, matD, matND, temp0);
+    }
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 2, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 3, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 4, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 5, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 6, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 7, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 8, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 9, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 10, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 11, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 12, temp0, temp1);
+
+    // Column 2
+    if constexpr(cond_nan_mitigation)
+    {
+        GET_G22_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    else 
+    {
+        GET_G22(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 3, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 4, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 5, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 6, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 7, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 8, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 9, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 10, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 11, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 12, temp0, temp1);
+
+    // Column 3
+    if constexpr(cond_nan_mitigation)
+    {
+        GET_G33_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+    else 
+    {
+        GET_G33(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 4, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 5, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 6, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 7, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 8, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 9, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 10, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 11, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 12, temp0, temp1);
+
+    // Column 4
+    if constexpr(cond_nan_mitigation)
+    {
+        GET_G44_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    else 
+    {
+        GET_G44(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 5, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 6, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 7, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 8, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 9, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 10, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 11, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 12, 4, temp0, temp1);
+
+    // Column 5
+    if constexpr(cond_nan_mitigation)
+    {
+        GET_G55_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+    else 
+    {
+        GET_G55(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 6, 5, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 7, 5, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 8, 5, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 9, 5, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 10, 5, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 11, 5, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 12, 5, temp0, temp1);
+
+    // Column 6
+    if constexpr(cond_nan_mitigation)
+    {
+        GET_G66_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    else 
+    {
+        GET_G66(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 7, 6, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 8, 6, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 9, 6, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 10, 6, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 11, 6, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 12, 6, temp0, temp1);
+
+    // Column 7
+    if constexpr(cond_nan_mitigation)
+    {
+        GET_G77_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+    else 
+    {
+        GET_G77(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 8, 7, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 9, 7, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 10, 7, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 11, 7, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 12, 7, temp0, temp1);
+
+    // Column 8
+    if constexpr(cond_nan_mitigation)
+    {
+        GET_Gii_EVEN_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 8);
+    }
+    else 
+    {
+        GET_Gii_EVEN(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 8);
+    }
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 9, 8, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 10, 8, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 11, 8, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 12, 8, temp0, temp1);
+
+    // Column 9
+    if constexpr(cond_nan_mitigation)
+    {
+         GET_Gii_ODD_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 9);
+    }
+    else 
+    {
+         GET_Gii_ODD(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 9);
+    }
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 10, 9, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 11, 9, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 12, 9, temp0, temp1);
+
+    // Column 10
+    if constexpr(cond_nan_mitigation)
+    {
+        GET_Gii_EVEN_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 10);
+    }
+    else 
+    {
+        GET_Gii_EVEN(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 10);
+    }
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 11, 10, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 12, 10, temp0, temp1);
+
+    //Column 11
+    if constexpr(cond_nan_mitigation)
+    {
+        GET_Gii_ODD_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 11);
+    }
+    else 
+    {
+        GET_Gii_ODD(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 11);
+    }
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 12, 11, temp0, temp1);
+
+    //Column 12
+    if constexpr(cond_nan_mitigation)
+    {
+        GET_Gii_EVEN_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 12);
+    }
+    else 
+    {
+        GET_Gii_EVEN(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 12);
+    }
+
+    /////////////////////////////////// get L, L=invG
+    // Column 0
+    SET_Lii(matLRe, matLIm, matD, 0);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 1, 0);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 2, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 3, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 4, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 5, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 6, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 7, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 8, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 9, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 0, temp0, temp1);
+
+    // Column 1
+    SET_Lii(matLRe, matLIm, matD, 1);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 2, 1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 3, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 4, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 5, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 6, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 7, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 8, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 9, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 1, temp0, temp1);
+
+    // Column 2
+    SET_Lii(matLRe, matLIm, matD, 2);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 3, 2);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 4, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 5, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 6, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 7, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 8, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 9, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 2, temp0, temp1);
+
+    // Column 3
+    SET_Lii(matLRe, matLIm, matD, 3);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 4, 3);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 5, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 6, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 7, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 8, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 9, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 3, temp0, temp1);
+
+    // Column 4
+    SET_Lii(matLRe, matLIm, matD, 4);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 5, 4);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 6, 4, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 7, 4, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 8, 4, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 9, 4, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 4, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 4, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 4, temp0, temp1);
+
+    // Column 5
+    SET_Lii(matLRe, matLIm, matD, 5);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 6, 5);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 7, 5, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 8, 5, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 9, 5, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 5, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 5, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 5, temp0, temp1);
+
+    // Column 6
+    SET_Lii(matLRe, matLIm, matD, 6);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 7, 6);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 8, 6, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 9, 6, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 6, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 6, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 6, temp0, temp1);
+
+    // Column 7
+    SET_Lii(matLRe, matLIm, matD, 7);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 8, 7);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 9, 7, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 7, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 7, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 7, temp0, temp1);
+
+    // Column 8
+    SET_Lii(matLRe, matLIm, matD, 8);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 9, 8);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 8, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 8, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 8, temp0, temp1);
+
+    // Column 9
+    SET_Lii(matLRe, matLIm, matD, 9);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 10, 9);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 9, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 9, temp0, temp1);
+
+    // Column 10
+    SET_Lii(matLRe, matLIm, matD, 10);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 11, 10);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 10, temp0, temp1);
+
+    //Column 11 
+    SET_Lii(matLRe, matLIm, matD, 11);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 12, 11);
+
+    //Column 12
+    SET_Lii(matLRe, matLIm, matD, 12);
+
+    for(i = 0; i < N_VECS_13; ++i)
+    {
+        matLReii        = matLRe[i][i];
+        matInvBRe[i][i] = _mm512_mul_ps(matLReii,matLReii);
+        for(k = (i+1); k < N_VECS_13; ++k) 
+        {
+            matLReki = matLRe[k][i];
+            matLImki = matLIm[k][i];
+            temp1    = _mm512_fmadd_ps(matLReki,matLReki,_mm512_mul_ps(matLImki,matLImki));
+            matInvBRe[i][i] = _mm512_add_ps(matInvBRe[i][i],temp1);
+        } 
+        matInvBIm[i][i] = vzero;
+    }
+
+    for(i = 0; i < N_VECS_13; ++i) 
+    {
+        for(j = (i+1);j < N_VECS_13; ++j)   
+        {
+            matLRejj        = matLRe[j][j];
+            matInvBRe[i][j] = _mm512_mul_ps(matLRe[j][i],matLRejj);
+            matInvBIm[i][j] = _mm512_sub_ps(vzero,_mm512_mul_ps(matLIm[j][i],matLRejj));
+            for(k = (j+1); k < N_VECS_13; k++)
+            {
+                GET_AxBH(matLRe[k][j],matLIm[k][j],matLRe[k][i],matLIm[k][i],temp1,temp2);
+                matInvBRe[i][j] = _mm512_add_ps(matInvBRe[i][j], temp1);
+                matInvBIm[i][j] = _mm512_add_ps(matInvBIm[i][j], temp2);
+            }
+            matInvBRe[j][i] = matInvBRe[i][j];
+            matInvBIm[j][i] = _mm512_sub_ps(vzero, matInvBIm[i][j]);
+        }
+    }
+}
+
+template void 
+gms::math 
+::mat_inv_cholesky_13x13_16xf32_v2<true,true,13>(const __m512 matBRe[13][13],
+                                                const __m512 matBIm[13][13],
+                                                __m512       matInvBRe[13][13],
+                                                __m512       matInvBIm[13][13]);
+
+template void 
+gms::math 
+::mat_inv_cholesky_13x13_16xf32_v2<false,true,13>(const __m512 matBRe[13][13],
+                                                  const __m512 matBIm[13][13],
+                                                  __m512       matInvBRe[13][13],
+                                                  __m512       matInvBIm[13][13]);
+
+template void 
+gms::math 
+::mat_inv_cholesky_13x13_16xf32_v2<true,false,13>(const __m512 matBRe[13][13],
+                                                  const __m512 matBIm[13][13],
+                                                  __m512       matInvBRe[13][13],
+                                                  __m512       matInvBIm[13][13]);
+
+template void 
+gms::math 
+::mat_inv_cholesky_13x13_16xf32_v2<false,false,13>(const __m512 matBRe[13][13],
+                                                   const __m512 matBIm[13][13],
+                                                   __m512       matInvBRe[13][13],
+                                                   __m512       matInvBIm[13][13]);
