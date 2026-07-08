@@ -281,6 +281,37 @@ CYCLE_BIT_LSHIFT_FPTR ldpc_select_lshift_func(std::int16_t zc_size)
         return cycle_bit_lshift_144_to_256_avx512<reorder_instr_layout>;
 }
 
+// Compile time version of above function.
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512f")
+#endif
+template<bool reorder_instr_layout,std::int16_t zc_size>
+__ATTR_ALWAYS_INLINE__
+static inline
+CYCLE_BIT_LSHIFT_FPTR ldpc_select_lshift_func()
+{
+    if constexpr(zc_size >= 288)
+    {
+        return cycle_bit_lshift_288_to_384_avx512<reorder_instr_layout>;
+    }
+    else if constexpr(zc_size < 64)
+    {
+        return cycle_bit_lshift_lt_64_avx512;
+    }
+    else if constexpr(zc_size == 72 || zc_size == 88 || zc_size == 104 || zc_size == 120)
+    {
+        return cycle_bit_lshift_spec_values;
+    }
+    else 
+    {
+        return cycle_bit_lshift_144_to_256_avx512<reorder_instr_layout>;
+    }
+}
+
 
 } //l1_phy
 
