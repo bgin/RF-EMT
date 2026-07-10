@@ -454,23 +454,8 @@ adapter_2ways_144_to_256(std::int8_t ** __restrict pbuff0,
     }
 }
 
-typedef void (*LDPC_ADAPTER_P)(int8_t **, int8_t *, uint16_t , uint32_t , int8_t);
-
-/*
-    Processing functions (kernels)
-    \param [in] request Structure containing configuration information and input data.
-    \param [out] response Structure containing kernel outputs.
-*/
-#if defined(__INTEL_COMPILER) || defined(__ICC)
-#pragma intel optimization_level 3 
-#pragma intel optimization_parameter target_arch=skylake-avx512
-#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
-#pragma GCC optimize("O3")
-#pragma GCC target("avx512f")
-#endif
-std::int32_t 
-gms_ldpc_encoder_5gnr_ref(gms_ldpc_encoder_5gnr_request_t  * __restrict__ request,
-                          gms_ldpc_encoder_5gnr_response_t * __restrict__ response);
+typedef void (*LDPC_ADAPTER_P)(std::int8_t ** __restrict__ , std::int8_t * __restrict__, 
+                               std::uint16_t, std::uint32_t , std::int8_t);
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
@@ -479,23 +464,64 @@ gms_ldpc_encoder_5gnr_ref(gms_ldpc_encoder_5gnr_request_t  * __restrict__ reques
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
 #endif
+template<bool use_prefetching,std::int32_t direct>
+__ATTR_ALWAYS_INLINE__
+static inline 
+LDPC_ADAPTER_P 
+ldpc_select_adapter_func(std::uint16_t zc_size,std::uint8_t num_ways)
+{
+    if(zc_size<64 || zc_size==72 || zc_size==88 || zc_size==104 || zc_size==120)
+       return adapter_low_speed<direct>;
+    else if(zc_size>=288 || num_ways==1)
+       return adapter_from_288_to_384_avx512<use_prefetching,direct>;
+    else 
+       return adapter_2ways_144_to_256<use_prefetching,direct>;
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512f")
+#endif
+template<bool use_prefetching,bool reorder_instr_layout>
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+void 
+ldpc_encoder_bg1_avx512(std::int8_t * __restrict__,
+                        std::int8_t * __restrict,
+                        const std::int16_t shift_matrix,
+                        std::int16_t zc_size,std::uint8_t i_ls);
+
+/*Top level interface routine*/
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512f")
+#endif
+template<bool use_prefetching,std::int32_t direct,
+         bool reorder_instr_layout>
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
 std::int32_t 
-gms_ldpc_encoder_5gnr_avx512(gms_ldpc_encoder_5gnr_request_t  * __restrict__ request,
-                             gms_ldpc_encoder_5gnr_response_t * __restrict__ response);
+ldpc_encoder_5gnr_iface_avx512(gms_ldpc_encoder_5gnr_request_t * __restrict__ ,
+                               gms_ldpc_encoder_5gnr_response_t* __restrict__);
 
-
 __ATTR_ALIGN__(64)
-extern int16_t Bg1MatrixNumPerCol[detail::BG1_COL_TOTAL];
+extern const int16_t Bg1MatrixNumPerCol[detail::BG1_COL_TOTAL];
 __ATTR_ALIGN__(64)
-extern int16_t Bg1Address[detail::BG1_NONZERO_NUM];
+extern const int16_t Bg1Address[detail::BG1_NONZERO_NUM];
 __ATTR_ALIGN__(64)
-extern int16_t Bg1HShiftMatrix[detail::BG1_NONZERO_NUM*detail::I_LS_NUM];
+extern const int16_t Bg1HShiftMatrix[detail::BG1_NONZERO_NUM*detail::I_LS_NUM];
 __ATTR_ALIGN__(64)
-extern int16_t Bg2MatrixNumPerCol[detail::BG2_COL_TOTAL];
+extern const int16_t Bg2MatrixNumPerCol[detail::BG2_COL_TOTAL];
 __ATTR_ALIGN__(64)
-extern int16_t Bg2Address[detail::BG2_NONZERO_NUM];
+extern const int16_t Bg2Address[detail::BG2_NONZERO_NUM];
 __ATTR_ALIGN__(64)
-extern int16_t Bg2HShiftMatrix[detail::BG2_NONZERO_NUM*detail::I_LS_NUM];
+extern const int16_t Bg2HShiftMatrix[detail::BG2_NONZERO_NUM*detail::I_LS_NUM];
 
 
 } // l1_phy
