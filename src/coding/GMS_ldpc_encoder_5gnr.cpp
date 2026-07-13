@@ -200,7 +200,7 @@ gms::l1_phy
        hot_data.x6 = cycle_bit_lshit_fptr_var(hot_data.x5,1,zc_size,zc_index,hot_data.swapIdx0);
 
     hot_data.x7 = _mm512_xor_epi32(hot_data.x1, hot_data.x6);
-    _mm512_store_si512(p_data_dut+detail::PROC_BYTES,hot_data.x7);
+    _mm512_store_si512(p_data_out+detail::PROC_BYTES,hot_data.x7);
     //fourth 384
     hot_data.x8 = _mm512_xor_epi32(hot_data.x4, hot_data.x6);
     _mm512_store_si512(p_data_out+detail::PROC_BYTES*3,hot_data.x8);
@@ -257,6 +257,316 @@ gms::l1_phy
                                      std::int8_t * __restrict__ data_out,
                                      const std::int16_t shift_matrix,
                                      std::int16_t zc_size, std::uint8_t i_LS);
+
+template<bool use_prefetching,bool reorder_instr_layout>
+void 
+gms::l1_phy
+::ldpc_encoder_bg2_avx512(std::int8_t * __restrict__ data_in,
+                          std::int8_t * __restrict__ data_out,
+                          const std::int16_t shift_matrix,
+                          std::int16_t zc_size, std::uint8_t i_LS)
+{
+    alignas(64) struct bind_to_cache_line_t
+    {
+        __m512i x1;
+        __m512i x2;
+        __m512i x3;
+        __m512i x4;
+        __m512i x5;
+        __m512i x6;
+        __m512i x7;
+        __m512i x8;
+        __m512i x9;
+        __m512i swapIdx0;
+        __m256i swapIdx00;
+    } hot_data;
+    const __m512i vzero{_mm512_set1_epi8(0)};
+    const std::int16_t * __restrict__ p_temp_addr{nullptr};
+    const std::int16_t * __restrict__ p_temp_matrix{nullptr};
+    std::int8_t        * __restrict__ p_temp_in{nullptr};
+    std::int8_t        * __restrict__ p_temp_out{nullptr};
+    CYCLE_BIT_LSHIFT_FPTR cycle_bit_lshit_fptr_var  = ldpc_select_lshift_func<reorder_instr_layout>(zc_size);
+    std::int32_t i{0};
+    std::int16_t addr_offset{0};
+    constexpr bool cond_use_prefetching = static_cast<std::int32_t>(use_prefetching>)==
+                                          static_cast<true>;
+    ////////////////////////////////////////////////////////////////////////////////
+    for(std::int32_t j = 0; j < detail::BG2_ROW_TOTAL; ++j)   
+    {
+        _mm512_store_si512(p_data_out+detail::PROC_BYTES*j,vzero);
+    }
+    p_temp_addr   = BG2Address;
+    p_temp_matrix = p_shift_matrix;
+    p_temp_in     = p_data_in;
+    p_temp_out    = p_data_out;
+    std::int8_t zc_index;
+    if(zc_size>=288)
+    {
+        if(zc_size==384)
+            zc_index=3;
+        else if(zc_size==352)
+            zc_index=2;
+        else if(zc_size==320)
+            zc_index=1;
+        else 
+            zc_index=0;
+        if constexpr(cond_use_prefetching)
+        {
+            _mm_prefetch((const char*)(g_permute_table_288_to_384[zc_index]+1),_MM_HINT_T0);
+        }
+        _mm512_load_si512((void const*)(g_permute_table_288_to_384[zc_index]+1));
+    } 
+    else 
+    {
+        __m128i zc_size_all{_mm_setr_epi16(144, 160, 176, 192, 208, 224, 240, 256)};
+        __m128i zc_size_all2{_mm_setr_epi16(32, 48, 64, 80, 96, 112, 128, 144)};
+        if(zc_size>128)
+        {
+            __mmask8 zc_size_mask = _mm_cmpeq_epi16_mask(zc_size_all,_mm_set1_epi16(zc_size));
+            zc_index              = _bit_scan_forward((std::int32_t)zc_size_mask);
+            if constexpr(cond_use_prefetching)
+            {
+                _mm_prefetch((const char*)(g_permute_table_144_to_256[zc_index]+1),_MM_HINT_T0);
+            }   
+            hot_data.swap_Idx00 = _mm256_load_si256((__m256i const*)(g_permute_table_144_to_256[zc_index]+1));     
+        }
+        else 
+        {
+            __mmask8 zc_size_mask = _mm_cmpeq_spi16_mask(zc_size_all2,_mm_set1_epi16(zc_size));
+            zc_index              = _bit_scan_forward((std::int32_t)zc_size_mask);
+            if constexpr(cond_use_prefetching)
+            {
+                _mm_prefetch((const char*)(g_permute_table_to_128[index]+1),_MM_HINT_T0);
+            }
+            hot_data.swapIdx00 = _mm256_load_si256((__m256i const*)(g_permute_table_to_128[index]+1));
+        }
+        hot_data.swapIdx0 = _mm512_broadcast_i32x8(hot_data.swapIdx00);
+        hot_data.swapIdx0 = _mm512_mask_add_epi16(hot_data.swapIdx0,0xffff0000,hot_data.swapIdx0,_mm512_set1_epi16(16));
+    }
+    if constexpr(cond_use_prefetching)
+    {
+        _mm_prefetch((const char*)(p_temp_in+i*detail::PROC_BYTES),_MM_HINT_T0);
+    }
+    hot_data.x1 = _mm512_load_si512(p_temp_in+i*detail::PROC_BYTES);
+    for(std::int32_t j = 0; j < BG2MatrixNumPerCol[i]; ++j)   
+    {
+        hot_data.x2 = cycle_bit_lshit_fptr_var(hot_data.x1,*p_temp_matrix++,zc_size,zc_index,hot_data,swapIdx0);
+        _mm512_store_si512(p_temp_out+(*p_temp_addr++),hot_data.x2);
+    }
+    i = 1;
+    for(; i<detail::BG2_COL_INF_NUM; ++i) 
+    {
+        if constexpr(cond_use_prefetching)
+        {
+            _mm_prefetch((const char*)(p_temp_in+i*detail::PROC_BYTES),_MM_HINT_T0);
+        }
+        hot_data.x1 = _mm512_load_si512(p_temp_in+i*detail::PROC_BYTES);
+        for(std::int32_t j = 0; j < BG2MatrixNumPerCol[i]; ++j)   
+        {
+            addr_offset = *p_temp_addr++;
+            hot_data.x2 = cycle_bit_lshift_fptr_var(hot_data.x1,*p_temp_matrix++,zc_size,zc_index,hot_data.swapIdx0);
+            if constexpr(cond_use_prefetching)
+            {
+                _mm_prefetch((const char*)(p_temp_out+addr_offset),_MM_HINT_T0);
+            }
+            hot_data.x3 = _mm512_load_si512(p_temp_out+addr_offset);
+            hot_data.x4 = _mm512_xor_epi32(hot_data.x2,hot_data.x3);
+            _mm512_store_si512(p_temp_out+addr_offset,hot_data.x4);
+        }
+    }
+    if constexpr(cond_use_prefetching)
+    {
+        _mm_prefetch((const char*)p_temp_out,_MM_HINT_T0);
+        _mm_prefetch((const char*)(p_temp_out+detail::PROC_BYTES),_MM_HINT_T0);
+        _mm_prefetch((const char*)(p_temp_out+detail::PROC_BYTES*2),_MM_HINT_T0);
+        _mm_prefetch((const char*)(p_temp_out+detail::PROC_BYTES*3,_MM_HINT_T0));
+    }
+    hot_data.x1 = _mm512_load_si512(p_temp_out);
+    hot_data.x2 = _mm512_load_si512(p_temp_out+detail::PROC_BYTES);
+    hot_data.x5 = _mm512_xor_epi32(hot_data.x1.hot_data.x2);
+    hot_data.x3 = _mm512_load_si512(p_temp_out+detail::PROC_BYTES*2);
+    hot_data.x4 = _mm512_load_si512(p_temp_out+detail::PROC_BYTES*3);
+    hot_data.x5 = _mm512_xor_epi32(hot_data.x5,hot_data.x3);
+    hot_data.x5 = _mm512_xor_epi32(hot_data.x5,hot_data.x4);
+    const bool i_LSeq3_or_eq7 = ((i_LS==3) || (i_LS==7));
+    if(i_LSeq3_or_eq7)
+    {
+        _mm512_store_si512(p_data_out,hot_data.x5);
+    }
+    else 
+    {    hot_data.x5 = cycle_bit_lshit_fptr_var(hot_data.x5,(zc_size-1),zc_size,zc_index,hot_data.swapIdx0);
+        _mm512_store_si512(p_data_out,hot_data.x5);
+    }
+    if(i_LSeq3_or_eq7)
+       hot_data.x6 = cycle_bit_lshit_fptr_var(hot_data.x5,1,zc_size,zc_index,hot_data.swapIdx0);
+    else 
+       hot_data.x6 = hot_data.x5;  
+
+    hot_data.x7 = _mm512_xor_epi32(hot_data.x1, hot_data.x6);
+    _mm512_store_si512(p_data_out+detail::PROC_BYTES,hot_data.x7);
+    //fourth 384
+    hot_data.x8 = _mm512_xor_epi32(hot_data.x2, hot_data.x7);
+    _mm512_store_si512(p_data_out+detail::PROC_BYTES*2,hot_data.x8);
+    //third 384
+    hot_data.x9 = _mm512_xor_epi32(hot_data.x4, hot_data.x6);
+    _mm512_store_si512(p_data_out+detail::PROC_BYTES*3,hot_data.x9);
+    if constexpr(cond_use_prefetching)
+    {
+        _mm_prefetch((const char*)&BG2MatrixNumPerCol[1],_MM_HINT_T0);
+    }
+    for(; i < 4+detail::BG2_COL_INF_NUM; ++i) 
+    {
+        if constexpr(cond_use_prefetching)
+        {
+            _mm_prefetch((const char*)(p_data_out+(i-detail::BG2_COL_INF_NUM)*detail::PROC_BYTES),_MM_HINT_T0);
+        }
+        hot_data.x1 = _mm512_load_si512(_data_out+(i-detail::BG1_COL_INF_NUM)*detail::PROC_BYTES);
+        for(std::int32_t j = 0; j < Bg2MatrixNumPerCol[i]; ++j)   
+        {
+            addr_offset = *p_temp_addr++;
+            hot_data.x2 = cycle_bit_lshit_fptr_var(hot_data.x1,*p_temp_matrix++,zc_size,zc_index,hot_data.swapIdx0);
+            if constexpr(cond_use_prefetching)
+            {
+                _mm_prefetch((const char*)(p_temp_out+addr_offset),_MM_HINT_T0);
+            }
+            hot_data.x3 = _mm512_load_si512(p_temp_out+addr_offset);
+            hot_data.x4 = _mm512_xor_epi32(hot_data.x2,hot_data.x3);
+            _mm512_store_si512(p_temp_out+addr_offset,hot_data.x4);
+        }
+    }
+}
+
+template void 
+gms::l1_phy
+::ldpc_encoder_bg2_avx512<true,true>(std::int8_t * __restrict__ data_in,
+                                     std::int8_t * __restrict__ data_out,
+                                     const std::int16_t shift_matrix,
+                                     std::int16_t zc_size, std::uint8_t i_LS);
+
+template void 
+gms::l1_phy
+::ldpc_encoder_bg2_avx512<true,false>(std::int8_t * __restrict__ data_in,
+                                     std::int8_t * __restrict__ data_out,
+                                     const std::int16_t shift_matrix,
+                                     std::int16_t zc_size, std::uint8_t i_LS);
+
+template void 
+gms::l1_phy
+::ldpc_encoder_bg2_avx512<false,true>(std::int8_t * __restrict__ data_in,
+                                     std::int8_t * __restrict__ data_out,
+                                     const std::int16_t shift_matrix,
+                                     std::int16_t zc_size, std::uint8_t i_LS);
+
+template void 
+gms::l1_phy
+::ldpc_encoder_bg2_avx512<false,false>(std::int8_t * __restrict__ data_in,
+                                     std::int8_t * __restrict__ data_out,
+                                     const std::int16_t shift_matrix,
+                                     std::int16_t zc_size, std::uint8_t i_LS);
+
+template<bool use_prefetching,std::int32_t direct,
+         bool reorder_instr_layout>
+std::int32_t 
+gms::l1_phy
+::ldpc_encoder_5gnr_iface_avx512(gms_ldpc_encoder_5gnr_request_t * __restrict__ request,
+                                 gms_ldpc_encoder_5gnr_response_t* __restrict__ response)
+{   
+    gms_ldpc_encoder_5gnr_request_t * __restrict__ p_request  = request;
+    gms_ldpc_encoder_5gnr_response_t* __restrict__ p_response = response;
+    const std::uint16_t a_z_c = p_request->z_c;
+    const std::int8_t   a_num_code_blocks = p_request->num_code_blocks;
+    if ((a_num_code_blocks > 2) || ((a_num_code_blocks == 2) && ((a_z_c > 256) || (a_z_c <= 128)))) 
+    {
+        printf("ldpc_encoder_5gnr_iface_avx512 Number of code blocks invalid \n");
+        return(-1);
+    }
+    alignas(64) 
+    std::int8_t internal_buffer0[detail::BG1_ROW_TOTAL*detail::PROC_BYTES];
+    alignas(64)
+    std::int8_t internal_buffer1[detail::BG1_ROW_TOTAL*detail::PROC_BYTES];
+    const std::int16_t * __restrict__ p_shift_matrix{nullptr};
+    LDPC_ADAPTER_P ldpc_adapter_func;
+    std::uint32_t cb_enclen{};
+    std::uint32_t cb_len{};
+    std::uint8_t i_LS{};
+    if ((a_z_c % 15) == 0)
+        i_LS = 7;
+    else if ((a_z_c % 13) == 0)
+        i_LS = 6;
+    else if ((a_z_c % 11) == 0)
+        i_LS = 5;
+    else if ((a_z_c % 9) == 0)
+        i_LS = 4;
+    else if ((a_z_c % 7) == 0)
+        i_LS = 3;
+    else if ((a_z_c % 5) == 0)
+        i_LS = 2;
+    else if ((a_z_c % 3) == 0)
+        i_LS = 1;
+    else
+        i_LS = 0;
+    if (p_request->base_graph == 1) 
+    {
+        p_shift_matrix = Bg1HShiftMatrix + i_LS * detail::BG1_NONZERO_NUM;
+        cbLen = detail::BG1_COL_INF_NUM * a_z_c;
+    }
+    else 
+    {
+        p_shift_matrix = Bg2HShiftMatrix + i_LS * detail::BG2_NONZERO_NUM;
+        cbLen = detail::BG2_COL_INF_NUM * a_z_c;
+    }
+    cb_enclen = p_request->n_rows * a_z_c;
+    ldpc_adapter_func = ldpc_select_adapter_func<use_prefetching,direct>(a_z_c,a_num_code_blocks);
+    ldpc_adapter_func(p_request->input,internal_buffer0,a_z_c,cb_len,1);
+    if(p_request->base_graph==1)
+       ldpc_encoder_bg1_avx512<use_prefetching,reorder_instr_layout>(internal_buffer0,internal_buffer1,p_shift_matrix,(std::int16_t)a_z_c,i_LS);
+    else 
+       ldpc_encoder_bg2_avx512<use_prefetching,reorder_instr_layout>(internal_buffer0,internal_buffer1,p_shift_matrix,(std::int16_t)a_z_c,i_LS);
+    ldpc_adapter_func(p_response->output,internal_buffer1,a_z_c,cb_enclen,0);
+    return (0);
+}
+
+template std::int32_t 
+gms::l1_phy
+::ldpc_encoder_5gnr_iface_avx512<true,1,true>(gms_ldpc_encoder_5gnr_request_t * __restrict__ request,
+                                              gms_ldpc_encoder_5gnr_response_t* __restrict__ response);
+
+template std::int32_t 
+gms::l1_phy
+::ldpc_encoder_5gnr_iface_avx512<true,0,true>(gms_ldpc_encoder_5gnr_request_t * __restrict__ request,
+                                              gms_ldpc_encoder_5gnr_response_t* __restrict__ response);
+
+template std::int32_t 
+gms::l1_phy
+::ldpc_encoder_5gnr_iface_avx512<false,1,true>(gms_ldpc_encoder_5gnr_request_t * __restrict__ request,
+                                              gms_ldpc_encoder_5gnr_response_t* __restrict__ response);
+
+template std::int32_t 
+gms::l1_phy
+::ldpc_encoder_5gnr_iface_avx512<false,0,true>(gms_ldpc_encoder_5gnr_request_t * __restrict__ request,
+                                              gms_ldpc_encoder_5gnr_response_t* __restrict__ response);
+
+template std::int32_t 
+gms::l1_phy
+::ldpc_encoder_5gnr_iface_avx512<true,1,false>(gms_ldpc_encoder_5gnr_request_t * __restrict__ request,
+                                              gms_ldpc_encoder_5gnr_response_t* __restrict__ response);
+
+template std::int32_t 
+gms::l1_phy
+::ldpc_encoder_5gnr_iface_avx512<true,0,false>(gms_ldpc_encoder_5gnr_request_t * __restrict__ request,
+                                              gms_ldpc_encoder_5gnr_response_t* __restrict__ response);
+
+template std::int32_t 
+gms::l1_phy
+::ldpc_encoder_5gnr_iface_avx512<false,1,false>(gms_ldpc_encoder_5gnr_request_t * __restrict__ request,
+                                              gms_ldpc_encoder_5gnr_response_t* __restrict__ response);
+
+template std::int32_t 
+gms::l1_phy
+::ldpc_encoder_5gnr_iface_avx512<false,0,false>(gms_ldpc_encoder_5gnr_request_t * __restrict__ request,
+                                              gms_ldpc_encoder_5gnr_response_t* __restrict__ response);
+
+
 
 
 

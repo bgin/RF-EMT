@@ -490,7 +490,23 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 void 
 ldpc_encoder_bg1_avx512(std::int8_t * __restrict__,
-                        std::int8_t * __restrict,
+                        std::int8_t * __restrict__,
+                        const std::int16_t shift_matrix,
+                        std::int16_t zc_size,std::uint8_t i_ls);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512f")
+#endif
+template<bool use_prefetching,bool reorder_instr_layout>
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+void 
+ldpc_encoder_bg2_avx512(std::int8_t * __restrict__,
+                        std::int8_t * __restrict__,
                         const std::int16_t shift_matrix,
                         std::int16_t zc_size,std::uint8_t i_ls);
 
