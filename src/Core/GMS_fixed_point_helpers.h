@@ -102,6 +102,53 @@ float_to_fixed_0_8(const float value)
     return (static_cast<std::uint8_t>(std::round(value*(1<<FIXED_POINT_0_8_FRACTIONAL_BITS))));
 }
 
+__ATTR_ALWAYS_INLINE__
+inline static 
+__m128i 
+_mm_vfp32_to_vfixed16(const __m128 vf32, std::int32_t rounding_mode)
+{
+     return (_mm_cvtps_ph(vf32,rounding_mode));
+}
+
+__ATTR_ALWAYS_INLINE__
+inline static
+__m128 
+_mm_vfixed16_to_vfp32(const __m128i vfix16, std::int32_t rounding_mode)
+{
+     return (_mm_cvtph_ps(vfix16,rounding_mode));
+}
+
+__ATTR_ALWAYS_INLINE__
+inline static 
+__m128i 
+_mm256_vfp32_to_vfixed16(const __m256 vf32, std::int32_t rounding_mode)
+{
+     return (_mm256_cvtps_ph(vf32,rounding_mode));
+}
+
+__ATTR_ALWAYS_INLINE__
+inline static
+__m256
+_mm256vfixed16_to_vfp32(const __m128i vfix16, std::int32_t rounding_mode)
+{
+     return (_mm256_cvtph_ps(vfix16,rounding_mode));
+}
+
+__ATTR_ALWAYS_INLINE__
+inline static 
+__m256i 
+_mm512_vfp32_to_vfixed16(const __m512 vf32, std::int32_t rounding_mode)
+{
+     return (_mm512_cvtps_ph(vf32,rounding_mode));
+}
+
+__ATTR_ALWAYS_INLINE__
+inline static
+__m512
+_mm512_vfixed16_to_vfp32(const __m256i vfix16, std::int32_t rounding_mode)
+{
+     return (_mm512_cvtph_ps(vfix16,rounding_mode));
+}
 
 
 } // common
