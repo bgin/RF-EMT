@@ -876,12 +876,276 @@ void test_runner_matrix_inv_cholesky_16x16_flexran_single_thread(const std::int3
 void test_runner_matrix_inv_cholesky_16x16_flexran_single_thread(const std::int32_t cpu_core,
                                                                  const std::int32_t priority)
 {
+    using namespace gms::common;
+    constexpr int32_t n_runs{10};
+    constexpr int32_t n_samples{50};
+    constexpr int32_t n_total{n_runs*n_samples};
+    constexpr int32_t nelems{4096};
+    __ATTR_ALIGN__(64) float buf_init_re[nelems];
+    __ATTR_ALIGN__(64) float buf_init_im[nelems];
+    __ATTR_ALIGN__(64) __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16];
+    __ATTR_ALIGN__(64) __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16];
+    __ATTR_ALIGN__(64) __m512 matInvBReRef[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16];//flexran
+    __ATTR_ALIGN__(64) __m512 matInvBImRef[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16];//flexran    
+    unsigned __int64 flexran_s[n_total]           = {UINT64_MAX};
+    unsigned __int64 flexran_e[n_total]           = {UINT64_MAX}; 
+    unsigned __int64 flexran_d[n_total]           = {UINT64_MAX};
+    std::uint32_t    flexran_tsc_aux_s[n_total]   = {UINT32_MAX};
+    std::uint32_t    flexran_tsc_aux_e[n_total]   = {UINT32_MAX};
+    const float * __restrict ptr_invBReRef  = nullptr;
+    const float * __restrict ptr_invBImRef  = nullptr;
+    unsigned long long seed_re{0ull};
+    unsigned long long seed_im{0ull};
+    [[maybe_unused]] std::int32_t printf_ret{};
+    seed_re = __rdtsc();
+    auto rand_re{std::bind(std::uniform_real_distribution<float>(0.001f,5.0f),std::mt19937(seed_re))};
+    seed_im = __rdtsc();
+    auto rand_im{std::bind(std::uniform_real_distribution<float>(0.001f,5.0f),std::mt19937(seed_im))};
+    for(int32_t __i{0}; __i != nelems; ++__i)
+    {
+        float rd_re = rand_re();
+        buf_init_re[__i] = rd_re;
+        float rd_im = rand_im();
+        buf_init_im[__i] = rd_im;
+    }
+    for(std::int32_t i = 0;i != MAT_SQR_SIZE_16; ++i)
+    {   
+        const std::int32_t outer_idx = i*MAT_SQR_SIZE_16;
+        for(std::int32_t j = 0;j != MAT_SQR_SIZE_16; ++j)  
+        {
+            const std::int32_t inner_idx = (outer_idx+j)*VEC_PS_LEN;
+            register __m512 init_vre = _mm512_load_ps((const float*)&buf_init_re[inner_idx]);                    
+            matBRe[i][j]             = init_vre;
+            //matInvBReRef[i][j]       = init_vre;
+            register __m512 init_vim = _mm512_load_ps((const float*)&buf_init_im[inner_idx]);
+            matBIm[i][j]             = init_vim;
+            //matInvBImRef[i][j]       = init_vim;
+        }
+    }
+    std::uint32_t flexran_tid{};
+    std::int32_t setenv_ret{};
+    std::int32_t status{};
+    setenv_ret = setenv("OMP_PROC_BIND","true",1);
+    if(setenv_ret==-1)
+    {
+        printf_ret = printf("[**ERROR**]: -- setenv reported an error=%d\n",setenv_ret);
+    }
+    setenv_ret = setenv("OMP_PROC_BIND","spread",1);
+    if(setenv_ret==-1)
+    {
+        printf_ret = printf("[**ERROR**]: -- setenv reported an error=%d\n",setenv_ret);
+    }
+    status = set_affinity_and_priority(cpu_core,priority);
+    if(status > 0)
+    { 
+       int32_t which = PRIO_PROCESS;
+       id_t pid      = getpid();
+       errno         = 0;
+       int32_t nice  = getpriority(which,pid);
+       printf_ret = printf("[***ERROR***]: set_affinity_and_priority status:%d,errno=%d,pid=%d,nice=%d\n",status,errno,pid,nice);
+    }
+
+    perf_test_mat_inv_cholesky_16x16_flexran(matBRe,matBIm,matInvBReRef,matInvBImRef,
+                                            &flexran_s[0],&flexran_e[0],&flexran_d[0],
+                                            nullptr,nullptr,n_runs,n_samples,flexran_tid);
+    print_thread_affinity();
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+    printf_ret = printf(ANSI_COLOR_GREEN "[PERF-TEST]:  matrix_inv_cholesky_16x16(FlexRAN): COMPLETED!!\n");
+    printf_ret = printf(ANSI_COLOR_GREEN "[PERF-TEST] -- Executed by Core=%d \n",flexran_tid);
+    for(int32_t __i{0}; __i != n_runs; ++__i)
+    {
+         for(int32_t __j{0}; __j != n_samples; ++__j) 
+         {  
+            unsigned __int64 s{flexran_s[__i*n_samples+__j]};
+            unsigned __int64 e{flexran_e[__i*n_samples+__j]};
+            unsigned __int64 d{flexran_d[__i*n_samples+__j]};
+            printf(ANSI_COLOR_GREEN "[PMC: RDTSCP] -- Run=%d, start=%llu,end=%llu,delta=%llu\n",__i,s,e,d);
+         }
+    }
+    printf_ret = printf(ANSI_COLOR_GREEN "[PERF-TEST]: matrix_inv_cholesky_16x16(FlexRAN): Finished -- dumping-results" ANSI_RESET_ALL"\n\n");
     
+#if (COMPARE_RESULTS) == 0
+    ptr_invBReRef = reinterpret_cast<const float * __restrict>(&matInvBReRef);
+    ptr_invBImRef = reinterpret_cast<const float * __restrict>(&matInvBImRef);
+    for(int32_t __i{0}; __i != nelems; ++__i)
+    {  
+        const float bre_ref = ptr_invBReRef[__i];
+        const float bim_ref = ptr_invBImRef[__i];
+        printf_ret =  printf(ANSI_COLOR_RED "[PERF-TEST]: -- (FlexRAN)bre_ref=%.7f\n",bre_ref);
+        printNumber("(FlexRAN)bre_ref",bre_ref,0);
+        printf_ret =  printf(ANSI_COLOR_RED "[PERF-TEST]: -- (FlexRAN)bim_ref=%.7f\n",bim_ref);
+        printNumber("(FlexRAN)bim_ref",bim_ref,0);
+         
+        if(__builtin_expect(detect_subnormal(bre_ref),0)) { printf_ret = printf(ANSI_COLOR_RED "[PERF-TEST:] -- (FlexRAN) ***SUBNORMAL*** in I-ch -- %.17f\n",bre_ref);}
+        if(__builtin_expect(detect_subnormal(bim_ref),0)) { printf_ret = printf(ANSI_COLOR_RED "[PERF-TEST:] -- (FlexRAN) ***SUBNORMAL*** in Q-ch -- %.17f\n",bim_ref);}       
+    } 
+#endif 
 }
 
+__attribute__((hot))
+void test_runner_matrix_inv_cholesky_16x16_rf_emt_single_thread(const std::int32_t,
+                                                                 const std::int32_t);
+
+void test_runner_matrix_inv_cholesky_16x16_rf_emt_single_thread(const std::int32_t cpu_core,
+                                                                 const std::int32_t priority)
+{
+    using namespace gms::common;
+    constexpr int32_t n_runs{10};
+    constexpr int32_t n_samples{50};
+    constexpr int32_t n_total{n_runs*n_samples};
+    constexpr int32_t nelems{4096};
+    __ATTR_ALIGN__(64) float buf_init_re[nelems];
+    __ATTR_ALIGN__(64) float buf_init_im[nelems];
+    __ATTR_ALIGN__(64) __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16];
+    __ATTR_ALIGN__(64) __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16];
+    __ATTR_ALIGN__(64) __m512 matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16];//flexran
+    __ATTR_ALIGN__(64) __m512 matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16];//flexran    
+    unsigned __int64 rf_emt_s[n_total]           = {UINT64_MAX};
+    unsigned __int64 rf_emt_e[n_total]           = {UINT64_MAX}; 
+    unsigned __int64 rf_emt_d[n_total]           = {UINT64_MAX};
+    std::uint32_t    rf_emt_tsc_aux_s[n_total]   = {UINT32_MAX};
+    std::uint32_t    rf_emt_tsc_aux_e[n_total]   = {UINT32_MAX};
+    const float * __restrict ptr_invBRe  = nullptr;
+    const float * __restrict ptr_invBIm  = nullptr;
+    unsigned long long seed_re{0ull};
+    unsigned long long seed_im{0ull};
+    [[maybe_unused]] std::int32_t printf_ret{};
+    seed_re = __rdtsc();
+    auto rand_re{std::bind(std::uniform_real_distribution<float>(0.001f,5.0f),std::mt19937(seed_re))};
+    seed_im = __rdtsc();
+    auto rand_im{std::bind(std::uniform_real_distribution<float>(0.001f,5.0f),std::mt19937(seed_im))};
+    for(int32_t __i{0}; __i != nelems; ++__i)
+    {
+        float rd_re = rand_re();
+        buf_init_re[__i] = rd_re;
+        float rd_im = rand_im();
+        buf_init_im[__i] = rd_im;
+    }
+    for(std::int32_t i = 0;i != MAT_SQR_SIZE_16; ++i)
+    {   
+        const std::int32_t outer_idx = i*MAT_SQR_SIZE_16;
+        for(std::int32_t j = 0;j != MAT_SQR_SIZE_16; ++j)  
+        {
+            const std::int32_t inner_idx = (outer_idx+j)*VEC_PS_LEN;
+            register __m512 init_vre = _mm512_load_ps((const float*)&buf_init_re[inner_idx]);                    
+            matBRe[i][j]             = init_vre;
+            //matInvBReRef[i][j]       = init_vre;
+            register __m512 init_vim = _mm512_load_ps((const float*)&buf_init_im[inner_idx]);
+            matBIm[i][j]             = init_vim;
+            //matInvBImRef[i][j]       = init_vim;
+        }
+    }
+    std::uint32_t rf_emt_tid{};
+    std::int32_t setenv_ret{};
+    std::int32_t status{};
+    setenv_ret = setenv("OMP_PROC_BIND","true",1);
+    if(setenv_ret==-1)
+    {
+        printf_ret = printf("[**ERROR**]: -- setenv reported an error=%d\n",setenv_ret);
+    }
+    setenv_ret = setenv("OMP_PROC_BIND","spread",1);
+    if(setenv_ret==-1)
+    {
+        printf_ret = printf("[**ERROR**]: -- setenv reported an error=%d\n",setenv_ret);
+    }
+    status = set_affinity_and_priority(cpu_core,priority);
+    if(status > 0)
+    { 
+       int32_t which = PRIO_PROCESS;
+       id_t pid      = getpid();
+       errno         = 0;
+       int32_t nice  = getpriority(which,pid);
+       printf_ret = printf("[***ERROR***]: set_affinity_and_priority status:%d,errno=%d,pid=%d,nice=%d\n",status,errno,pid,nice);
+    }
+
+    perf_test_mat_inv_cholesky_16x16_rf_emt(matBRe,matBIm,matInvBRe,matInvBIm,
+                                            &rf_emt_s[0],&rf_emt_e[0],&rf_emt_d[0],
+                                            nullptr,nullptr,n_runs,n_samples,rf_emt_tid);
+    print_thread_affinity();
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+    printf_ret = printf(ANSI_COLOR_GREEN "[PERF-TEST]:  matrix_inv_cholesky_16x16<true,true>(RF-EMT): COMPLETED!!\n");
+    printf_ret = printf(ANSI_COLOR_GREEN "[PERF-TEST] -- Executed by Core=%d \n",rf_emt_tid);
+    for(int32_t __i{0}; __i != n_runs; ++__i)
+    {
+         for(int32_t __j{0}; __j != n_samples; ++__j) 
+         {  
+            unsigned __int64 s{rf_emt_s[__i*n_samples+__j]};
+            unsigned __int64 e{rf_emt_e[__i*n_samples+__j]};
+            unsigned __int64 d{rf_emt_d[__i*n_samples+__j]};
+            printf(ANSI_COLOR_GREEN "[PMC: RDTSCP] -- Run=%d, start=%llu,end=%llu,delta=%llu\n",__i,s,e,d);
+         }
+    }
+    printf_ret = printf(ANSI_COLOR_GREEN "[PERF-TEST]: matrix_inv_cholesky_16x16<true,true>(RF-EMT): Finished -- dumping-results" ANSI_RESET_ALL"\n\n");
+    
+#if (COMPARE_RESULTS) == 0
+    ptr_invBRe = reinterpret_cast<const float * __restrict>(&matInvBRe);
+    ptr_invBIm = reinterpret_cast<const float * __restrict>(&matInvBIm);
+    for(int32_t __i{0}; __i != nelems; ++__i)
+    {  
+        const float bre     = ptr_invBRe[__i];
+        const float bim     = ptr_invBIm[__i];
+        printf_ret =  printf(ANSI_COLOR_RED "[PERF-TEST]: (RF-EMT)bre=%.7f\n",bre);
+        printNumber("(RF-EMT)bre",bre,0);
+        printf_ret =  printf(ANSI_COLOR_RED "[PERF-TEST]: (RF-EMT)bim=%.7f\n",bim);
+        printNumber("(RF-EMT)bim",bim,0);
+        if(__builtin_expect(detect_subnormal(bre),0)) { printf_ret = printf(ANSI_COLOR_RED "[PERF-TEST:] -- (RF-EMT) ***SUBNORMAL*** in I-ch -- %.17f\n",bre);}
+        if(__builtin_expect(detect_subnormal(bim),0)) { printf_ret = printf(ANSI_COLOR_RED "[PERF-TEST:] -- (RF-EMT) ***SUBNORMAL*** in Q-ch -- %.17f\n",bim);}       
+    } 
+#endif 
+}
+
+__attribute__((hot))
+void test_runner_matrix_inv_cholesky_16x16_flexran_parallel();
+
+void test_runner_matrix_inv_cholesky_16x16_flexran_parallel()
+{
+    thread_local std::uniform_int_distribution<std::int32_t> rand_thread_prio;
+    thread_local std::uint64_t prio_seed{};
+    thread_local std::int32_t priority{};
+    thread_local std::mt19937 rand_prio_gen;
+    int32_t tid{};
+#pragma omp parallel private(tid) num_threads(omp_get_max_threads())
+{
+    rand_thread_prio = std::uniform_int_distribution<std::int32_t>(0,99);
+    prio_seed        = __rdtsc();
+    rand_prio_gen    = std::mt19937(prio_seed);
+    priority         = rand_thread_prio.operator()(rand_prio_gen);
+    tid              = omp_get_thread_num();
+    test_runner_matrix_inv_cholesky_16x16_flexran_single_thread(tid,priority);
+}
+
+}
+
+__attribute__((hot))
+void test_runner_matrix_inv_cholesky_16x16_rf_emt_parallel();
+
+void test_runner_matrix_inv_cholesky_16x16_rf_emt_parallel()
+{
+    thread_local std::uniform_int_distribution<std::int32_t> rand_thread_prio;
+    thread_local std::uint64_t prio_seed{};
+    thread_local std::int32_t priority{};
+    thread_local std::mt19937 rand_prio_gen;
+    int32_t tid{};
+#pragma omp parallel private(tid) num_threads(omp_get_max_threads())
+{
+    rand_thread_prio = std::uniform_int_distribution<std::int32_t>(0,99);
+    prio_seed        = __rdtsc();
+    rand_prio_gen    = std::mt19937(prio_seed);
+    priority         = rand_thread_prio.operator()(rand_prio_gen);
+    tid              = omp_get_thread_num();
+    test_runner_matrix_inv_cholesky_16x16_rf_emt_single_thread(tid,priority);
+}
+
+}
 
 int main()
 {
     test_runner_omp_sections_1st_seq();
+    test_runner_matrix_inv_cholesky_16x16_flexran_single_thread(5,99);
+    test_runner_matrix_inv_cholesky_16x16_rf_emt_single_thread(6,99);
+    test_runner_matrix_inv_cholesky_16x16_flexran_parallel();
+    test_runner_matrix_inv_cholesky_16x16_rf_emt_parallel();
     return 0;
 }
