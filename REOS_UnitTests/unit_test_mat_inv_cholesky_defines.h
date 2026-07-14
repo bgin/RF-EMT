@@ -98,6 +98,15 @@
     matND[1] = _mm512_sub_ps(constZero, matD[1]);\
 }
 
+#define GET_G11_REF_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0)\
+{\
+    GET_AxAH_REF(matGRe[1][0], matGIm[1][0], temp0);\
+    matGRe[1][1] = _mm512_sub_ps(matBRe[1][1], temp0);\
+    __mmask16 k1 = _mm512_cmp_ps_mask(matGRe[1][1],vzero,_CMP_LT_OQ);\
+    matD[1] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k1,matGRe[1][1],_mm512_mul_ps(vneg_one,matGRe[1][1])));\
+    matND[1] = _mm512_sub_ps(constZero, matD[1]);\
+}
+
 // get column 1 of matrix G
 #define GET_G_COL1_REF(matGRe, matGIm, matBRe, matBIm, matD, j, temp0, temp1)\
 {\
@@ -116,6 +125,17 @@
     matGRe[2][2] = _mm512_sub_ps(matBRe[2][2], temp0);\
     matGRe[2][2] = _mm512_sub_ps(matGRe[2][2], temp1);\
     matD[2] = _mm512_rsqrt14_ps(matGRe[2][2]);\
+    matND[2] = _mm512_sub_ps(constZero, matD[2]);\
+}
+
+#define GET_G22_REF_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1)\
+{\
+    GET_AxAH_REF(matGRe[2][0], matGIm[2][0], temp0);\
+    GET_AxAH_REF(matGRe[2][1], matGIm[2][1], temp1);\
+    matGRe[2][2] = _mm512_sub_ps(matBRe[2][2], temp0);\
+    matGRe[2][2] = _mm512_sub_ps(matGRe[2][2], temp1);\
+    __mmask16 k2 = _mm512_cmp_ps_mask(matGRe[2][2],vzero,_CMP_LT_OQ);\
+    matD[2] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k2,matGRe[2][2],_mm512_mul_ps(vneg_one,matGRe[2][2])));\
     matND[2] = _mm512_sub_ps(constZero, matD[2]);\
 }
 
@@ -142,6 +162,19 @@
     matGRe[3][3] = _mm512_sub_ps(matGRe[3][3], temp1);\
     matGRe[3][3] = _mm512_sub_ps(matGRe[3][3], temp2);\
     matD[3] = _mm512_rsqrt14_ps(matGRe[3][3]);\
+    matND[3] = _mm512_sub_ps(constZero, matD[3]);\
+}
+
+#define GET_G33_REF_SAFE(_SAFEmatGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2)\
+{\
+    GET_AxAH_REF(matGRe[3][0], matGIm[3][0], temp0);\
+    GET_AxAH_REF(matGRe[3][1], matGIm[3][1], temp1);\
+    GET_AxAH_REF(matGRe[3][2], matGIm[3][2], temp2);\
+    matGRe[3][3] = _mm512_sub_ps(matBRe[3][3], temp0);\
+    matGRe[3][3] = _mm512_sub_ps(matGRe[3][3], temp1);\
+    matGRe[3][3] = _mm512_sub_ps(matGRe[3][3], temp2);\
+    __mmask16 k3 = _mm512_cmp_ps_mask(matGRe[3][3],vzero,_CMP_LT_OQ);\
+    matD[3] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k3,matGRe[3][3],_mm512_mul_ps(vneg_one,matGRe[3][3])));\
     matND[3] = _mm512_sub_ps(constZero, matD[3]);\
 }
 
@@ -176,6 +209,21 @@
     matND[4] = _mm512_sub_ps(constZero, matD[4]);\
 }
 
+#define GET_G44_REF_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1)\
+{\
+    GET_AxAH_REF(matGRe[4][0], matGIm[4][0], temp0);\
+    GET_AxAH_REF(matGRe[4][1], matGIm[4][1], temp1);\
+    matGRe[4][4] = _mm512_sub_ps(matBRe[4][4], temp0);\
+    matGRe[4][4] = _mm512_sub_ps(matGRe[4][4], temp1);\
+    GET_AxAH_REF(matGRe[4][2], matGIm[4][2], temp0);\
+    GET_AxAH_REF(matGRe[4][3], matGIm[4][3], temp1);\
+    matGRe[4][4] = _mm512_sub_ps(matGRe[4][4], temp0);\
+    matGRe[4][4] = _mm512_sub_ps(matGRe[4][4], temp1);\
+    __mmask16 k4 = _mm512_cmp_ps_mask(matGRe[4][4],vzero,_CMP_LT_OQ);\
+    matD[4] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k4,matGRe[4][4],_mm512_mul_ps(vneg_one,matGRe[4][4])));\
+    matND[4] = _mm512_sub_ps(constZero, matD[4]);\
+}
+
 // get G55
 #define GET_G55_REF(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2)\
 {\
@@ -190,6 +238,23 @@
     matGRe[5][5] = _mm512_sub_ps(matGRe[5][5], temp1);\
     matGRe[5][5] = _mm512_sub_ps(matGRe[5][5], temp2);\
     matD[5] = _mm512_rsqrt14_ps(matGRe[5][5]);\
+    matND[5] = _mm512_sub_ps(constZero, matD[5]);\
+}
+
+#define GET_G55_REF_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2)\
+{\
+    GET_AxAH_REF(matGRe[5][0], matGIm[5][0], temp0);\
+    GET_AxAH_REF(matGRe[5][1], matGIm[5][1], temp1);\
+    matGRe[5][5] = _mm512_sub_ps(matBRe[5][5], temp0);\
+    matGRe[5][5] = _mm512_sub_ps(matGRe[5][5], temp1);\
+    GET_AxAH_REF(matGRe[5][2], matGIm[5][2], temp0);\
+    GET_AxAH_REF(matGRe[5][3], matGIm[5][3], temp1);\
+    GET_AxAH_REF(matGRe[5][4], matGIm[5][4], temp2);\
+    matGRe[5][5] = _mm512_sub_ps(matGRe[5][5], temp0);\
+    matGRe[5][5] = _mm512_sub_ps(matGRe[5][5], temp1);\
+    matGRe[5][5] = _mm512_sub_ps(matGRe[5][5], temp2);\
+    __mmask16 k5 = _mm512_cmp_ps_mask(matGRe[5][5],vzero,_CMP_LT_OQ);\
+    matD[5] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k5,matGRe[5][5],_mm512_mul_ps(vneg_one,matGRe[5][5])));\
     matND[5] = _mm512_sub_ps(constZero, matD[5]);\
 }
 
@@ -209,6 +274,25 @@
     matGRe[6][6] = _mm512_sub_ps(matGRe[6][6], temp0);\
     matGRe[6][6] = _mm512_sub_ps(matGRe[6][6], temp1);\
     matD[6] = _mm512_rsqrt14_ps(matGRe[6][6]);\
+    matND[6] = _mm512_sub_ps(constZero, matD[6]);\
+}
+
+#define GET_G66_REF_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1)\
+{\
+    GET_AxAH_REF(matGRe[6][0], matGIm[6][0], temp0);\
+    GET_AxAH_REF(matGRe[6][1], matGIm[6][1], temp1);\
+    matGRe[6][6] = _mm512_sub_ps(matBRe[6][6], temp0);\
+    matGRe[6][6] = _mm512_sub_ps(matGRe[6][6], temp1);\
+    GET_AxAH_REF(matGRe[6][2], matGIm[6][2], temp0);\
+    GET_AxAH_REF(matGRe[6][3], matGIm[6][3], temp1);\
+    matGRe[6][6] = _mm512_sub_ps(matGRe[6][6], temp0);\
+    matGRe[6][6] = _mm512_sub_ps(matGRe[6][6], temp1);\
+    GET_AxAH_REF(matGRe[6][4], matGIm[6][4], temp0);\
+    GET_AxAH_REF(matGRe[6][5], matGIm[6][5], temp1);\
+    matGRe[6][6] = _mm512_sub_ps(matGRe[6][6], temp0);\
+    matGRe[6][6] = _mm512_sub_ps(matGRe[6][6], temp1);\
+    __mmask16 k6 = _mm512_cmp_ps_mask(matGRe[6][6],vzero,_CMP_LT_OQ);\
+    matD[6] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k6,matGRe[6][6],_mm512_mul_ps(vneg_one,matGRe[6][6])));\
     matND[6] = _mm512_sub_ps(constZero, matD[6]);\
 }
 
@@ -233,6 +317,27 @@
     matND[7] = _mm512_sub_ps(constZero, matD[7]);\
 }
 
+#define GET_G77_REF_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2)\
+{\
+    GET_AxAH_REF(matGRe[7][0], matGIm[7][0], temp0);\
+    GET_AxAH_REF(matGRe[7][1], matGIm[7][1], temp1);\
+    matGRe[7][7] = _mm512_sub_ps(matBRe[7][7], temp0);\
+    matGRe[7][7] = _mm512_sub_ps(matGRe[7][7], temp1);\
+    GET_AxAH_REF(matGRe[7][2], matGIm[7][2], temp0);\
+    GET_AxAH_REF(matGRe[7][3], matGIm[7][3], temp1);\
+    matGRe[7][7] = _mm512_sub_ps(matGRe[7][7], temp0);\
+    matGRe[7][7] = _mm512_sub_ps(matGRe[7][7], temp1);\
+    GET_AxAH_REF(matGRe[7][4], matGIm[7][4], temp0);\
+    GET_AxAH_REF(matGRe[7][5], matGIm[7][5], temp1);\
+    GET_AxAH_REF(matGRe[7][6], matGIm[7][6], temp2);\
+    matGRe[7][7] = _mm512_sub_ps(matGRe[7][7], temp0);\
+    matGRe[7][7] = _mm512_sub_ps(matGRe[7][7], temp1);\
+    matGRe[7][7] = _mm512_sub_ps(matGRe[7][7], temp2);\
+    __mmask16 k7 = _mm512_cmp_ps_mask(matGRe[7][7],vzero,_CMP_LT_OQ);\
+    matD[7] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k7,matGRe[7][7],_mm512_mul_ps(vneg_one,matGRe[7][7])));\
+    matND[7] = _mm512_sub_ps(constZero, matD[7]);\
+}
+
 // get Gii, odd diagonal element
 #define GET_Gii_ODD_REF(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, i)\
 {\
@@ -246,6 +351,22 @@
         matGRe[i][i] = _mm512_sub_ps(matGRe[i][i], temp1);\
     }\
     matD[i] = _mm512_rsqrt14_ps(matGRe[i][i]);\
+    matND[i] = _mm512_sub_ps(constZero, matD[i]);\
+}
+
+#define GET_Gii_ODD_REF_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, i)\
+{\
+    GET_AxAH_REF(matGRe[i][0], matGIm[i][0], temp0);\
+    matGRe[i][i] = _mm512_sub_ps(matBRe[i][i], temp0);\
+    for (int32_t i1 = 1; i1 < i; i1+=2) \
+    {\
+        GET_AxAH_REF(matGRe[i][i1], matGIm[i][i1], temp0);\
+        GET_AxAH_REF(matGRe[i][i1+1], matGIm[i][i1+1], temp1);\
+        matGRe[i][i] = _mm512_sub_ps(matGRe[i][i], temp0);\
+        matGRe[i][i] = _mm512_sub_ps(matGRe[i][i], temp1);\
+    }\
+    __mmask16 k8 = _mm512_cmp_ps_mask(matGRe[i][i],vzero,_CMP_LT_OQ);\
+    matD[i] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k8,matGRe[i][i],_mm512_mul_ps(vneg_one,matGRe[i][i])));\
     matND[i] = _mm512_sub_ps(constZero, matD[i]);\
 }
 
@@ -264,6 +385,24 @@
         matGRe[i][i] = _mm512_sub_ps(matGRe[i][i], temp1);\
     }\
     matD[i] = _mm512_rsqrt14_ps(matGRe[i][i]);\
+    matND[i] = _mm512_sub_ps(constZero, matD[i]);\
+}
+
+#define GET_Gii_EVEN_REF_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, i)\
+{\
+    GET_AxAH_REF(matGRe[i][0], matGIm[i][0], temp0);\
+    GET_AxAH_REF(matGRe[i][1], matGIm[i][1], temp1);\
+    matGRe[i][i] = _mm512_sub_ps(matBRe[i][i], temp0);\
+    matGRe[i][i] = _mm512_sub_ps(matGRe[i][i], temp1);\
+    for (int32_t i1 = 2; i1 < i; i1+=2) \
+    {\
+        GET_AxAH_REF(matGRe[i][i1], matGIm[i][i1], temp0);\
+        GET_AxAH_REF(matGRe[i][i1+1], matGIm[i][i1+1], temp1);\
+        matGRe[i][i] = _mm512_sub_ps(matGRe[i][i], temp0);\
+        matGRe[i][i] = _mm512_sub_ps(matGRe[i][i], temp1);\
+    }\
+    __mmask16 k9 = _mm512_cmp_ps_mask(matGRe[i][i],vzero,_CMP_LT_OQ);\
+    matD[i] = _mm512_rsqrt14_ps(_mm512_mask_blend_ps(k9,matGRe[i][i],_mm512_mul_ps(vneg_one,matGRe[i][i])));\
     matND[i] = _mm512_sub_ps(constZero, matD[i]);\
 }
 
