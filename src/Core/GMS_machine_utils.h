@@ -25,6 +25,10 @@
 #include <immintrin.h>
 #include <cstdint>
 #include <sys/sysinfo.h>
+#include <sys/utsname.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
 #include "GMS_config.h"
 
 namespace file_info 
@@ -74,7 +78,41 @@ rdtscp_fenced()
   return a;
 }
 
+__ATTR_ALWAYS_INLINE__
+inline static 
+std::uint64_t
+get_phys_mem_addr(std::size_t vaddr)
+{
+  int fd = open("/proc/self/pagemap", O_RDONLY);
+  uint64_t virtual_addr = (uint64_t)vaddr;
+  size_t value = 0;
+  off_t offset = (virtual_addr / 4096ull) * sizeof(value);
+  int got = pread(fd, &value, sizeof(value), offset);
+  if(got != sizeof(value)) 
+  {
+        return 0ull;
+  }
+  close(fd);
+  return (value << 12) | ((size_t)vaddr & 0xFFFULL);
+}
 
+__ATTR_ALWAYS_INLINE__
+inline static 
+std::size_t 
+get_direct_physical_map() {
+  struct utsname buf;
+  uname(&buf);
+  std::int32_t major = atoi(strtok(buf.release, "."));
+  std::int32_t minor = atoi(strtok(NULL, ".")); 
+  if((major == 4 && minor < 19) || major < 4) 
+  {
+      return 0xffff880000000000ull;
+  } 
+  else 
+  {
+        return 0xffff888000000000ull;
+  }
+}
 
 } // common
 
