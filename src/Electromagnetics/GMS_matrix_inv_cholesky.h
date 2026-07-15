@@ -47,6 +47,7 @@
 #include <cstdint>
 #include <cmath>
 #include <immintrin.h>
+#include <string>
 #include "GMS_config.h"
 
 namespace file_info 
@@ -64,6 +65,8 @@ namespace file_info
      static const char GMS_MATRIX_INV_CHOLESKY_SYNOPSIS[]      = "Further adaptation and optimization of avx512 cholesky inverse kernels (FlexRAN).";
 
 }
+
+
 
 namespace gms 
 {
@@ -90,6 +93,175 @@ constexpr std::int32_t MAT_SQR_SIZE_13= 13;
 constexpr std::int32_t MAT_SQR_SIZE_14= 14;
 constexpr std::int32_t MAT_SQR_SIZE_15= 15;
 constexpr std::int32_t MAT_SQR_SIZE_16= 16;
+
+}
+
+namespace mat_inv_chol_tsc_instr
+{
+
+static constexpr std::uint64_t RDTSCP_SKYLAKE_SERVER_LAT = 42ull; // accordingly to intrinsic guide
+
+template<std::size_t MAT_SQR_SIZE_MAX>
+struct alignas(64) tsc_instrumentation_block_t
+{
+
+  static_assert(MAT_SQR_SIZE_MAX<=16ull,"The allowable size (i.e. 16) was exceeded!!");
+/* The members are laid-out accordingly to the instrumented regions, except the array members
+   which are declared first.
+*/
+  __ATTR_ALIGN__(64) std::uint64_t 
+  m_region_loop2D_s[MAT_SQR_SIZE_MAX] = {};
+  __ATTR_ALIGN__(64)  std::uint64_t
+  m_region_loop2D_e[MAT_SQR_SIZE_MAX] = {};
+  __ATTR_ALIGN__(64)  std::uint64_t 
+  m_region_loop2D_d[MAT_SQR_SIZE_MAX] = {};
+
+  __ATTR_ALIGN__(64)  std::uint64_t 
+  m_region_loop3D_s[MAT_SQR_SIZE_MAX] = {};
+  __ATTR_ALIGN__(64)  std::uint64_t 
+  m_region_loop3D_e[MAT_SQR_SIZE_MAX] = {};
+  __ATTR_ALIGN__(64)  std::uint64_t 
+  m_region_loop3D_d[MAT_SQR_SIZE_MAX] = {};
+  /*Scalar members*/
+  
+   std::uint64_t m_region_prefetch_s{};
+   std::uint64_t m_region_prefetch_e{};
+   std::uint64_t m_region_prefetch_d{};
+   std::uint64_t m_region_g00_s{};
+   std::uint64_t m_region_g00_e{};
+   std::uint64_t m_region_g00_d{}; 
+   std::uint64_t m_region_g11_s{};
+   std::uint64_t m_region_g11_e{};
+   std::uint64_t m_region_g11_d{};
+   std::uint64_t m_region_g22_s{};
+   std::uint64_t m_region_g22_e{};
+   std::uint64_t m_region_g22_d{};
+   std::uint64_t m_region_g33_s{};
+   std::uint64_t m_region_g33_e{};
+   std::uint64_t m_region_g33_d{};   
+   std::uint64_t m_region_g44_s{};
+   std::uint64_t m_region_g44_e{};
+   std::uint64_t m_region_g44_d{};
+   std::uint64_t m_region_g55_s{};
+   std::uint64_t m_region_g55_e{};
+   std::uint64_t m_region_g55_d{};  
+   std::uint64_t m_region_g66_s{};
+   std::uint64_t m_region_g66_e{};
+   std::uint64_t m_region_g66_d{}; 
+   std::uint64_t m_region_g77_s{};
+   std::uint64_t m_region_g77_e{};
+   std::uint64_t m_region_g77_d{};
+   std::uint64_t m_region_gii_even_col8_s{};
+   std::uint64_t m_region_gii_even_col8_e{};
+   std::uint64_t m_region_gii_even_col8_d{};  
+   std::uint64_t m_region_gii_odd_col9_s{};
+   std::uint64_t m_region_gii_odd_col9_e{};
+   std::uint64_t m_region_gii_odd_col9_d{}; 
+   std::uint64_t m_region_gii_even_col10_s{};
+   std::uint64_t m_region_gii_even_col10_e{};
+   std::uint64_t m_region_gii_even_col10_d{}; 
+   std::uint64_t m_region_gii_odd_col11_s{};
+   std::uint64_t m_region_gii_odd_col11_e{};
+   std::uint64_t m_region_gii_odd_col11_d{}; 
+   std::uint64_t m_region_gii_even_col12_s{};
+   std::uint64_t m_region_gii_even_col12_e{};
+   std::uint64_t m_region_gii_even_col12_d{};
+   std::uint64_t m_region_gii_odd_col13_s{};
+   std::uint64_t m_region_gii_odd_col13_e{};
+   std::uint64_t m_region_gii_odd_col13_d{};  
+   std::uint64_t m_region_gii_even_col14_s{};
+   std::uint64_t m_region_gii_even_col14_e{};
+   std::uint64_t m_region_gii_even_col14_d{};
+   std::uint64_t m_region_gii_odd_col15_s{};
+   std::uint64_t m_region_gii_odd_col15_e{};
+   std::uint64_t m_region_gii_odd_col15_d{};  
+  //////////////////////////////////////////
+   std::uint64_t m_region_lii_col0_s{};
+   std::uint64_t m_region_lii_col0_e{};
+   std::uint64_t m_region_lii_col0_d{};
+   std::uint64_t m_region_lii_col1_s{};
+   std::uint64_t m_region_lii_col1_e{};
+   std::uint64_t m_region_lii_col1_d{};
+   std::uint64_t m_region_lii_col2_s{};
+   std::uint64_t m_region_lii_col2_e{};
+   std::uint64_t m_region_lii_col2_d{};
+   std::uint64_t m_region_lii_col3_s{};
+   std::uint64_t m_region_lii_col3_e{};
+   std::uint64_t m_region_lii_col3_d{};
+   std::uint64_t m_region_lii_col4_s{};
+   std::uint64_t m_region_lii_col4_e{};
+   std::uint64_t m_region_lii_col4_d{};
+   std::uint64_t m_region_lii_col5_s{};
+   std::uint64_t m_region_lii_col5_e{};
+   std::uint64_t m_region_lii_col5_d{};
+   std::uint64_t m_region_lii_col6_s{};
+   std::uint64_t m_region_lii_col6_e{};
+   std::uint64_t m_region_lii_col6_d{};
+   std::uint64_t m_region_lii_col7_s{};
+   std::uint64_t m_region_lii_col7_e{};
+   std::uint64_t m_region_lii_col7_d{};
+   std::uint64_t m_region_lii_col8_s{};
+   std::uint64_t m_region_lii_col8_e{};
+   std::uint64_t m_region_lii_col8_d{};
+   std::uint64_t m_region_lii_col9_s{};
+   std::uint64_t m_region_lii_col9_e{};
+   std::uint64_t m_region_lii_col9_d{};
+   std::uint64_t m_region_lii_col10_s{};
+   std::uint64_t m_region_lii_col10_e{};
+   std::uint64_t m_region_lii_col10_d{};
+   std::uint64_t m_region_lii_col11_s{};
+   std::uint64_t m_region_lii_col11_e{};
+   std::uint64_t m_region_lii_col11_d{};
+   std::uint64_t m_region_lii_col12_s{};
+   std::uint64_t m_region_lii_col12_e{};
+   std::uint64_t m_region_lii_col12_d{};
+   std::uint64_t m_region_lii_col13_s{};
+   std::uint64_t m_region_lii_col13_e{};
+   std::uint64_t m_region_lii_col13_d{};
+   std::uint64_t m_region_lii_col14_s{};
+   std::uint64_t m_region_lii_col14_e{};
+   std::uint64_t m_region_lii_col14_d{};
+   std::uint64_t m_region_lii_col15_s{};
+   std::uint64_t m_region_lii_col15_e{};
+   std::uint64_t m_region_lii_col15_d{};
+
+};
+
+__ATTR_ALWAYS_INLINE__ 
+static inline 
+std::uint64_t compute_delta(const std::uint64_t tsc_start,
+                            const std::uint64_t tsc_end,
+                            const bool do_latency_correction) 
+{
+    std::uint64_t tsc_s_corrected{};
+    std::uint64_t tsc_e_corrected{};
+    std::uint64_t tmp_res{};
+    if(do_latency_correction)
+    {
+       tsc_s_corrected = tsc_start-RDTSCP_SKYLAKE_SERVER_LAT;
+       tsc_e_corrected = tsc_end-RDTSCP_SKYLAKE_SERVER_LAT;
+       tmp_res = tsc_e_corrected-tsc_s_corrected;
+    }
+    else 
+    {
+       tmp_res = tsc_end-tsc_start;
+    }
+    std::uint64_t delta{};
+    (tmp_res>0ull)?delta = tmp_res:delta = UINT64_MAX;
+    return (delta);
+}
+
+__ATTR_ALWAYS_INLINE__ 
+static inline 
+std::int32_t print_results(const std::string &&reg_name,
+                           const std::uint64_t tsc_start,
+                           const std::uint64_t tsc_end,
+                           const std::uint64_t tsc_delta)
+{
+    std::int32_t 
+    printf_ret = std::printf("[PMC-TSC:] region=%s,START=%llu,END=%llu,DELTA=%llu\n",reg_name.c_str(),tsc_start,tsc_end,tsc_delta);
+    return (printf_ret);
+}
 
 }
 
@@ -367,6 +539,23 @@ mat_inv_cholesky_16x16_16xf32(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_
                               const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                               __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                               __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16]);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512f")
+#endif
+template<bool use_prefetching,bool mitigate_nan>
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+void 
+mat_inv_cholesky_16x16_16xf32_tsc_instr(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                        const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                        __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                        __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                        mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &);                             
 
 
 } // math 

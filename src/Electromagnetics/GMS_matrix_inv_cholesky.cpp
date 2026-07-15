@@ -4881,3 +4881,619 @@ gms::math
                                              const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                              __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                              __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16]);
+
+/* Dedicated version for the TSC instrumentation profiling*/
+
+#include "GMS_machine_utils.h"
+
+template<bool use_prefetching,bool mitigate_nan>
+void 
+gms::math
+::mat_inv_cholesky_16x16_16xf32_tsc_instr(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                          const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                          __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                          __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                          mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr_block)
+{
+    using namespace gms::common;
+    __ATTR_ALIGN__(64) 
+    __m512 matGRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16];
+    __ATTR_ALIGN__(64)
+    __m512 matGIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16];
+    __ATTR_ALIGN__(64)
+    __m512 matLRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16];
+    __ATTR_ALIGN__(64)
+    __m512 matLIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16];
+    __ATTR_ALIGN__(64)
+    __m512 matD[MAT_SQR_SIZE_16];
+    __ATTR_ALIGN__(64)
+    __m512 matND[MAT_SQR_SIZE_16];
+    __m512 temp0, temp1, temp2;
+    __m512 matLReii;
+    __m512 matLReki;
+    __m512 matLImki;
+    __m512 matLRejj;
+    [[maybe_unused]] volatile std::uint64_t rdtscp_fenced_warmup;
+    std::int32_t i,j,k;
+    const __m512 vzero{_mm512_setzero_ps()};
+    const __m512 vneg_one{_mm512_set1_ps(-1.0f)};
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    rdtscp_fenced_warmup = rdtscp_fenced();
+    if constexpr (static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
+    {
+        constexpr std::int32_t VEC_PS_LEN = 16;
+        const float * __restrict ptr_matBRe{reinterpret_cast<const float * __restrict>(&matBRe)};
+        const float * __restrict ptr_matBIm{reinterpret_cast<const float * __restrict>(&matBIm)};
+        tsc_instr_block.m_region_prefetch_s = rdtscp_fenced();
+        for(i = 0;i != MAT_SQR_SIZE_16; ++i) 
+        {
+            register std::int32_t outer_idx = i*MAT_SQR_SIZE_16;
+            for(j = 0;j != MAT_SQR_SIZE_16; ++j)   
+            {
+                register std::int32_t inner_idx = (outer_idx+j)*VEC_PS_LEN;
+                _mm_prefetch((const char*)&ptr_matBRe[inner_idx],_MM_HINT_T0);
+                _mm_prefetch((const char*)&ptr_matBIm[inner_idx],_MM_HINT_T0);
+            }
+        }
+        tsc_instr_block.m_region_prefetch_e = rdtscp_fenced();
+    }
+    const bool cond_nan_mitigation = static_cast<std::int32_t>(mitigate_nan)==static_cast<std::int32_t>(true);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+     // Column 0
+    tsc_instr_block.m_region_g00_s = rdtscp_fenced();
+    GET_G00(matGRe, matBRe, matD, matND);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 1);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 2);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 3);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 4);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 5);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 6);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 7);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 8);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 9);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 10);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 11);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 12);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 13);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 14);
+    GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 15);
+    tsc_instr_block.m_region_g00_e = rdtscp_fenced();
+    // Column 1
+    if constexpr(cond_nan_mitigation)
+    {   
+        tsc_instr_block.m_region_g11_s = rdtscp_fenced();
+        GET_G11_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0);
+    }
+    else 
+    {   
+        tsc_instr_block.m_region_g11_s = rdtscp_fenced();
+        GET_G11(matGRe, matGIm, matBRe, matD, matND, temp0);
+    }
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 2, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 3, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 4, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 5, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 6, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 7, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 8, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 9, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 10, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 11, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 12, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 13, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 14, temp0, temp1);
+    GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 15, temp0, temp1);
+    tsc_instr_block.m_region_g11_e = rdtscp_fenced();
+    // Column 2
+    if constexpr(cond_nan_mitigation)
+    {
+        tsc_instr_block.m_region_g22_s = rdtscp_fenced();
+        GET_G22_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    else 
+    {
+        tsc_instr_block.m_region_g22_s = rdtscp_fenced();
+        GET_G22(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 3, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 4, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 5, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 6, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 7, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 8, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 9, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 10, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 11, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 12, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 13, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 14, temp0, temp1);
+    GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 15, temp0, temp1);
+    tsc_instr_block.m_region_g22_e = rdtscp_fenced();
+    // Column 3
+    if constexpr(cond_nan_mitigation)
+    {
+        tsc_instr_block.m_region_g33_s = rdtscp_fenced();
+        GET_G33_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+    else 
+    {
+        tsc_instr_block.m_region_g33_s = rdtscp_fenced();
+        GET_G33(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 4, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 5, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 6, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 7, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 8, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 9, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 10, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 11, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 12, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 13, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 14, temp0, temp1);
+    GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 15, temp0, temp1);
+    tsc_instr_block.m_region_g33_e = rdtscp_fenced();
+    // Column 4
+    if constexpr(cond_nan_mitigation)
+    {
+        tsc_instr_block.m_region_g44_s = rdtscp_fenced();
+        GET_G44_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    else 
+    {
+        tsc_instr_block.m_region_g44_s = rdtscp_fenced();
+        GET_G44(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 5, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 6, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 7, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 8, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 9, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 10, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 11, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 12, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 13, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 14, 4, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 15, 4, temp0, temp1);
+    tsc_instr_block.m_region_g44_e = rdtscp_fenced();
+    // Column 5
+    if constexpr(cond_nan_mitigation)
+    {
+        tsc_instr_block.m_region_g55_s = rdtscp_fenced();
+        GET_G55_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+    else 
+    {
+        tsc_instr_block.m_region_g55_s = rdtscp_fenced();
+        GET_G55(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 6, 5, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 7, 5, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 8, 5, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 9, 5, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 10, 5, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 11, 5, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 12, 5, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 13, 5, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 14, 5, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 15, 5, temp0, temp1);
+    tsc_instr_block.m_region_g55_e = rdtscp_fenced();
+    // Column 6
+    if constexpr(cond_nan_mitigation)
+    {
+        tsc_instr_block.m_region_g66_s = rdtscp_fenced();
+        GET_G66_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    else 
+    {
+        tsc_instr_block.m_region_g66_s = rdtscp_fenced();
+        GET_G66(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
+    }
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 7, 6, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 8, 6, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 9, 6, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 10, 6, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 11, 6, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 12, 6, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 13, 6, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 14, 6, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 15, 6, temp0, temp1);
+    tsc_instr_block.m_region_g66_e = rdtscp_fenced();
+    // Column 7
+    if constexpr(cond_nan_mitigation)
+    {
+        tsc_instr_block.m_region_g77_s = rdtscp_fenced();
+        GET_G77_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+    else 
+    {
+        tsc_instr_block.m_region_g77_s = rdtscp_fenced();
+        GET_G77(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
+    }
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 8, 7, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 9, 7, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 10, 7, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 11, 7, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 12, 7, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 13, 7, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 14, 7, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 15, 7, temp0, temp1);
+    tsc_instr_block.m_region_g77_e = rdtscp_fenced();
+    // Column 8
+    if constexpr(cond_nan_mitigation)
+    {
+        tsc_instr_block.m_region_gii_even_col8_s = rdtscp_fenced();
+        GET_Gii_EVEN_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 8);
+    }
+    else 
+    {
+        tsc_instr_block.m_region_gii_even_col8_s = rdtscp_fenced();
+        GET_Gii_EVEN(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 8);
+    }
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 9, 8, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 10, 8, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 11, 8, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 12, 8, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 13, 8, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 14, 8, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 15, 8, temp0, temp1);
+    tsc_instr_block.m_region_gii_even_col8_e = rdtscp_fenced();
+    // Column 9
+    if constexpr(cond_nan_mitigation)
+    {
+        tsc_instr_block.m_region_gii_odd_col9_s = rdtscp_fenced();
+        GET_Gii_ODD_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 9);
+    }
+    else 
+    {
+        tsc_instr_block.m_region_gii_odd_col9_s = rdtscp_fenced();
+        GET_Gii_ODD(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 9);
+    }
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 10, 9, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 11, 9, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 12, 9, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 13, 9, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 14, 9, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 15, 9, temp0, temp1);
+    tsc_instr_block.m_region_gii_odd_col9_e = rdtscp_fenced();
+    // Column 10
+    if constexpr(cond_nan_mitigation)
+    {
+        tsc_instr_block.m_region_gii_even_col10_s = rdtscp_fenced();
+        GET_Gii_EVEN_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 10);
+    }
+    else 
+    {
+        tsc_instr_block.m_region_gii_even_col10_s = rdtscp_fenced();
+        GET_Gii_EVEN(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 10);
+    }
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 11, 10, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 12, 10, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 13, 10, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 14, 10, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 15, 10, temp0, temp1);
+    tsc_instr_block.m_region_gii_even_col10_e = rdtscp_fenced();
+    // Column 11
+    if constexpr(cond_nan_mitigation)
+    {
+        tsc_instr_block.m_region_gii_odd_col11_s = rdtscp_fenced();
+        GET_Gii_ODD_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 11);
+    }
+    else 
+    {
+        tsc_instr_block.m_region_gii_odd_col11_s = rdtscp_fenced();
+        GET_Gii_ODD(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 11);
+    }
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 12, 11, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 13, 11, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 14, 11, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 15, 11, temp0, temp1);
+    tsc_instr_block.m_region_gii_odd_col11_e = rdtscp_fenced();
+    // Column 12
+    if constexpr(cond_nan_mitigation)
+    {
+        tsc_instr_block.m_region_gii_even_col12_s = rdtscp_fenced();
+        GET_Gii_EVEN_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 12);
+    }
+    else 
+    {
+        tsc_instr_block.m_region_gii_even_col12_s = rdtscp_fenced();
+        GET_Gii_EVEN(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 12);
+    }
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 13, 12, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 14, 12, temp0, temp1);
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 15, 12, temp0, temp1);
+    tsc_instr_block.m_region_gii_even_col12_e = rdtscp_fenced();
+    // Column 13
+    if constexpr(cond_nan_mitigation)
+    {
+        tsc_instr_block.m_region_gii_odd_col13_s = rdtscp_fenced();
+        GET_Gii_ODD_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 13);
+    }
+    else 
+    {   
+        tsc_instr_block.m_region_gii_odd_col13_s = rdtscp_fenced();
+        GET_Gii_ODD(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 13);
+    }
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 14, 13, temp0, temp1);
+    GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 15, 13, temp0, temp1);
+    tsc_instr_block.m_region_gii_odd_col13_e = rdtscp_fenced();
+    // Column 14
+    if constexpr(cond_nan_mitigation)
+    {
+        tsc_instr_block.m_region_gii_even_col14_s = rdtscp_fenced();
+        GET_Gii_EVEN_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 14);
+    }
+    else 
+    {
+        tsc_instr_block.m_region_gii_even_col14_s = rdtscp_fenced();
+        GET_Gii_EVEN(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 14);
+    }
+    GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 15, 14, temp0, temp1);
+    tsc_instr_block.m_region_gii_even_col14_e = rdtscp_fenced();
+    // Column 15
+    if constexpr(cond_nan_mitigation)
+    {
+        tsc_instr_block.m_region_gii_odd_col15_s = rdtscp_fenced();
+        GET_Gii_ODD_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 15);
+    }
+    else 
+    {
+        tsc_instr_block.m_region_gii_odd_col15_s = rdtscp_fenced();
+        GET_Gii_ODD(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 15);
+    }
+    tsc_instr_block.m_region_gii_odd_col15_e = rdtscp_fenced();
+    /////////////////////////////////// get L, L=invG
+    // Column 0
+    tsc_instr_block.m_region_lii_col0_s = rdtscp_fenced();
+    SET_Lii(matLRe, matLIm, matD, 0);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 1, 0);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 2, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 3, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 4, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 5, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 6, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 7, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 8, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 9, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 0, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 0, temp0, temp1);
+    tsc_instr_block.m_region_lii_col0_e = rdtscp_fenced();
+    // Column 1
+    tsc_instr_block.m_region_lii_col1_s = rdtscp_fenced();
+    SET_Lii(matLRe, matLIm, matD, 1);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 2, 1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 3, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 4, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 5, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 6, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 7, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 8, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 9, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 1, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 1, temp0, temp1);
+    tsc_instr_block.m_region_lii_col1_e = rdtscp_fenced();
+    // Column 2
+    tsc_instr_block.m_region_lii_col2_s = rdtscp_fenced();
+    SET_Lii(matLRe, matLIm, matD, 2);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 3, 2);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 4, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 5, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 6, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 7, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 8, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 9, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 2, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 2, temp0, temp1);
+    tsc_instr_block.m_region_lii_col2_e = rdtscp_fenced();
+    // Column 3
+    tsc_instr_block.m_region_lii_col3_s = rdtscp_fenced();
+    SET_Lii(matLRe, matLIm, matD, 3);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 4, 3);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 5, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 6, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 7, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 8, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 9, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 3, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 3, temp0, temp1);
+    tsc_instr_block.m_region_lii_col3_e = rdtscp_fenced();
+    // Column 4
+    tsc_instr_block.m_region_lii_col4_s = rdtscp_fenced();
+    SET_Lii(matLRe, matLIm, matD, 4);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 5, 4);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 6, 4, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 7, 4, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 8, 4, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 9, 4, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 4, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 4, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 4, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 4, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 4, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 4, temp0, temp1);
+    tsc_instr_block.m_region_lii_col4_e = rdtscp_fenced();
+    // Column 5
+    tsc_instr_block.m_region_lii_col5_s = rdtscp_fenced();
+    SET_Lii(matLRe, matLIm, matD, 5);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 6, 5);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 7, 5, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 8, 5, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 9, 5, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 5, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 5, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 5, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 5, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 5, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 5, temp0, temp1);
+    tsc_instr_block.m_region_lii_col5_e = rdtscp_fenced();
+    // Column 6
+    tsc_instr_block.m_region_lii_col6_s = rdtscp_fenced();
+    SET_Lii(matLRe, matLIm, matD, 6);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 7, 6);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 8, 6, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 9, 6, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 6, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 6, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 6, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 6, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 6, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 6, temp0, temp1);
+    tsc_instr_block.m_region_lii_col6_e = rdtscp_fenced();
+    // Column 7
+    tsc_instr_block.m_region_lii_col7_s = rdtscp_fenced();
+    SET_Lii(matLRe, matLIm, matD, 7);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 8, 7);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 9, 7, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 7, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 7, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 7, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 7, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 7, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 7, temp0, temp1);
+    tsc_instr_block.m_region_lii_col7_e = rdtscp_fenced();
+    // Column 8
+    tsc_instr_block.m_region_lii_col8_s = rdtscp_fenced();
+    SET_Lii(matLRe, matLIm, matD, 8);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 9, 8);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 8, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 8, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 8, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 8, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 8, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 8, temp0, temp1);
+    tsc_instr_block.m_region_lii_col8_e = rdtscp_fenced();
+    // Column 9
+    tsc_instr_block.m_region_lii_col9_s = rdtscp_fenced();
+    SET_Lii(matLRe, matLIm, matD, 9);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 10, 9);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 9, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 9, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 9, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 9, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 9, temp0, temp1);
+    tsc_instr_block.m_region_lii_col9_e = rdtscp_fenced();
+    // Column 10
+    tsc_instr_block.m_region_lii_col10_s = rdtscp_fenced();
+    SET_Lii(matLRe, matLIm, matD, 10);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 11, 10);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 10, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 10, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 10, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 10, temp0, temp1);
+    tsc_instr_block.m_region_lii_col10_e = rdtscp_fenced();
+    // Column 11
+    tsc_instr_block.m_region_lii_col11_s = rdtscp_fenced();
+    SET_Lii(matLRe, matLIm, matD, 11);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 12, 11);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 11, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 11, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 11, temp0, temp1);
+    tsc_instr_block.m_region_lii_col11_e = rdtscp_fenced();
+    // Column 12
+    tsc_instr_block.m_region_lii_col12_s = rdtscp_fenced();
+    SET_Lii(matLRe, matLIm, matD, 12);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 13, 12);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 12, temp0, temp1);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 12, temp0, temp1);
+    tsc_instr_block.m_region_lii_col12_e = rdtscp_fenced();
+    // Column 13
+    tsc_instr_block.m_region_lii_col13_s = rdtscp_fenced();
+    SET_Lii(matLRe, matLIm, matD, 13);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 14, 13);
+    GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 13, temp0, temp1);
+    tsc_instr_block.m_region_lii_col13_e = rdtscp_fenced();
+    // Column 14
+    tsc_instr_block.m_region_lii_col14_s = rdtscp_fenced();
+    SET_Lii(matLRe, matLIm, matD, 14);
+    GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 15, 14);
+    tsc_instr_block.m_region_lii_col14_e = rdtscp_fenced();
+    // Column 15
+    tsc_instr_block.m_region_lii_col15_s = rdtscp_fenced();
+    SET_Lii(matLRe, matLIm, matD, 15);
+    tsc_instr_block.m_region_lii_col15_e = rdtscp_fenced();
+
+    for(i = 0; i < MAT_SQR_SIZE_16; ++i)
+    {
+        tsc_instr_block.m_region_loop2D_s[i] = rdtscp_fenced();
+        matLReii        = matLRe[i][i];
+        matInvBRe[i][i] = _mm512_mul_ps(matLReii,matLReii);
+        for(k = (i+1); k < MAT_SQR_SIZE_16; ++k) 
+        {
+            matLReki = matLRe[k][i];
+            matLImki = matLIm[k][i];
+            temp1    = _mm512_fmadd_ps(matLReki,matLReki,_mm512_mul_ps(matLImki,matLImki));
+            matInvBRe[i][i] = _mm512_add_ps(matInvBRe[i][i],temp1);
+        } 
+        matInvBIm[i][i] = vzero;
+        tsc_instr_block.m_region_loop2D_e[i] = rdtscp_fenced();
+    }
+
+    for(i = 0; i < MAT_SQR_SIZE_16; ++i) 
+    {
+        tsc_instr_block.m_region_loop3D_s[i] = rdtscp_fenced();
+        for(j = (i+1);j < MAT_SQR_SIZE_16; ++j)   
+        {
+            matLRejj        = matLRe[j][j];
+            matInvBRe[i][j] = _mm512_mul_ps(matLRe[j][i],matLRejj);
+            matInvBIm[i][j] = _mm512_sub_ps(vzero,_mm512_mul_ps(matLIm[j][i],matLRejj));
+            for(k = (j+1); k < MAT_SQR_SIZE_16; k++)
+            {
+                GET_AxBH(matLRe[k][j],matLIm[k][j],matLRe[k][i],matLIm[k][i],temp1,temp2);
+                matInvBRe[i][j] = _mm512_add_ps(matInvBRe[i][j], temp1);
+                matInvBIm[i][j] = _mm512_add_ps(matInvBIm[i][j], temp2);
+            }
+            matInvBRe[j][i] = matInvBRe[i][j];
+            matInvBIm[j][i] = _mm512_sub_ps(vzero, matInvBIm[i][j]);
+        }
+        tsc_instr_block.m_region_loop3D_e[i] = rdtscp_fenced();
+    }
+}
+
+template void 
+gms::math 
+::mat_inv_cholesky_16x16_16xf32_tsc_instr<true,true>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                           const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                           __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                           __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                           mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr_block);
+
+template void 
+gms::math 
+::mat_inv_cholesky_16x16_16xf32_tsc_instr<false,true>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr_block);
+
+template void 
+gms::math 
+::mat_inv_cholesky_16x16_16xf32_tsc_instr<true,false>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr_block);
+
+template void 
+gms::math 
+::mat_inv_cholesky_16x16_16xf32_tsc_instr<false,false>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                             const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                             __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                             __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                             mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr_block);
