@@ -164,43 +164,17 @@ void clobber()
     );\
     (cycles) = ((std::uint64_t)cyce_high << 32) | cyce_low;  
 
-// When processed the above stated macros produce this machine code.
-// Seemingly the first line of assembly, i.e. 'mov DWORD PTR [rbp-12], edi'
-// will be measured by the second read-out of the TSC counter by the rdtscp
-// machine instruction.
+
 /*
-        push    rbp
-        mov     rbp, rsp
-        push    rbx
+push    rbx
 cpuid
 rdtsc
-mov %edx, edi
-mov %eax, esi
-        mov     DWORD PTR [rbp-12], edi
-        mov     DWORD PTR [rbp-16], esi
-        mov     eax, DWORD PTR [rbp-12]
-        sal     rax, 32
-        mov     rdx, rax
-        mov     eax, DWORD PTR [rbp-16]
-        or      rax, rdx
-        mov     QWORD PTR [rbp-24], rax
-        // measured function or code block placed here!!
-rdtscp
-mov %edx, edi
-mov %eax, esi
+mov %edx, esi
+mov %eax, edi
+        rdtscp
+mov %edx, esi
+mov %eax, edi
 cpuid
-        mov     DWORD PTR [rbp-28], edi
-        mov     DWORD PTR [rbp-32], esi
-        mov     eax, DWORD PTR [rbp-28]
-        sal     rax, 32
-        mov     rdx, rax
-        mov     eax, DWORD PTR [rbp-32]
-        or      rax, rdx
-        mov     QWORD PTR [rbp-40], rax
-        mov     eax, 0
-        mov     rbx, QWORD PTR [rbp-8]
-        leave
-        ret
 */
 
 } // common
