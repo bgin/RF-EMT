@@ -99,7 +99,8 @@ get_phys_mem_addr(std::size_t vaddr)
 __ATTR_ALWAYS_INLINE__
 inline static 
 std::size_t 
-get_direct_physical_map() {
+get_direct_physical_map() 
+{
   struct utsname buf;
   uname(&buf);
   std::int32_t major = atoi(strtok(buf.release, "."));
@@ -113,6 +114,94 @@ get_direct_physical_map() {
         return 0xffff888000000000ull;
   }
 }
+
+/* Do not optimize implementation*/
+
+template<class T>
+static inline 
+void do_not_optimize(T const& val)
+{
+     asm volatile("" : : "m,r"(val) : "memory");
+}
+
+template<class T>
+static inline 
+void do_not_optimize(T &val)
+{
+    asm volatile("" : : "m,r"(val) : "memory");
+}
+
+__ATTR_ALWAYS_INLINE__
+inline static 
+void clobber()
+{
+     asm volatile("" : : : "memory");
+}
+
+#define RDTSC_START(cycles)\
+    std::uint32_t cycs_high, cycs_low;\
+    __asm volatile("cpuid\n"\
+                   "rdtsc\n"\
+                   "mov %%edx, %0\n"\
+                   "mov %%eax, %1"\
+                   : "=r"(cycs_high), "=r"(cycs_low)\
+                   :\
+                   :                              /* no read only */\
+                   "%rax", "%rbx", "%rcx", "%rdx" /* clobbers */\
+    );\
+    (cycles) = ((std::uint64_t)cycs_high << 32) | cycs_low;                             
+
+
+#define RDTSC_STOP(cycles)\
+    std::uint32_t cyce_high, cyce_low;\
+    __asm volatile("rdtscp\n"\
+                   "mov %%edx, %0\n"\
+                   "mov %%eax, %1\n"\
+                   "cpuid"\
+                   : "=r"(cyce_high), "=r"(cyce_low)\
+                   : /* no read only registers */\
+                   : "%rax", "%rbx", "%rcx", "%rdx" /* clobbers */\
+    );\
+    (cycles) = ((std::uint64_t)cyce_high << 32) | cyce_low;  
+
+// When processed the above stated macros produce this machine code.
+// Seemingly the first line of assembly, i.e. 'mov DWORD PTR [rbp-12], edi'
+// will be measured by the second read-out of the TSC counter by the rdtscp
+// machine instruction.
+/*
+        push    rbp
+        mov     rbp, rsp
+        push    rbx
+cpuid
+rdtsc
+mov %edx, edi
+mov %eax, esi
+        mov     DWORD PTR [rbp-12], edi
+        mov     DWORD PTR [rbp-16], esi
+        mov     eax, DWORD PTR [rbp-12]
+        sal     rax, 32
+        mov     rdx, rax
+        mov     eax, DWORD PTR [rbp-16]
+        or      rax, rdx
+        mov     QWORD PTR [rbp-24], rax
+        // measured function or code block placed here!!
+rdtscp
+mov %edx, edi
+mov %eax, esi
+cpuid
+        mov     DWORD PTR [rbp-28], edi
+        mov     DWORD PTR [rbp-32], esi
+        mov     eax, DWORD PTR [rbp-28]
+        sal     rax, 32
+        mov     rdx, rax
+        mov     eax, DWORD PTR [rbp-32]
+        or      rax, rdx
+        mov     QWORD PTR [rbp-40], rax
+        mov     eax, 0
+        mov     rbx, QWORD PTR [rbp-8]
+        leave
+        ret
+*/
 
 } // common
 
