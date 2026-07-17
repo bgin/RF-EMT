@@ -138,7 +138,7 @@ void clobber()
      asm volatile("" : : : "memory");
 }
 
-#define RDTSC_START(cycles)\
+#define RDTSC_START_v1(cycles)\
     std::uint32_t cycs_high, cycs_low;\
     __asm volatile("cpuid\n"\
                    "rdtsc\n"\
@@ -152,7 +152,7 @@ void clobber()
     (cycles) = ((std::uint64_t)cycs_high << 32) | cycs_low;                             
 
 
-#define RDTSC_STOP(cycles)\
+#define RDTSC_STOP_v1(cycles)\
     std::uint32_t cyce_high, cyce_low;\
     __asm volatile("rdtscp\n"\
                    "mov %%edx, %0\n"\
@@ -164,18 +164,98 @@ void clobber()
     );\
     (cycles) = ((std::uint64_t)cyce_high << 32) | cyce_low;  
 
+#define RDTSC_START_v2(cycles)\
+  do{\
+    std::uint32_t cyc_high, cyc_low;\
+    __asm volatile("cpuid\n"\
+                   "rdtsc\n"\
+                   "mov %%edx, %0\n"\
+                   "mov %%eax, %1"\
+                   : "=r"(cyc_high), "=r"(cyc_low)\
+                   :\
+                   :                              /* no read only */\
+                   "%rax", "%rbx", "%rcx", "%rdx" /* clobbers */\
+    );\
+    (cycles) = ((std::uint64_t)cyc_high << 32) | cyc_low;\
+  }while(0);
+                           
 
-/*
-push    rbx
-cpuid
-rdtsc
-mov %edx, esi
-mov %eax, edi
-        rdtscp
-mov %edx, esi
-mov %eax, edi
-cpuid
-*/
+
+#define RDTSC_STOP_v2(cycles)\
+  do{\
+    std::uint32_t cyc_high, cyc_low;\
+    __asm volatile("rdtscp\n"\
+                   "mov %%edx, %0\n"\
+                   "mov %%eax, %1\n"\
+                   "cpuid"\
+                   : "=r"(cyc_high), "=r"(cyc_low)\
+                   : /* no read only registers */\
+                   : "%rax", "%rbx", "%rcx", "%rdx" /* clobbers */\
+    );\
+    (cycles) = ((std::uint64_t)cyc_high << 32) | cyc_low;\
+  }while(0);
+
+#define RDTSC_START_v3(cycles)\
+    __asm volatile("cpuid\n"\
+                   "rdtsc\n"\
+                   "mov %%edx, %0\n"\
+                   "mov %%eax, %1"\
+                   : "=r"(cycs_high), "=r"(cycs_low)\
+                   :\
+                   :                              /* no read only */\
+                   "%rax", "%rbx", "%rcx", "%rdx" /* clobbers */\
+    );\
+    (cycles) = ((std::uint64_t)cycs_high << 32) | cycs_low;                             
+
+#define RDTSC_STOP_v3(cycles)\
+    __asm volatile("rdtscp\n"\
+                   "mov %%edx, %0\n"\
+                   "mov %%eax, %1\n"\
+                   "cpuid"\
+                   : "=r"(cyce_high), "=r"(cyce_low)\
+                   : /* no read only registers */\
+                   : "%rax", "%rbx", "%rcx", "%rdx" /* clobbers */\
+    );\
+    (cycles) = ((std::uint64_t)cyce_high << 32) | cyce_low;  
+
+__ATTR_ALWAYS_INLINE__
+inline static 
+std::uint64_t 
+rdtsc_serialized_start()
+{
+  std::uint64_t tsc_readout{};
+  std::uint32_t cyc_high, cyc_low;
+  __asm volatile(  "cpuid\n"\
+                   "rdtsc\n"\
+                   "mov %%edx, %0\n"\
+                   "mov %%eax, %1"\
+                   : "=r"(cyc_high), "=r"(cyc_low)\
+                   :\
+                   :                              /* no read only */\
+                   "%rax", "%rbx", "%rcx", "%rdx" /* clobbers */\
+    );
+    tsc_readout = ((std::uint64_t)cyc_high << 32) | cyc_low;
+    return (tsc_readout);
+}
+
+__ATTR_ALWAYS_INLINE__
+inline static 
+std::uint64_t 
+rdtsc_serialized_stop()
+{
+  std::uint64_t tsc_readout{};
+  std::uint32_t cyce_high, cyce_low;
+  __asm volatile(  "rdtscp\n"\
+                   "mov %%edx, %0\n"\
+                   "mov %%eax, %1\n"\
+                   "cpuid"\
+                   : "=r"(cyce_high), "=r"(cyce_low)\
+                   : /* no read only registers */\
+                   : "%rax", "%rbx", "%rcx", "%rdx" /* clobbers */\
+    );
+    tsc_readout = ((std::uint64_t)cyce_high << 32) | cyce_low;
+    return (tsc_readout);
+}
 
 } // common
 
