@@ -190,26 +190,122 @@ void perf_test_rdtscp_fenced(std::uint64_t * __restrict__ samples_s,
     warmup2_rdtscp_fenced    = gms::common::rdtscp_fenced();
     for(std::int32_t i = 0; i < n_runs; ++i) 
     {   
+        register std::int32_t outer_idx = i*n_samples;
         for(std::int32_t j = 0;j < n_samples; ++j)  
-        {
+        {   
             register std::uint64_t start = gms::common::rdtscp_fenced();
             register std::uint64_t end   = gms::common::rdtscp_fenced();
-            p_samples_s[i*n_samples+j] = start;
-            p_samples_e[i*n_samples+j] = end;
-            p_samples_d[i*n_samples+j] = end-start;
+            register std::int32_t inner_idx = outer_idx+j;
+            p_samples_s[inner_idx] = start;
+            p_samples_e[inner_idx] = end;
+            p_samples_d[inner_idx] = end-start;
         }
     }
     tid = omp_get_thread_num();
 }
 
 __attribute__((hot))
+__attribute__((noinline))
+void perf_test_rdtsc_rdtscp_macro(std::uint64_t * __restrict__ ,
+                                  std::uint64_t * __restrict__ ,
+                                  std::uint64_t * __restrict__ ,
+                                  const std::int32_t ,
+                                  const std::int32_t ,
+                                  std::uint32_t &);
+
+__attribute__((hot))
+__attribute__((noinline))
+void perf_test_rdtsc_rdtscp_macro(std::uint64_t * __restrict__ samples_s,
+                                  std::uint64_t * __restrict__ samples_e,
+                                  std::uint64_t * __restrict__ samples_d,
+                                  const std::int32_t n_runs,
+                                  const std::int32_t n_samples,
+                                  std::uint32_t &tid)
+{
+    tid = 9999;
+    std::uint64_t * __restrict__ p_samples_s = samples_s;
+    std::uint64_t * __restrict__ p_samples_e = samples_e;
+    std::uint64_t * __restrict__ p_samples_d = samples_d;
+    [[maybe_unused]] volatile std::uint64_t warmup_cycles_start{};
+    [[maybe_unused]] volatile std::uint64_t warmup_cycles_end{};
+    register std::uint64_t cycles_start{UINT64_MAX};
+    register std::uint64_t cycles_end{UINT64_MAX};
+    RDTSC_START_v1(warmup_cycles_start);
+    RDTSC_STOP_v1(warmup_cycles_end);
+    for(std::int32_t i = 0; i < n_runs; ++i) 
+    {   
+        register std::int32_t outer_idx = i*n_samples;
+        for(std::int32_t j = 0;j < n_samples; ++j)  
+        {   
+            RDTSC_START_v1(cycles_start);
+            RDTSC_STOP_v1(cycles_end);
+            register std::int32_t inner_idx = outer_idx+j;
+            p_samples_s[inner_idx] = cycles_start;
+            p_samples_e[inner_idx] = cycles_end;
+            p_samples_d[inner_idx] = cycles_end-cycles_start;
+        }
+    }
+    tid = omp_get_thread_num();
+}
+
+
+__attribute__((hot))
+__attribute__((noinline))
+void perf_test_rdtsc_rdtscp_func(std::uint64_t * __restrict__ ,
+                                  std::uint64_t * __restrict__ ,
+                                  std::uint64_t * __restrict__ ,
+                                  const std::int32_t ,
+                                  const std::int32_t ,
+                                  std::uint32_t &);
+
+__attribute__((hot))
+__attribute__((noinline))
+void perf_test_rdtsc_rdtscp_func(std::uint64_t * __restrict__ samples_s,
+                                  std::uint64_t * __restrict__ samples_e,
+                                  std::uint64_t * __restrict__ samples_d,
+                                  const std::int32_t n_runs,
+                                  const std::int32_t n_samples,
+                                  std::uint32_t &tid)
+{
+    tid = 9999;
+    std::uint64_t * __restrict__ p_samples_s = samples_s;
+    std::uint64_t * __restrict__ p_samples_e = samples_e;
+    std::uint64_t * __restrict__ p_samples_d = samples_d;
+    [[maybe_unused]] volatile std::uint64_t warmup_cycles_start{};
+    [[maybe_unused]] volatile std::uint64_t warmup_cycles_end{};
+    register std::uint64_t cycles_start{UINT64_MAX};
+    register std::uint64_t cycles_end{UINT64_MAX};
+    warmup_cycles_start = gms::common::rdtsc_serialized_start();
+    warmup_cycles_end   = gms::common::rdtsc_serialized_stop();
+    for(std::int32_t i = 0; i < n_runs; ++i) 
+    {   
+        register std::int32_t outer_idx = i*n_samples;
+        for(std::int32_t j = 0;j < n_samples; ++j)  
+        {   
+            cycles_start = gms::common::rdtsc_serialized_start();
+            cycles_end   = gms::common::rdtsc_serialized_stop();
+            register std::int32_t inner_idx = outer_idx+j;
+            p_samples_s[inner_idx] = cycles_start;
+            p_samples_e[inner_idx] = cycles_end;
+            p_samples_d[inner_idx] = cycles_end-cycles_start;
+        }
+    }
+    tid = omp_get_thread_num();
+}
+
+
+__attribute__((hot))
 void 
 test_runner_single_thread(PERF_TEST_RDTSC_FPTR,
-                          std::string &&);
+                          std::string &&,
+                          const std::int32_t,
+                          const std::int32_t);
 
 void 
 test_runner_single_thread(PERF_TEST_RDTSC_FPTR fptr,
-                          std::string &&intrin_name)
+                          std::string &&intrin_name,
+                          const std::int32_t cpu_core,
+                          const std::int32_t priority)
 {
     constexpr std::int32_t n_runs{20};
     constexpr std::int32_t n_samples{100};
@@ -230,6 +326,16 @@ test_runner_single_thread(PERF_TEST_RDTSC_FPTR fptr,
     if(setenv_ret==-1)
     {
         printf_ret = printf("[**ERROR**]: -- setenv reported an error=%d\n",setenv_ret);
+    }
+    std::int32_t prio_stat{};
+    prio_stat = set_affinity_and_priority(cpu_core,priority);
+    if(prio_stat>0)
+    {
+       std::int32_t which = PRIO_PROCESS;
+       id_t pid      = getpid();
+       errno         = 0;
+       std::int32_t nice  = getpriority(which,pid);
+       printf_ret = printf("[***ERROR***]: set_affinity_and_priority status:%d,errno=%d,pid=%d,nice=%d\n",prio_stat,errno,pid,nice);
     }
     //fptr = perf_test_rdtsc_intrinsic;
     printf_ret = printf(ANSI_COLOR_WHITE "[PERF-TEST]: START of %s -- overhead measurement.\n",intrin_name.c_str());
@@ -328,7 +434,8 @@ int main()
     test_runner_omp_2_sections(&perf_test_rdtsc_intrinsic,std::string("__rdtsc"));
     test_runner_omp_2_sections(&perf_test_rdtscp_intrinsic,std::string("__rdtscp"));
     test_runner_omp_2_sections(&perf_test_rdtscp_fenced,std::string("rdtscp_fenced"));
-    //test_runner_omp_2_sections();
+    test_runner_omp_2_sections(&perf_test_rdtsc_rdtscp_macro,std::string("__rdtsc(p)_serialized-macro"));
+    test_runner_omp_2_sections(&perf_test_rdtsc_rdtscp_func,std::string("__rdtsc(p)_serialized-function"));
     return 0;
 }
 
