@@ -4882,18 +4882,70 @@ gms::math
                                              __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                              __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16]);
 
+/*
+
+#include <cmath>
+#include <cstdio>
+
+float test_add(float a, float b)
+{
+    return (a+b);
+}
+
+template<typename T,class Functor>
+T test_functor(Functor &func,T t0,T t1)
+{
+    return (func(t0,t1));
+}
+
+template<typename T,class Functor>
+T test_functor(Functor func,T t0)
+{
+    return (func(t0));
+}
+
+int main()
+{
+    //float res2 = std::sin(0.45f); 
+    //float res{test_functor(test_add,0.45f,0.54f)};
+    float res2{test_functor(sin,0.45f)};
+    std::printf("%.7f\n",res2);
+    return 0;
+}
+
+*/
+
 /* Dedicated version for the TSC instrumentation profiling*/
 
 #include "GMS_machine_utils.h"
 
-template<bool use_prefetching,bool mitigate_nan>
+#define TSC_MEASURING_FUNC_BLOCK_START(block_name)\
+if constexpr(tsc_measuring_function==1)\
+   (block_name) = rdtscp_fenced();\       
+else if constexpr(tsc_measuring_function==2)\
+   (block_name) = rdtsc_fenced_start();\        
+else if constexpr(tsc_measuring_function==3)\
+   (block_name) = rdtsc_serialized_start();
+
+#define TSC_MEASURING_FUNC_BLOCK_STOP(block_name)\
+if constexpr(tsc_measuring_function==1)\
+   (block_name) = rdtscp_fenced();\       
+else if constexpr(tsc_measuring_function==2)\
+   (block_name) = rdtsc_fenced_stop();\        
+else if constexpr(tsc_measuring_function==3)\
+   (block_name) = rdtsc_serialized_stop();
+
+
+template<bool use_prefetching,bool mitigate_nan,std::int32_t tsc_measuring_function>        
 void 
 gms::math
 ::mat_inv_cholesky_16x16_16xf32_tsc_instr(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                           const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                           __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                           __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
-                                          mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr_block)
+                                          mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr)
+                                         
+                                          
 {
     using namespace gms::common;
     __ATTR_ALIGN__(64) 
@@ -4913,34 +4965,81 @@ gms::math
     __m512 matLReki;
     __m512 matLImki;
     __m512 matLRejj;
-    [[maybe_unused]] volatile std::uint64_t rdtscp_fenced_warmup;
+    [[maybe_unused]] volatile std::uint64_t tsc_func_warmup1;
+    [[maybe_unused]] volatile std::uint64_t tsc_func_warmup2;
+    [[maybe_unused]] volatile std::uint64_t tsc_func_warmup3;
     std::int32_t i,j,k;
+    register std::int32_t inner_idx0{};
+    register std::int32_t inner_idx1{};
     const __m512 vzero{_mm512_setzero_ps()};
     const __m512 vneg_one{_mm512_set1_ps(-1.0f)};
     /////////////////////////////////////////////////////////////////////////////////////////////
-    rdtscp_fenced_warmup = rdtscp_fenced();
+    if constexpr(tsc_measuring_function==1)
+    {
+        tsc_func_warmup1 = rdtscp_fenced();
+        tsc_func_warmup2 = rdtscp_fenced();
+        tsc_func_warmup3 = rdtscp_fenced();
+    }
+    else if constexpr(tsc_measuring_function==2)
+    {
+        tsc_func_warmup1 = rdtsc_fenced_start();
+        tsc_func_warmup2 = rdtsc_fenced_start();
+        tsc_func_warmup3 = rdtsc_fenced_start();
+    }
+    else if constexpr(tsc_measuring_function==3)
+    {
+        tsc_func_warmup1 = rdtsc_serialized_start();
+        tsc_func_warmup1 = rdtsc_serialized_stop();
+        tsc_func_warmup2 = rdtsc_serialized_start();
+        tsc_func_warmup2 = rdtsc_serialized_stop();
+        tsc_func_warmup3 = rdtsc_serialized_start();
+        tsc_func_warmup3 = rdtsc_serialized_stop();
+    }
     if constexpr (static_cast<std::int32_t>(use_prefetching)==static_cast<std::int32_t>(true))
     {
         constexpr std::int32_t VEC_PS_LEN = 16;
         const float * __restrict ptr_matBRe{reinterpret_cast<const float * __restrict>(&matBRe)};
         const float * __restrict ptr_matBIm{reinterpret_cast<const float * __restrict>(&matBIm)};
-        tsc_instr_block.m_region_prefetch_s = rdtscp_fenced();
+        //tsc_instr_block.m_region_prefetch_s = fptr();
+        
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_prefetch_s)
         for(i = 0;i != MAT_SQR_SIZE_16; ++i) 
         {
             register std::int32_t outer_idx = i*MAT_SQR_SIZE_16;
-            for(j = 0;j != MAT_SQR_SIZE_16; ++j)   
+            for(j = 0;j != MAT_SQR_SIZE_16; j += 8)   
             {
-                register std::int32_t inner_idx = (outer_idx+j)*VEC_PS_LEN;
-                _mm_prefetch((const char*)&ptr_matBRe[inner_idx],_MM_HINT_T0);
-                _mm_prefetch((const char*)&ptr_matBIm[inner_idx],_MM_HINT_T0);
+                inner_idx0 = (outer_idx+j)*VEC_PS_LEN;
+                _mm_prefetch((const char*)&ptr_matBRe[inner_idx0],_MM_HINT_T0);
+                _mm_prefetch((const char*)&ptr_matBIm[inner_idx0],_MM_HINT_T0);
+                inner_idx1 = (outer_idx+j+1)*VEC_PS_LEN;
+                _mm_prefetch((const char*)&ptr_matBRe[inner_idx1],_MM_HINT_T0);
+                _mm_prefetch((const char*)&ptr_matBIm[inner_idx1],_MM_HINT_T0);
+                inner_idx0 = (outer_idx+j+2)*VEC_PS_LEN;
+                _mm_prefetch((const char*)&ptr_matBRe[inner_idx0],_MM_HINT_T0);
+                _mm_prefetch((const char*)&ptr_matBIm[inner_idx0],_MM_HINT_T0);
+                inner_idx1 = (outer_idx+j+3)*VEC_PS_LEN;
+                _mm_prefetch((const char*)&ptr_matBRe[inner_idx1],_MM_HINT_T0);
+                _mm_prefetch((const char*)&ptr_matBIm[inner_idx1],_MM_HINT_T0);
+                inner_idx0 = (outer_idx+j+4)*VEC_PS_LEN;
+                _mm_prefetch((const char*)&ptr_matBRe[inner_idx0],_MM_HINT_T0);
+                _mm_prefetch((const char*)&ptr_matBIm[inner_idx0],_MM_HINT_T0);
+                inner_idx1 = (outer_idx+j+5)*VEC_PS_LEN;
+                _mm_prefetch((const char*)&ptr_matBRe[inner_idx1],_MM_HINT_T0);
+                _mm_prefetch((const char*)&ptr_matBIm[inner_idx1],_MM_HINT_T0);
+                inner_idx0 = (outer_idx+j+6)*VEC_PS_LEN;
+                _mm_prefetch((const char*)&ptr_matBRe[inner_idx0],_MM_HINT_T0);
+                _mm_prefetch((const char*)&ptr_matBIm[inner_idx0],_MM_HINT_T0);
+                inner_idx1 = (outer_idx+j+7)*VEC_PS_LEN;
+                _mm_prefetch((const char*)&ptr_matBRe[inner_idx1],_MM_HINT_T0);
+                _mm_prefetch((const char*)&ptr_matBIm[inner_idx1],_MM_HINT_T0);
             }
         }
-        tsc_instr_block.m_region_prefetch_e = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_prefetch_e)
     }
     const bool cond_nan_mitigation = static_cast<std::int32_t>(mitigate_nan)==static_cast<std::int32_t>(true);
     /////////////////////////////////////////////////////////////////////////////////////////////////////////
      // Column 0
-    tsc_instr_block.m_region_g00_s = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_g00_s)
     GET_G00(matGRe, matBRe, matD, matND);
     GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 1);
     GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 2);
@@ -4957,16 +5056,17 @@ gms::math
     GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 13);
     GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 14);
     GET_G_COL0(matGRe, matGIm, matBRe, matBIm, matD, 15);
-    tsc_instr_block.m_region_g00_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_g00_e)
     // Column 1
     if constexpr(cond_nan_mitigation)
     {   
-        tsc_instr_block.m_region_g11_s = rdtscp_fenced();
+        //tsc_instr_block.m_region_g11_s = fptr();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_g11_s)
         GET_G11_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0);
     }
     else 
     {   
-        tsc_instr_block.m_region_g11_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_g11_s)
         GET_G11(matGRe, matGIm, matBRe, matD, matND, temp0);
     }
     GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 2, temp0, temp1);
@@ -4983,16 +5083,16 @@ gms::math
     GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 13, temp0, temp1);
     GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 14, temp0, temp1);
     GET_G_COL1(matGRe, matGIm, matBRe, matBIm, matD, 15, temp0, temp1);
-    tsc_instr_block.m_region_g11_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_g11_e)
     // Column 2
     if constexpr(cond_nan_mitigation)
     {
-        tsc_instr_block.m_region_g22_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_g22_s)
         GET_G22_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
     }
     else 
     {
-        tsc_instr_block.m_region_g22_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_g22_s)
         GET_G22(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
     }
     GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 3, temp0, temp1);
@@ -5008,16 +5108,16 @@ gms::math
     GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 13, temp0, temp1);
     GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 14, temp0, temp1);
     GET_G_COL2(matGRe, matGIm, matBRe, matBIm, matD, 15, temp0, temp1);
-    tsc_instr_block.m_region_g22_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_g22_e)
     // Column 3
     if constexpr(cond_nan_mitigation)
     {
-        tsc_instr_block.m_region_g33_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_g33_s)
         GET_G33_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
     }
     else 
     {
-        tsc_instr_block.m_region_g33_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_g33_s)
         GET_G33(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
     }
     GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 4, temp0, temp1);
@@ -5032,16 +5132,16 @@ gms::math
     GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 13, temp0, temp1);
     GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 14, temp0, temp1);
     GET_G_COL3(matGRe, matGIm, matBRe, matBIm, matD, 15, temp0, temp1);
-    tsc_instr_block.m_region_g33_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_g33_e)
     // Column 4
     if constexpr(cond_nan_mitigation)
     {
-        tsc_instr_block.m_region_g44_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_g44_s)
         GET_G44_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
     }
     else 
     {
-        tsc_instr_block.m_region_g44_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_g44_s)
         GET_G44(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
     }
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 5, 4, temp0, temp1);
@@ -5055,16 +5155,16 @@ gms::math
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 13, 4, temp0, temp1);
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 14, 4, temp0, temp1);
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 15, 4, temp0, temp1);
-    tsc_instr_block.m_region_g44_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_g44_e)
     // Column 5
     if constexpr(cond_nan_mitigation)
     {
-        tsc_instr_block.m_region_g55_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_g55_s)
         GET_G55_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
     }
     else 
     {
-        tsc_instr_block.m_region_g55_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_g55_s)
         GET_G55(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
     }
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 6, 5, temp0, temp1);
@@ -5077,16 +5177,16 @@ gms::math
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 13, 5, temp0, temp1);
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 14, 5, temp0, temp1);
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 15, 5, temp0, temp1);
-    tsc_instr_block.m_region_g55_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_g55_e)
     // Column 6
     if constexpr(cond_nan_mitigation)
     {
-        tsc_instr_block.m_region_g66_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_g66_s)
         GET_G66_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
     }
     else 
     {
-        tsc_instr_block.m_region_g66_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_g66_s)
         GET_G66(matGRe, matGIm, matBRe, matD, matND, temp0, temp1);
     }
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 7, 6, temp0, temp1);
@@ -5098,16 +5198,16 @@ gms::math
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 13, 6, temp0, temp1);
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 14, 6, temp0, temp1);
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 15, 6, temp0, temp1);
-    tsc_instr_block.m_region_g66_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_g66_e)
     // Column 7
     if constexpr(cond_nan_mitigation)
     {
-        tsc_instr_block.m_region_g77_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_g77_s)
         GET_G77_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
     }
     else 
     {
-        tsc_instr_block.m_region_g77_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_g77_s)
         GET_G77(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2);
     }
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 8, 7, temp0, temp1);
@@ -5118,16 +5218,17 @@ gms::math
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 13, 7, temp0, temp1);
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 14, 7, temp0, temp1);
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 15, 7, temp0, temp1);
-    tsc_instr_block.m_region_g77_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_g77_e)
     // Column 8
     if constexpr(cond_nan_mitigation)
     {
-        tsc_instr_block.m_region_gii_even_col8_s = rdtscp_fenced();
+        //tsc_instr_block.m_region_gii_even_col8_s = fptr();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_gii_even_col8_s)
         GET_Gii_EVEN_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 8);
     }
     else 
     {
-        tsc_instr_block.m_region_gii_even_col8_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_gii_even_col8_s)
         GET_Gii_EVEN(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 8);
     }
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 9, 8, temp0, temp1);
@@ -5137,16 +5238,16 @@ gms::math
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 13, 8, temp0, temp1);
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 14, 8, temp0, temp1);
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 15, 8, temp0, temp1);
-    tsc_instr_block.m_region_gii_even_col8_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_gii_even_col8_e)
     // Column 9
     if constexpr(cond_nan_mitigation)
     {
-        tsc_instr_block.m_region_gii_odd_col9_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_gii_odd_col9_s)
         GET_Gii_ODD_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 9);
     }
     else 
     {
-        tsc_instr_block.m_region_gii_odd_col9_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_gii_odd_col9_s)
         GET_Gii_ODD(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 9);
     }
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 10, 9, temp0, temp1);
@@ -5155,16 +5256,16 @@ gms::math
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 13, 9, temp0, temp1);
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 14, 9, temp0, temp1);
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 15, 9, temp0, temp1);
-    tsc_instr_block.m_region_gii_odd_col9_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_gii_odd_col9_e)
     // Column 10
     if constexpr(cond_nan_mitigation)
     {
-        tsc_instr_block.m_region_gii_even_col10_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_gii_even_col10_s)
         GET_Gii_EVEN_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 10);
     }
     else 
     {
-        tsc_instr_block.m_region_gii_even_col10_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_gii_even_col10_s)
         GET_Gii_EVEN(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 10);
     }
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 11, 10, temp0, temp1);
@@ -5172,80 +5273,80 @@ gms::math
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 13, 10, temp0, temp1);
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 14, 10, temp0, temp1);
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 15, 10, temp0, temp1);
-    tsc_instr_block.m_region_gii_even_col10_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_gii_even_col10_e)
     // Column 11
     if constexpr(cond_nan_mitigation)
     {
-        tsc_instr_block.m_region_gii_odd_col11_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_gii_odd_col11_s)
         GET_Gii_ODD_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 11);
     }
     else 
     {
-        tsc_instr_block.m_region_gii_odd_col11_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_gii_odd_col11_s)
         GET_Gii_ODD(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 11);
     }
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 12, 11, temp0, temp1);
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 13, 11, temp0, temp1);
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 14, 11, temp0, temp1);
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 15, 11, temp0, temp1);
-    tsc_instr_block.m_region_gii_odd_col11_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_gii_odd_col11_e)
     // Column 12
     if constexpr(cond_nan_mitigation)
     {
-        tsc_instr_block.m_region_gii_even_col12_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_gii_even_col12_s)
         GET_Gii_EVEN_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 12);
     }
     else 
     {
-        tsc_instr_block.m_region_gii_even_col12_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_gii_even_col12_s)
         GET_Gii_EVEN(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 12);
     }
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 13, 12, temp0, temp1);
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 14, 12, temp0, temp1);
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 15, 12, temp0, temp1);
-    tsc_instr_block.m_region_gii_even_col12_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_gii_even_col12_e)
     // Column 13
     if constexpr(cond_nan_mitigation)
     {
-        tsc_instr_block.m_region_gii_odd_col13_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_gii_odd_col13_s)
         GET_Gii_ODD_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 13);
     }
     else 
     {   
-        tsc_instr_block.m_region_gii_odd_col13_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_gii_odd_col13_s)
         GET_Gii_ODD(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 13);
     }
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 14, 13, temp0, temp1);
     GET_G_COL_ODD(matGRe, matGIm, matBRe, matBIm, matD, 15, 13, temp0, temp1);
-    tsc_instr_block.m_region_gii_odd_col13_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_gii_odd_col13_e)
     // Column 14
     if constexpr(cond_nan_mitigation)
     {
-        tsc_instr_block.m_region_gii_even_col14_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_gii_even_col14_s)
         GET_Gii_EVEN_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 14);
     }
     else 
     {
-        tsc_instr_block.m_region_gii_even_col14_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_gii_even_col14_s)
         GET_Gii_EVEN(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 14);
     }
     GET_G_COL_EVEN(matGRe, matGIm, matBRe, matBIm, matD, 15, 14, temp0, temp1);
-    tsc_instr_block.m_region_gii_even_col14_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_gii_even_col14_e)
     // Column 15
     if constexpr(cond_nan_mitigation)
     {
-        tsc_instr_block.m_region_gii_odd_col15_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_gii_odd_col15_s)
         GET_Gii_ODD_SAFE(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 15);
     }
     else 
     {
-        tsc_instr_block.m_region_gii_odd_col15_s = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_gii_odd_col15_s)
         GET_Gii_ODD(matGRe, matGIm, matBRe, matD, matND, temp0, temp1, temp2, 15);
     }
-    tsc_instr_block.m_region_gii_odd_col15_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_gii_odd_col15_e)
     /////////////////////////////////// get L, L=invG
     // Column 0
-    tsc_instr_block.m_region_lii_col0_s = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_lii_col0_s)
     SET_Lii(matLRe, matLIm, matD, 0);
     GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 1, 0);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 2, 0, temp0, temp1);
@@ -5262,9 +5363,9 @@ gms::math
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 0, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 0, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 0, temp0, temp1);
-    tsc_instr_block.m_region_lii_col0_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_lii_col0_e)
     // Column 1
-    tsc_instr_block.m_region_lii_col1_s = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_lii_col1_s)
     SET_Lii(matLRe, matLIm, matD, 1);
     GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 2, 1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 3, 1, temp0, temp1);
@@ -5280,9 +5381,9 @@ gms::math
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 1, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 1, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 1, temp0, temp1);
-    tsc_instr_block.m_region_lii_col1_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_lii_col1_e)
     // Column 2
-    tsc_instr_block.m_region_lii_col2_s = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_lii_col2_s)
     SET_Lii(matLRe, matLIm, matD, 2);
     GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 3, 2);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 4, 2, temp0, temp1);
@@ -5297,9 +5398,9 @@ gms::math
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 2, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 2, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 2, temp0, temp1);
-    tsc_instr_block.m_region_lii_col2_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_lii_col2_e)
     // Column 3
-    tsc_instr_block.m_region_lii_col3_s = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_lii_col3_s)
     SET_Lii(matLRe, matLIm, matD, 3);
     GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 4, 3);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 5, 3, temp0, temp1);
@@ -5313,9 +5414,9 @@ gms::math
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 3, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 3, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 3, temp0, temp1);
-    tsc_instr_block.m_region_lii_col3_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_lii_col3_e)
     // Column 4
-    tsc_instr_block.m_region_lii_col4_s = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_lii_col4_s)
     SET_Lii(matLRe, matLIm, matD, 4);
     GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 5, 4);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 6, 4, temp0, temp1);
@@ -5328,9 +5429,9 @@ gms::math
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 4, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 4, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 4, temp0, temp1);
-    tsc_instr_block.m_region_lii_col4_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_lii_col4_e)
     // Column 5
-    tsc_instr_block.m_region_lii_col5_s = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_lii_col5_s)
     SET_Lii(matLRe, matLIm, matD, 5);
     GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 6, 5);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 7, 5, temp0, temp1);
@@ -5342,9 +5443,9 @@ gms::math
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 5, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 5, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 5, temp0, temp1);
-    tsc_instr_block.m_region_lii_col5_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_lii_col5_e)
     // Column 6
-    tsc_instr_block.m_region_lii_col6_s = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_lii_col6_s)
     SET_Lii(matLRe, matLIm, matD, 6);
     GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 7, 6);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 8, 6, temp0, temp1);
@@ -5355,9 +5456,9 @@ gms::math
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 6, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 6, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 6, temp0, temp1);
-    tsc_instr_block.m_region_lii_col6_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_lii_col6_e)
     // Column 7
-    tsc_instr_block.m_region_lii_col7_s = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_lii_col7_s)
     SET_Lii(matLRe, matLIm, matD, 7);
     GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 8, 7);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 9, 7, temp0, temp1);
@@ -5367,9 +5468,9 @@ gms::math
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 7, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 7, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 7, temp0, temp1);
-    tsc_instr_block.m_region_lii_col7_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_lii_col7_e)
     // Column 8
-    tsc_instr_block.m_region_lii_col8_s = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_lii_col8_s)
     SET_Lii(matLRe, matLIm, matD, 8);
     GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 9, 8);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 10, 8, temp0, temp1);
@@ -5378,9 +5479,9 @@ gms::math
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 8, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 8, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 8, temp0, temp1);
-    tsc_instr_block.m_region_lii_col8_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_lii_col8_e)
     // Column 9
-    tsc_instr_block.m_region_lii_col9_s = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_lii_col9_s)
     SET_Lii(matLRe, matLIm, matD, 9);
     GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 10, 9);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 11, 9, temp0, temp1);
@@ -5388,50 +5489,51 @@ gms::math
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 9, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 9, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 9, temp0, temp1);
-    tsc_instr_block.m_region_lii_col9_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_lii_col9_e)
     // Column 10
-    tsc_instr_block.m_region_lii_col10_s = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_lii_col10_s)
     SET_Lii(matLRe, matLIm, matD, 10);
     GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 11, 10);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 12, 10, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 10, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 10, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 10, temp0, temp1);
-    tsc_instr_block.m_region_lii_col10_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_lii_col10_e)
     // Column 11
-    tsc_instr_block.m_region_lii_col11_s = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_lii_col11_s)
     SET_Lii(matLRe, matLIm, matD, 11);
     GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 12, 11);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 13, 11, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 11, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 11, temp0, temp1);
-    tsc_instr_block.m_region_lii_col11_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_lii_col11_e)
     // Column 12
-    tsc_instr_block.m_region_lii_col12_s = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_lii_col12_s)
     SET_Lii(matLRe, matLIm, matD, 12);
     GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 13, 12);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 14, 12, temp0, temp1);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 12, temp0, temp1);
-    tsc_instr_block.m_region_lii_col12_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_lii_col12_e)
     // Column 13
-    tsc_instr_block.m_region_lii_col13_s = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_lii_col13_s)
     SET_Lii(matLRe, matLIm, matD, 13);
     GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 14, 13);
     GET_L_ji(matLRe, matLIm, matGRe, matGIm, matND, 15, 13, temp0, temp1);
-    tsc_instr_block.m_region_lii_col13_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_lii_col13_e)
     // Column 14
-    tsc_instr_block.m_region_lii_col14_s = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_lii_col14_s)
     SET_Lii(matLRe, matLIm, matD, 14);
     GET_L_i1i(matLRe, matLIm, matGRe, matGIm, matND, 15, 14);
-    tsc_instr_block.m_region_lii_col14_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_lii_col14_e)
     // Column 15
-    tsc_instr_block.m_region_lii_col15_s = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_lii_col15_s)
     SET_Lii(matLRe, matLIm, matD, 15);
-    tsc_instr_block.m_region_lii_col15_e = rdtscp_fenced();
+    TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_lii_col15_e)
 
     for(i = 0; i < MAT_SQR_SIZE_16; ++i)
     {
-        tsc_instr_block.m_region_loop2D_s[i] = rdtscp_fenced();
+        //tsc_instr_block.m_region_loop2D_s[i] = fptr();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_loop2D_s[i]);
         matLReii        = matLRe[i][i];
         matInvBRe[i][i] = _mm512_mul_ps(matLReii,matLReii);
         for(k = (i+1); k < MAT_SQR_SIZE_16; ++k) 
@@ -5442,12 +5544,12 @@ gms::math
             matInvBRe[i][i] = _mm512_add_ps(matInvBRe[i][i],temp1);
         } 
         matInvBIm[i][i] = vzero;
-        tsc_instr_block.m_region_loop2D_e[i] = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_loop2D_e[i]);
     }
 
     for(i = 0; i < MAT_SQR_SIZE_16; ++i) 
     {
-        tsc_instr_block.m_region_loop3D_s[i] = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_START(tsc_instr.m_region_loop3D_s[i]);
         for(j = (i+1);j < MAT_SQR_SIZE_16; ++j)   
         {
             matLRejj        = matLRe[j][j];
@@ -5462,37 +5564,112 @@ gms::math
             matInvBRe[j][i] = matInvBRe[i][j];
             matInvBIm[j][i] = _mm512_sub_ps(vzero, matInvBIm[i][j]);
         }
-        tsc_instr_block.m_region_loop3D_e[i] = rdtscp_fenced();
+        TSC_MEASURING_FUNC_BLOCK_STOP(tsc_instr.m_region_loop3D_e[i]);
     }
 }
 
+
 template void 
 gms::math 
-::mat_inv_cholesky_16x16_16xf32_tsc_instr<true,true>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+::mat_inv_cholesky_16x16_16xf32_tsc_instr<true,true,1>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                            const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                            __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                            __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                            mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr_block);
+                                           
 
 template void 
 gms::math 
-::mat_inv_cholesky_16x16_16xf32_tsc_instr<false,true>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+::mat_inv_cholesky_16x16_16xf32_tsc_instr<false,true,1>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                             const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                             __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                             __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                             mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr_block);
+                                            
 
 template void 
 gms::math 
-::mat_inv_cholesky_16x16_16xf32_tsc_instr<true,false>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+::mat_inv_cholesky_16x16_16xf32_tsc_instr<true,false,1>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                             const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                             __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                             __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                             mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr_block);
+                                            
 
 template void 
 gms::math 
-::mat_inv_cholesky_16x16_16xf32_tsc_instr<false,false>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+::mat_inv_cholesky_16x16_16xf32_tsc_instr<false,false,1>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                             const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                             __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                             __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                             mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr_block);
+                                             
+                                
+template void 
+gms::math 
+::mat_inv_cholesky_16x16_16xf32_tsc_instr<true,true,2>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                           const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                           __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                           __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                           mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr_block);
+                                           
+
+template void 
+gms::math 
+::mat_inv_cholesky_16x16_16xf32_tsc_instr<false,true,2>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr_block);
+                                            
+
+template void 
+gms::math 
+::mat_inv_cholesky_16x16_16xf32_tsc_instr<true,false,2>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr_block);
+                                            
+
+template void 
+gms::math 
+::mat_inv_cholesky_16x16_16xf32_tsc_instr<false,false,2>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                             const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                             __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                             __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                             mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr_block);
+
+template void 
+gms::math 
+::mat_inv_cholesky_16x16_16xf32_tsc_instr<true,true,3>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                           const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                           __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                           __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                           mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr_block);
+                                           
+
+template void 
+gms::math 
+::mat_inv_cholesky_16x16_16xf32_tsc_instr<false,true,3>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr_block);
+                                            
+
+template void 
+gms::math 
+::mat_inv_cholesky_16x16_16xf32_tsc_instr<true,false,3>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
+                                            mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &tsc_instr_block);
+                                            
+
+template void 
+gms::math 
+::mat_inv_cholesky_16x16_16xf32_tsc_instr<false,false,3>(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                              const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                              __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                              __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],

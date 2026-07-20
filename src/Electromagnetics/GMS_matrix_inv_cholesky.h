@@ -67,6 +67,9 @@ namespace file_info
 }
 
 
+#if !defined(MATRIX_INV_CHOLESKY_USE_TSC_INSTRUMENTATION)
+#define MATRIX_INV_CHOLESKY_USE_TSC_INSTRUMENTATION 0
+#endif 
 
 namespace gms 
 {
@@ -227,6 +230,23 @@ struct alignas(64) tsc_instrumentation_block_t
 
 };
 
+#if (MATRIX_INV_CHOLESKY_USE_TSC_INSTRUMENTATION) == 1
+
+static tsc_instrumentation_block_t g_mat_inv_chol_2x2;
+static tsc_instrumentation_block_t g_mat_inv_chol_3x3;
+static tsc_instrumentation_block_t g_mat_inv_chol_4x4;
+static tsc_instrumentation_block_t g_mat_inv_chol_5x5;
+static tsc_instrumentation_block_t g_mat_inv_chol_6x6;
+static tsc_instrumentation_block_t g_mat_inv_chol_7x7;
+static tsc_instrumentation_block_t g_mat_inv_chol_8x8;
+static tsc_instrumentation_block_t g_mat_inv_chol_9x9;
+static tsc_instrumentation_block_t g_mat_inv_chol_10x10;
+static tsc_instrumentation_block_t g_mat_inv_chol_11x11;
+static tsc_instrumentation_block_t g_mat_inv_chol_12x12;
+static tsc_instrumentation_block_t g_mat_inv_chol_13x13;
+
+#endif
+
 __ATTR_ALWAYS_INLINE__ 
 static inline 
 std::uint64_t compute_delta(const std::uint64_t tsc_start,
@@ -263,7 +283,7 @@ std::int32_t print_results(const std::string &&reg_name,
     return (printf_ret);
 }
 
-}
+} // matrix_inv_chol_instr
 
 using namespace mat_inv_chol_detail;
 
@@ -547,7 +567,7 @@ mat_inv_cholesky_16x16_16xf32(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
 #endif
-template<bool use_prefetching,bool mitigate_nan>
+template<bool use_prefetching,bool mitigate_nan,std::int32_t tsc_measuring_function>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 void 
@@ -555,7 +575,8 @@ mat_inv_cholesky_16x16_16xf32_tsc_instr(const __m512 matBRe[MAT_SQR_SIZE_16][MAT
                                         const __m512 matBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                         __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                                         __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
-                                        mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &);                             
+                                        mat_inv_chol_tsc_instr::tsc_instrumentation_block_t<MAT_SQR_SIZE_16> &);
+                                                                    
 
 
 } // math 
