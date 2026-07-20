@@ -104,6 +104,36 @@ float_to_fixed_0_8(const float value)
 
 __ATTR_ALWAYS_INLINE__
 inline static 
+__m128i
+float_to_fixed_0_8_sse(const __m128 v)
+{
+    const __m128 vc256{_mm_set1_ps(256.0f)};
+    const __m128 tmp{_mm_mul_ps(v,vc256)};
+    return (_mm_cvtepi32_epi8(_mm_cvtps_epi32(tmp)));
+}
+
+__ATTR_ALWAYS_INLINE__
+inline static 
+__m128i
+float_to_fixed_0_8_avx(const __m256 v)
+{
+    const __m256 vc256{_mm256_set1_ps(256.0f)};
+    const __m256 tmp{_mm256_mul_ps(v,vc256)};
+    return (_mm256_cvtepi32_epi8(_mm256_cvtps_epi32(tmp)));
+}
+
+__ATTR_ALWAYS_INLINE__
+inline static 
+__m128i
+float_to_fixed_0_8_avx512(const __m512 v)
+{
+    const __m512 vc256{_mm512_set1_ps(256.0f)};
+    const __m512 tmp{_mm512_mul_ps(v,vc256)};
+    return (_mm512_cvtepi32_epi8(_mm512_cvtps_epi32(tmp)));
+}
+
+__ATTR_ALWAYS_INLINE__
+inline static 
 __m128i 
 _mm_vfp32_to_vfixed16(const __m128 vf32, std::int32_t rounding_mode)
 {
