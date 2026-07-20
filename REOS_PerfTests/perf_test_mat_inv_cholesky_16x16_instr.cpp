@@ -220,237 +220,237 @@ perf_test_matrix_inv_cholesky_16x16_rf_emt_instr(const std::int32_t cpu_core,
     
     print_thread_affinity();
     printf_ret = printf(ANSI_COLOR_GREEN "[PERF-TEST]:  matrix_inv_cholesky_16x16_tsc_instr<true,true> -- (TSC-INSTRUMENTED): STARTED!!\n");
-    mat_inv_cholesky_16x16_16xf32_tsc_instr<true,true>(matBRe,matBIm,
+    mat_inv_cholesky_16x16_16xf32_tsc_instr<true,true,3>(matBRe,matBIm,
                                                        matInvBRe,matInvBIm,
                                                        tsc_instr_block);
     printf_ret = printf(ANSI_COLOR_GREEN "[PERF-TEST]:  matrix_inv_cholesky_16x16_tsc_instr<true,true> -- (TSC-INSTRUMENTED): COMPLETED!!\n");
     tsc_instr_block.m_region_prefetch_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_prefetch_s,
                                                                                 tsc_instr_block.m_region_prefetch_e,
-                                                                                false);
+                                                                                true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_prefetch"),
                                           tsc_instr_block.m_region_prefetch_s,
                                           tsc_instr_block.m_region_prefetch_e,
                                           tsc_instr_block.m_region_prefetch_d);
     tsc_instr_block.m_region_g00_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_g00_s,
                                                                            tsc_instr_block.m_region_g00_e,
-                                                                           false);
+                                                                           true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_g00"),
                                           tsc_instr_block.m_region_g00_s,
                                           tsc_instr_block.m_region_g00_e,
                                           tsc_instr_block.m_region_g00_d);
     tsc_instr_block.m_region_g11_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_g11_s,
                                                                            tsc_instr_block.m_region_g11_e,
-                                                                           false);
+                                                                           true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_g11"),
                                           tsc_instr_block.m_region_g11_s,
                                           tsc_instr_block.m_region_g11_e,
                                           tsc_instr_block.m_region_g11_d);    
     tsc_instr_block.m_region_g22_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_g22_s,
                                                                            tsc_instr_block.m_region_g22_e,
-                                                                           false);
+                                                                           true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_g22"),
                                           tsc_instr_block.m_region_g22_s,
                                           tsc_instr_block.m_region_g22_e,
                                           tsc_instr_block.m_region_g22_d);
     tsc_instr_block.m_region_g33_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_g33_s,
                                                                            tsc_instr_block.m_region_g33_e,
-                                                                           false);
+                                                                           true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_g33"),
                                           tsc_instr_block.m_region_g33_s,
                                           tsc_instr_block.m_region_g33_e,
                                           tsc_instr_block.m_region_g33_d);
     tsc_instr_block.m_region_g44_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_g44_s,
                                                                            tsc_instr_block.m_region_g44_e,
-                                                                           false);
+                                                                           true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_g44"),
                                           tsc_instr_block.m_region_g44_s,
                                           tsc_instr_block.m_region_g44_e,
                                           tsc_instr_block.m_region_g44_d);
     tsc_instr_block.m_region_g55_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_g55_s,
                                                                            tsc_instr_block.m_region_g55_e,
-                                                                           false);
+                                                                           true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_g55"),
                                           tsc_instr_block.m_region_g55_s,
                                           tsc_instr_block.m_region_g55_e,
                                           tsc_instr_block.m_region_g55_d);
     tsc_instr_block.m_region_g66_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_g66_s,
                                                                            tsc_instr_block.m_region_g66_e,
-                                                                           false);
+                                                                           true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_g66"),
                                           tsc_instr_block.m_region_g66_s,
                                           tsc_instr_block.m_region_g66_e,
                                           tsc_instr_block.m_region_g66_d);
     tsc_instr_block.m_region_g77_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_g77_s,
                                                                            tsc_instr_block.m_region_g77_e,
-                                                                           false);
+                                                                           true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_g77"),
                                           tsc_instr_block.m_region_g77_s,
                                           tsc_instr_block.m_region_g77_e,
                                           tsc_instr_block.m_region_g77_d);
     tsc_instr_block.m_region_gii_even_col8_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_gii_even_col8_s,
                                                                                      tsc_instr_block.m_region_gii_even_col8_e,
-                                                                                     false);
+                                                                                     true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_gii_even_col8"),
                                           tsc_instr_block.m_region_gii_even_col8_s,
                                           tsc_instr_block.m_region_gii_even_col8_e,
                                           tsc_instr_block.m_region_gii_even_col8_d);
     tsc_instr_block.m_region_gii_odd_col9_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_gii_odd_col9_s,
                                                                                     tsc_instr_block.m_region_gii_odd_col9_e,
-                                                                                    false);
+                                                                                    true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_gii_odd_col9"),
                                           tsc_instr_block.m_region_gii_odd_col9_s,
                                           tsc_instr_block.m_region_gii_odd_col9_e,
                                           tsc_instr_block.m_region_gii_odd_col9_d);
     tsc_instr_block.m_region_gii_even_col10_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_gii_even_col10_s,
                                                                                       tsc_instr_block.m_region_gii_even_col10_e,
-                                                                                      false);
+                                                                                      true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_gii_even_col10"),
                                           tsc_instr_block.m_region_gii_even_col10_s,
                                           tsc_instr_block.m_region_gii_even_col10_e,
                                           tsc_instr_block.m_region_gii_even_col10_d);
     tsc_instr_block.m_region_gii_odd_col11_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_gii_odd_col11_s,
                                                                                      tsc_instr_block.m_region_gii_odd_col11_e,
-                                                                                     false);
+                                                                                     true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_gii_odd_col11"),
                                           tsc_instr_block.m_region_gii_odd_col11_s,
                                           tsc_instr_block.m_region_gii_odd_col11_e,
                                           tsc_instr_block.m_region_gii_odd_col11_d);     
     tsc_instr_block.m_region_gii_even_col12_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_gii_even_col12_s,
                                                                                       tsc_instr_block.m_region_gii_even_col12_e,
-                                                                                      false);
+                                                                                      true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_gii_even_col12"),
                                           tsc_instr_block.m_region_gii_even_col12_s,
                                           tsc_instr_block.m_region_gii_even_col12_e,
                                           tsc_instr_block.m_region_gii_even_col12_d);
     tsc_instr_block.m_region_gii_odd_col13_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_gii_odd_col13_s,
                                                                                      tsc_instr_block.m_region_gii_odd_col13_e,
-                                                                                     false);
+                                                                                     true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_gii_odd_col13"),
                                           tsc_instr_block.m_region_gii_odd_col13_s,
                                           tsc_instr_block.m_region_gii_odd_col13_e,
                                           tsc_instr_block.m_region_gii_odd_col13_d);
     tsc_instr_block.m_region_gii_even_col14_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_gii_even_col14_s,
                                                                                      tsc_instr_block.m_region_gii_even_col14_e,
-                                                                                     false);
+                                                                                     true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_gii_even_col14"),
                                           tsc_instr_block.m_region_gii_even_col14_s,
                                           tsc_instr_block.m_region_gii_even_col14_e,
                                           tsc_instr_block.m_region_gii_even_col14_d);
     tsc_instr_block.m_region_gii_odd_col15_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_gii_odd_col15_s,
                                                                                      tsc_instr_block.m_region_gii_odd_col15_e,
-                                                                                     false);
+                                                                                     true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_gii_odd_col15"),
                                           tsc_instr_block.m_region_gii_odd_col15_s,
                                           tsc_instr_block.m_region_gii_odd_col15_e,
                                           tsc_instr_block.m_region_gii_odd_col15_d);
     tsc_instr_block.m_region_lii_col0_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_lii_col0_s,
                                                                                 tsc_instr_block.m_region_lii_col0_e,
-                                                                                false);
+                                                                                true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_lii_col0"),
                                           tsc_instr_block.m_region_lii_col0_s,
                                           tsc_instr_block.m_region_lii_col0_e,
                                           tsc_instr_block.m_region_lii_col0_d);
     tsc_instr_block.m_region_lii_col1_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_lii_col1_s,
                                                                                 tsc_instr_block.m_region_lii_col1_e,
-                                                                                false);
+                                                                                true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_lii_col1"),
                                           tsc_instr_block.m_region_lii_col1_s,
                                           tsc_instr_block.m_region_lii_col1_e,
                                           tsc_instr_block.m_region_lii_col1_d);
     tsc_instr_block.m_region_lii_col2_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_lii_col2_s,
                                                                                 tsc_instr_block.m_region_lii_col2_e,
-                                                                                false);
+                                                                                true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_lii_col2"),
                                           tsc_instr_block.m_region_lii_col2_s,
                                           tsc_instr_block.m_region_lii_col2_e,
                                           tsc_instr_block.m_region_lii_col2_d);
     tsc_instr_block.m_region_lii_col3_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_lii_col3_s,
                                                                                 tsc_instr_block.m_region_lii_col3_e,
-                                                                                false);
+                                                                                true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_lii_col3"),
                                           tsc_instr_block.m_region_lii_col3_s,
                                           tsc_instr_block.m_region_lii_col3_e,
                                           tsc_instr_block.m_region_lii_col3_d);
     tsc_instr_block.m_region_lii_col4_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_lii_col4_s,
                                                                                 tsc_instr_block.m_region_lii_col4_e,
-                                                                                false);
+                                                                                true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_lii_col4"),
                                           tsc_instr_block.m_region_lii_col4_s,
                                           tsc_instr_block.m_region_lii_col4_e,
                                           tsc_instr_block.m_region_lii_col4_d);
     tsc_instr_block.m_region_lii_col5_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_lii_col5_s,
                                                                                 tsc_instr_block.m_region_lii_col5_e,
-                                                                                false);
+                                                                                true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_lii_col5"),
                                           tsc_instr_block.m_region_lii_col5_s,
                                           tsc_instr_block.m_region_lii_col5_e,
                                           tsc_instr_block.m_region_lii_col5_d);
     tsc_instr_block.m_region_lii_col6_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_lii_col6_s,
                                                                                 tsc_instr_block.m_region_lii_col6_e,
-                                                                                false);
+                                                                                true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_lii_col6"),
                                           tsc_instr_block.m_region_lii_col6_s,
                                           tsc_instr_block.m_region_lii_col6_e,
                                           tsc_instr_block.m_region_lii_col6_d);
     tsc_instr_block.m_region_lii_col7_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_lii_col7_s,
                                                                                 tsc_instr_block.m_region_lii_col7_e,
-                                                                                false);
+                                                                                true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_lii_col7"),
                                           tsc_instr_block.m_region_lii_col7_s,
                                           tsc_instr_block.m_region_lii_col7_e,
                                           tsc_instr_block.m_region_lii_col7_d);
     tsc_instr_block.m_region_lii_col8_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_lii_col8_s,
                                                                                 tsc_instr_block.m_region_lii_col8_e,
-                                                                                false);
+                                                                                true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_lii_col8"),
                                           tsc_instr_block.m_region_lii_col8_s,
                                           tsc_instr_block.m_region_lii_col8_e,
                                           tsc_instr_block.m_region_lii_col8_d);
     tsc_instr_block.m_region_lii_col9_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_lii_col9_s,
                                                                                 tsc_instr_block.m_region_lii_col9_e,
-                                                                                false);
+                                                                                true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_lii_col9"),
                                           tsc_instr_block.m_region_lii_col9_s,
                                           tsc_instr_block.m_region_lii_col9_e,
                                           tsc_instr_block.m_region_lii_col9_d);
     tsc_instr_block.m_region_lii_col10_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_lii_col10_s,
                                                                                 tsc_instr_block.m_region_lii_col10_e,
-                                                                                false);
+                                                                                true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_lii_col10"),
                                           tsc_instr_block.m_region_lii_col10_s,
                                           tsc_instr_block.m_region_lii_col10_e,
                                           tsc_instr_block.m_region_lii_col10_d);
     tsc_instr_block.m_region_lii_col11_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_lii_col11_s,
                                                                                 tsc_instr_block.m_region_lii_col11_e,
-                                                                                false);
+                                                                                true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_lii_col11"),
                                           tsc_instr_block.m_region_lii_col11_s,
                                           tsc_instr_block.m_region_lii_col11_e,
                                           tsc_instr_block.m_region_lii_col11_d);
     tsc_instr_block.m_region_lii_col12_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_lii_col12_s,
                                                                                 tsc_instr_block.m_region_lii_col12_e,
-                                                                                false);
+                                                                                true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_lii_col12"),
                                           tsc_instr_block.m_region_lii_col12_s,
                                           tsc_instr_block.m_region_lii_col12_e,
                                           tsc_instr_block.m_region_lii_col12_d);
     tsc_instr_block.m_region_lii_col13_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_lii_col13_s,
                                                                                 tsc_instr_block.m_region_lii_col13_e,
-                                                                                false);
+                                                                                true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_lii_col13"),
                                           tsc_instr_block.m_region_lii_col13_s,
                                           tsc_instr_block.m_region_lii_col13_e,
                                           tsc_instr_block.m_region_lii_col13_d);
     tsc_instr_block.m_region_lii_col14_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_lii_col14_s,
                                                                                 tsc_instr_block.m_region_lii_col14_e,
-                                                                                false);
+                                                                                true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_lii_col14"),
                                           tsc_instr_block.m_region_lii_col14_s,
                                           tsc_instr_block.m_region_lii_col14_e,
                                           tsc_instr_block.m_region_lii_col14_d);
     tsc_instr_block.m_region_lii_col15_d = mat_inv_chol_tsc_instr::compute_delta(tsc_instr_block.m_region_lii_col15_s,
                                                                                 tsc_instr_block.m_region_lii_col15_e,
-                                                                                false);
+                                                                                true);
     mat_inv_chol_tsc_instr::print_results(std::string("region_lii_col15"),
                                           tsc_instr_block.m_region_lii_col15_s,
                                           tsc_instr_block.m_region_lii_col15_e,
@@ -459,10 +459,10 @@ perf_test_matrix_inv_cholesky_16x16_rf_emt_instr(const std::int32_t cpu_core,
     {   
         const std::uint64_t loop2D_s = tsc_instr_block.m_region_loop2D_s[i];
         const std::uint64_t loop2D_e = tsc_instr_block.m_region_loop2D_e[i];
-        tsc_instr_block.m_region_loop2D_d[i] = mat_inv_chol_tsc_instr::compute_delta(loop2D_s,loop2D_e,false);
+        tsc_instr_block.m_region_loop2D_d[i] = mat_inv_chol_tsc_instr::compute_delta(loop2D_s,loop2D_e,true);
         const std::uint64_t loop3D_s = tsc_instr_block.m_region_loop3D_s[i];
         const std::uint64_t loop3D_e = tsc_instr_block.m_region_loop3D_e[i];
-        tsc_instr_block.m_region_loop3D_d[i] = mat_inv_chol_tsc_instr::compute_delta(loop3D_s,loop3D_e,false);
+        tsc_instr_block.m_region_loop3D_d[i] = mat_inv_chol_tsc_instr::compute_delta(loop3D_s,loop3D_e,true);
         const std::uint64_t loop2D_d = tsc_instr_block.m_region_loop2D_d[i];
         mat_inv_chol_tsc_instr::print_results(std::string("region_loop2D"),loop2D_s,loop2D_e,loop2D_d);
         const std::uint64_t loop3D_d = tsc_instr_block.m_region_loop3D_d[i];
