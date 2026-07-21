@@ -171,6 +171,7 @@ bit_reverse_avx(std::int8_t * __restrict__ data_inout,
     }
 }
 
+
 } //l1_phy
 
 } //gms
