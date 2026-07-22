@@ -1,20 +1,43 @@
-/*MIT License
-!Copyright (c) 2020 Bernard Gingold
-!Permission is hereby granted, free of charge, to any person obtaining a copy
-!of this software and associated documentation files (the "Software"), to deal
-!in the Software without restriction, including without limitation the rights
-!to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-!copies of the Software, and to permit persons to whom the Software is
-!furnished to do so, subject to the following conditions:
-!The above copyright notice and this permission notice shall be included in all
-!copies or substantial portions of the Software.
-!THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-!IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-!FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-!AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-!LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-!OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-!SOFTWARE.
+
+/**********************************************************************
+*
+*
+*  Copyright [2019 - 2023] [Intel Corporation]
+* 
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  
+*  You may obtain a copy of the License at
+*  
+*     http://www.apache.org/licenses/LICENSE-2.0 
+*  
+*  Unless required by applicable law or agreed to in writing, software 
+*  distributed under the License is distributed on an "AS IS" BASIS, 
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and 
+*  limitations under the License. 
+*  
+*  SPDX-License-Identifier: Apache-2.0 
+*  
+* 
+*
+**********************************************************************/
+/*
+ * Copyright (C) Bernard Gingold, 2020-2026 
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
 #ifndef __GMS_DSP_SIMD_FIX_FLOAT_KERNELS_H__
@@ -658,6 +681,231 @@ ymm16i2_split_im_neg_even_i16(const __m256i c)
     const __m256i t0{_mm256_shuffle_epi8(c,split_idx)};
     return (_mm256_sign_epi16(t0,mask_ones));                                    
 }
+
+#if (defined(__INTEL_COMPILER) || defined(__ICC)) && !defined(__GNUC__)
+
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+__ATTR_ALWAYS_INLINE__
+static inline
+__m512i 
+zmm32i2_cmul_zmm32i2_i16(const __m512i c1,const __m512i c2)
+{
+    __ATTR_ALIGN__(64) struct bound_to_cache_line_t
+    {
+       __m512i splitted_re,splitted_im;
+       __m512i neg_imag,ct1;
+       __m512i ct2,c3_res;
+    }hot_data;
+    const __m512i split_idx_re{_mm512_set_epi8(13,12,13,12,9,8,9,8,5,4,5,4,1,0,1,0,
+                                             13,12,13,12,9,8,9,8,5,4,5,4,1,0,1,0,
+                                             13,12,13,12,9,8,9,8,5,4,5,4,1,0,1,0,
+                                             13,12,13,12,9,8,9,8,5,4,5,4,1,0,1,0)};
+    hot_data.splitted_re = _mm512_shuffle_epi8(c1,split_idx_re);
+    const __m512i split_idx_im{_mm512_set_epi8(15,14,15,14,11,10,11,10,7,6,7,6,3,2,3,2,
+                                             15,14,15,14,11,10,11,10,7,6,7,6,3,2,3,2,
+                                             15,14,15,14,11,10,11,10,7,6,7,6,3,2,3,2,
+                                             15,14,15,14,11,10,11,10,7,6,7,6,3,2,3,2)};
+    hot_data.splitted_im = _mm512_shuffle_epi8(c1,split_idx_im);
+    const __m512i iq_interleave_idx{_mm512_set_epi8(13,12,15,14,9,8,11,10,5,4,7,6,1,0,3,2,
+                                                13,12,15,14,9,8,11,10,5,4,7,6,1,0,3,2,
+                                                13,12,15,14,9,8,11,10,5,4,7,6,1,0,3,2,
+                                                13,12,15,14,9,8,11,10,5,4,7,6,1,0,3,2)};
+    hot_data.ct1 = _mm512_shuffle_epi8(c1,iq_interleave_idx);
+    const __m512i neg_imag_idx{_mm512_set_epi16(0x0001,0xffff, 0x0001, 0xffff,
+                                                0x0001,0xffff, 0x0001, 0xffff,
+                                                0x0001,0xffff, 0x0001, 0xffff,
+                                                0x0001,0xffff, 0x0001, 0xffff,
+                                                0x0001,0xffff, 0x0001, 0xffff,
+                                                0x0001,0xffff, 0x0001, 0xffff,
+                                                0x0001,0xffff, 0x0001, 0xffff,
+                                                0x0001,0xffff, 0x0001, 0xffff)};
+    hot_data.neg_imag = _mm512_mullo_epi16(hot_data.ct1,neg_imag_idx);
+    hot_data.ct1 = _mm512_mulhrs_epi16(hot_data.splitted_re,c1);
+    hot_data.ct2 = _mm512_mulhrs_epi16(hot_data.splitted_im,hot_data.neg_imag);
+    hot_data.c3_res = _mm512_adds_epi16(hot_data.ct1,hot_data.ct2);
+    return (hot_data.c3_res);
+}
+
+#elif defined(__GNUC__)
+
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512f")
+template<bool use_software_prefetching>
+__ATTR_ALWAYS_INLINE__
+static inline
+__m512i 
+zmm32i2_cmul_zmm32i2_i16(const __m512i c1,const __m512i c2)
+{
+    __ATTR_ALIGN__(64) struct bound_to_cache_line_t
+    {
+       __m512i splitted_re,splitted_im;
+       __m512i neg_imag,ct1;
+       __m512i ct2,c3_res;
+    }hot_data;
+    __ATTR_ALIGN__(64)
+    static constexpr const std::uint16_t buf_neg_imag_idx[32] = 
+    {
+        0x0001,0xffff, 0x0001, 0xffff,
+        0x0001,0xffff, 0x0001, 0xffff,
+        0x0001,0xffff, 0x0001, 0xffff,
+        0x0001,0xffff, 0x0001, 0xffff,
+        0x0001,0xffff, 0x0001, 0xffff,
+        0x0001,0xffff, 0x0001, 0xffff,
+        0x0001,0xffff, 0x0001, 0xffff,
+        0x0001,0xffff, 0x0001, 0xffff
+    };
+    __ATTR_ALIGN__(64)
+    static constexpr const std::uint8_t buf_split_idx_re[64] = 
+    {
+        13,12,13,12,9,8,9,8,5,4,5,4,1,0,1,0,
+        13,12,13,12,9,8,9,8,5,4,5,4,1,0,1,0,
+        13,12,13,12,9,8,9,8,5,4,5,4,1,0,1,0,
+        13,12,13,12,9,8,9,8,5,4,5,4,1,0,1,0
+    };
+    __ATTR_ALIGN__(64)
+    static constexpr const std::uint8_t buf_split_idx_im[64] = 
+    {
+        15,14,15,14,11,10,11,10,7,6,7,6,3,2,3,2,
+        15,14,15,14,11,10,11,10,7,6,7,6,3,2,3,2,
+        15,14,15,14,11,10,11,10,7,6,7,6,3,2,3,2,
+        15,14,15,14,11,10,11,10,7,6,7,6,3,2,3,2
+    };
+    __ATTR_ALIGN__(64)
+    static constexpr const std::uint8_t buf_iq_interleave_idx[64] = 
+    {
+        13,12,15,14,9,8,11,10,5,4,7,6,1,0,3,2,
+        13,12,15,14,9,8,11,10,5,4,7,6,1,0,3,2,
+        13,12,15,14,9,8,11,10,5,4,7,6,1,0,3,2,
+        13,12,15,14,9,8,11,10,5,4,7,6,1,0,3,2
+    };
+    if constexpr(use_software_prefetching) {_mm_prefetch((const char*)&buf_split_idx_re[0],_MM_HINT_T0);}
+    const __m512i split_idx_re{_mm512_load_si512((__m512i*)&buf_split_idx_re[0])};
+    hot_data.splitted_re = _mm512_shuffle_epi8(c1,split_idx_re);
+    if constexpr(use_software_prefetching) {_mm_prefetch((const char*)&buf_split_idx_im[0],_MM_HINT_T0);}
+    const __m512i split_idx_im{_mm512_load_si512((__m512i*)&buf_split_idx_im[0])};
+    hot_data.splitted_im = _mm512_shuffle_epi8(c1,split_idx_im);
+    if constexpr(use_software_prefetching) {_mm_prefetch((const char*)&buf_iq_interleave_idx[0],_MM_HINT_T0);}
+    const __m512i iq_interleave_idx{__mm512_load_si512((__m512i*)&buf_iq_interleave_idx[0])};
+    hot_data.ct1 = _mm512_shuffle_epi8(c1,iq_interleave_idx);
+    if constexpr(use_software_prefetching) {_mm_prefetch((const char*)&buf_neg_imag_idx[0],_MM_HINT_T0);}
+    const __m512i neg_imag_idx{_mm512_load_si512((__m512i*)&buf_neg_imag_idx[0])};
+    hot_data.neg_imag = _mm512_mullo_epi16(hot_data.ct1,neg_imag_idx);
+    hot_data.ct1 = _mm512_mulhrs_epi16(hot_data.splitted_re,c1);
+    hot_data.ct2 = _mm512_mulhrs_epi16(hot_data.splitted_im,hot_data.neg_imag);
+    hot_data.c3_res = _mm512_adds_epi16(hot_data.ct1,hot_data.ct2);
+    return (hot_data.c3_res);
+}
+#endif
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512f")
+#endif
+template<bool use_software_prefetch>
+__ATTR_ALWAYS_INLINE__
+static inline
+void 
+pack_4x_zmm16r4_vectors(const float * __restrict__ data_in,
+                        float * __restrict__ data_out)            
+{
+    const __m512 * __restrict__ p_data_in = reinterpret_cast<const __m512* __restrict__>(data_in);
+    __m512* __restrict__        p_data_out= reinterpret_cast<__m512* __restrict__>(data_out);
+    if constexpr(use_software_prefetch)
+    {
+        _mm_prefetch((const char*)&p_data_in[0],_MM_HINT_T0);
+        _mm_prefetch((const char*)&p_data_in[1],_MM_HINT_T0);
+        _mm_prefetch((const char*)&p_data_in[2],_MM_HINT_T0);
+        _mm_prefetch((const char*)&p_data_in[3],_MM_HINT_T0);
+    }
+    const __m512i pack_idx_lo{_mm512_setr_epi32(0,4,8,12,1,5,9,13,16,20,24,28,17,21,25,29)};
+    const __m512  lo_1234{_mm512_unpacklo_ps(p_data_in[0],p_data_in[1])};
+    const __m512  hi_1234{_mm512_unpackhi_ps(p_data_in[0],p_data_in[1])};
+    const __m512i pack_idx_hi{_mm512_setr_epi32(2,6,10,14,3,7,11,15,18,22,26,30,19,23,27,31)};
+    const __m512  lo_5678{_mm512_unpacklo_ps(p_data_in[2],p_data_in[3])};
+    const __m512  hi_5678{_mm512_unpackhi_ps(p_data_in[2],p_data_in[3])};
+    p_data_out[0] = _mm512_permutex2var_ps(lo_1234,pack_idx_lo,lo_5678);
+    p_data_out[1] = _mm512_permutex2var_ps(lo_1234,pack_idx_hi,lo_5678);
+    p_data_out[2] = _mm512_permutex2var_ps(hi_1234,pack_idx_lo,hi_5678);
+    p_data_out[3] = _mm512_permutex2var_ps(hi_5678,pack_idx_hi,hi_5678);
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512f")
+#endif
+template<bool use_software_prefetch>
+__ATTR_ALWAYS_INLINE__
+static inline
+void 
+pack_8x_zmm16r4_vectors(const float * __restrict__ data_in,
+                        float * __restrict__ data_out)
+{
+     const __m512 * __restrict__ p_data_in = reinterpret_cast<const __m512* __restrict__>(data_in);
+    __m512* __restrict__         p_data_out= reinterpret_cast<__m512* __restrict__>(data_out);
+    if constexpr(use_software_prefetch)
+    {
+        _mm_prefetch((const char*)&p_data_in[0],_MM_HINT_T0);
+        _mm_prefetch((const char*)&p_data_in[1],_MM_HINT_T0);
+    }
+    const __m512 lo1{_mm512_unpacklo_ps(p_data_in[0],p_data_in[1])};
+    if constexpr(use_software_prefetch)
+    {
+        _mm_prefetch((const char*)&p_data_in[2],_MM_HINT_T0);
+        _mm_prefetch((const char*)&p_data_in[3],_MM_HINT_T0);
+    }
+    const __m512i split_idx_even{_mm512_setr_epi32(0,8,2,10,1,9,3,11,16,24,18,26,17,25,19,27)};
+    const __m512i split_idx_odd{_mm512_setr_epi32(4,12,6,14,5,13,7,15,20,28,22,30,21,29,23,31)};
+    const __m512 lo2{_mm512_unpacklo_ps(p_data_in[2],p_data_in[3])};
+    const __m512 half04_0{_mm512_unpacklo_ps(lo1,lo2)};
+    const __m512 half15_0{_mm512_unpackhi_ps(lo1,lo1)};
+    if constexpr(use_software_prefetch)
+    {
+        _mm_prefetch((const char*)&p_data_in[4],_MM_HINT_T0);
+        _mm_prefetch((const char*)&p_data_in[5],_MM_HINT_T0);
+    }
+    const __m512 lo3{_mm512_unpacklo_ps(p_data_in[4],p_data_in[5])};
+    if constexpr(use_software_prefetch)
+    {
+        _mm_prefetch((const char*)&p_data_in[6],_MM_HINT_T0);
+        _mm_prefetch((const char*)&p_data_in[7],_MM_HINT_T0);
+    }
+    const __m512 lo4{_mm512_unpacklo_ps(p_data_in[6],p_data_in[7])};
+    const __m512 half04_1{_mm512_unpacklo_ps(lo3,lo4)};
+    p_data_out[0] = _mm512_permutex2var_ps(half04_0,split_idx_even,half04_1);
+    p_data_out[4] = _mm512_permutex2var_ps(half04_0,split_idx_odd,half04_1);
+    const __m512 half15_1{_mm512_unpackhi_ps(lo3,lo4)};
+    p_data_out[1] = _mm512_permutex2var_ps(half15_0,split_idx_even,half15_1);
+    p_data_out[5] = _mm512_permutex2var_ps(half15_0,split_idx_odd,half15_1);
+    const __m512 up1 = _mm512_unpackhi_ps(p_data_in[0],p_data_in[1]);
+    const __m512 up2 = _mm512_unpackhi_ps(p_data_in[2],p_data_in[3]);
+    const __m512 up3 = _mm512_unpackhi_ps(p_data_in[4],p_data_in[5]);
+    const __m512 up4 = _mm512_unpackhi_ps(p_data_in[6],p_data_in[7]);
+    const __m512 half26_0 = _mm512_unpacklo_ps(up1, up2);
+    const __m512 half26_1 = _mm512_unpacklo_ps(up3, up4);
+    p_data_out[2] = _mm512_permutex2var_ps(half26_0, split_idx_even, half26_1);
+    p_data_out[6] = _mm512_permutex2var_ps(half26_0, split_idx_odd, half26_1);
+    const __m512 half37_0 = _mm512_unpackhi_ps(up1, up2);
+    const __m512 half37_1 = _mm512_unpackhi_ps(up3, up4);
+    p_data_out[3] = _mm512_permutex2var_ps(half37_0, split_idx_even, half37_1);
+    p_data_out[7] = _mm512_permutex2var_ps(half37_0, split_idx_odd, half37_1);                                                                              
+}
+
+#define DO2_UNPACK_LO(x,res0,res1)\
+(res0) = _mm512_unpacklo_ps(p_data_in[(x)],p_data_in[(x)+2]);\
+(res1) = _mm512_unpacklo_ps(p_data_in[(x)+1],p_data_in[(x)+3]);
+
+#define DO2_UNPACK_HI(x,res0,res1)\
+(res0) = _mm512_unpackhi_ps(p_data_in[(x)],p_data_in[(x)+2]);\
+(res1) = _mm512_unpackhi_ps(p_data_in[(x)+1],p_data_in[(x)+3]);
+
+
 
 } //l1_phy
 
