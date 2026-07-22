@@ -1,21 +1,20 @@
 
-/*MIT License
-!Copyright (c) 2020 Bernard Gingold
-!Permission is hereby granted, free of charge, to any person obtaining a copy
-!of this software and associated documentation files (the "Software"), to deal
-!in the Software without restriction, including without limitation the rights
-!to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-!copies of the Software, and to permit persons to whom the Software is
-!furnished to do so, subject to the following conditions:
-!The above copyright notice and this permission notice shall be included in all
-!copies or substantial portions of the Software.
-!THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-!IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-!FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-!AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-!LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-!OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-!SOFTWARE.
+/*
+ * Copyright (C) Bernard Gingold, 2020-2026 
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
 #ifndef __GMS_MACHINE_UTILS_H__
@@ -76,6 +75,26 @@ rdtscp_fenced()
   a = (d << 32) | a;
   asm volatile("mfence");
   return a;
+}
+
+__ATTR_ALWAYS_INLINE__
+inline static 
+std::uint64_t 
+rdtsc_fenced_start()
+{
+   asm volatile("lfence");
+   return (__rdtsc());
+}
+
+__ATTR_ALWAYS_INLINE__
+inline static 
+std::uint64_t 
+rdtsc_fenced_stop()
+{
+   std::uint64_t tsc{};
+   tsc = __rdtsc();
+   asm volatile("lfence");
+   return (tsc);
 }
 
 __ATTR_ALWAYS_INLINE__
@@ -255,6 +274,23 @@ rdtsc_serialized_stop()
     );
     tsc_readout = ((std::uint64_t)cyce_high << 32) | cyce_low;
     return (tsc_readout);
+}
+
+__ATTR_ALWAYS_INLINE__
+inline static 
+void 
+check_prefetch_data_size()
+{
+  std::int input = 0x2, eax, ebx, ecx, edx;
+  asm volatile ("movl %0, %%eax;"::"r"(input));
+  asm volatile ("cpuid;");
+  asm volatile ("movl %%eax, %0;":"=r" (eax));
+  asm volatile ("movl %%ebx, %0;":"=r" (ebx));
+  asm volatile ("movl %%ecx, %0;":"=r" (ecx));
+  asm volatile ("movl %%edx, %0;":"=r" (edx));
+  /* EBX shall contain bits 23-16 = F0 = Prefetch : 64-Byte prefetching*/
+  [[maybe_unused]] std::int32_t printf_ret = 
+  printf("eax = 0x%08.8X, \nebx = 0x%08.8X, \necx = 0x%08.8X, \nedc = 0x%08.8X \n", eax, ebx, ecx, edx);
 }
 
 } // common
