@@ -12,7 +12,7 @@
    icpc -o unit_test_matrix_inv_cholesky_13x13_validity -std=c++17 -fp-model fast=2 -ftz -ggdb -ipo -qopt-zmm-usage=high -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
    GMS_config.h GMS_malloc.h GMS_machine_utils.h GMS_matrix_inv_cholesky.h GMS_matrix_inv_cholesky.cpp unit_test_mat_inv_cholesky_defines.h unit_test_inv_mat_cholesky_13x13_validity.cpp 
    ASM: 
-   icpc -S -fverbose-asm -masm=intel -qopt-zmm-usage=high -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_config.h GMS_malloc.h GMS_machine_utils.h GMS_matrix_inv_cholesky.h GMS_matrix_inv_cholesky.cpp unit_test_mat_inv_cholesky_defines.h unit_test_inv_mat_cholesky_13x13_validity.cpp 
+   icpc -S -fverbose-asm -masm=intel -qopt-zmm-usage=high -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_malloc.h GMS_machine_utils.h GMS_matrix_inv_cholesky.h GMS_matrix_inv_cholesky.cpp unit_test_mat_inv_cholesky_defines.h unit_test_inv_mat_cholesky_13x13_validity.cpp 
 */
  
 static __m512 constZero = _mm512_setzero_ps();
