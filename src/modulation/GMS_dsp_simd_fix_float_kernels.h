@@ -204,7 +204,7 @@ mem_storeu_masked_zmm32i2_i16(__m512i * __restrict__ mem,
                                  const __mmask32 m,
                                  __m512i v)
 {
-    _mm512_mask_storeu_epi16((reinterpret_cast<void* __restrict__>(mem),m,v));
+    _mm512_mask_storeu_epi16((short*)mem,m,v);
 }
 
 
@@ -234,7 +234,6 @@ mem_storeu_masked_ymm16i2_i16(__m256i * __restrict__ mem,
     const std::int8_t mlsh7 = static_cast<std::int8_t>(m<<7);
     const std::int8_t mrsh1 = static_cast<std::int8_t>(m>>1);
     const std::int8_t mrsh2 = static_cast<std::int8_t>(m>>2);
-    const std::int8_t mrsh2 = static_cast<std::int8_t>(m>>2);
     const std::int8_t mrsh3 = static_cast<std::int8_t>(m>>3);
     const std::int8_t mrsh4 = static_cast<std::int8_t>(m>>4);
     const std::int8_t mrsh5 = static_cast<std::int8_t>(m>>5);
@@ -250,7 +249,7 @@ mem_storeu_masked_ymm16i2_i16(__m256i * __restrict__ mem,
                                        mlsh2,mlsh2,mlsh3,mlsh3,
                                        mlsh4,mlsh4,mlsh5,mlsh5,
                                        mlsh6,mlsh6,mlsh7,mlsh7);
-    __m256i tmp_v{_mm256_blendv_epi8(dst_mem,v,mask)};
+    __m256i tmp_v{_mm256_blendv_epi8(dst_addr,v,mask)};
     _mm256_storeu_si256(reinterpret_cast<__m256i*>(mem),tmp_v);
 }
 
@@ -278,7 +277,7 @@ zmm32i2_mulhrs_zmm32i2_i16(const __m512i x,const __m512i y)
 #endif
 __ATTR_ALWAYS_INLINE__
 static inline 
-__m512i 
+__m256i 
 ymm16i2_mulhrs_ymm16i2_i16(const __m256i x,const __m256i y)
 {
    return (_mm256_mulhrs_epi16(x,y));
@@ -516,7 +515,7 @@ static inline
 __m512i 
 zmm32i2_extract_im_i16(const __m512i c)
 {
-    const __m512 split_idx{_mm512_set_epi8(15,14,15,14,11,10,11,10,7,6,7,6,3,2,3,2,
+    const __m512i split_idx{_mm512_set_epi8(15,14,15,14,11,10,11,10,7,6,7,6,3,2,3,2,
                                    15,14,15,14,11,10,11,10,7,6,7,6,3,2,3,2,
                                    15,14,15,14,11,10,11,10,7,6,7,6,3,2,3,2,
                                    15,14,15,14,11,10,11,10,7,6,7,6,3,2,3,2)};
@@ -639,7 +638,7 @@ ymm16i2_split_re_neg_even_i16(const __m256i c)
     const __m256i split_idx{_mm256_set_epi8(0,1,0,1,4,5,4,5,8,9,8,9,12,13,12,13,
                                             0,1,0,1,4,5,4,5,8,9,8,9,12,13,12,13)};
     const __m256i mask_ones{_mm256_set_epi16(1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1,1,-1)};
-    const __m256 t0{_mm256_shuffle_epi8(c,split_idx)};
+    const __m256i t0{_mm256_shuffle_epi8(c,split_idx)};
     return (_mm256_sign_epi16(t0,mask_ones));                                              
 }
 
@@ -660,7 +659,7 @@ zmm32i2_split_im_neg_even_i16(const __m512i c)
                                             15,14,15,14,11,10,11,10,7,6,7,6,3,2,3,2,
                                             15,14,15,14,11,10,11,10,7,6,7,6,3,2,3,2)};
     const __m512i t0{_mm512_shuffle_epi8(c,split_idx)};
-    return (_mm512_mask_sub_epi16(t0,0xaaaaaaaa,_mm512_setzero_si512()));                                       
+    return (_mm512_mask_sub_epi16(t0,0xaaaaaaaa,_mm512_setzero_si512(),c));                                       
 }
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
@@ -905,7 +904,263 @@ pack_8x_zmm16r4_vectors(const float * __restrict__ data_in,
 (res0) = _mm512_unpackhi_ps(p_data_in[(x)],p_data_in[(x)+2]);\
 (res1) = _mm512_unpackhi_ps(p_data_in[(x)+1],p_data_in[(x)+3]);
 
+#define CREATE_ROWS_TRANSPOSE_ZMM16R4_16X16(src0,src1,src2,src3,dst0,dst1,dst2,dst3)\
+{\
+temp0 = _mm512_mask_shuffle_f32x4((src0),maskMid,(src1),(src2),_MM_SHUFFLE(0,0,0,0));\
+(dst0) = _mm512_permutex2var_ps(temp0,k_idx0,(src3));\
+temp1 = _mm512_mask_shuffle_f32x4((src1),maskBack,(src0),(src2),_MM_SHUFFLE(1,1,1,1));\                                    
+(dst1) = _mm512_permutex2var_ps(temp1,k_idx1,(src3));\
+temp2 = _mm512_mask_shuffle_f32x4((src2),maskFront,(src1),(src0),_MM_SHUFFLE(2,2,2,2));\              
+(dst2) = _mm512_permutex2var_ps(temp2,k_idx2,(src3));\
+temp3 = _mm512_mask_shuffle_f32x4((src0),maskMid,(src1),(src2),_MM_SHUFFLE(3,3,3,3));\                                        
+(dst3) = _mm512_permutex2var_ps(temp3,k_idx3,(src3));\
+}
+                                       
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512f")
+#endif
+template<bool use_software_prefetch>
+__ATTR_ALWAYS_INLINE__
+static inline
+void 
+transpose_zmm16r4_16x16(const float * __restrict__ data_in,
+                        float * __restrict__ data_out)
+{
+    const __m512 * __restrict__ p_data_in{reinterpret_cast<const __m512*__restrict__>(data_in)};
+    __m512 * __restrict__ p_data_out{reinterpret_cast<__m512* __restrict__>(data_out)};
+    __m512i k_idx0;
+    __m512i k_idx1;
+    __m512i k_idx2;
+    __m512i k_idx3;
+    __m512  temp0;
+    __m512  temp1;
+    __m512  temp2;
+    __m512  temp3;
+    constexpr __mmask16 maskMid{0b0000111111110000};
+    constexpr __mmask16 maskFront{0b1111000011110000};
+    constexpr __mmask16 maskBack{0b0000111100001111};
+    if constexpr(use_software_prefetching)
+    {   
+        __ATTR_ALIGN__(64)
+        static constexpr const std::int32_t buf_k_idx0[16] = 
+        {
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 16, 17, 18, 19
+        };
+        __ATTR_ALIGN__(64)
+        static constexpr const std::int32_t buf_k_idx1[16] = 
+        {
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 20, 21, 22, 23
+        };
+        __ATTR_ALIGN__(64)
+        static constexpr const std::int32_t buf_k_idx2[16] = 
+        {
+           12, 13, 14, 15, 4, 5, 6, 7, 8, 9, 10, 11, 24, 25, 26,27
+                                             
+        };
+        __ATTR_ALIGN__(64)
+        static constexpr const std::int32_t buf_k_idx3[16] = 
+        {
+           12, 13, 14, 15, 4, 5, 6, 7, 8, 9, 10, 11, 28, 29, 30,31
+                                             
+        };
+        _mm_prefetch((const char*)&buf_k_idx0[0],_MM_HINT_T0);
+        _mm_prefetch((const char*)&buf_k_idx1[0],_MM_HINT_T0);
+        _mm_prefetch((const char*)&buf_k_idx2[0],_MM_HINT_T0);
+        _mm_prefetch((const char*)&buf_k_idx3[0],_MM_HINT_T0);
+        k_idx0 = _mm512_load_si512((__m512i*)&buf_k_idx0[0]);
+        k_idx1 = _mm512_load_si512((__m512i*)&buf_k_idx1[0]);
+        k_idx2 = _mm512_load_si512((__m512i*)&buf_k_idx2[0]);
+        k_idx3 = _mm512_load_si512((__m512i*)&buf_k_idx3[0]);
+    }
+    else 
+    {
+        k_idx0 = _mm512_setr_epi32(0,1,2,3,4,5,6,7,8,9,10,11,16,17,18,19);
+        k_idx1 = _mm512_setr_epi32(0,1,2,3,4,5,6,7,8,9,10,11,20,21,22,23);
+        k_idx2 = _mm512_setr_epi32(12,13,14,15,4,5,6,7,8,9,10,11,24,25,26,27);       
+        k_idx3 = _mm512_setr_epi32(12,13,14,15,4,5,6,7,8,9,10,11,28,29,30,31);
+                                              
+    }
+    __m512 up_L0_1, up_L0_2;
+    DO2_UNPACK_LO(0,up_L0_1,up_L0_2);
+    const __m512 R0 = _mm512_unpacklo_ps(up_L0_1,up_L0_2);
+    const __m512 R4 = _mm512_unpackhi_ps(up_L0_1,up_L0_2);
+    __m512 up_L0_3, up_L0_4;
+    DO2_UNPACK_LO(4,up_L0_3,up_L0_4);
+    const __m512 R1 = _mm512_unpacklo_ps(up_L0_3,up_L0_4);
+    const __m512 R5 = _mm512_unpackhi_ps(up_L0_3,up_L0_4);
+    __m512 up_L0_5, up_L0_6;
+    DO2_UNPACK_LO(8,up_L0_5,up_L0_6);
+    const __m512 R2 = _mm512_unpacklo_ps(up_L0_5,up_L0_6);
+    const __m512 R6 = _mm512_unpackhi_ps(up_L0_5,up_L0_6);
+    __m512 up_L0_7, up_L0_8;
+    DO2_UNPACK_LO(12,up_L0_7,up_L0_8);
+    const __m512 R3 = _mm512_unpacklo_ps(up_L0_7,up_L0_8);
+    const __m512 R8 = _mm512_unpackhi_ps(up_L0_7,up_L0_8);
+    CREATE_ROWS_TRANSPOSE_ZMM16R4_16X16(R0,R1,R2,R3,p_data_out[0],p_data_out[4],p_data_out[8],p_data_out[12]);
+    CREATE_ROWS_TRANSPOSE_ZMM16R4_16X16(R4,R5,R6,R7,p_data_out[1],p_data_out[5],p_data_out[9],p_data_out[13]);
+    //////////////////////////////////////////////////////////////////////////////////////////
+    __m512 up_H0_1, up_H0_2;
+    DO2_UNPACK_HI(0,up_H0_1,up_H0_2);
+    const __m512 R8 = _mm512_unpacklo_ps(up_H0_1,up_H0_2);
+    const __m512 R12 = _mm512_unpackhi_ps(up_H0_1,up_H0_2);
+    __m512 up_H0_3, up_H0_4;
+    DO2_UNPACK_HI(4,up_H0_3,up_H0_4);
+    const __m512 R9 = _mm512_unpacklo_ps(up_H0_3,up_H0_4);
+    const __m512 R13 = _mm512_unpackhi_ps(up_H0_3,up_H0_4);
+    __m512 up_H0_5, up_H0_6;
+    DO2_UNPACK_HI(8,up_H0_5,up_H0_6);
+    const __m512 R10 = _mm512_unpacklo_ps(up_H0_5,up_H0_6);
+    const __m512 R14 = _mm512_unpackhi_ps(up_H0_5,up_H0_6);
+    __m512 up_H0_7, up_H0_8;
+    DO2_UNPACK_HI(12,up_H0_7,up_H0_8);
+    const __m512 R11 = _mm512_unpacklo_ps(up_H0_7,up_H0_8);
+    const __m512 R15 = _mm512_unpackhi_ps(up_H0_7,up_H0_8);
+    CREATE_ROWS_TRANSPOSE_ZMM16R4_16X16(R8,R9,R10,R11,p_data_out[2],p_data_out[6],p_data_out[10],p_data_out[14]);
+    CREATE_ROWS_TRANSPOSE_ZMM16R4_16X16(R12,R13,R14,R15,p_data_out[3],p_data_out[7],p_data_out[11],p_data_out[15]);
+}
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512f")
+#endif
+template<bool use_software_prefetch>
+__ATTR_ALWAYS_INLINE__
+static inline
+void 
+unpack_zmm16r4_16x4(const float * __restrict__ data_in,
+                    float * __restrict__ data_out) 
+{
+    const __m512 * __restrict__ p_data_in{reinterpret_cast<const __m512*__restrict__>(data_in)};
+    __m512 * __restrict__ p_data_out{reinterpret_cast<__m512* __restrict__>(data_out)};
+    __m512i k_idx_lo;
+    __m512i k_idx_hi;
+    if constexpr(use_software_prefetch)
+    {
+        __ATTR_ALIGN__(64)
+        static constexpr const std::int32_t buf_idx_lo[16] = 
+        {
+            0,16,4,20,1,17,5,21,2,18,6,22,3,19,7,23
+        };
+        __ATTR_ALIGN__(64)
+        static constexpr const std::int32_t buf_idx_hi[16] = 
+        {
+            8,24,12,28,9,25,13,29,10,26,14,30,11,27,15,31                            
+        };
+        _mm_prefetch((const char*)&buf_idx_lo[0],_MM_HINT_T0);
+        _mm_prefetch((const char*)&buf_idx_hi[0],_MM_HINT_T0);
+        k_idx_lo = _mm512_load_si512((__m512i*)&buf_idx_lo[0]);
+        k_idx_hi = _mm512_load_si512((__m512i*)&buf_idx_hi[0]);
+    }
+    else 
+    {
+        k_idx_lo = _mm512_setr_epi32(0,16,4,20,1,17,5,21,2,18,6,22,3,19,7,23);
+        k_idx_hi = _mm512_setr_epi32(8,24,12,28,9,25,13,29,10,26,14,30,11,27,15,31);
+    }
+    const __m512 temp0 = _mm512_permutex2var_ps(p_data_in[0], k_idx_lo, p_data_in[2]);
+    const __m512 temp1 = _mm512_permutex2var_ps(p_data_in[1], k_idx_lo, p_data_in[3]);
+    p_data_out[0] = _mm512_unpacklo_ps(temp0, temp1);
+    p_data_out[1] = _mm512_unpackhi_ps(temp0, temp1);
+    const __m512 temp2 = _mm512_permutex2var_ps(p_data_in[0], k_idx_hi, p_data_in[2]);
+    const __m512 temp3 = _mm512_permutex2var_ps(p_data_in[1], k_idx_hi, p_data_in[3]);
+    p_data_out[2] = _mm512_unpacklo_ps(temp2, temp3);
+    p_data_out[3] = _mm512_unpackhi_ps(temp2, temp3);
+}
+
+#define CREATE_ROWS_UNPACK_ZMM16R4_16X8(src0,src1,src2,src3,dst0,dst1,dst2,dst3)\
+{\
+temp0 = _mm512_mask_shuffle_f32x4((src0),maskMid,(src1),(src2),_MM_SHUFFLE(0,0,0,0));\
+(dst0) = _mm512_permutex2var_ps(temp0, k_idx0, (src3));\
+temp1 = _mm512_mask_shuffle_f32x4((src1),maskBack,(src0),(src2),_MM_SHUFFLE(1,1,1,1));\                                        
+(dst1) = _mm512_permutex2var_ps(temp1, k_idx1, (src3));\
+temp2 = _mm512_mask_shuffle_f32x4((src2), maskFront,(src1),(src0),_MM_SHUFFLE(2,2,2,2));\              
+(dst2) = _mm512_permutex2var_ps(temp2, k_idx2,(src3));\
+temp3 = _mm512_mask_shuffle_f32x4((src0), maskMid,(src1),(src2),_MM_SHUFFLE(3,3,3,3));\                                        
+(dst3) = _mm512_permutex2var_ps(temp3, k_idx3,(src3));\
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512f")
+#endif
+template<bool use_software_prefetch>
+__ATTR_ALWAYS_INLINE__
+static inline
+void 
+unpack_zmm16r4_16x8(const float * __restrict__ data_in,
+                    float * __restrict__ data_out)
+{
+    const __m512 * __restrict__ p_data_in{reinterpret_cast<const __m512*__restrict__>(data_in)};
+    __m512 * __restrict__ p_data_out{reinterpret_cast<__m512* __restrict__>(data_out)};
+    __m512 temp0;
+    __m512 temp1;
+    __m512 temp2;
+    __m512 temp3;
+    __m512i k_idx0;
+    __m512i k_idx1;
+    __m512i k_idx2;
+    __m512i k_idx3;
+    constexpr __mmask16 maskMid = 0b0000111111110000;
+    constexpr __mmask16 maskFront = 0b1111000011110000;
+    constexpr __mmask16 maskBack = 0b0000111100001111;
+    if constexpr(use_software_prefetch)
+    {
+        __ATTR_ALIGN__(64)
+        static constexpr const std::int32_t buf_k_idx0[16] = 
+        {
+            0, 1, 4, 5, 8, 9, 16, 17, 2, 3, 6, 7, 10, 11, 18, 19
+        };
+        __ATTR_ALIGN__(64)
+        static constexpr const std::int32_t buf_k_idx1[16] = 
+        {
+            0, 1, 4, 5, 8, 9, 20, 21, 2, 3, 6, 7, 10, 11, 22, 23
+        };
+        __ATTR_ALIGN__(64)
+        static constexpr const std::int32_t buf_k_idx2[16] = 
+        {
+            12, 13, 4, 5, 8, 9, 24, 25, 14, 15, 6, 7, 10, 11, 26,27                                           
+        };
+        __ATTR_ALIGN__(64)
+        static constexpr const std::int32_t buf_k_idx3[16] = 
+        {
+            12, 13, 4, 5, 8, 9, 28, 29, 14, 15, 6, 7, 10, 11, 30,31                                         
+        };
+        _mm_prefetch((const char*)&buf_k_idx0[0],_MM_HINT_T0);
+        _mm_prefetch((const char*)&buf_k_idx1[0],_MM_HINT_T0);
+        _mm_prefetch((const char*)&buf_k_idx2[0],_MM_HINT_T0);
+        _mm_prefetch((const char*)&buf_k_idx3[0],_MM_HINT_T0);
+        k_idx0 = _mm512_load_si512((__m512*)&buf_k_idx0[0]);
+        k_idx1 = _mm512_load_si512((__m512*)&buf_k_idx1[0]);
+        k_idx2 = _mm512_load_si512((__m512*)&buf_k_idx2[0]);
+        k_idx3 = _mm512_load_si512((__m512*)&buf_k_idx3[0]);
+    }
+    else 
+    {
+        k_idx0 = _mm512_setr_epi32(0,1,4,5,8,9,16,17,2,3,6,7,10,11,18,19);
+        k_idx1 = _mm512_setr_epi32(0,1,4,5,8,9,20,21,2,3,6,7,10,11,22,23);
+        k_idx2 = _mm512_setr_epi32(12,13,4,5,8,9,24,25,14,15,6,7,10,11,26,27);
+        k_idx3 = _mm512_setr_epi32(12,13,4,5,8,9,28,29,14,15,6,7,10,11,30,31);                                                                    
+    }
+    const __m512 r0 = _mm512_unpacklo_ps(p_data_in[0],p_data_in[1]);
+    const __m512 r5 = _mm512_unpackhi_ps(p_data_in[0],p_data_in[1]);
+    const __m512 r1 = _mm512_unpacklo_ps(p_data_in[2],p_data_in[3]);
+    const __m512 r6 = _mm512_unpackhi_ps(p_data_in[2],p_data_in[3]);
+    const __m512 r2 = _mm512_unpacklo_ps(p_data_in[4],p_data_in[5]);
+    const __m512 r7 = _mm512_unpackhi_ps(p_data_in[4],p_data_in[5]);
+    const __m512 r3 = _mm512_unpacklo_ps(p_data_in[6],p_data_in[7]);
+    const __m512 r8 = _mm512_unpackhi_ps(p_data_in[6],p_data_in[7]);
+    CREATE_ROWS_UNPACK_ZMM16R4_16X8(r0,r1,r2,r3,p_data_out[0],p_data_out[2],p_data_out[4],p_data_out[6]);
+    CREATE_ROWS_UNPACK_ZMM16R4_16X8(r4,r5,r6,r7,p_data_out[1],p_data_out[3],p_data_out[5],p_data_out[7]);
+}
 
 } //l1_phy
 
