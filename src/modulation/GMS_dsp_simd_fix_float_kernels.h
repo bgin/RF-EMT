@@ -943,7 +943,7 @@ transpose_zmm16r4_16x16(const float * __restrict__ data_in,
     constexpr __mmask16 maskMid{0b0000111111110000};
     constexpr __mmask16 maskFront{0b1111000011110000};
     constexpr __mmask16 maskBack{0b0000111100001111};
-    if constexpr(use_software_prefetching)
+    if constexpr(use_software_prefetch)
     {   
         __ATTR_ALIGN__(64)
         static constexpr const std::int32_t buf_k_idx0[16] = 
@@ -999,7 +999,7 @@ transpose_zmm16r4_16x16(const float * __restrict__ data_in,
     __m512 up_L0_7, up_L0_8;
     DO2_UNPACK_LO(12,up_L0_7,up_L0_8);
     const __m512 R3 = _mm512_unpacklo_ps(up_L0_7,up_L0_8);
-    const __m512 R8 = _mm512_unpackhi_ps(up_L0_7,up_L0_8);
+    const __m512 R7 = _mm512_unpackhi_ps(up_L0_7,up_L0_8);
     CREATE_ROWS_TRANSPOSE_ZMM16R4_16X16(R0,R1,R2,R3,p_data_out[0],p_data_out[4],p_data_out[8],p_data_out[12]);
     CREATE_ROWS_TRANSPOSE_ZMM16R4_16X16(R4,R5,R6,R7,p_data_out[1],p_data_out[5],p_data_out[9],p_data_out[13]);
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -1159,7 +1159,7 @@ unpack_zmm16r4_16x8(const float * __restrict__ data_in,
     const __m512 r3 = _mm512_unpacklo_ps(p_data_in[6],p_data_in[7]);
     const __m512 r8 = _mm512_unpackhi_ps(p_data_in[6],p_data_in[7]);
     CREATE_ROWS_UNPACK_ZMM16R4_16X8(r0,r1,r2,r3,p_data_out[0],p_data_out[2],p_data_out[4],p_data_out[6]);
-    CREATE_ROWS_UNPACK_ZMM16R4_16X8(r4,r5,r6,r7,p_data_out[1],p_data_out[3],p_data_out[5],p_data_out[7]);
+    CREATE_ROWS_UNPACK_ZMM16R4_16X8(r5,r6,r7,r8,p_data_out[1],p_data_out[3],p_data_out[5],p_data_out[7]);
 }
 
 } //l1_phy
