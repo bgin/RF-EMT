@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
+#include <cstdio>
 #include "GMS_config.h"
 
 namespace file_info 
@@ -281,7 +282,7 @@ inline static
 void 
 check_prefetch_data_size()
 {
-  std::int input = 0x2, eax, ebx, ecx, edx;
+  std::int32_t input = 0x2, eax, ebx, ecx, edx;
   asm volatile ("movl %0, %%eax;"::"r"(input));
   asm volatile ("cpuid;");
   asm volatile ("movl %%eax, %0;":"=r" (eax));
@@ -290,7 +291,7 @@ check_prefetch_data_size()
   asm volatile ("movl %%edx, %0;":"=r" (edx));
   /* EBX shall contain bits 23-16 = F0 = Prefetch : 64-Byte prefetching*/
   [[maybe_unused]] std::int32_t printf_ret = 
-  printf("eax = 0x%08.8X, \nebx = 0x%08.8X, \necx = 0x%08.8X, \nedc = 0x%08.8X \n", eax, ebx, ecx, edx);
+  std::printf("eax = 0x%08.8X, \nebx = 0x%08.8X, \necx = 0x%08.8X, \nedc = 0x%08.8X \n", eax, ebx, ecx, edx);
 }
 
 } // common
