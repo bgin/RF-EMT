@@ -40,7 +40,9 @@ namespace file_info
      static const char GMS_FADING_SPECTRUM_CREATION_DATE[] = "28-07-2026 05:58PM +00200 (MON 28 JUL 2026 GMT+2)";
      static const char GMS_FADING_SPECTRUM_BUILD_DATE[]    = __DATE__; 
      static const char GMS_FADING_SPECTRUM_BUILD_TIME[]    = __TIME__;
-     static const char GMS_FADING_SPECTRUM_SYNOPSIS[]      = "Fading [Radio]Channel analytical autocorrelation and PSD derived filters.";
+     static const char GMS_FADING_SPECTRUM_SYNOPSIS[]      = "Fading [Radio]Channel analytical autocorrelation and PSD derived filters.\
+	                                                          Based on the M.K Simon, M.S. Alouini: Digital Communication over Fading Channels 1st ed\
+															  ISBN-13 978-0471317791";
 
 }
 
@@ -56,7 +58,10 @@ namespace fading_channel
 	of cephes scalar code, hence the usage of cmath functions will
 	be needed for the OpenMP path
 */
-/* Frequency selective fading*/
+/* 
+
+Frequency selective fading*/
+
 
 #if (USE_OPENMP) == 1
 #pragma omp declare simd simdlen(16)
