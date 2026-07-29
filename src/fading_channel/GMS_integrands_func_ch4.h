@@ -232,7 +232,7 @@ template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_26_marcum_Q_func(const double,const double,
-                               const double,const double);
+                                    const double);
 
 /*
    Chapter 4, formula: 4.27
@@ -248,7 +248,7 @@ template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_27_marcum_Q_func(const double,const double,
-                               const double,const double);
+                                    const double);
 
 /*
    Chapter 4, formula: 4.32
@@ -263,7 +263,8 @@ double integrand_4_27_marcum_Q_func(const double,const double,
 template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
-double integrand_4_32_marcum_Q_m_func(const double,const double,const std::int32_t);
+double integrand_4_32_marcum_Q_m_func(const double,const double,
+                                      const double, const std::int32_t);
 
 /*
    Chapter 4, formula: 4.42
@@ -279,7 +280,7 @@ template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_42_marcum_Q_m_func(const double,const double,
-                                      const double,std::int32_t);
+                                      const double,const double);
 
 /*
    Chapter 4, formula: 4.45
@@ -294,11 +295,13 @@ double integrand_4_42_marcum_Q_m_func(const double,const double,
 template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
-double integrand_4_45_marcum_Q_m_func(const double,const double,std::int32_t);
+double integrand_4_45_marcum_Q_m_func(const double,const double,const double);
 
 /*
    Chapter 4, formula: 4.50
+   Currently the implementation is postponed
 */
+#if 0
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -311,6 +314,7 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_50_marcum_Q_m_func(const double,const double,
                                       const double,const double);
+#endif 
 
 /*
    Chapter 4, formula: 4.66
@@ -325,7 +329,8 @@ double integrand_4_50_marcum_Q_m_func(const double,const double,
 template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
-double integrand_4_66_pawula_func(const double,const double,const double);
+double integrand_4_66_pawula_func(const double,const double,const double,
+                                  const double,const double);
 
 /*
    Chapter 4, formula: 4.67
@@ -340,11 +345,13 @@ double integrand_4_66_pawula_func(const double,const double,const double);
 template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
-double integrand_4_67_pawula_func(const double,const double);
+double integrand_4_67_pawula_func(const double,const double,
+                                  const double,const double);
 
 /*
    Chapter 4, formula: 4.68
 */
+#if 0
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -356,7 +363,7 @@ template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_68_pawula_func(const double,const double);
-
+#endif 
 
                             
 } // fading_channel
