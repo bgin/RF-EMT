@@ -41,6 +41,14 @@ namespace file_info
 
 }
 
+#if !defined(INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE)
+#define INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE 1
+#endif 
+
+#if !defined(INTEGRANDS_FUNC_CH4_DO_WARMUP_CALL)
+#define INTEGRANDS_FUNC_CH4_DO_WARMUP_CALL 1
+#endif 
+
 namespace gms
 {
 
@@ -83,7 +91,6 @@ double warmup_cyl_bess_j(const std::int32_t,const double);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_1_gauss_Q_func(const double);
@@ -98,7 +105,6 @@ double integrand_4_1_gauss_Q_func(const double);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_2_gauss_Q_func(const double,const double);
@@ -113,12 +119,11 @@ double integrand_4_2_gauss_Q_func(const double,const double);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_std_lib,bool do_funcs_warmup,
-         std::int32_t choose_sin_or_cos>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_6_gauss_Q_func(const double,const double,
-                                  const double,const double);
+                                  const double,const double,
+                                  const std::int32_t);
                                   
 /*
   Chapter 4, formula: 4.7
@@ -130,12 +135,11 @@ double integrand_4_6_gauss_Q_func(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_std_lib,bool do_funcs_warmup,
-         std::int32_t choose_x1_or_y1>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_7_gauss_Q_func(const double,const double,
-                             const double,const double);
+                             const double,const double,
+                             const std::int32_t);
 
 /*
   Chapter 4, formula: 4.8 (case: rho = 0)
@@ -151,7 +155,8 @@ template<bool use_std_lib,bool do_funcs_warmup,
          std::int32_t choose_x1_or_y1>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
-double integrand_4_8_gauss_Q_func(const double,const double,const double);
+double integrand_4_8_gauss_Q_func(const double,const double,
+                                  const double,const std::int32_t);
 
 /*
    Chapter 4, formula: 4.10
@@ -163,7 +168,6 @@ double integrand_4_8_gauss_Q_func(const double,const double,const double);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_10_marcum_Q_func(const double,const double);
@@ -178,7 +182,6 @@ double integrand_4_10_marcum_Q_func(const double,const double);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_16_marcum_Q_func(const double,
@@ -195,7 +198,6 @@ double integrand_4_16_marcum_Q_func(const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_20_marcum_Q_func_lo(const double,const double,
@@ -212,7 +214,6 @@ double integrand_4_20_marcum_Q_func_lo(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_20_marcum_Q_func_hi(const double,const double,
@@ -228,7 +229,6 @@ double integrand_4_20_marcum_Q_func_hi(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_26_marcum_Q_func(const double,const double,
@@ -244,7 +244,6 @@ double integrand_4_26_marcum_Q_func(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_27_marcum_Q_func(const double,const double,
@@ -260,7 +259,6 @@ double integrand_4_27_marcum_Q_func(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_32_marcum_Q_m_func(const double,const double,
@@ -276,7 +274,6 @@ double integrand_4_32_marcum_Q_m_func(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_42_marcum_Q_m_func(const double,const double,
@@ -292,7 +289,6 @@ double integrand_4_42_marcum_Q_m_func(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_45_marcum_Q_m_func(const double,const double,const double);
@@ -326,7 +322,6 @@ double integrand_4_50_marcum_Q_m_func(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_66_pawula_func(const double,const double,const double,
@@ -342,7 +337,6 @@ double integrand_4_66_pawula_func(const double,const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_std_lib,bool do_funcs_warmup>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_67_pawula_func(const double,const double,
