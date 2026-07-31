@@ -32,6 +32,7 @@ Direct inquiries to 30 Frost Street, Cambridge, MA 02140
 #define __GMS_CEPHES_DOUBLE_H__ 290720260849
 
 #include <limits>
+#include <cstdint>
 #include "GMS_config.h"
 
 /* Define if the `long double' type works.  */
@@ -132,6 +133,9 @@ namespace gms
 namespace math 
 {
 
+namespace cephes_d
+{
+
 namespace
 {
 
@@ -159,17 +163,17 @@ double MINLOG = -7.08396418532264106224E2;     /* log 2**-1022 */
 #endif 
 // Not used
 #ifdef INFINITIES
-double INFINITY = 1.0/0.0;  /* 99e999; */
+//const double INFINITY = std::numeric_limits<double>::infinity(); /* 99e999; */
 #else
 double INFINITY =  1.79769313486231570815E308;    /* 2**1024*(1-MACHEP) */
 #endif
 #ifdef NANS
-double NAN = 1.0/0.0 - 1.0/0.0;
+//const double NAN = std::numeric_limits<double>::quiet_NaN();
 #else
 double NAN = 0.0;
 #endif
 #ifdef MINUSZERO
-double NEGZERO = -0.0;
+constexpr double NEGZERO = -0.0;
 #else
 double NEGZERO = 0.0;
 #endif
@@ -229,22 +233,10 @@ typedef struct
 	double i;
 	} cmplx;
 
-#ifdef HAVE_LONG_DOUBLE
-/* Long double complex numeral.  */
-typedef struct
-	{
-	long double r;
-	long double i;
-	} cmplxl;
-#endif
-
 ///////////////////////////////////////////////////////////////////
 __ATTR_ALWAYS_INLINE__
 static inline 
-double polevl( x, coef, N )
-double x;
-double coef[];
-int N;
+double polevl(double x,double coef[],std::int32_t N)
 {
 double ans;
 int i;
@@ -393,27 +385,6 @@ u.i[3] &= 0x7fff;
 return( u.d );
 }
 
-double ceil(double x)
-{
-double y;
-#ifdef NANS
-if( isnan(x) )
-	return( x );
-#endif
-#ifdef INFINITIES
-if(!isfinite(x))
-	return(x);
-#endif
-y = floor(x);
-if( y < x )
-	y += 1.0;
-#ifdef MINUSZERO
-if( y == 0.0 && x < 0.0 )
-	return( NEGZERO );
-#endif
-return(y);
-}
-
 __ATTR_ALWAYS_INLINE__
 static inline
 double floor(double x)
@@ -489,6 +460,28 @@ if( (x < 0) && (u.y != x) )
 return(u.y);
 }
 
+/*
+double ceil(double x)
+{
+double y;
+#ifdef NANS
+if( isnan(x) )
+	return( x );
+#endif
+#ifdef INFINITIES
+if(!isfinite(x))
+	return(x);
+#endif
+y = floor(x);
+if( y < x )
+	y += 1.0;
+#ifdef MINUSZERO
+if( y == 0.0 && x < 0.0 )
+	return( NEGZERO );
+#endif
+return(y);
+}
+*/
 __ATTR_ALWAYS_INLINE__
 static inline
 double frexp( double x, int * pw2 )
@@ -572,13 +565,11 @@ while( (e = (*q & 0x7ff0) >> 4) == 0 )
 	if( pw2 == 0 )
 		return(u.y);
 	}
-#endif /* not DEC */
-
 e += pw2;
 
 /* Handle overflow */
 if( e >= MEXP )
-	return( 2.0*MAXNUM );
+	return(MAXNUM );
 
 
 /* Handle denormalized results */
@@ -672,7 +663,7 @@ else
 	x = (x-1.0)/(x+1.0);
 	}
 z = x * x;
-z = z * polevl( z, P, 4 ) / p1evl( z, Q, 5 );
+z = z * polevl( z, (double*)&P, 4 ) / p1evl( z, (double*)&Q, 5 );
 z = x * z + x;
 if( flag == 2 )
 	z += 0.5 * MOREBITS;
@@ -739,8 +730,8 @@ x -= px * C2;
  * e**x = 1 + 2x P(x**2)/( Q(x**2) - P(x**2) )
  */
 xx = x * x;
-px = x * polevl( xx, P, 2 );
-x =  px/( polevl( xx, Q, 3 ) - px );
+px = x * polevl( xx, (double*)&P, 2 );
+x =  px/( polevl( xx, (double*)&Q, 3 ) - px );
 x = 1.0 + 2.0 * x;
 
 /* multiply by power of 2 */
@@ -986,7 +977,1034 @@ if( xsign < 0 )
 return 0;
 }
 
+__ATTR_ALWAYS_INLINE__
+static inline
+double chbevl(double x,double array[],std::int32_t n)
+{
+double b0, b1, b2, *p;
+int i;
+p = array;
+b0 = *p++;
+b1 = 0.0;
+i = n - 1;
+do
+	{
+	b2 = b1;
+	b1 = b0;
+	b0 = x * b1  -  b2  + *p++;
+	}
+while( --i );
 
+return( 0.5*(b0-b2) );
+}
+
+
+__ATTR_ALWAYS_INLINE__
+static inline
+double sqrt(double x)
+{
+int e;
+short *q;
+double z, w;
+
+if( x <= 0.0 )
+	{
+	if( x < 0.0 )
+	   return( 0.0 );
+	}
+w = x;
+/* separate exponent and significand */
+
+
+/* Note, frexp and ldexp are used in order to
+ * handle denormal numbers properly.
+ */
+
+z = frexp( x, &e );
+q = (short *)&x;
+q += 3;
+/*
+e = ((*q >> 4) & 0x0fff) - 0x3fe;
+*q &= 0x000f;
+*q |= 0x3fe0;
+z = x;
+*/
+
+/* approximate square root of number between 0.5 and 1
+ * relative error of approximation = 7.47e-3
+ */
+x = 4.173075996388649989089E-1 + 5.9016206709064458299663E-1 * z;
+
+/* adjust for odd powers of 2 */
+if( (e & 1) != 0 )
+	x *= SQRT2;
+
+/* re-insert exponent */
+
+x = ldexp( x, (e >> 1) );
+/*
+*q += ((e >>1) & 0x7ff) << 4;
+*q &= 077777;
+*/
+
+/* Newton iterations: */
+
+/* Note, assume the square root cannot be denormal,
+ * so it is safe to use integer exponent operations here.
+ */
+
+x += w/x;
+*q -= 0x10;
+x += w/x;
+*q -= 0x10;
+x += w/x;
+*q -= 0x10;
+return(x);
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline
+double i0(double x)
+{
+static unsigned short A[] = {
+0xd0ef,0x2134,0x5cb7,0xbc54,
+0xa589,0x977d,0x3362,0x3c83,
+0xbbb4,0x721e,0x84eb,0xbcb1,
+0x5eba,0x93f6,0xe6d8,0x3cde,
+0xfbeb,0xc297,0x5022,0xbd0a,
+0x2627,0x4b26,0x9b46,0x3d35,
+0x1af0,0x62ee,0x164c,0xbd61,
+0xd324,0xe19b,0xfe2f,0x3d89,
+0x6abc,0x7a94,0xfc95,0xbdb2,
+0x3c10,0xcc74,0x98be,0x3dda,
+0x9556,0x13ae,0xd4fe,0xbe01,
+0xcb34,0xa454,0xd903,0x3e26,
+0x30ab,0x8c0b,0xeaf6,0xbe4b,
+0x6435,0x9d4d,0x3b76,0x3e70,
+0x7f8d,0x8f22,0xec63,0xbe91,
+0xf4ac,0x978c,0xbf24,0x3eb2,
+0x6427,0xcba5,0x866f,0xbed2,
+0x2859,0xbe9a,0x3f58,0x3ef1,
+0x1d5a,0x59c4,0x2b26,0xbf0e,
+0x7cab,0x7410,0xb51b,0x3f28,
+0xeb52,0x1f15,0xe2fd,0xbf42,
+0x100e,0x8a12,0xdc75,0x3f5a,
+0xa849,0x201a,0xb65e,0xbf71,
+0xe3dd,0xf3dd,0x9961,0x3f85,
+0xb6f0,0xf121,0x4e9e,0xbf98,
+0xa32d,0xcea8,0x3e8a,0x3fa9,
+0x06ea,0x342d,0x4b70,0xbfb8,
+0x88c0,0x77ac,0xf7ac,0x3fc5,
+0xcd8d,0xc057,0x7feb,0xbfd3,
+0xa22a,0x9035,0xa84e,0x3fe5,
+};
+static unsigned short B[] = {
+0x8b19,0x54ca,0xadb7,0xbc60,
+0x9130,0x6611,0x46da,0xbc56,
+0x8421,0x12d9,0xbe18,0x3c89,
+0x41cd,0x0760,0xf3dd,0x3c83,
+0x1fe4,0xabd2,0x600b,0xbcb4,
+0xde38,0xd908,0xaee7,0xbcb8,
+0xfb1f,0xa3ea,0xee7d,0x3cdf,
+0xe6d7,0x9094,0x2a91,0x3cf1,
+0x629a,0x7e65,0x83fe,0xbd05,
+0xbb32,0xcf68,0x5d99,0xbd27,
+0xc545,0x0d5f,0x56ff,0x3d11,
+0xc073,0x6b83,0x1c8c,0x3d5b,
+0x8cec,0xfa26,0x4347,0x3d69,
+0x8d66,0x0317,0x9043,0xbd7f,
+0x7bf2,0x357e,0x0fd7,0xbdad,
+0x7425,0x0839,0x511d,0xbdc1,
+0x004f,0xabe8,0x24fe,0x3daa,
+0x6f75,0xc0f4,0xf9cc,0x3e00,
+0x5b87,0xa922,0x2c64,0x3e2d,
+0xd56d,0x80d6,0x5692,0x3e58,
+0x616e,0xd9cd,0x8007,0x3e8b,
+0xc586,0xc101,0x412b,0x3ec8,
+0x9e52,0x7899,0x0fa3,0x3f12,
+0x9049,0xa2e5,0x998c,0x3f6b,
+0x09cb,0xaca8,0xbe62,0x3fe9
+};
+double y;
+
+if( x < 0 )
+	x = -x;
+if( x <= 8.0 )
+	{
+	y = (x/2.0) - 2.0;
+	return( exp(x) * chbevl( y, (double*)&A, 30 ) );
+	}
+
+return(  exp(x) * chbevl( 32.0/x - 2.0, (double*)&B, 25 ) / sqrt(x) );
+
+}
+
+
+__ATTR_ALWAYS_INLINE__
+static inline
+double i0e( double x )
+{
+static unsigned short A[] = {
+0xd0ef,0x2134,0x5cb7,0xbc54,
+0xa589,0x977d,0x3362,0x3c83,
+0xbbb4,0x721e,0x84eb,0xbcb1,
+0x5eba,0x93f6,0xe6d8,0x3cde,
+0xfbeb,0xc297,0x5022,0xbd0a,
+0x2627,0x4b26,0x9b46,0x3d35,
+0x1af0,0x62ee,0x164c,0xbd61,
+0xd324,0xe19b,0xfe2f,0x3d89,
+0x6abc,0x7a94,0xfc95,0xbdb2,
+0x3c10,0xcc74,0x98be,0x3dda,
+0x9556,0x13ae,0xd4fe,0xbe01,
+0xcb34,0xa454,0xd903,0x3e26,
+0x30ab,0x8c0b,0xeaf6,0xbe4b,
+0x6435,0x9d4d,0x3b76,0x3e70,
+0x7f8d,0x8f22,0xec63,0xbe91,
+0xf4ac,0x978c,0xbf24,0x3eb2,
+0x6427,0xcba5,0x866f,0xbed2,
+0x2859,0xbe9a,0x3f58,0x3ef1,
+0x1d5a,0x59c4,0x2b26,0xbf0e,
+0x7cab,0x7410,0xb51b,0x3f28,
+0xeb52,0x1f15,0xe2fd,0xbf42,
+0x100e,0x8a12,0xdc75,0x3f5a,
+0xa849,0x201a,0xb65e,0xbf71,
+0xe3dd,0xf3dd,0x9961,0x3f85,
+0xb6f0,0xf121,0x4e9e,0xbf98,
+0xa32d,0xcea8,0x3e8a,0x3fa9,
+0x06ea,0x342d,0x4b70,0xbfb8,
+0x88c0,0x77ac,0xf7ac,0x3fc5,
+0xcd8d,0xc057,0x7feb,0xbfd3,
+0xa22a,0x9035,0xa84e,0x3fe5,
+};
+static unsigned short B[] = {
+0x8b19,0x54ca,0xadb7,0xbc60,
+0x9130,0x6611,0x46da,0xbc56,
+0x8421,0x12d9,0xbe18,0x3c89,
+0x41cd,0x0760,0xf3dd,0x3c83,
+0x1fe4,0xabd2,0x600b,0xbcb4,
+0xde38,0xd908,0xaee7,0xbcb8,
+0xfb1f,0xa3ea,0xee7d,0x3cdf,
+0xe6d7,0x9094,0x2a91,0x3cf1,
+0x629a,0x7e65,0x83fe,0xbd05,
+0xbb32,0xcf68,0x5d99,0xbd27,
+0xc545,0x0d5f,0x56ff,0x3d11,
+0xc073,0x6b83,0x1c8c,0x3d5b,
+0x8cec,0xfa26,0x4347,0x3d69,
+0x8d66,0x0317,0x9043,0xbd7f,
+0x7bf2,0x357e,0x0fd7,0xbdad,
+0x7425,0x0839,0x511d,0xbdc1,
+0x004f,0xabe8,0x24fe,0x3daa,
+0x6f75,0xc0f4,0xf9cc,0x3e00,
+0x5b87,0xa922,0x2c64,0x3e2d,
+0xd56d,0x80d6,0x5692,0x3e58,
+0x616e,0xd9cd,0x8007,0x3e8b,
+0xc586,0xc101,0x412b,0x3ec8,
+0x9e52,0x7899,0x0fa3,0x3f12,
+0x9049,0xa2e5,0x998c,0x3f6b,
+0x09cb,0xaca8,0xbe62,0x3fe9
+};
+
+double y;
+
+if( x < 0 )
+	x = -x;
+if( x <= 8.0 )
+	{
+	y = (x/2.0) - 2.0;
+	return( chbevl( y, (double*)&A, 30 ) );
+	}
+
+return(  chbevl( 32.0/x - 2.0, (double*)&B, 25 ) / sqrt(x) );
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline
+double powi(double x, std::int32_t nn )
+{
+int n, e, sign, asign, lx;
+double w, y, s;
+
+/* See pow.c for these tests.  */
+if( x == 0.0 )
+	{
+	if( nn == 0 )
+		return( 1.0 );
+	else if( nn < 0 )
+	    return( std::numeric_limits<double>::infinity() );
+	else
+	  {
+	    if( nn & 1 )
+	      return( x );
+	    else
+	      return( 0.0 );
+	  }
+	}
+
+if( nn == 0 )
+	return( 1.0 );
+
+if( nn == -1 )
+	return( 1.0/x );
+
+if( x < 0.0 )
+	{
+	asign = -1;
+	x = -x;
+	}
+else
+	asign = 0;
+
+
+if( nn < 0 )
+	{
+	sign = -1;
+	n = -nn;
+	}
+else
+	{
+	sign = 1;
+	n = nn;
+	}
+
+/* Even power will be positive. */
+if( (n & 1) == 0 )
+	asign = 0;
+
+/* Overflow detection */
+
+/* Calculate approximate logarithm of answer */
+s = frexp( x, &lx );
+e = (lx - 1)*n;
+if( (e == 0) || (e > 64) || (e < -64) )
+	{
+	s = (s - 7.0710678118654752e-1) / (s +  7.0710678118654752e-1);
+	s = (2.9142135623730950 * s - 0.5 + lx) * nn * LOGE2;
+	}
+else
+	{
+	s = LOGE2 * e;
+	}
+
+if( s > MAXLOG )
+	{
+	y = std::numeric_limits<double>::infinity();
+	goto done;
+	}
+
+#if DENORMAL
+if( s < MINLOG )
+	{
+	y = 0.0;
+	goto done;
+	}
+
+/* Handle tiny denormal answer, but with less accuracy
+ * since roundoff error in 1.0/x will be amplified.
+ * The precise demarcation should be the gradual underflow threshold.
+ */
+if( (s < (-MAXLOG+2.0)) && (sign < 0) )
+	{
+	x = 1.0/x;
+	sign = -sign;
+	}
+#else
+/* do not produce denormal answer */
+if( s < -MAXLOG )
+	return(0.0);
+#endif
+
+
+/* First bit of the power */
+if( n & 1 )
+	y = x;
+		
+else
+	y = 1.0;
+
+w = x;
+n >>= 1;
+while( n )
+	{
+	w = w * w;	/* arg to the 2-to-the-kth power */
+	if( n & 1 )	/* if that bit is set, then include in product */
+		y *= w;
+	n >>= 1;
+	}
+
+if( sign < 0 )
+	y = 1.0/y;
+
+done:
+
+if( asign )
+	{
+	/* odd power of negative number */
+	if( y == 0.0 )
+		y = NEGZERO;
+	else
+		y = -y;
+	}
+return(y);
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline 
+double reduc(double x)
+{
+double t;
+
+t = ldexp( x, 4 );
+t = floor( t );
+t = ldexp( t, -4 );
+return(t);
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline
+double pow(double x,double y)
+{
+
+static unsigned short P[] = {
+0x5cf0,0x7f5b,0xdb99,0x3fdf,
+0xdf15,0xea9e,0xddef,0x400d,
+0xeb6f,0x7f78,0xccbd,0x401e,
+0x9b74,0xb65c,0xaa83,0x4012,
+};
+static unsigned short Q[] = {
+/*0x0000,0x0000,0x0000,0x3ff0,*/
+0x914e,0x9b20,0xaab4,0x4022,
+0xc9f5,0x41c1,0xffff,0x403b,
+0x6402,0x1b17,0xccbc,0x4040,
+0xe92e,0x918a,0xffc5,0x402b,
+};
+static unsigned short A[] = {
+0x0000,0x0000,0x0000,0x3ff0,
+0x90da,0xa2a4,0xa4af,0x3fee,
+0xa487,0xdcfb,0x5818,0x3fed,
+0x529c,0xdd85,0x199b,0x3fec,
+0xd3ad,0x995a,0xe89f,0x3fea,
+0xf090,0x82a3,0xc491,0x3fe9,
+0xa0db,0x422a,0xace5,0x3fe8,
+0x0187,0x73eb,0xa114,0x3fe7,
+0x3bcd,0x667f,0xa09e,0x3fe6,
+0x5429,0xdd48,0xab07,0x3fe5,
+0x2a27,0xd536,0xbfda,0x3fe4,
+0x3422,0x4c12,0xdea6,0x3fe3,
+0xb715,0x0a31,0x06fe,0x3fe3,
+0x6238,0x6e75,0x387a,0x3fe2,
+0x517b,0x3c7d,0x72b8,0x3fe1,
+0x890f,0x6cf9,0xb558,0x3fe0,
+0x0000,0x0000,0x0000,0x3fe0
+};
+static unsigned short B[] = {
+0x0000,0x0000,0x0000,0x0000,
+0x3707,0xd75b,0xed02,0x3c72,
+0xcc81,0x345d,0xa1cd,0x3c87,
+0x4b27,0x5686,0xe9f1,0x3c86,
+0x6456,0x13b2,0xdd34,0xbc8b,
+0x42e2,0xafec,0x4397,0x3c6d,
+0x82e4,0xd231,0xf46a,0x3c76,
+0x8a76,0xb9d7,0x9041,0xbc71,
+0x0000,0x0000,0x0000,0x0000
+};
+static unsigned short R[] = {
+0x937f,0xd7f2,0x6307,0x3eef,
+0x9259,0x60fc,0x2fbe,0x3f24,
+0xef1d,0xc84a,0xd87e,0x3f55,
+0x33b7,0x6ef1,0xb2ab,0x3f83,
+0x1a92,0xd704,0x6b08,0x3fac,
+0xc56d,0xff82,0xbfbd,0x3fce,
+0x39ef,0xfefa,0x2e42,0x3fe6
+};
+#define SQRTH 0.70710678118654752440
+#define douba(k) (*(double *)&A[(k)<<2])
+#define doubb(k) (*(double *)&B[(k)<<2])
+//#define MEXP 16383.0
+#ifdef DENORMAL
+#define MNEXP -17183.0
+#else
+#define MNEXP -16383.0
+#endif
+
+double w, z, W, Wa, Wb, ya, yb, u;
+double F, Fa, Fb, G, Ga, Gb, H, Ha, Hb;
+double aw, ay, wy;
+int e, i, nflg, iyflg, yoddint;
+
+if( y == 0.0 )
+	return( 1.0 );
+#ifdef NANS
+if( isnan(x) )
+	return( x );
+if( isnan(y) )
+	return( y );
+#endif
+if( y == 1.0 )
+	return( x );
+
+
+#ifdef INFINITIES
+if( !isfinite(y) && (x == 1.0 || x == -1.0) )
+	{
+#ifdef NANS
+	return( std::numeric_limits<double>::quiet_NaN());
+#else
+	return( std::numeric_limits<double>::infinity() );
+#endif
+	}
+#endif
+
+if( x == 1.0 )
+	return( 1.0 );
+
+if( y >= MAXNUM )
+	{
+#ifdef INFINITIES
+	if( x > 1.0 )
+		return( std::numeric_limits<double>::infinity() );
+#else
+	if( x > 1.0 )
+		return( MAXNUM );
+#endif
+	if( x > 0.0 && x < 1.0 )
+		return( 0.0);
+	if( x < -1.0 )
+		{
+#ifdef INFINITIES
+		return( std::numeric_limits<double>::infinity() );
+#else
+		return( MAXNUM );
+#endif
+		}
+	if( x > -1.0 && x < 0.0 )
+		return( 0.0 );
+	}
+if( y <= -MAXNUM )
+	{
+	if( x > 1.0 )
+		return( 0.0 );
+#ifdef INFINITIES
+	if( x > 0.0 && x < 1.0 )
+		return( std::numeric_limits<double>::infinity() );
+#else
+	if( x > 0.0 && x < 1.0 )
+		return( MAXNUM );
+#endif
+	if( x < -1.0 )
+		return( 0.0 );
+#ifdef INFINITIES
+	if( x > -1.0 && x < 0.0 )
+		return( std::numeric_limits<double>::infinity() );
+#else
+	if( x > -1.0 && x < 0.0 )
+		return( MAXNUM );
+#endif
+	}
+if( x >= MAXNUM )
+	{
+#if INFINITIES
+	if( y > 0.0 )
+		return( std::numeric_limits<double>::infinity() );
+#else
+	if( y > 0.0 )
+		return( MAXNUM );
+#endif
+	return(0.0);
+	}
+/* Set iyflg to 1 if y is an integer.  */
+iyflg = 0;
+w = floor(y);
+if( w == y )
+	iyflg = 1;
+
+/* Test for odd integer y.  */
+yoddint = 0;
+if( iyflg )
+	{
+	ya = fabs(y);
+	ya = floor(0.5 * ya);
+	yb = 0.5 * fabs(w);
+	if( ya != yb )
+		yoddint = 1;
+	}
+
+if( x <= -MAXNUM )
+	{
+	if( y > 0.0 )
+		{
+#ifdef INFINITIES
+		if( yoddint )
+			return( -std::numeric_limits<double>::infinity() );
+		return( std::numeric_limits<double>::infinity() );
+#else
+		if( yoddint )
+			return( -MAXNUM );
+		return( MAXNUM );
+#endif
+		}
+	if( y < 0.0 )
+		{
+#ifdef MINUSZERO
+		if( yoddint )
+			return( NEGZERO );
+#endif
+		return( 0.0 );
+		}
+ 	}
+
+nflg = 0;	/* flag = 1 if x<0 raised to integer power */
+if( x <= 0.0 )
+	{
+	if( x == 0.0 )
+		{
+		if( y < 0.0 )
+			{
+#ifdef MINUSZERO
+			if( signbit(x) && yoddint )
+				return( -std::numeric_limits<double>::infinity() );
+#endif
+#ifdef INFINITIES
+			return( std::numeric_limits<double>::infinity() );
+#else
+			return( MAXNUM );
+#endif
+			}
+		if( y > 0.0 )
+			{
+#ifdef MINUSZERO
+			if( signbit(x) && yoddint )
+				return( NEGZERO );
+#endif
+			return( 0.0 );
+			}
+		return( 1.0 );
+		}
+	else
+		{
+		if( iyflg == 0 )
+			{ /* noninteger power of negative number */
+#ifdef NANS
+			return(std::numeric_limits<double>::quiet_NaN());
+#else
+			return(0.0L);
+#endif
+			}
+		nflg = 1;
+		}
+	}
+
+/* Integer power of an integer.  */
+
+if( iyflg )
+	{
+	i = w;
+	w = floor(x);
+	if( (w == x) && (fabs(y) < 32768.0) )
+		{
+		w = powi( x, (int) y );
+		return( w );
+		}
+	}
+
+if( nflg )
+	x = fabs(x);
+
+/* For results close to 1, use a series expansion.  */
+w = x - 1.0;
+aw = fabs(w);
+ay = fabs(y);
+wy = w * y;
+ya = fabs(wy);
+if((aw <= 1.0e-3 && ay <= 1.0)
+   || (ya <= 1.0e-3 && ay >= 1.0))
+	{
+	z = (((((w*(y-5.)/720. + 1./120.)*w*(y-4.) + 1./24.)*w*(y-3.)
+		+ 1./6.)*w*(y-2.) + 0.5)*w*(y-1.) )*wy + wy + 1.;
+	goto done;
+	}
+/* These are probably too much trouble.  */
+#if 0
+w = y * log(x);
+if (aw > 1.0e-3 && fabs(w) < 1.0e-3)
+  {
+    z = ((((((
+    w/7. + 1.)*w/6. + 1.)*w/5. + 1.)*w/4. + 1.)*w/3. + 1.)*w/2. + 1.)*w + 1.;
+    goto done;
+  }
+
+if(ya <= 1.0e-3 && aw <= 1.0e-4)
+  {
+    z = (((((
+	     wy*1./720.
+	     + (-w*1./48. + 1./120.) )*wy
+	    + ((w*17./144. - 1./12.)*w + 1./24.) )*wy
+	   + (((-w*5./16. + 7./24.)*w - 1./4.)*w + 1./6.) )*wy
+	  + ((((w*137./360. - 5./12.)*w + 11./24.)*w - 1./2.)*w + 1./2.) )*wy
+	 + (((((-w*1./6. + 1./5.)*w - 1./4)*w + 1./3.)*w -1./2.)*w ) )*wy
+	   + wy + 1.0;
+    goto done;
+  }
+#endif
+
+/* separate significand from exponent */
+x = frexp( x, &e );
+
+#if 0
+/* For debugging, check for gross overflow. */
+if( (e * y)  > (16383.0 + 1024) )
+	goto overflow;
+#endif
+
+/* Find significand of x in antilog table A[]. */
+i = 1;
+if( x <= douba(9) )
+	i = 9;
+if( x <= douba(i+4) )
+	i += 4;
+if( x <= douba(i+2) )
+	i += 2;
+if( x >= douba(1) )
+	i = -1;
+i += 1;
+
+
+/* Find (x - A[i])/A[i]
+ * in order to compute log(x/A[i]):
+ *
+ * log(x) = log( a x/a ) = log(a) + log(x/a)
+ *
+ * log(x/a) = log(1+v),  v = x/a - 1 = (x-a)/a
+ */
+x -= douba(i);
+x -= doubb(i/2);
+x /= douba(i);
+
+
+/* rational approximation for log(1+v):
+ *
+ * log(1+v)  =  v  -  v**2/2  +  v**3 P(v) / Q(v)
+ */
+z = x*x;
+w = x * ( z * polevl( x, (double*)&P, 3 ) / p1evl( x, (double*)&Q, 4 ) );
+w = w - ldexp( z, -1 );   /*  w - 0.5 * z  */
+#define LOG2EA 0.44269504088896340736
+/* Convert to base 2 logarithm:
+ * multiply by log2(e)
+ */
+w = w + LOG2EA * w;
+/* Note x was not yet added in
+ * to above rational approximation,
+ * so do it now, while multiplying
+ * by log2(e).
+ */
+z = w + LOG2EA * x;
+z = z + x;
+
+/* Compute exponent term of the base 2 logarithm. */
+w = -i;
+w = ldexp( w, -4 );	/* divide by 16 */
+w += e;
+/* Now base 2 log of x is w + z. */
+
+/* Multiply base 2 log by y, in extended precision. */
+
+/* separate y into large part ya
+ * and small part yb less than 1/16
+ */
+ya = reduc(y);
+yb = y - ya;
+
+
+F = z * y  +  w * yb;
+Fa = reduc(F);
+Fb = F - Fa;
+
+G = Fa + w * ya;
+Ga = reduc(G);
+Gb = G - Ga;
+
+H = Fb + Gb;
+Ha = reduc(H);
+w = ldexp( Ga+Ha, 4 );
+
+/* Test the power of 2 for overflow */
+if( w > 16383.0 )
+	{
+#ifdef INFINITIES
+	if( nflg && yoddint )
+	  return( -std::numeric_limits<double>::infinity() );
+	return( std::numeric_limits<double>::infinity() );
+#else
+	if( nflg && yoddint )
+	  return( -MAXNUM );
+	return( MAXNUM );
+#endif
+	}
+
+if( w < (MNEXP - 1) )
+	{
+#ifdef MINUSZERO
+	if( nflg && yoddint )
+	  return( NEGZERO );
+#endif
+	return( 0.0 );
+	}
+
+e = w;
+Hb = H - Ha;
+
+if( Hb > 0.0 )
+	{
+	e += 1;
+	Hb -= 0.0625;
+	}
+
+/* Now the product y * log2(x)  =  Hb + e/16.0.
+ *
+ * Compute base 2 exponential of Hb,
+ * where -0.0625 <= Hb <= 0.
+ */
+z = Hb * polevl( Hb, (double*)&R, 6 );  /*    z  =  2**Hb - 1    */
+
+/* Express e/16 as an integer plus a negative number of 16ths.
+ * Find lookup table entry for the fractional power of 2.
+ */
+if( e < 0 )
+	i = 0;
+else
+	i = 1;
+i = e/16 + i;
+e = 16*i - e;
+w = douba( e );
+z = w + w * z;      /*    2**-e * ( 1 + (2**Hb-1) )    */
+z = ldexp( z, i );  /* multiply by integer power of 2 */
+
+done:
+
+/* Negate if odd integer power of negative number */
+if( nflg && yoddint )
+	{
+#ifdef MINUSZERO
+	if( z == 0.0 )
+		z = NEGZERO;
+	else
+#endif
+		z = -z;
+	}
+return( z );
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline
+double sin(double x)
+{
+constexpr unsigned short sincof[] = {
+0x9ccd,0x1fd1,0xd8fd,0x3de5,
+0x1f5d,0xa929,0xe5e5,0xbe5a,
+0x48a1,0x567d,0x1de3,0x3ec7,
+0xdf03,0x19bf,0x01a0,0xbf2a,
+0xf7d0,0x1110,0x1111,0x3f81,
+0x5548,0x5555,0x5555,0xbfc5,
+};
+constexpr unsigned short coscof[24] = {
+0x1a9b,0xa086,0xfa49,0xbda8,
+0x3f05,0x7b4e,0xee9d,0x3e21,
+0x4bc6,0x7eac,0x7e4f,0xbe92,
+0x44f5,0x19c8,0x01a0,0x3efa,
+0x4f91,0x16c1,0xc16c,0xbf56,
+0x554b,0x5555,0x5555,0x3fa5,
+};
+constexpr unsigned short P1[] = {0x0000,0x4000,0x21fb,0x3fe9};
+constexpr unsigned short P2[] = {0x0000,0x0000,0x442d,0x3e64};
+constexpr unsigned short P3[] = {0x5170,0x98cc,0x4698,0x3ce8};
+#define DP1 *(double *)P1
+#define DP2 *(double *)P2
+#define DP3 *(double *)P3
+constexpr double lossth = 1.073741824e9;
+double y, z, zz;
+int j, sign;
+
+#ifdef MINUSZERO
+if( x == 0.0 )
+	return(x);
+#endif
+#ifdef NANS
+if( isnan(x) )
+	return(x);
+if( !isfinite(x) )
+	{
+	return(std::numeric_limits<double>::quiet_NaN());
+	}
+#endif
+/* make argument positive but save the sign */
+sign = 1;
+if( x < 0 )
+	{
+	x = -x;
+	sign = -1;
+	}
+
+if( x > lossth )
+	{
+	return(0.0);
+	}
+
+y = floor( x/PIO4 ); /* integer part of x/PIO4 */
+
+/* strip high bits of integer part to prevent integer overflow */
+z = ldexp( y, -4 );
+z = floor(z);           /* integer part of y/8 */
+z = y - ldexp( z, 4 );  /* y - 16 * (y/16) */
+
+j = z; /* convert to integer for tests on the phase angle */
+/* map zeros to origin */
+if( j & 1 )
+	{
+	j += 1;
+	y += 1.0;
+	}
+j = j & 07; /* octant modulo 360 degrees */
+/* reflect in x axis */
+if( j > 3)
+	{
+	sign = -sign;
+	j -= 4;
+	}
+
+/* Extended precision modular arithmetic */
+z = ((x - y * DP1) - y * DP2) - y * DP3;
+
+zz = z * z;
+
+if( (j==1) || (j==2) )
+	{
+	y = 1.0 - ldexp(zz,-1) + zz * zz * polevl( zz, (double*)&coscof, 5 );
+	}
+else
+	{
+/*	y = z  +  z * (zz * polevl( zz, sincof, 5 ));*/
+	y = z  +  z * z * z * polevl( zz, (double*)&sincof, 5 );
+	}
+
+if(sign < 0)
+	y = -y;
+
+return(y);
+}
+
+__ATTR_ALWAYS_INLINE__
+static inline
+double cos(double x)
+{
+constexpr unsigned short sincof[] = {
+0x9ccd,0x1fd1,0xd8fd,0x3de5,
+0x1f5d,0xa929,0xe5e5,0xbe5a,
+0x48a1,0x567d,0x1de3,0x3ec7,
+0xdf03,0x19bf,0x01a0,0xbf2a,
+0xf7d0,0x1110,0x1111,0x3f81,
+0x5548,0x5555,0x5555,0xbfc5,
+};
+constexpr unsigned short coscof[24] = {
+0x1a9b,0xa086,0xfa49,0xbda8,
+0x3f05,0x7b4e,0xee9d,0x3e21,
+0x4bc6,0x7eac,0x7e4f,0xbe92,
+0x44f5,0x19c8,0x01a0,0x3efa,
+0x4f91,0x16c1,0xc16c,0xbf56,
+0x554b,0x5555,0x5555,0x3fa5,
+};
+constexpr unsigned short P1[] = {0x0000,0x4000,0x21fb,0x3fe9};
+constexpr unsigned short P2[] = {0x0000,0x0000,0x442d,0x3e64};
+constexpr unsigned short P3[] = {0x5170,0x98cc,0x4698,0x3ce8};
+#define DP1 *(double *)P1
+#define DP2 *(double *)P2
+#define DP3 *(double *)P3
+constexpr double lossth = 1.073741824e9;
+double y, z, zz;
+long i;
+int j, sign;
+
+#ifdef NANS
+if( isnan(x) )
+	return(x);
+if( !isfinite(x) )
+	{
+	return(std::numeric_limits<double>::quiet_NaN());
+	}
+#endif
+
+/* make argument positive */
+sign = 1;
+if( x < 0 )
+	x = -x;
+
+if( x > lossth )
+	{
+	return(0.0);
+	}
+
+y = floor( x/PIO4 );
+z = ldexp( y, -4 );
+z = floor(z);		/* integer part of y/8 */
+z = y - ldexp( z, 4 );  /* y - 16 * (y/16) */
+
+/* integer and fractional part modulo one octant */
+i = z;
+if( i & 1 )	/* map zeros to origin */
+	{
+	i += 1;
+	y += 1.0;
+	}
+j = i & 07;
+if( j > 3)
+	{
+	j -=4;
+	sign = -sign;
+	}
+
+if( j > 1 )
+	sign = -sign;
+
+/* Extended precision modular arithmetic */
+z = ((x - y * DP1) - y * DP2) - y * DP3;
+
+zz = z * z;
+
+if( (j==1) || (j==2) )
+	{
+/*	y = z  +  z * (zz * polevl( zz, sincof, 5 ));*/
+	y = z  +  z * z * z * polevl( zz, (double*)&sincof, 5 );
+	}
+else
+	{
+	y = 1.0 - ldexp(zz,-1) + zz * zz * polevl( zz, (double*)&coscof, 5 );
+	}
+
+if(sign < 0)
+	y = -y;
+
+return(y);
+}
+
+
+
+
+
+/* Degrees, minutes, seconds to radians: */
+
+/* 1 arc second, in radians = 4.8481368110953599358991410e-5 */
+__ATTR_ALWAYS_INLINE__
+static inline
+double radian(double d,double m,double s)
+{
+constexpr double P64800 = 4.8481368110953599358991410e-5;
+return( ((d*60.0 + m)*60.0 + s)*P64800 );
+}
+
+/* Find a multiple of 1/16 that is within 1/16 of x. */
+
+
+
+} // cephes_d
 
 } // math
 
