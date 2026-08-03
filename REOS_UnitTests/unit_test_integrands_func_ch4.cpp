@@ -497,6 +497,59 @@ void unit_test_integrand_4_8_gauss_Q_func()
 #endif
 }
 
+__attribute__((hot))
+__attribute__((aligned(32)))
+void unit_test_integrand_4_10_marcum_Q_func();
+
+void unit_test_integrand_4_10_marcum_Q_func()
+{
+    constexpr double lo_s{0.1};
+    constexpr double hi_s{10.0};
+    thread_local std::uniform_real_distribution<double> rv_s_param;
+    thread_local std::mt19937 rv_s_param_gen;
+    thread_local std::uint64_t seed_s_param{};
+    thread_local std::uniform_real_distribution<double> rv_marcum_q;
+    thread_local std::mt19937 rv_marcum_q_gen;
+    thread_local std::uint64_t seed_marcum_q{};
+    constexpr std::int32_t n_func_args{10};
+    constexpr std::int32_t n_marcum_q_vals{50};
+    [[maybe_unused]] std::int32_t printf_ret{};
+    rv_s_param = std::uniform_real_distribution<double>(lo_s,hi_s);
+    seed_s_param = __rdtsc();
+    rv_s_param_gen = std::mt19937(seed_s_param);
+    rv_marcum_q = std::uniform_real_distribution<double>(0.0,5.0);
+    seed_marcum_q = __rdtsc();
+    rv_marcum_q_gen = std::mt19937(seed_marcum_q);
+#if (INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE) == 1
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: CEPHES-DOUBLE)\n",__func__);
+    for(std::int32_t i {0}; i < n_func_args; ++i) 
+    {
+        const double s = rv_s_param.operator()(rv_s_param_gen);
+        for(std::int32_t j{0}; j < n_marcum_q_vals; ++j)   
+        {
+            const double x = rv_marcum_q.operator()(rv_marcum_q_gen);
+            const double q_marcum_res = gms::fading_channel::integrand_4_10_marcum_Q_func(s,x);
+            printf_ret = print_double("q_marcum_result",q_marcum_res,0);
+        }
+    }
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE)\n",__func__);
+#else 
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB -- CMATH)\n",__func__);
+    for(std::int32_t i {0}; i < n_func_args; ++i) 
+    {
+        const double s = rv_s_param.operator()(rv_s_param_gen);
+        for(std::int32_t j{0}; j < n_marcum_q_vals; ++j)   
+        {
+            const double x = rv_marcum_q.operator()(rv_marcum_q_gen);
+            const double q_marcum_res = gms::fading_channel::integrand_4_10_marcum_Q_func(s,x);
+            printf_ret = print_double("q_marcum_result",q_marcum_res,0)
+        }
+    }
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB -- CMATH)\n",__func__);
+#endif
+}
+
+
 int main()
 {   
     (void)unit_test_integrand_4_1_gauss_Q_func();
@@ -504,5 +557,6 @@ int main()
     (void)unit_test_integrand_4_6_gauss_Q_func();
     (void)unit_test_integrand_4_7_gauss_Q_func();
     (void)unit_test_integrand_4_8_gauss_Q_func();
+    (void)unit_test_integrand_4_10_marcum_Q_func();
     return 0;
 }
