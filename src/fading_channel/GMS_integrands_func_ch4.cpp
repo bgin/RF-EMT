@@ -458,9 +458,9 @@ gms
         const double denom{1.0+(2.0*psi_m_sintht)+psip2};
         const double exp_arg_1{-(halfbeta*denom)};
         const double ratio{num/denom};
-        const double left_exp_val{std::exp(ex_arg_1)};
-        const double exp_arg_2{-(halfbeta*ratio)};
-        const double right_exp_val{std::exp(exp_arg_2)};
+        const double left_exp_val{std::exp(-exp_arg_1)};
+        const double exp_arg_2{halfbeta*ratio};
+        const double right_exp_val{std::exp(-exp_arg_2)};
         return (left_exp_val+right_exp_val);
 #else
         const double psip2{psi*psi};
@@ -471,9 +471,9 @@ gms
         const double denom{1.0+(2.0*psi_m_sintht)+psip2};
         const double exp_arg_1{-(halfbeta*denom)};
         const double ratio{num/denom};
-        const double left_exp_val{gms::math::cephes_d::exp(exp_arg_1)};
-        const double exp_arg_2{-(halfbeta*ratio)};
-        const double right_exp_val{gms::math::cephes_d::exp(exp_arg_2)};
+        const double left_exp_val{gms::math::cephes_d::exp(-exp_arg_1)};
+        const double exp_arg_2{halfbeta*ratio};
+        const double right_exp_val{gms::math::cephes_d::exp(-exp_arg_2)};
         return (left_exp_val+right_exp_val);
 #endif 
 }
@@ -493,9 +493,9 @@ gms
         const double denom{1.0+(2.0*psi_m_sintht)+psip2};
         const double exp_arg_1{-(halfalpha*denom)};
         const double ratio{num/denom};
-        const double left_exp_val{std::exp(ex_arg_1)};
-        const double exp_arg_2{-(halfalpha*ratio)};
-        const double right_exp_val{std::exp(exp_arg_2)};
+        const double left_exp_val{std::exp(-exp_arg_1)};
+        const double exp_arg_2{halfalpha*ratio};
+        const double right_exp_val{std::exp(-exp_arg_2)};
         return (left_exp_val+right_exp_val);
 #else
         const double psip2{psi*psi};
@@ -506,9 +506,9 @@ gms
         const double denom{1.0+(2.0*psi_m_sintht)+psip2};
         const double exp_arg_1{-(halfalpha*denom)};
         const double ratio{num/denom};
-        const double left_exp_val{gms::math::cephes_d::exp(exp_arg_1)};
-        const double exp_arg_2{-(halfalpha*ratio)};
-        const double right_exp_val{gms::math::cephes_d::exp(exp_arg_2)};
+        const double left_exp_val{gms::math::cephes_d::exp(-exp_arg_1)};
+        const double exp_arg_2{halfalpha*ratio};
+        const double right_exp_val{gms::math::cephes_d::exp(-exp_arg_2)};
         return (left_exp_val+right_exp_val);
 #endif 
 }
@@ -535,7 +535,7 @@ gms
         const double x_to_m{gms::math::cephes_d::pow(x,d_m)};
         const double cyl_bes_val{std::cyl_bessel_i(i_m,sx)};
         const double exp_arg{0.5*(xx+ss)};
-        const double exp_val{gms::math::cephes_d::exp(exp_arg)};
+        const double exp_val{gms::math::cephes_d::exp(-exp_arg)};
         return (x_to_m*exp_val*cyl_bes_val);
 #endif 
 }
