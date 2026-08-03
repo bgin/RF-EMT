@@ -187,8 +187,6 @@ double integrand_4_7_gauss_Q_func(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
-template<bool use_std_lib,bool do_funcs_warmup,
-         std::int32_t choose_x1_or_y1>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_8_gauss_Q_func(const double,const double,

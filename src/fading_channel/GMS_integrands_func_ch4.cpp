@@ -314,14 +314,8 @@ gms
 {
 #if (INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE) == 0
         double x1_or_y1{};
-        if(choose_x1_or_y1==1)
-        {
-            x1_or_y1 = x1*x1;
-        }
-        else if(choose_x1_or_y1==2)
-        {
-            x1_or_y1 = y1*y1;
-        }
+        if(choose_x1_or_y1==1) {x1_or_y1 = x1*x1;}
+        else if(choose_x1_or_y1==2) {x1_or_y1 = y1*y1;}
         const double tms{std::sin(theta)};
         const double two_sinthtsqr{tms+tms};
         const double exp_arg{-(x1_or_y1/two_sinthtsqr)};
@@ -329,14 +323,8 @@ gms
         return (exp_val);
 #else 
         double x1_or_y1{};
-        if(choose_x1_or_y1==1)
-        {
-            x1_or_y1 = x1*x1;
-        }
-        else if(choose_x1_or_y1==2)
-        {
-            x1_or_y1 = y1*y1;
-        }
+        if(choose_x1_or_y1==1) {x1_or_y1 = x1*x1;}
+        else if(choose_x1_or_y1==2) {x1_or_y1 = y1*y1;}
         const double tms{gms::math::cephes_d::sin(theta)};
         const double two_sinthtsqr{tms+tms};
         const double exp_arg{-(x1_or_y1/two_sinthtsqr)};
