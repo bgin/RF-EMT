@@ -389,11 +389,120 @@ void unit_test_integrand_4_7_gauss_Q_func()
 #endif
 }
 
+__attribute__((hot))
+__attribute__((aligned(32)))
+void unit_test_integrand_4_8_gauss_Q_func();
+
+void unit_test_integrand_4_8_gauss_Q_func()
+{
+    constexpr double lo_x1{0.001};
+    constexpr double hi_x1{1.0};
+    constexpr double lo_y1{lo_x1};
+    constexpr double hi_y1{hi_x1};
+    thread_local std::uniform_real_distribution<double> rv_func_arg_x1;
+    thread_local std::mt19937 rv_func_arg_x1_gen;
+    thread_local std::uint64_t seed_func_x1_arg{};
+    thread_local std::uniform_real_distribution<double> rv_func_arg_y1;
+    thread_local std::mt19937 rv_func_arg_y1_gen;
+    thread_local std::uint64_t seed_func_y1_arg{};
+    thread_local std::uniform_real_distribution<double> rv_gauss_q;
+    thread_local std::mt19937 rv_gauss_q_gen;
+    thread_local std::uint64_t seed_gauss_q{};
+    constexpr std::int32_t n_func_args{10};
+    constexpr std::int32_t n_gauss_q_vals{50};
+    [[maybe_unused]] std::int32_t printf_ret{};
+    rv_func_arg_x1 = std::uniform_real_distribution<double>(lo_x1,hi_x1);
+    seed_func_x1_arg = __rdtsc();
+    rv_func_arg_x1_gen = std::mt19937(seed_func_x1_arg);
+    rv_func_arg_y1 = std::uniform_real_distribution<double>(lo_y1,hi_y1);
+    seed_func_y1_arg = __rdtsc();
+    rv_func_arg_y1_gen = std::mt19937(seed_func_y1_arg);
+#if (INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE) == 1
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!,(IMPL: CEPHES-DOUBLE),arg=x1\n",__func__);
+    for(std::int32_t i {0}; i < n_func_args; ++i) 
+    {
+        const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
+        const double y1 = rv_func_arg_y1.operator()(rv_func_arg_y1_gen);
+        const double phi_arg = y1/x1; 
+        const double phi_s = gms::math::cephes_d::atan(phi_arg);
+        rv_gauss_q = std::uniform_real_distribution<double>(0.0,1.57079632679489662-phi_s);
+        seed_gauss_q = __rdtsc();
+        rv_gauss_q_gen = std::mt19937(seed_gauss_q);
+        for(std::int32_t j{0}; j < n_gauss_q_vals; ++j)   
+        {
+            const double theta = rv_gauss_q.operator()(rv_gauss_q_gen);
+            const double q_gauss_res = gms::fading_channel::integrand_4_8_gauss_Q_func(x1,y1,theta,1);
+            printf_ret = print_double("q_gauss_2D_result",q_gauss_res,0);
+        }
+    }
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE),arg=x1\n",__func__);
+#else 
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB-CMATH),arg=x1\n",__func__);
+    for(std::int32_t i {0}; i < n_func_args; ++i) 
+    {
+        const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
+        const double y1 = rv_func_arg_y1.operator()(rv_func_arg_y1_gen);
+        const double phi_arg = y1/x1;
+        const double phi_s = std::atan(phi_arg); 
+        rv_gauss_q = std::uniform_real_distribution<double>(0.0,1.57079632679489662-phi_s);
+        seed_gauss_q = __rdtsc();
+        rv_gauss_q_gen = std::mt19937(seed_gauss_q);
+        for(std::int32_t j{0}; j < n_gauss_q_vals; ++j)   
+        {
+            const double theta = rv_gauss_q.operator()(rv_gauss_q_gen);
+            const double q_gauss_res = gms::fading_channel::integrand_4_8_gauss_Q_func(x1,y1,theta,1);
+            printf_ret = print_double("q_gauss_2D_result",q_gauss_res,0)
+        }
+    }
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB-CMATH),arg=x1\n",__func__);
+#endif
+#if (INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE) == 1
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!,(IMPL: CEPHES-DOUBLE),arg=y1\n",__func__);
+    for(std::int32_t i {0}; i < n_func_args; ++i) 
+    {
+        const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
+        const double y1 = rv_func_arg_y1.operator()(rv_func_arg_y1_gen);
+        const double phi_arg = y1/x1; 
+        const double phi_s = gms::math::cephes_d::atan(phi_arg);
+        rv_gauss_q = std::uniform_real_distribution<double>(0.0,1.57079632679489662-phi_s);
+        seed_gauss_q = __rdtsc();
+        rv_gauss_q_gen = std::mt19937(seed_gauss_q);
+        for(std::int32_t j{0}; j < n_gauss_q_vals; ++j)   
+        {
+            const double theta = rv_gauss_q.operator()(rv_gauss_q_gen);
+            const double q_gauss_res = gms::fading_channel::integrand_4_8_gauss_Q_func(x1,y1,theta,2);
+            printf_ret = print_double("q_gauss_2D_result",q_gauss_res,0);
+        }
+    }
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE),arg=y1\n",__func__);
+#else 
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB-CMATH),arg=y1\n",__func__);
+    for(std::int32_t i {0}; i < n_func_args; ++i) 
+    {
+        const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
+        const double y1 = rv_func_arg_y1.operator()(rv_func_arg_y1_gen);
+        const double phi_arg = y1/x1;
+        const double phi_s = std::atan(phi_arg); 
+        rv_gauss_q = std::uniform_real_distribution<double>(0.0,1.57079632679489662-phi_s);
+        seed_gauss_q = __rdtsc();
+        rv_gauss_q_gen = std::mt19937(seed_gauss_q);
+        for(std::int32_t j{0}; j < n_gauss_q_vals; ++j)   
+        {
+            const double theta = rv_gauss_q.operator()(rv_gauss_q_gen);
+            const double q_gauss_res = gms::fading_channel::integrand_4_8_gauss_Q_func(x1,y1,theta,2);
+            printf_ret = print_double("q_gauss_2D_result",q_gauss_res,0)
+        }
+    }
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB-CMATH),arg=y1\n",__func__);
+#endif
+}
+
 int main()
 {   
-    //(void)unit_test_integrand_4_1_gauss_Q_func();
-    //(void)unit_test_integrand_4_2_gauss_Q_func();
-    //(void)unit_test_integrand_4_6_gauss_Q_func();
+    (void)unit_test_integrand_4_1_gauss_Q_func();
+    (void)unit_test_integrand_4_2_gauss_Q_func();
+    (void)unit_test_integrand_4_6_gauss_Q_func();
     (void)unit_test_integrand_4_7_gauss_Q_func();
+    (void)unit_test_integrand_4_8_gauss_Q_func();
     return 0;
 }
