@@ -49,6 +49,10 @@ namespace file_info
 #define INTEGRANDS_FUNC_CH4_DO_WARMUP_CALL 1
 #endif 
 
+#if !defined(INTEGRANDS_FUNC_CH4_SPLIT_MATH_IMPL_PERF_TEST)
+#define INTEGRANDS_FUNC_CH4_SPLIT_MATH_IMPL_PERF_TEST 1
+#endif 
+
 namespace gms
 {
 
@@ -124,7 +128,39 @@ __ATTR_ALIGN__(32)
 double integrand_4_6_gauss_Q_func(const double,const double,
                                   const double,const double,
                                   const std::int32_t);
-                                  
+
+#if (INTEGRANDS_FUNC_CH4_SPLIT_MATH_IMPL_PERF_TEST) == 1
+/*
+   Special implementation for the performance test of the
+   CEPHES double math (inlined) functions vs. stdlibc++ cmath called by the .got/plt trampoline
+*/
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_6_gauss_Q_func_cephes(const double,const double,
+                                         const double,const double,
+                                         const std::int32_t);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_6_gauss_Q_func_stdlib(const double,const double,
+                                         const double,const double,
+                                         const std::int32_t);
+#endif 
+
 /*
   Chapter 4, formula: 4.7
 */

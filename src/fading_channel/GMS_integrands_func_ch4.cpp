@@ -1,5 +1,6 @@
 
 #include <cmath> // bessel J0
+#include <cstdio>
 #include "GMS_cephes_double.h"
 #include "GMS_integrands_func_ch4.h"
 
@@ -142,7 +143,7 @@ gms
 #else 
         double sin_or_cos_sqr{};
         double sin_sin_or_cos_rat{};
-        const double squared_sum{(x1*x1)+(y1*y1)};
+        const double squared_sum{(x1*x1)+(y1*y1)}; 
         double tsin{gms::math::cephes_d::sin(theta)};
         const double sin_sqr_tht{tsin*tsin};
         const double S_hat{gms::math::cephes_d::sqrt(squared_sum)};
@@ -172,6 +173,85 @@ gms
 #endif 
 }
 
+#if (INTEGRANDS_FUNC_CH4_SPLIT_MATH_IMPL_PERF_TEST) == 1
+
+double
+gms
+::fading_channel
+::integrand_4_6_gauss_Q_func_cephes(const double x1,const double y1,
+                             const double rho,const double theta,
+                             const std::int32_t choose_sin_or_cos)
+{
+     double sin_or_cos_sqr{};
+     double sin_sin_or_cos_rat{};
+     const double squared_sum{(x1*x1)+(y1*y1)}; 
+     double tsin{gms::math::cephes_d::sin(theta)};
+     const double sin_sqr_tht{tsin*tsin};
+     const double S_hat{gms::math::cephes_d::sqrt(squared_sum)};
+     const double phi_s{gms::math::cephes_d::atan(y1/x1)};
+     const double one_m_rho{1.0f-(rho*rho)};
+     const double sin2theta{gms::math::cephes_d::sin(theta+theta)};
+     const double one_m_sin2theta{1.0-(rho*sin2theta)};
+     const double sqr_1_m_rho{gms::math::cephes_d::sqrt(one_m_rho)};
+     const double S_hat_half{0.5*(S_hat*S_hat)};
+     const double ratio1{sqr_1_m_rho/one_m_sin2theta};
+     if (choose_sin_or_cos == 1)
+     {
+           const double cos_tmp{gms::math::cephes_d::cos(phi_s)};
+           sin_or_cos_sqr = cos_tmp*cos_tmp;
+           sin_sin_or_cos_rat = sin_or_cos_sqr/sin_sqr_tht;
+     }
+     else if(choose_sin_or_cos == 2)
+     {
+           const double tmp{gms::math::cephes_d::sin(phi_s)};
+           sin_or_cos_sqr = tmp*tmp;
+           sin_sin_or_cos_rat = sin_or_cos_sqr/sin_sqr_tht;
+     }
+     const double ratio2{one_m_sin2theta/one_m_rho};
+     const double exp_arg{S_hat_half*ratio2*sin_sin_or_cos_rat};
+     const double exp_val{gms::math::cephes_d::exp(-exp_arg)};
+     return(ratio1*exp_val);    
+}
+
+double
+gms
+::fading_channel
+::integrand_4_6_gauss_Q_func_stdlib(const double x1,const double y1,
+                                    const double rho,const double theta,
+                                    const std::int32_t choose_sin_or_cos)
+{
+        double sin_or_cos_sqr{};
+        double sin_sin_or_cos_rat{};
+        const double squared_sum{(x1*x1)+(y1*y1)};
+        double tsin{std::sin(theta)};
+        const double sin_sqr_tht{tsin*tsin};
+        const double S_hat{std::sqrt(squared_sum)};
+        const double phi_s{std::atan(y1/x1)};
+        const double one_m_rho{1.0f-(rho*rho)};
+        const double sin2theta{std::sin(theta+theta)};
+        const double one_m_sin2theta{1.0-(rho*sin2theta)};
+        const double sqr_1_m_rho{std::sqrt(one_m_rho)};
+        const double S_hat_half{0.5*(S_hat*S_hat)};
+        const double ratio1{sqr_1_m_rho/one_m_sin2theta};
+        if (choose_sin_or_cos == 1)
+        {
+           const double tmp{std::cos(phi_s)};
+           sin_or_cos_sqr = tmp*tmp;
+           sin_sin_or_cos_rat = sin_or_cos_sqr/sin_sqr_tht;
+        }
+        else if(choose_sin_or_cos == 2)
+        {
+           const double tmp{std::sin(phi_s)};
+           sin_or_cos_sqr = tmp*tmp;
+           sin_sin_or_cos_rat = sin_or_cos_sqr/sin_sqr_tht;
+        }
+        const double ratio2{one_m_sin2theta/one_m_rho};
+        const double exp_arg{S_hat_half*ratio2*sin_sin_or_cos_rat};
+        const double exp_val{std::exp(-exp_arg)};
+        return(ratio1*exp_val);
+}
+
+#endif 
 
 double 
 gms
@@ -199,8 +279,8 @@ gms
           x1_or_y1 = 0.5*(y1*y1);
        }
        const double ratio{one_m_rhosintht/(one_m_rhosqr*sintht_pow2)};
-       const double exp_arg{-x1_or_y1*ratio};
-       const double exp_val{std::exp(exp_arg)};
+       const double exp_arg{x1_or_y1*ratio};
+       const double exp_val{std::exp(-exp_arg)};
        return (lead_factor*exp_val);
 #else 
         double x1_or_y1{};
@@ -220,8 +300,8 @@ gms
           x1_or_y1 = 0.5*(y1*y1);
         }
         const double ratio{one_m_rhosintht/(one_m_rhosqr*sintht_pow2)};
-        const double exp_arg{-x1_or_y1*ratio};
-        const double exp_val{gms::math::cephes_d::exp(exp_arg)};
+        const double exp_arg{x1_or_y1*ratio};
+        const double exp_val{gms::math::cephes_d::exp(-exp_arg)};
         return (lead_factor*exp_val);
 #endif 
 }
