@@ -549,14 +549,75 @@ void unit_test_integrand_4_10_marcum_Q_func()
 #endif
 }
 
+__attribute__((hot))
+__attribute__((aligned(32)))
+void unit_test_integrand_4_16_marcum_Q_func();
+
+void unit_test_integrand_4_16_marcum_Q_func()
+{
+    constexpr double lo_theta{-3.141592653589793238462643383};
+    constexpr double hi_theta{+3.141592653589793238462643383};
+    thread_local std::uniform_real_distribution<double> rv_func_arg_theta;
+    thread_local std::mt19937 rv_func_arg_theta_gen;
+    thread_local std::uint64_t seed_func_theta_arg{};
+    thread_local std::uniform_real_distribution<double> rv_func_arg_psi;
+    thread_local std::mt19937 rv_func_arg_psi_gen;
+    thread_local std::uint64_t seed_func_psi_arg{};
+    thread_local std::uniform_real_distribution<double> rv_func_arg_beta;
+    thread_local std::mt19937 rv_arg_beta_gen;
+    thread_local std::uint64_t seed_arg_beta_q{};
+    constexpr std::int32_t n_func_args{10};
+    constexpr std::int32_t n_marcum_q_vals{50};
+    [[maybe_unused]] std::int32_t printf_ret{};
+    rv_func_arg_theta = std::uniform_real_distribution<double>(lo_theta,hi_theta);
+    seed_func_theta_arg = __rdtsc();
+    rv_func_arg_theta_gen = std::mt19937(seed_func_theta_arg);
+    rv_func_arg_psi = std::uniform_real_distribution<double>(0.0,1.0);
+    seed_func_psi_arg = __rdtsc();
+    rv_func_arg_psi_gen = std::mt19937(seed_func_psi_arg);
+    rv_func_arg_beta    = std::uniform_real_distribution<double>(0.1,1.0);
+    seed_arg_beta_q     = __rdtsc();
+    rv_arg_beta_gen     = std::mt19937(seed_arg_beta_q);
+#if (INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE) == 1
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!,(IMPL: CEPHES-DOUBLE), inputs are unsorted.\n",__func__);
+    for(std::int32_t i {0}; i < n_func_args; ++i) 
+    {
+        const double psi  = rv_func_arg_psi.operator()(rv_func_arg_psi_gen);
+        const double beta = rv_func_arg_beta.operator()(rv_arg_beta_gen);
+        for(std::int32_t j{0}; j < n_marcum_q_vals; ++j)   
+        {
+            const double theta = rv_func_arg_theta.operator()(rv_func_arg_theta_gen);
+            const double q_marcum_res = gms::fading_channel::integrand_4_16_marcum_Q_func(beta,psi,theta);
+            printf_ret = print_double("q_marcum_result",q_marcum_res,0);
+        }
+    }
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE), inputs are unsorted.\n",__func__);
+#else 
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB-CMATH), inputs are unsorted.\n",__func__);
+    for(std::int32_t i {0}; i < n_func_args; ++i) 
+    {
+        const double psi  = rv_func_arg_psi.operator()(rv_func_arg_psi_gen);
+        const double beta = rv_func_arg_beta.operator()(rv_arg_beta_gen);
+        for(std::int32_t j{0}; j < n_marcum_q_vals; ++j)   
+        {
+            const double theta = rv_func_arg_theta.operator()(rv_func_arg_theta_gen);
+            const double q_marcum_res = gms::fading_channel::integrand_4_16_marcum_Q_func(beta,psi,theta);
+            printf_ret = print_double("q_marcum_result",q_marcum_res,0);
+        }
+    }
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB-CMATH), inputs are unsorted.\n",__func__);
+#endif
+}
+
 
 int main()
 {   
-    (void)unit_test_integrand_4_1_gauss_Q_func();
-    (void)unit_test_integrand_4_2_gauss_Q_func();
-    (void)unit_test_integrand_4_6_gauss_Q_func();
-    (void)unit_test_integrand_4_7_gauss_Q_func();
-    (void)unit_test_integrand_4_8_gauss_Q_func();
-    (void)unit_test_integrand_4_10_marcum_Q_func();
+    //(void)unit_test_integrand_4_1_gauss_Q_func();
+    //(void)unit_test_integrand_4_2_gauss_Q_func();
+    //(void)unit_test_integrand_4_6_gauss_Q_func();
+    //(void)unit_test_integrand_4_7_gauss_Q_func();
+    //(void)unit_test_integrand_4_8_gauss_Q_func();
+    //(void)unit_test_integrand_4_10_marcum_Q_func();
+    (void)unit_test_integrand_4_16_marcum_Q_func();
     return 0;
 }
