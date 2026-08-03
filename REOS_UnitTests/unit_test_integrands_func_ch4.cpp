@@ -7,10 +7,10 @@
 #include "GMS_integrands_func_ch4.h"
 
 /*
-   icpc -o unit_test_integrands_func_ch4 -O3 -fp-model fast=2 -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
+   icpc -o unit_test_integrands_func_ch4 -O3 -fp-model fast=2 -fno-exceptions -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
    GMS_config.h GMS_cephes_double.h GMS_integrands_func_ch4.h GMS_integrands_func_ch4.cpp unit_test_integrands_func_ch4.cpp
    ASM: 
-   icpc -S -O3 -fverbose-asm -masm=intel  -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_cephes_double.h GMS_integrands_func_ch4.h GMS_integrands_func_ch4.cpp unit_test_integrands_func_ch4.cpp
+   icpc -S -O3 -fverbose-asm -masm=intel -fno-exceptions -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_cephes_double.h GMS_integrands_func_ch4.h GMS_integrands_func_ch4.cpp unit_test_integrands_func_ch4.cpp
 
 */
 
@@ -93,7 +93,7 @@ void unit_test_integrand_4_1_gauss_Q_func()
     seed_gauss_q = __rdtsc();
     rv_gauss_q_gen = std::mt19937(seed_gauss_q);
 #if (INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE) == 1
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: CEPHES-DOUBLE)\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: CEPHES-DOUBLE), **Warning**: inputs are unsorted.\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
     {
         const double x = rv_func_arg.operator()(rv_func_arg_gen);
@@ -104,9 +104,9 @@ void unit_test_integrand_4_1_gauss_Q_func()
             printf_ret = print_double("q_gauss_result",q_gauss_res,0);
         }
     }
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE)\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE), **Warning**: inputs are unsorted.\n",__func__);
 #else 
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB -- CMATH)\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB -- CMATH), **Warning**: inputs are unsorted.\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
     {
         const double x = rv_func_arg.operator()(rv_func_arg_gen);
@@ -117,7 +117,7 @@ void unit_test_integrand_4_1_gauss_Q_func()
             printf_ret = print_double("q_gauss_result",q_gauss_res,0);
         }
     }
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB -- CMATH)\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB -- CMATH), **Warning**: inputs are unsorted.\n",__func__);
 #endif
 }
 
@@ -146,7 +146,7 @@ void unit_test_integrand_4_2_gauss_Q_func()
     seed_gauss_q = __rdtsc();
     rv_gauss_q_gen = std::mt19937(seed_gauss_q);
 #if (INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE) == 1
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: CEPHES-DOUBLE)\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: CEPHES-DOUBLE), **Warning**: inputs are unsorted.\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
     {
         const double x = rv_func_arg.operator()(rv_func_arg_gen);
@@ -157,7 +157,7 @@ void unit_test_integrand_4_2_gauss_Q_func()
             printf_ret = print_double("q_gauss_result",q_gauss_res,0);
         }
     }
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE)\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE), **Warning**: inputs are unsorted.\n",__func__);
 #else 
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB -- CMATH)\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
@@ -170,7 +170,7 @@ void unit_test_integrand_4_2_gauss_Q_func()
             printf_ret = print_double("q_gauss_result",q_gauss_res,0);
         }
     }
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB -- CMATH)\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB -- CMATH), **Warning**: inputs are unsorted.\n",__func__);
 #endif
 }
 
@@ -214,7 +214,7 @@ void unit_test_integrand_4_6_gauss_Q_func()
     seed_func_rho_arg = __rdtsc();
     rv_func_arg_rho_gen = std::mt19937(seed_func_rho_arg);
 #if (INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE) == 1
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: CEPHES-DOUBLE)\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: CEPHES-DOUBLE), **Warning**: inputs are unsorted.\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
     {
         const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
@@ -238,9 +238,9 @@ void unit_test_integrand_4_6_gauss_Q_func()
             printf_ret = print_double("q_gauss_2D_result",q_gauss_res,0);
         }
     }
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE)\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE), **Warning**: inputs are unsorted.\n",__func__);
 #else 
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB -- CMATH)\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB -- CMATH), **Warning**: inputs are unsorted.\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
     {
         const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
@@ -264,7 +264,7 @@ void unit_test_integrand_4_6_gauss_Q_func()
             printf_ret = print_double("q_gauss_2D_result",q_gauss_res,0)
         }
     }
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB -- CMATH)\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB -- CMATH), **Warning**: inputs are unsorted.\n",__func__);
 #endif
 }
 
@@ -306,7 +306,7 @@ void unit_test_integrand_4_7_gauss_Q_func()
     seed_func_rho_arg = __rdtsc();
     rv_func_arg_rho_gen = std::mt19937(seed_func_rho_arg);
 #if (INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE) == 1
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!,(IMPL: CEPHES-DOUBLE),arg=x1\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!,(IMPL: CEPHES-DOUBLE),arg=x1, **Warning**: inputs are unsorted.\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
     {
         const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
@@ -324,9 +324,9 @@ void unit_test_integrand_4_7_gauss_Q_func()
             printf_ret = print_double("q_gauss_2D_result",q_gauss_res,0);
         }
     }
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE),arg=x1\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE),arg=x1, **Warning**: inputs are unsorted.\n",__func__);
 #else 
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB-CMATH),arg=x1\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB-CMATH),arg=x1, **Warning**: inputs are unsorted.\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
     {
         const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
@@ -344,10 +344,10 @@ void unit_test_integrand_4_7_gauss_Q_func()
             printf_ret = print_double("q_gauss_2D_result",q_gauss_res,0)
         }
     }
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB-CMATH),arg=x1\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB-CMATH),arg=x1, **Warning**: inputs are unsorted.\n",__func__);
 #endif
 #if (INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE) == 1
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!,(IMPL: CEPHES-DOUBLE),arg=y1\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!,(IMPL: CEPHES-DOUBLE),arg=y1, **Warning**: inputs are unsorted.\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
     {
         const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
@@ -365,9 +365,9 @@ void unit_test_integrand_4_7_gauss_Q_func()
             printf_ret = print_double("q_gauss_2D_result",q_gauss_res,0);
         }
     }
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE),arg=y1\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE),arg=y1, **Warning**: inputs are unsorted.\n",__func__);
 #else 
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB-CMATH),arg=y1\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB-CMATH),arg=y1, **Warning**: inputs are unsorted.\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
     {
         const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
@@ -385,7 +385,7 @@ void unit_test_integrand_4_7_gauss_Q_func()
             printf_ret = print_double("q_gauss_2D_result",q_gauss_res,0)
         }
     }
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB-CMATH),arg=y1\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB-CMATH),arg=y1, **Warning**: inputs are unsorted.\n",__func__);
 #endif
 }
 
@@ -418,7 +418,7 @@ void unit_test_integrand_4_8_gauss_Q_func()
     seed_func_y1_arg = __rdtsc();
     rv_func_arg_y1_gen = std::mt19937(seed_func_y1_arg);
 #if (INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE) == 1
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!,(IMPL: CEPHES-DOUBLE),arg=x1\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!,(IMPL: CEPHES-DOUBLE),arg=x1, **Warning**: inputs are unsorted.\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
     {
         const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
@@ -435,9 +435,9 @@ void unit_test_integrand_4_8_gauss_Q_func()
             printf_ret = print_double("q_gauss_2D_result",q_gauss_res,0);
         }
     }
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE),arg=x1\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE),arg=x1, **Warning**: inputs are unsorted.\n",__func__);
 #else 
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB-CMATH),arg=x1\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB-CMATH),arg=x1, **Warning**: inputs are unsorted.\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
     {
         const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
@@ -454,10 +454,10 @@ void unit_test_integrand_4_8_gauss_Q_func()
             printf_ret = print_double("q_gauss_2D_result",q_gauss_res,0)
         }
     }
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB-CMATH),arg=x1\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB-CMATH),arg=x1, **Warning**: inputs are unsorted.\n",__func__);
 #endif
 #if (INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE) == 1
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!,(IMPL: CEPHES-DOUBLE),arg=y1\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!,(IMPL: CEPHES-DOUBLE),arg=y1, **Warning**: inputs are unsorted.\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
     {
         const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
@@ -474,9 +474,9 @@ void unit_test_integrand_4_8_gauss_Q_func()
             printf_ret = print_double("q_gauss_2D_result",q_gauss_res,0);
         }
     }
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE),arg=y1\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE),arg=y1, **Warning**: inputs are unsorted.\n",__func__);
 #else 
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB-CMATH),arg=y1\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB-CMATH),arg=y1, **Warning**: inputs are unsorted.\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
     {
         const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
@@ -493,7 +493,7 @@ void unit_test_integrand_4_8_gauss_Q_func()
             printf_ret = print_double("q_gauss_2D_result",q_gauss_res,0)
         }
     }
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB-CMATH),arg=y1\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB-CMATH),arg=y1, **Warning**: inputs are unsorted.\n",__func__);
 #endif
 }
 
@@ -521,7 +521,7 @@ void unit_test_integrand_4_10_marcum_Q_func()
     seed_marcum_q = __rdtsc();
     rv_marcum_q_gen = std::mt19937(seed_marcum_q);
 #if (INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE) == 1
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: CEPHES-DOUBLE)\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: CEPHES-DOUBLE), **Warning**: inputs are unsorted.\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
     {
         const double s = rv_s_param.operator()(rv_s_param_gen);
@@ -534,7 +534,7 @@ void unit_test_integrand_4_10_marcum_Q_func()
     }
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE)\n",__func__);
 #else 
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB -- CMATH)\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB -- CMATH), **Warning**: inputs are unsorted.\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
     {
         const double s = rv_s_param.operator()(rv_s_param_gen);
@@ -545,7 +545,7 @@ void unit_test_integrand_4_10_marcum_Q_func()
             printf_ret = print_double("q_marcum_result",q_marcum_res,0)
         }
     }
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB -- CMATH)\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB -- CMATH), **Warning**: inputs are unsorted.\n",__func__);
 #endif
 }
 
@@ -579,7 +579,7 @@ void unit_test_integrand_4_16_marcum_Q_func()
     seed_arg_beta_q     = __rdtsc();
     rv_arg_beta_gen     = std::mt19937(seed_arg_beta_q);
 #if (INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE) == 1
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!,(IMPL: CEPHES-DOUBLE), inputs are unsorted.\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!,(IMPL: CEPHES-DOUBLE), **Warning**: inputs are unsorted.\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
     {
         const double psi  = rv_func_arg_psi.operator()(rv_func_arg_psi_gen);
@@ -591,9 +591,9 @@ void unit_test_integrand_4_16_marcum_Q_func()
             printf_ret = print_double("q_marcum_result",q_marcum_res,0);
         }
     }
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE), inputs are unsorted.\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE), v inputs are unsorted.\n",__func__);
 #else 
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB-CMATH), inputs are unsorted.\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB-CMATH), **Warning**: inputs are unsorted.\n",__func__);
     for(std::int32_t i {0}; i < n_func_args; ++i) 
     {
         const double psi  = rv_func_arg_psi.operator()(rv_func_arg_psi_gen);
@@ -605,19 +605,193 @@ void unit_test_integrand_4_16_marcum_Q_func()
             printf_ret = print_double("q_marcum_result",q_marcum_res,0);
         }
     }
-    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB-CMATH), inputs are unsorted.\n",__func__);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB-CMATH), **Warning**: inputs are unsorted.\n",__func__);
 #endif
 }
 
+__attribute__((hot))
+__attribute__((aligned(32)))
+void unit_test_integrand_4_20_marcum_Q_func_lo();
+
+void unit_test_integrand_4_20_marcum_Q_func_lo()
+{
+    constexpr double lo_theta{-3.141592653589793238462643383};
+    constexpr double hi_theta{+0};
+    thread_local std::uniform_real_distribution<double> rv_func_arg_theta;
+    thread_local std::mt19937 rv_func_arg_theta_gen;
+    thread_local std::uint64_t seed_func_theta_arg{};
+    thread_local std::uniform_real_distribution<double> rv_func_arg_psi;
+    thread_local std::mt19937 rv_func_arg_psi_gen;
+    thread_local std::uint64_t seed_func_psi_arg{};
+    thread_local std::uniform_real_distribution<double> rv_func_arg_beta;
+    thread_local std::mt19937 rv_arg_beta_gen;
+    thread_local std::uint64_t seed_arg_beta_q{};
+    constexpr std::int32_t n_func_args{10};
+    constexpr std::int32_t n_marcum_q_vals{50};
+    [[maybe_unused]] std::int32_t printf_ret{};
+    rv_func_arg_theta = std::uniform_real_distribution<double>(lo_theta,hi_theta);
+    seed_func_theta_arg = __rdtsc();
+    rv_func_arg_theta_gen = std::mt19937(seed_func_theta_arg);
+    rv_func_arg_psi = std::uniform_real_distribution<double>(0.0,1.0);
+    seed_func_psi_arg = __rdtsc();
+    rv_func_arg_psi_gen = std::mt19937(seed_func_psi_arg);
+    rv_func_arg_beta    = std::uniform_real_distribution<double>(0.1,1.0);
+    seed_arg_beta_q     = __rdtsc();
+    rv_arg_beta_gen     = std::mt19937(seed_arg_beta_q);
+#if (INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE) == 1
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!,(IMPL: CEPHES-DOUBLE), **Warning**: inputs are unsorted.\n",__func__);
+    for(std::int32_t i {0}; i < n_func_args; ++i) 
+    {
+        const double psi  = rv_func_arg_psi.operator()(rv_func_arg_psi_gen);
+        const double beta = rv_func_arg_beta.operator()(rv_arg_beta_gen);
+        for(std::int32_t j{0}; j < n_marcum_q_vals; ++j)   
+        {
+            const double theta = rv_func_arg_theta.operator()(rv_func_arg_theta_gen);
+            const double q_marcum_res = gms::fading_channel::integrand_4_20_marcum_Q_func_lo(beta,psi,theta);
+            printf_ret = print_double("q_marcum_result",q_marcum_res,0);
+        }
+    }
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE), **Warning**: inputs are unsorted.\n",__func__);
+#else 
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB-CMATH), **Warning**: inputs are unsorted.\n",__func__);
+    for(std::int32_t i {0}; i < n_func_args; ++i) 
+    {
+        const double psi  = rv_func_arg_psi.operator()(rv_func_arg_psi_gen);
+        const double beta = rv_func_arg_beta.operator()(rv_arg_beta_gen);
+        for(std::int32_t j{0}; j < n_marcum_q_vals; ++j)   
+        {
+            const double theta = rv_func_arg_theta.operator()(rv_func_arg_theta_gen);
+            const double q_marcum_res = gms::fading_channel::integrand_4_20_marcum_Q_func_lo(beta,psi,theta);
+            printf_ret = print_double("q_marcum_result",q_marcum_res,0);
+        }
+    }
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB-CMATH),  **Warning**: inputs are unsorted.\n",__func__);
+#endif
+}
+
+__attribute__((hot))
+__attribute__((aligned(32)))
+void unit_test_integrand_4_20_marcum_Q_func_hi();
+
+void unit_test_integrand_4_20_marcum_Q_func_hi()
+{
+    constexpr double lo_theta{+0.0};
+    constexpr double hi_theta{+3.141592653589793238462643383};
+    thread_local std::uniform_real_distribution<double> rv_func_arg_theta;
+    thread_local std::mt19937 rv_func_arg_theta_gen;
+    thread_local std::uint64_t seed_func_theta_arg{};
+    thread_local std::uniform_real_distribution<double> rv_func_arg_psi;
+    thread_local std::mt19937 rv_func_arg_psi_gen;
+    thread_local std::uint64_t seed_func_psi_arg{};
+    thread_local std::uniform_real_distribution<double> rv_func_arg_beta;
+    thread_local std::mt19937 rv_arg_beta_gen;
+    thread_local std::uint64_t seed_arg_beta_q{};
+    constexpr std::int32_t n_func_args{10};
+    constexpr std::int32_t n_marcum_q_vals{50};
+    [[maybe_unused]] std::int32_t printf_ret{};
+    rv_func_arg_theta = std::uniform_real_distribution<double>(lo_theta,hi_theta);
+    seed_func_theta_arg = __rdtsc();
+    rv_func_arg_theta_gen = std::mt19937(seed_func_theta_arg);
+    rv_func_arg_psi = std::uniform_real_distribution<double>(0.0,1.0);
+    seed_func_psi_arg = __rdtsc();
+    rv_func_arg_psi_gen = std::mt19937(seed_func_psi_arg);
+    rv_func_arg_beta    = std::uniform_real_distribution<double>(0.1,1.0);
+    seed_arg_beta_q     = __rdtsc();
+    rv_arg_beta_gen     = std::mt19937(seed_arg_beta_q);
+#if (INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE) == 1
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!,(IMPL: CEPHES-DOUBLE), **Warning**: inputs are unsorted.\n",__func__);
+    for(std::int32_t i {0}; i < n_func_args; ++i) 
+    {
+        const double psi  = rv_func_arg_psi.operator()(rv_func_arg_psi_gen);
+        const double beta = rv_func_arg_beta.operator()(rv_arg_beta_gen);
+        for(std::int32_t j{0}; j < n_marcum_q_vals; ++j)   
+        {
+            const double theta = rv_func_arg_theta.operator()(rv_func_arg_theta_gen);
+            const double q_marcum_res = gms::fading_channel::integrand_4_20_marcum_Q_func_hi(beta,psi,theta);
+            printf_ret = print_double("q_marcum_result",q_marcum_res,0);
+        }
+    }
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE), **Warning**: inputs are unsorted.\n",__func__);
+#else 
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB-CMATH), **Warning**: inputs are unsorted.\n",__func__);
+    for(std::int32_t i {0}; i < n_func_args; ++i) 
+    {
+        const double psi  = rv_func_arg_psi.operator()(rv_func_arg_psi_gen);
+        const double beta = rv_func_arg_beta.operator()(rv_arg_beta_gen);
+        for(std::int32_t j{0}; j < n_marcum_q_vals; ++j)   
+        {
+            const double theta = rv_func_arg_theta.operator()(rv_func_arg_theta_gen);
+            const double q_marcum_res = gms::fading_channel::integrand_4_20_marcum_Q_func_hi(beta,psi,theta);
+            printf_ret = print_double("q_marcum_result",q_marcum_res,0);
+        }
+    }
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB-CMATH),  **Warning**: inputs are unsorted.\n",__func__);
+#endif
+}
+
+__attribute__((hot))
+__attribute__((aligned(32)))
+void unit_test_integrand_4_32_marcum_Q_m_func();
+
+void unit_test_integrand_4_32_marcum_Q_m_func()
+{
+    constexpr double lo_s{0.1};
+    constexpr double hi_s{10.0};
+    thread_local std::uniform_real_distribution<double> rv_s_param;
+    thread_local std::mt19937 rv_s_param_gen;
+    thread_local std::uint64_t seed_s_param{};
+    thread_local std::uniform_real_distribution<double> rv_marcum_q;
+    thread_local std::mt19937 rv_marcum_q_gen;
+    thread_local std::uint64_t seed_marcum_q{};
+    constexpr std::int32_t n_func_args{10};
+    constexpr std::int32_t n_marcum_q_vals{50};
+    [[maybe_unused]] std::int32_t printf_ret{};
+    rv_s_param = std::uniform_real_distribution<double>(lo_s,hi_s);
+    seed_s_param = __rdtsc();
+    rv_s_param_gen = std::mt19937(seed_s_param);
+    rv_marcum_q = std::uniform_real_distribution<double>(0.0,5.0);
+    seed_marcum_q = __rdtsc();
+    rv_marcum_q_gen = std::mt19937(seed_marcum_q);
+#if (INTEGRANDS_FUNC_CH4_USE_CEPHES_DOUBLE) == 1
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: CEPHES-DOUBLE), **Warning**: inputs are unsorted.\n",__func__);
+    for(std::int32_t i {0}; i < n_func_args; ++i) 
+    {
+        const double s = rv_s_param.operator()(rv_s_param_gen);
+        for(std::int32_t j{0}; j < n_marcum_q_vals; ++j)   
+        {
+            const double x = rv_marcum_q.operator()(rv_marcum_q_gen);
+            const double q_marcum_res = gms::fading_channel::integrand_4_32_marcum_Q_m_func(s,x,2.0,1);
+            printf_ret = print_double("q_marcum_result",q_marcum_res,0);
+        }
+    }
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: CEPHES-DOUBLE)\n",__func__);
+#else 
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!! (IMPL: STD::LIB -- CMATH), **Warning**: inputs are unsorted.\n",__func__);
+    for(std::int32_t i {0}; i < n_func_args; ++i) 
+    {
+        const double s = rv_s_param.operator()(rv_s_param_gen);
+        for(std::int32_t j{0}; j < n_marcum_q_vals; ++j)   
+        {
+            const double x = rv_marcum_q.operator()(rv_marcum_q_gen);
+            const double q_marcum_res = gms::fading_channel::integrand_4_32_marcum_Q_m_func(s,x,2.0,1);
+            printf_ret = print_double("q_marcum_result",q_marcum_res,0)
+        }
+    }
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!! (IMPL: STD::LIB -- CMATH), **Warning**: inputs are unsorted.\n",__func__);
+#endif
+}
 
 int main()
 {   
-    //(void)unit_test_integrand_4_1_gauss_Q_func();
-    //(void)unit_test_integrand_4_2_gauss_Q_func();
-    //(void)unit_test_integrand_4_6_gauss_Q_func();
-    //(void)unit_test_integrand_4_7_gauss_Q_func();
-    //(void)unit_test_integrand_4_8_gauss_Q_func();
-    //(void)unit_test_integrand_4_10_marcum_Q_func();
+    (void)unit_test_integrand_4_1_gauss_Q_func();
+    (void)unit_test_integrand_4_2_gauss_Q_func();
+    (void)unit_test_integrand_4_6_gauss_Q_func();
+    (void)unit_test_integrand_4_7_gauss_Q_func();
+    (void)unit_test_integrand_4_8_gauss_Q_func();
+    (void)unit_test_integrand_4_10_marcum_Q_func();
     (void)unit_test_integrand_4_16_marcum_Q_func();
+    (void)unit_test_integrand_4_20_marcum_Q_func_lo();
+    (void)unit_test_integrand_4_20_marcum_Q_func_hi();
+    (void)unit_test_integrand_4_32_marcum_Q_m_func();
     return 0;
 }
