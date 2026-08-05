@@ -53,7 +53,6 @@ namespace gms
 namespace fading_channel
 {
 
-
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -220,10 +219,77 @@ integrand_4_7_y1_gauss_Q_func_sse_pd(const __m128d y1,
   return (_mm_mul_pd(lead_factor,exp_val));
 }
 
-
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128d
+integrand_4_8_x1_gauss_Q_func_sse_pd(const __m128d x1,const __m128d theta)
+{
+  const __m128d x1_sqr{_mm_mul_pd(x1,x1)};
+  const __m128d tmp_sin{_mm_sin_pd(theta)};
+  const __m128d two_sinthtsqr{_mm_add_pd(tmp_sin,tmp_sin)};
+  const __m128d exp_arg{_mm_div_pd(x1_sqr,two_sinthtsqr)};
+  const __m128d exp_val{_mm_exp_pd(gms::math::negate_xmm2r8(exp_val))};
+  return (exp_val);
 }
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128d
+integrand_4_8_y1_gauss_Q_func_sse_pd(const __m128d y1,const __m128d theta)
+{
+  const __m128d y1_sqr{_mm_mul_pd(y1,y1)};
+  const __m128d tmp_sin{_mm_sin_pd(theta)};
+  const __m128d two_sinthtsqr{_mm_add_pd(tmp_sin,tmp_sin)};
+  const __m128d exp_arg{_mm_div_pd(y1_sqr,two_sinthtsqr)};
+  const __m128d exp_val{_mm_exp_pd(gms::math::negate_xmm2r8(exp_val))};
+  return (exp_val);
 }
 
+#include "GMS_bessel_i0_sse.h"
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128d 
+integrand_4_10_marcum_Q_func_sse_pd(const __m128d x,const __m128d s)
+{
+  using namespace gms::math;
+  const __m128d half{_mm_set1_pd(0.5)};
+  const __m128d C15{_mm_set1_pd(15)};
+  const __m128d sx{_mm_mul_pd(s,x)};
+  const __mmask8 is_sx_ge15{_mm_cmp_pd_mask(sx,C15,_CMP_GE_OQ)};
+  const __m128d xspow2{_mm_fmadd_pd(x,x,_mm_mul_pd(s,s))};
+  const __m128d besi0_val{_mm_mask_blend_pd(is_sx_ge15,bessel_i0_le15_sse_pd(sx),bessel_i0_ge15_sse_pd(sx))};
+  const __m128d exp_arg{_mm_mul_pd(half,xspow2)};
+  const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};
+  return (_mm_mul_pd(x,_mm_mul_pd(exp_val,besi0_val)));
+}
+
+
+
+
+} // fading_channel
+
+} // gms
 
 #endif /*__GMS_INTEGRANDS_FUNC_CH4_SSE_H__*/
