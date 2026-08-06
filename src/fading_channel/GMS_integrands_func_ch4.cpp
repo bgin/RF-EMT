@@ -13,6 +13,7 @@ namespace
     static constexpr const double C0318309886183790671537767526745  = 0.318309886183790671537767526745;
     /*0.5*PI*/
     static constexpr const double C15707963267948966192313216916398 = 1.5707963267948966192313216916398;
+
 }
 
 /*
@@ -469,7 +470,7 @@ gms
         const double tmp{1.0-psip2};
         const double num{tmp*tmp};
         const double denom{1.0+(2.0*psi_m_sintht)+psip2};
-        const double exp_arg_1{-(halfbeta*denom)};
+        const double exp_arg_1{halfbeta*denom};
         const double ratio{num/denom};
         const double left_exp_val{gms::math::cephes_d::exp(-exp_arg_1)};
         const double exp_arg_2{halfbeta*ratio};
@@ -491,7 +492,7 @@ gms
         const double tmp{1.0-psip2};
         const double num{tmp*tmp};
         const double denom{1.0+(2.0*psi_m_sintht)+psip2};
-        const double exp_arg_1{-(halfalpha*denom)};
+        const double exp_arg_1{halfalpha*denom};
         const double ratio{num/denom};
         const double left_exp_val{std::exp(-exp_arg_1)};
         const double exp_arg_2{halfalpha*ratio};
@@ -504,7 +505,7 @@ gms
         const double tmp{1.0-psip2};
         const double num{tmp*tmp};
         const double denom{1.0+(2.0*psi_m_sintht)+psip2};
-        const double exp_arg_1{-(halfalpha*denom)};
+        const double exp_arg_1{halfalpha*denom};
         const double ratio{num/denom};
         const double left_exp_val{gms::math::cephes_d::exp(-exp_arg_1)};
         const double exp_arg_2{halfalpha*ratio};
