@@ -600,7 +600,7 @@ gms
         const double exp_val{std::exp(-exp_arg)};
         return (cot_ratio*exp_val);
 #else 
-        const double pow_arg{1.0+2.0*m};
+        const double pow_arg{1.0+2.0*m};// FMA(1,2,m), 1+m+m
         const double betap2{beta*beta};
         const double tmps{gms::math::cephes_d::sin(theta)};
         const double sinp2{tmps*tmps};

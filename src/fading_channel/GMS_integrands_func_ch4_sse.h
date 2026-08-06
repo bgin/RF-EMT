@@ -21,6 +21,7 @@
 
 #include <cstdint>
 #include <immintrin.h>
+#include <cmath>
 #include "GMS_config.h"
 #include "GMS_simd_utils.h"
 
@@ -422,6 +423,96 @@ integrand_4_27_marcum_Q_func_sse_pd(const __m128d alpha,const __m128d psi,
 }
 
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128d
+integrand_4_32_marcum_Q_m_func_sse_pd(const __m128d x,const __m128d s,
+                                      const __m128d d_m,const std::int32_t i_m)
+{
+  /*
+      This kernel relies on the scalar version of the modified cylindrical
+      Bessel function of the first kind of the order n, hence substantial
+      performance impact due to scalarization shall be expected. 
+  */
+  const __m128d half{_mm_set1_pd(0.5)};
+  const __m128d sx{_mm_mul_pd(s,x)};
+  const __m128d xx{_mm_mul_pd(x,x)};
+  const double * __restrict__ p_sx{reinterpret_cast<const double * __restrict__>(&sx)};
+  const __m128d ss{_mm_mul_pd(s,s)};
+  const __m128d x_to_m{_mm_pow_pd(x,d_m)};
+  const __m128d cyl_bes_val{_mm_setr_pd(std::cyl_bessel_i(i_m,p_sx[0]),
+                                        std::cyl_bessel_i(i_m,p_sx[1]))};
+  const __m128d exp_arg{_mm_mul_pd(half,_mm_add_pd(xx,ss))};
+  const __m128d exp_val{_mm_exp_pd(gms::math::negate_xmm2r8(exp_arg))};
+  return (_mm_mul_pd(x_to_m,_mm_mul_pd(exp_val,cyl_bes_val)));
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128d
+integrand_4_42_marcum_Q_m_func(const __m128d beta,const __m128d psi,
+                               const __m128d m,const __m128d theta)
+{
+  const __m128d half{_mm_set1_pd(0.5)};
+  const __m128d one{_mm_set1_pd(1.0)};
+  const __m128d C15707963267948966192313216916398{_mm_set1_pd(1.5707963267948966192313216916398)};
+  const __m128d psip2{_mm_mul_pd(psi,psi)};
+  const __m128d halfbeta{_mm_mul_pd(half,_mm_mul_pd(beta,beta))};
+  const __m128d psinpm{_mm_pow_pd(psi,_mm_sub_pd(m,one))};
+  const __m128d tht_p_pi2{_mm_add_pd(theta,C15707963267948966192313216916398)};
+  const __m128d cos_arg_left{_mm_sub_pd(m,_mm_mul_pd(one,tht_p_pi2))};
+  const __m128d cos_val_left{_mm_cos_pd(cos_arg_left)};
+  const __m128d cos_arg_right{_mm_mul_pd(m,tht_p_pi2)};
+  const __m128d cos_val_right{_mm_cos_pd(cos_arg_right)};
+  const __m128d psi_m_sintht{_mm_mul_pd(psi,_mm_sin_pd(theta))};
+  const __m128d sin_factor{_mm_add_pd(one,_mm_add_pd(_mm_add_pd(psi_m_sintht,psi_m_sintht),psip2))};
+  const __m128d exp_arg{_mm_mul_pd(half_beta,sin_factor)};
+  const __m128d cos_num_fac{_mm_mul_pd(psinpm,_mm_sub_pd(cos_val_left,_mm_mul_pd(psi,cos_val_right)))};
+  const __m128d exp_val{_mm_exp_pd(gms::math::negate_xmm2r8(exp_arg))};
+  const __m128d ratio_factor{_mm_div_pd(cos_num_fac,sin_factor)};
+  return (_mm_mul_pd(ratio_factor,exp_val));
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128d
+integrand_4_45_marcum_Q_m_func_sse_pd(const __m128d theta,const __m128d beta,
+                                      const __m128d m)
+{
+  const __m128d one{_mm_set1_pd(1.0)};
+  const __m128d pow_arg{_mm_add_pd(one,_mm_add_pd(m,m))};
+  const __m128d betap2{_mm_mul_pd(beta,beta)};
+  const __m128d tmp_sin{_mm_sin_pd(theta)};
+  const __m128d sinp2{_mm_mul_pd(tmp_sin)};
+  const __m128d costht{_mm_cos_pd(theta)};
+  const __m128d denom{_mm_add_pd(sin2p,sin2p)};
+  const __m128d sinpm{_mm_pow_pd(tmp_sin,pow_arg)};
+  const __m128d exp_arg{_mm_div_pd(betap2,denom)};
+  const __m128d cos_ratio{_mm_div_pd(costht,sinpm)};
+  const __m128d exp_val{_mm_exp_pd(gms::math::negate_xmm2r8(exp_arg))};
+  return (_mm_mul_pd(cos_ratio,exp_val));
+}
 
 
 } // fading_channel
