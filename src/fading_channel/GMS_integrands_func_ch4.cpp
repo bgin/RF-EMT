@@ -628,7 +628,7 @@ gms
         const double cosfdiff_fac{1.0-cosphdif*cost};
         const double exp_arg{A_factor*cosfdiff_fac};
         const double inv_cosdiff{1.0/cosfdiff_fac};
-        const double exp_val{-exp_arg};
+        const double exp_val{std::exp(-exp_arg)};
         return (inv_cosdiff*exp_val);
 #else
         const double phase_diff{delphi-psi};
@@ -638,7 +638,7 @@ gms
         const double cosfdiff_fac{1.0-cosphdif*cost};
         const double exp_arg{A_factor*cosfdiff_fac};
         const double inv_cosdiff{1.0/cosfdiff_fac};
-        const double exp_val{-exp_arg};
+        const double exp_val{std::exp(-exp_arg)};
         return (inv_cosdiff*exp_val);
 #endif 
 }
