@@ -49,104 +49,104 @@ const char * const GMS_SIMD_UTILS_DESCRIPTION   = "Various SIMD utility function
 #include "GMS_config.h"
 
 
-namespace  gms {
+namespace  gms 
+{
+
+namespace  math 
+{
 
 
-          namespace  math {
+namespace 
+{
+
+const __m128  _0PS     = _mm_set1_ps(0.0F);
+const __m256d _0PD     = _mm256_setzero_pd();
+const __m128   NZ128SP = _mm_set1_ps(-0.0F);
+const __m128d  NZ128DP = _mm_set1_pd(-0.0);
+const __m256   NZ256SP = _mm256_set1_ps(-0.0F);
+const __m256d  NZ256DP = _mm256_set1_pd(-0.0);
+const __m512   NZ512SP = _mm512_set1_ps(-0.0F);
+const __m512d  NZ512DP = _mm512_set1_pd(-0.0F);
+}
 
 
-            namespace 
-			{
+__ATTR_ALWAYS_INLINE__
+static inline
+__mmask8 isinf_zmm8r8(__m512d x) 
+{
+union {
+    __m512i u;
+	__m512d f;
+} ieee754;
+const __m512i c0 = _mm512_set1_epi64(0x7fffffff);
+const __m512i c1 = _mm512_set1_epi64(0x7ff00000);
+const __m512i _0 = _mm512_setzero_si512();
+__m512i t0,t1;
+__mmask8 b0,b1;
+ieee754.f = x;
+t0 = _mm512_and_epi64(_mm512_srli_epi64(ieee754.u,32),c0);
+b0 = _mm512_cmp_epi64_mask(t0,c1,_MM_CMPINT_EQ);
+b1 = _mm512_cmp_epi64_mask(ieee754.u,_0,_MM_CMPINT_EQ);
+//return (b0 && b1);
+retrun (_mm512_kand(b0,b1));
+}
 
-                          const __m128  _0PS     = _mm_set1_ps(0.0F);
-			              const __m256d _0PD     = _mm256_setzero_pd();
-			              const __m128   NZ128SP = _mm_set1_ps(-0.0F);
-						  const __m128d  NZ128DP = _mm_set1_pd(-0.0);
-			              const __m256   NZ256SP = _mm256_set1_ps(-0.0F);
-			              const __m256d  NZ256DP = _mm256_set1_pd(-0.0);
-			              const __m512   NZ512SP = _mm512_set1_ps(-0.0F);
-			              const __m512d  NZ512DP = _mm512_set1_pd(-0.0F);
-		      }
 
+/*		     
+__ATTR_ALWAYS_INLINE__
+static inline
+__mmask8 isnan_zmm8r8(__m512d x) {
 
-	              
-        __ATTR_ALWAYS_INLINE__
-		static inline
-		__mmask8 isinf_zmm8r8(__m512d x) {
-             union {
-               __m512i u;
-			   __m512d f;
-			 } ieee754;
-			 const __m512i c0 = _mm512_set1_epi64(0x7fffffff);
-			 const __m512i c1 = _mm512_set1_epi64(0x7ff00000);
-			 const __m512i _0 = _mm512_setzero_si512();
-			 __m512i t0,t1;
-			 __mmask8 b0,b1;
-			 ieee754.f = x;
-			 t0 = _mm512_and_epi64(_mm512_srli_epi64(ieee754.u,32),c0);
-			 b0 = _mm512_cmp_epi64_mask(t0,c1,_MM_CMPINT_EQ);
-			 b1 = _mm512_cmp_epi64_mask(ieee754.u,_0,_MM_CMPINT_EQ);
-			 return (b0 && b1);
-		}
-
-/*
-		     
-                      __ATTR_ALWAYS_INLINE__
-		      static inline
-		      __mmask8 isnan_zmm8r8(__m512d x) {
-
-		        union {
-                           __m512i u;
-			   __m512d f;
-			 } ieee754;
-			 const __m512i c0 = _mm512_set1_epi64(0x7fffffff);
-			 const __m512i c1 = _mm512_set1_epi64(0x7ff00000);
-			 const __m512i _0 = _mm512_setzero_si512();
-			 __m512i t0,t1;
-			 __mmask8 b0,b1;
-			 ieee754.f = x;
-			 t0 = _mm512_and_epi64(_mm512_srli_epi64(ieee754.u,32),c0);
-			 b0 = _mm512_cmp_epi64_mask(ieee754.u,_0,_MM_CMPINT_NE);
-			 t1 = _mm512_movm_epi64(b0);
-			 b1 = _mm512_cmp_epi64_mask(t1,c1,_MM_CMPINT_LT);
-			 b0 = _mm512_movm_epi64(b1);
-			 return (b0+b1);
+union {
+    __m512i u;
+	__m512d f;
+} ieee754;
+const __m512i c0 = _mm512_set1_epi64(0x7fffffff);
+const __m512i c1 = _mm512_set1_epi64(0x7ff00000);
+const __m512i _0 = _mm512_setzero_si512();
+__m512i t0,t1,t2;
+__mmask8 b0,b1;
+ieee754.f = x;
+t0 = _mm512_and_epi64(_mm512_srli_epi64(ieee754.u,32),c0);
+b0 = _mm512_cmp_epi64_mask(ieee754.u,_0,_MM_CMPINT_NE);
+t1 = _mm512_movm_epi64(b0);
+b1 = _mm512_cmp_epi64_mask(t1,c1,_MM_CMPINT_LT);
+t2 = _mm512_movm_epi64(b1);
+return (b0+b1);
 			
-		      }
+}
 */
 
 		      // Load only 3 elements (lower) of XMM register.
 		      // Single-precision
 
                      
-            __ATTR_ALWAYS_INLINE__
-		    static inline
-		    __m128
-		    xmm4r4_load_3u_avx512(const float * __restrict v) {
-                            const __mmask8 k = 0x7;
-                            return (_mm_mask_loadu_ps(_0PS,k,v));
-		    }
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128
+xmm4r4_load_3u_avx512(const float * __restrict v)
+ {
+    const __mmask8 k = 0x7;
+    return (_mm_mask_loadu_ps(_0PS,k,v));
+} 
 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128
+xmm4r4_load_3a_avx512(const float * __restrict __ATTR_ALIGN__(16) v)
+{
+    const __mmask8 k = 0x7;
+    return (_mm_mask_load_ps(_0PS,k,v));
+} 
+            
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128
+xmm4r4_load_3u_avx(const float * __restrict v) {
 
-		      
-            __ATTR_ALWAYS_INLINE__
-		    static inline
-		    __m128
-		    xmm4r4_load_3a_avx512(const float * __restrict __ATTR_ALIGN__(16) v) {
-                            const __mmask8 k = 0x7;
-                            return (_mm_mask_load_ps(_0PS,k,v));
-		    }
-
-
-		     
-            __ATTR_ALWAYS_INLINE__
-		    static inline
-		    __m128
-		    xmm4r4_load_3u_avx(const float * __restrict v) {
-
-                          const __m128i k = _mm_set_epi32(0,-1,-1,-1);
-			  return (_mm_maskload_ps(v,(__m128i)k));
-		    }
+    const __m128i k = _mm_set_epi32(0,-1,-1,-1);
+	return (_mm_maskload_ps(v,(__m128i)k));
+}
 
 
 		    
@@ -284,71 +284,61 @@ namespace  gms {
 		   // The whole register negated
 		   
 		     
-              __ATTR_ALWAYS_INLINE__		    
-		      static inline 
-             __m128
-		      negate_xmm4r4(const __m128 v) 
-			  {
-                   const __m128  NZ128SP = _mm_set1_ps(-0.0F);
-		           return (_mm_xor_ps(v,NZ128SP));
-		      }
+__ATTR_ALWAYS_INLINE__		    
+static inline 
+__m128
+negate_xmm4r4(const __m128 v) 
+{
+   return (_mm_xor_ps(v,NZ128SP));
+}
 		   
-                   
-		    
-            __ATTR_ALWAYS_INLINE__		     
-		      static inline 
-                      __m256
-		      negate_ymm8r4(const __m256 v) {
-
-		           return (_mm256_xor_ps(v,NZ256SP));
-		    }
-		    
-		    
-                    
-            __ATTR_ALWAYS_INLINE__		     
-		      static inline 
-                      __m128d
-		      negate_xmm2r8(const __m128d v) {
-
-		           return (_mm_xor_pd(v,NZ128DP));
-		    }
+__ATTR_ALWAYS_INLINE__		     
+static inline 
+__m256
+negate_ymm8r4(const __m256 v) 
+{
+	return (_mm256_xor_ps(v,NZ256SP));
+}
+		              
+__ATTR_ALWAYS_INLINE__		     
+static inline 
+__m128d
+negate_xmm2r8(const __m128d v) 
+{
+	return (_mm_xor_pd(v,NZ128DP));
+}
 		   
+__ATTR_ALWAYS_INLINE__		     
+static inline 
+__m256d
+negate_ymm4r8(const __m256d v) 
+{
+	return (_mm256_xor_pd(v,NZ256DP));
+}
+ 
+__ATTR_ALWAYS_INLINE__		     
+static inline 
+__m512
+negate_zmm16r4(const __m512 v)
+{
+    return (_mm512_xor_ps(v,NZ512SP));
+}
+	
+__ATTR_ALWAYS_INLINE__		     
+static inline 
+__m512d
+negate_zmm8r8(const __m512d v)
+{
 
-		    
-            __ATTR_ALWAYS_INLINE__		     
-		      static inline 
-                      __m256d
-		      negate_ymm4r8(const __m256d v) {
-
-		           return (_mm256_xor_pd(v,NZ256DP));
-		    }
-
-
-		    
-            __ATTR_ALWAYS_INLINE__		     
-		      static inline 
-                      __m512
-		      negate_zmm16r4(const __m512 v) {
-
-                          return (_mm512_xor_ps(v,NZ512SP));
-		    }
-
-
-		    
-            __ATTR_ALWAYS_INLINE__		     
-		      static inline 
-                      __m512d
-		      negate_zmm8r8(const __m512d v) {
-
-                          return (_mm512_xor_pd(v,NZ512DP));
-		    }
+    return (_mm512_xor_pd(v,NZ512DP));
+}
 
 
 		    // Dot product
 		    
-            __ATTR_ALWAYS_INLINE__		     
-		      static inline 
-                      __m128d
+__ATTR_ALWAYS_INLINE__		     
+static inline 
+__m128d
 		      ymm8r4_dot(const __m256d x,
 		                 const __m256d y) {
 
@@ -562,15 +552,5 @@ namespace  gms {
 
 
 } // gms
-
-
-
-
-
-
-
-
-
-
 
 #endif /*__GMS_SIMD_UTILS_H__*/
