@@ -285,6 +285,142 @@ integrand_4_10_marcum_Q_func_sse_pd(const __m128d x,const __m128d s)
   return (_mm_mul_pd(x,_mm_mul_pd(exp_val,besi0_val)));
 }
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128d 
+integrand_4_16_marcum_Q_func_sse_pd(const __m128d beta,const __m128d psi,
+                                    const __m128d theta)
+{
+  const __m128d one{_mm_set1_pd(1.0)};
+  const __m128d half{_mm_set1_pd(0.5)};
+  const __m128d psip2{_mm_mul_pd(psi,psi)};
+  const __m128d sintht{_mm_sin_pd(theta)};
+  const __m128d half_beta{_mm_mul_pd(half,_mm_mul_pd(beta,beta))};
+  const __m128d lead_fac_num{_mm_add_pd(1.0,sintht)};
+  const __m128d lead_fac_den{__mm_add_pd(_mm_add_pd(one,_mm_add_pd(sintht,sintht)),psip2)};
+  const __m128d lead_fac_rat{_mm_div_pd(lead_fac_num,lead_fac_den)};
+  const __m128d exp_arg{_mm_mul_pd(half_beta,lead_fac_den)};
+  const __m128d exp_val{_mm_exp_pd(gms::math::negate_xmm2r8(exp_arg))};
+  return (_mm_mul_pd(lead_fac_rat,exp_val));
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128d 
+integrand_4_20_marcum_Q_func_lo_sse_pd(const __m128d beta,const __m128d psi,
+                                       const __m128d theta)
+{
+  const __m128d one{_mm_set1_pd(1.0)};
+  const __m128d half{_mm_set1_pd(0.5)};
+  const __m128d psip2{_mm_mul_pd(psi,psi)};
+  const __m128d costht{_mm_cos_pd(theta)};
+  const __m128d lead_fac_num{_mm_sub_pd(one,costht)};
+  const __m128d half_beta{_mm_mul_pd(half,_mm_mul_pd(beta,beta))};
+  const __m128d lead_fac_den{__mm_add_pd(_mm_sub_pd(one,_mm_add_pd(costht,costht)),psip2)};
+  const __m128d lead_fac_rat{_mm_div_pd(lead_fac_num,lead_fac_den)};
+  const __m128d exp_arg{_mm_mul_pd(half_beta,lead_fac_den)};
+  const __m128d exp_val{_mm_exp_pd(gms::math::negate_xmm2r8(exp_arg))};
+  return (_mm_mul_pd(lead_fac_rat,exp_val));
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128d 
+integrand_4_20_marcum_Q_func_hi_sse_pd(const __m128d beta,const __m128d psi,
+                                       const __m128d theta)
+{
+  const __m128d one{_mm_set1_pd(1.0)};
+  const __m128d half{_mm_set1_pd(0.5)};
+  const __m128d psip2{_mm_mul_pd(psi,psi)};
+  const __m128d costht{_mm_cos_pd(theta)};
+  const __m128d lead_fac_num{_mm_add_pd(one,costht)};
+  const __m128d half_beta{_mm_mul_pd(half,_mm_mul_pd(beta,beta))};
+  const __m128d lead_fac_den{__mm_add_pd(_mm_add_pd(one,_mm_add_pd(costht,costht)),psip2)};
+  const __m128d lead_fac_rat{_mm_div_pd(lead_fac_num,lead_fac_den)};
+  const __m128d exp_arg{_mm_mul_pd(half_beta,lead_fac_den)};
+  const __m128d exp_val{_mm_exp_pd(gms::math::negate_xmm2r8(exp_arg))};
+  return (_mm_mul_pd(lead_fac_rat,exp_val));
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128d
+integrand_4_26_marcum_Q_func_sse_pd(const __m128d beta,const __m128d psi,
+                                    const __m128d theta)
+{
+  const __m128d one{_mm_set1_pd(1.0)};
+  const __m128d half{_mm_set1_pd(0.5)};
+  const __m128d psip2{_mm_mul_pd(psi,psi)};
+  const __m128d half_beta{_mm_mul_pd(half,_mm_mul_pd(beta,beta))};
+  const __m128d psim_sintht{_mm_mul_pd(psi,_mm_sin_pd(theta))};
+  const __m128d tmp{_mm_sub_pd(one,psip2)};
+  const __m128d num{_mm_mul_pd(tmp,tmp)};
+  const __m128d denom{__mm_add_pd(_mm_add_pd(one,_mm_add_pd(psim_sintht,psim_sintht)),psip2)};
+  const __m128d exp_arg1{_mm_mul_pd(half_beta,denom)};
+  const __m128d ratio{_mm_div_pd(num,denom)};
+  const __m128d exp_arg2{_mm_mul_pd(half_beta,ratio)};
+  const __m128d left_exp_val{_mm_exp_pd(gms::math::negate_xmm2r8(exp_arg1))};
+  const __m128d right_exp_val{_mm_exp_pd(gms::math::negate_xmm2r8(exp_arg2))};
+  return (_mm_add_pd(left_exp_val,right_exp_val));
+}
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128d
+integrand_4_27_marcum_Q_func_sse_pd(const __m128d alpha,const __m128d psi,
+                                    const __m128d theta)
+{
+  const __m128d one{_mm_set1_pd(1.0)};
+  const __m128d half{_mm_set1_pd(0.5)};
+  const __m128d psip2{_mm_mul_pd(psi,psi)};
+  const __m128d half_alpha{_mm_mul_pd(half,_mm_mul_pd(alpha,alpha))};
+  const __m128d psim_sintht{_mm_mul_pd(psi,_mm_sin_pd(theta))};
+  const __m128d tmp{_mm_sub_pd(one,psip2)};
+  const __m128d num{_mm_mul_pd(tmp,tmp)};
+  const __m128d denom{__mm_add_pd(_mm_add_pd(one,_mm_add_pd(psim_sintht,psim_sintht)),psip2)};
+  const __m128d exp_arg1{_mm_mul_pd(half_alpha,denom)};
+  const __m128d ratio{_mm_div_pd(num,denom)};
+  const __m128d exp_arg2{_mm_mul_pd(half_alpha,ratio)};
+  const __m128d left_exp_val{_mm_exp_pd(gms::math::negate_xmm2r8(exp_arg1))};
+  const __m128d right_exp_val{_mm_exp_pd(gms::math::negate_xmm2r8(exp_arg2))};
+  return (_mm_add_pd(left_exp_val,right_exp_val));
+}
+
 
 
 
