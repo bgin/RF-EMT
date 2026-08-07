@@ -3,7 +3,8 @@
 #define __GMS_CONFIG_H__ 260920182106
 
 
-namespace file_info {
+namespace file_info 
+{
 
      const unsigned int  GMS_CONFIG_MAJOR = 1;
      const unsigned int  GMS_CONFIG_MINOR = 1;
@@ -230,20 +231,20 @@ Compiler optimization settings.
 /*
 Using OpenMP.
 */
-#if !defined(USE_OPENMP)
+/*
+#ifdef _OPENMP && !defined(USE_OPENMP)
 #define USE_OPENMP 1
 #endif
+*/
 
-#if USE_OPENMP == 1 
-#include <omp.h>
-#endif
+#ifdef _OPENMP
+#define USE_OPENMP 1
+#endif 
 
 #if USE_OPENMP == 1 && __INTEL_COMPILER >= 1500
 #define OMP_VER 40
 #elif __INTEL_COMPILER < 1500
 #define OMP_VER 10
-#else
-#error "COMPILE_TIME_ERROR: Unsupported Compiler version!"
 #endif
 
 // Turns on the use of _alloca function (default value is 0)
@@ -510,6 +511,33 @@ constexpr int padding64B{64};
 #ifndef ROUND16
 #define ROUND16(x,y) ((x) & ~((y)-1))
 #endif
+
+#ifndef ROUND_DOWN
+#define ROUND_DOWN(x,y) ((x) & ~((y)-1))
+#endif 
+///////////////////////////////////////////////////
+/* Where 'one' may be of any integral kind i.e. mainly std::uint32_t,std::int32_t,std::uint64_t and std::int64_t*/
+#ifndef ROUND_TO_FOUR_GEN
+#define ROUND_TO_FOUR_GEN(x,y,one) ((x) & ~((y)-(one)))
+#endif
+// Basically the same as above.
+#ifndef ROUND_TO_EIGHT_GEN
+#define ROUND_TO_EIGHT_GEN(x,y,one) ((x) & ~((y)-(one)))
+#endif
+
+#ifndef ROUND_TO_SIXTEEN_GEN
+#define ROUND_TO_SIXTEEN_GEN(x,y,one) ((x) & ~((y)-(one)))
+#endif
+
+#ifndef ROUND16_GEN
+#define ROUND16_GEN(x,y,one) ((x) & ~((y)-(one)))
+#endif
+
+#ifndef ROUND_DOWN_GEN
+#define ROUND_DOWN_GEN(x,y,one) ((x) & ~((y)-(one)))
+#endif 
+/////////////////////////////////////////////////
+
 
 /*
     SLEEF library for vector math functions usage.
