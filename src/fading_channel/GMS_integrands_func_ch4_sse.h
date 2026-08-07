@@ -251,7 +251,7 @@ integrand_4_8_x1_gauss_Q_func_sse_pd(const __m128d x1,const __m128d theta)
   const __m128d tmp_sin{_mm_sin_pd(theta)};
   const __m128d two_sinthtsqr{_mm_add_pd(tmp_sin,tmp_sin)};
   const __m128d exp_arg{_mm_div_pd(x1_sqr,two_sinthtsqr)};
-  const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_val))};
+  const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};
   return (exp_val);
 }
 
@@ -271,7 +271,7 @@ integrand_4_8_y1_gauss_Q_func_sse_pd(const __m128d y1,const __m128d theta)
   const __m128d tmp_sin{_mm_sin_pd(theta)};
   const __m128d two_sinthtsqr{_mm_add_pd(tmp_sin,tmp_sin)};
   const __m128d exp_arg{_mm_div_pd(y1_sqr,two_sinthtsqr)};
-  const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_val))};
+  const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};
   return (exp_val);
 }
 
