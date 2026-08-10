@@ -1235,21 +1235,101 @@ void unit_test_integrand_4_20_marcum_Q_func_hi_sse_pd()
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
+__attribute__((hot))
+__attribute__((aligned(32)))
+void unit_test_integrand_4_32_marcum_Q_m_func_sse_pd();
+
+void unit_test_integrand_4_32_marcum_Q_m_func_sse_pd()
+{
+    constexpr std::int32_t n_func_args{10};
+    constexpr std::int32_t n_marcum_q_vals{50};
+    constexpr std::int32_t tot_elems{n_func_args*n_marcum_q_vals};
+    constexpr double lo_s{+0.1};
+    constexpr double hi_s{+10.0};
+    __ATTR_ALIGN__(16) double in_buf[tot_elems];
+    __ATTR_ALIGN__(16) double out_buf[tot_elems];
+    __ATTR_ALIGN__(16) double rv_func_s_buf[n_func_args];
+    thread_local std::uniform_real_distribution<double> rv_s_param;
+    thread_local std::mt19937 rv_s_param_gen;
+    thread_local std::uint64_t seed_s_param{};
+    thread_local std::uniform_real_distribution<double> rv_marcum_q;
+    thread_local std::mt19937 rv_marcum_q_gen;
+    thread_local std::uint64_t seed_marcum_q{};
+    rv_s_param = std::uniform_real_distribution<double>(lo_s,hi_s);
+    seed_s_param = __rdtsc();
+    rv_s_param_gen = std::mt19937(seed_s_param);
+    rv_marcum_q = std::uniform_real_distribution<double>(0.0,5.0);
+    seed_marcum_q = __rdtsc();
+    rv_marcum_q_gen = std::mt19937(seed_marcum_q);
+    [[maybe_unused]] std::int32_t printf_ret{};
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!.\n",__func__);
+
+    for(std::int32_t i {0}; i < n_func_args; ++i) 
+    {
+        const std::int32_t outer_idx = i*n_marcum_q_vals;
+        const double s = rv_s_param.operator()(rv_s_param_gen);
+        rv_func_s_buf[i] = s;
+        for(std::int32_t j{0}; j < n_marcum_q_vals; ++j)   
+        {
+            const std::int32_t inner_idx = outer_idx+j;
+            const double x = rv_marcum_q.operator()(rv_marcum_q_gen);
+#if (UNIT_TEST_INTEGRANDS_FUNC_CH4_DBG_PRINT) == 0
+            print_double("x:",x,0);
+#endif
+            in_buf[inner_idx] = x;
+        }
+    }
+    std::sort(&in_buf[0],&in_buf[tot_elems-1]);
+    std::sort(&rv_func_s_buf[0],&rv_func_s_buf[n_func_args-1]);
+#if (UNIT_TEST_INTEGRANDS_FUNC_CH4_DBG_PRINT) == 0
+     for(std::int32_t i {0}; i < tot_elems; ++i) 
+     {  
+        if(i>=0 && i<=(n_func_args-1)) 
+        {
+          print_double("sort-check: rv_func_s_buf",rv_func_s_buf[i],0);       
+        }
+        print_double("sort-check: in_buf=",in_buf[i],0);
+     }
+#endif 
+    const __m128d d_m{_mm_set1_pd(2.0)};
+    for(std::int32_t i{0}; i < n_func_args; ++i) 
+    {  
+      const std::int32_t outer_idx = i*n_marcum_q_vals;
+      const double s{rv_func_s_buf[i]}; 
+      const __m128d vs{_mm_set1_pd(s)};
+      for(std::int32_t j{0}; j < ROUND_DOWN(n_marcum_q_vals,1); j += 2) 
+      {
+          const std::int32_t inner_idx = outer_idx+j;
+          const __m128d vx{_mm_load_pd(&in_buf[inner_idx])};
+          const __m128d marcum_Q_res{gms::fading_channel::integrand_4_32_marcum_Q_m_func_sse_pd(vx,vs,d_m,1)};
+#if (UNIT_TEST_INTEGRANDS_FUNC_CH4_DBG_PRINT) == 1
+          const double * __restrict__ p_res{reinterpret_cast<const double * __restrict__>(&marcum_Q_res)};
+          printf_ret = print_double("p_res[0]",p_res[0],0);
+          printf_ret = print_double("p_res[1]",p_res[1],0);
+#endif 
+        _mm_store_pd(&out_buf[inner_idx],marcum_Q_res);
+      }
+    } 
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
+}
+
+
 
 int main()
 {
 
-   // (void)unit_test_integrand_4_1_gauss_Q_func_sse_pd();
-   // (void)unit_test_integrand_4_2_gauss_Q_func_sse_pd();
-   // (void)unit_test_integrand_4_6_sin_gauss_Q_func_sse_pd();
-   // (void)unit_test_integrand_4_6_cos_gauss_Q_func_sse_pd();
-   // (void)unit_test_integrand_4_7_x1_gauss_Q_func_sse_pd();
-   // (void)unit_test_integrand_4_7_y1_gauss_Q_func_sse_pd();
-   // (void)unit_test_integrand_4_8_x1_gauss_Q_func_sse_pd();
-   // (void)unit_test_integrand_4_8_y1_gauss_Q_func_sse_pd();
-   //   (void)unit_test_integrand_4_10_marcum_Q_func_sse_pd();
-   //(void)unit_test_integrand_4_16_marcum_Q_func_sse_pd();
-   //(void)unit_test_integrand_4_20_marcum_Q_func_lo_sse_pd();
+   (void)unit_test_integrand_4_1_gauss_Q_func_sse_pd();
+   (void)unit_test_integrand_4_2_gauss_Q_func_sse_pd();
+   (void)unit_test_integrand_4_6_sin_gauss_Q_func_sse_pd();
+   (void)unit_test_integrand_4_6_cos_gauss_Q_func_sse_pd();
+   (void)unit_test_integrand_4_7_x1_gauss_Q_func_sse_pd();
+   (void)unit_test_integrand_4_7_y1_gauss_Q_func_sse_pd();
+   (void)unit_test_integrand_4_8_x1_gauss_Q_func_sse_pd();
+   (void)unit_test_integrand_4_8_y1_gauss_Q_func_sse_pd();
+   (void)unit_test_integrand_4_10_marcum_Q_func_sse_pd();
+   (void)unit_test_integrand_4_16_marcum_Q_func_sse_pd();
+   (void)unit_test_integrand_4_20_marcum_Q_func_lo_sse_pd();
    (void)unit_test_integrand_4_20_marcum_Q_func_hi_sse_pd();
+   (void)unit_test_integrand_4_32_marcum_Q_m_func_sse_pd();
     return 0;
 }
