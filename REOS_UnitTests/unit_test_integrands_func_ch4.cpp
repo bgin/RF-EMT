@@ -616,7 +616,7 @@ void unit_test_integrand_4_20_marcum_Q_func_lo();
 void unit_test_integrand_4_20_marcum_Q_func_lo()
 {
     constexpr double lo_theta{-3.141592653589793238462643383};
-    constexpr double hi_theta{+0};
+    constexpr double hi_theta{+0.0};
     thread_local std::uniform_real_distribution<double> rv_func_arg_theta;
     thread_local std::mt19937 rv_func_arg_theta_gen;
     thread_local std::uint64_t seed_func_theta_arg{};
