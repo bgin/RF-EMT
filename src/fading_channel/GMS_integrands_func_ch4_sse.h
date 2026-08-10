@@ -45,8 +45,12 @@ namespace file_info
 
 
 #if !defined(INTEGRANDS_FUNC_CH4_SSE_DO_WARMUP_CALL)
-#define INTEGRANDS_func_CH4_SSE_DO_WARMUP_CALL 1
+#define INTEGRANDS_FUNC_CH4_SSE_DO_WARMUP_CALL 1
 #endif
+
+#if !defined(INTEGRANDS_FUNC_CH4_SSE_DEFINE_FUNC_BODY)
+#define INTEGRANDS_FUNC_CH4_SSE_DEFINE_FUNC_BODY 1
+#endif 
 
 namespace gms 
 {
@@ -87,6 +91,21 @@ integrand_4_1_gauss_Q_func_sse_pd(const __m128d y)
   return (_mm_mul_pd(vC03989422804014326779399460599344,exp_val));
 }
 
+/* Parametrized macro block for insertion into the loop 
+   body*/
+
+#if (INTEGRANDS_FUNC_CH4_SSE_DEFINE_FUNC_BODY) == 1
+
+#define INTEGRAND_4_1_GAUSS_FUNC_SSE_BODY(result,y)\
+{\
+const __m128d vC03989422804014326779399460599344{_mm_set1_pd(0.3989422804014326779399460599344)};\
+__m128d exp_arg{_mm_mul_pd(_mm_set1_pd(0.5),_mm_mul_pd((y),(y)))};\
+__m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};\
+(result) = _mm_mul_pd(vC03989422804014326779399460599344,exp_val);\
+}
+
+#endif
+
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -108,6 +127,21 @@ integrand_4_2_gauss_Q_func_sse_pd(const __m128d x,
   const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};
   return (exp_val);
 }
+
+#if (INTEGRANDS_FUNC_CH4_SSE_DEFINE_FUNC_BODY) == 1
+
+#define INTEGRAND_4_2_GAUSS_Q_FUNC_SSE_BODY(result,x,theta)\
+{\
+const __m128d xsqr{_mm_mul_pd((x),(x))};\
+const __m128d sin_val{_mm_sin_pd((theta))};\
+const __m128d tmp_sin_mul{_mm_mul_pd(sin_val,sin_val)};\
+const __m128d sin_denom{_mm_add_pd(tmp_sin_mul,tmp_sin_mul)};\
+const __m128d exp_arg{_mm_div_pd(xsqr,sin_denom)};\
+const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};\
+(result) = exp_val;\
+}
+
+#endif 
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
@@ -142,6 +176,32 @@ integrand_4_6_sin_gauss_Q_func_sse_pd(const __m128d x1,const __m128d y1,
   const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};
   return (_mm_mul_pd(ratio1,exp_val));
 }
+
+#if (INTEGRANDS_FUNC_CH4_SSE_DEFINE_FUNC_BODY) == 1
+
+#define INTEGRAND_4_6_SIN_GAUSS_Q_FUNC_SSE_BODY(result,x1,y1,rho,theta,phi_s)\
+{\
+  const __m128d one{_mm_set1_pd(1.0)};\
+  const __m128d squared_sum{_mm_fmadd_pd((x1),(x1),_mm_mul_pd((y1),(y1)))};\
+  const __m128d tsin{_mm_sin_pd((theta))};\
+  const __m128d sin_sqr_tht{_mm_mul_pd(tsin,tsin)};\
+  const __m128d S_hat{_mm_sqrt_pd(squared_sum)};\
+  const __m128d one_m_rho{_mm_sub_pd(one,_mm_mul_pd((rho),(rho)))};\
+  const __m128d sin2theta{_mm_sin_pd(_mm_add_pd((theta),(theta)))};\
+  const __m128d one_m_sin2theta{_mm_sub_pd(one,_mm_mul_pd(rho,sin2theta))};\
+  const __m128d sqr_1m_rho{_mm_sqrt_pd(one_m_rho)};\
+  const __m128d S_hat_half{_mm_mul_pd(_mm_set1_pd(0.5),_mm_mul_pd(S_hat,S_hat))};\
+  const __m128d ratio1{_mm_div_pd(sqr_1m_rho,one_m_sin2theta)};\
+  const __m128d sin_phi_s{_mm_sin_pd((phi_s))};\
+  const __m128d sin_phi_s_sqr{_mm_mul_pd(sin_phi_s,sin_phi_s)};\
+  const __m128d ratio_sin{_mm_div_pd(sin_phi_s_sqr,sin_sqr_tht)};\
+  const __m128d ratio2{_mm_div_pd(one_m_sin2theta,one_m_rho)};\
+  const __m128d exp_arg{_mm_mul_pd(S_hat_half,_mm_mul_pd(ratio2,ratio_sin))};\
+  const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};\
+  (result) = _mm_mul_pd(ratio1,exp_val);\
+}
+
+#endif 
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
