@@ -959,6 +959,98 @@ void unit_test_integrand_4_10_marcum_Q_func_sse_pd()
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
+__attribute__((hot))
+__attribute__((aligned(32)))
+void unit_test_integrand_4_16_marcum_Q_func_sse_pd();
+
+void unit_test_integrand_4_16_marcum_Q_func_sse_pd()
+{
+    constexpr std::int32_t n_func_args{10};
+    constexpr std::int32_t n_marcum_q_vals{50};
+    constexpr std::int32_t tot_elems{n_func_args*n_marcum_q_vals};
+    constexpr double lo_theta{-3.141592653589793238462643383};
+    constexpr double hi_theta{+3.141592653589793238462643383};
+    __ATTR_ALIGN__(16) double in_buf[tot_elems];
+    __ATTR_ALIGN__(16) double out_buf[tot_elems];
+    __ATTR_ALIGN__(16) double rv_func_psi_buf[n_func_args];
+    __ATTR_ALIGN__(16) double rv_func_beta_buf[n_func_args];
+    thread_local std::uniform_real_distribution<double> rv_func_arg_theta;
+    thread_local std::mt19937 rv_func_arg_theta_gen;
+    thread_local std::uint64_t seed_func_theta_arg{};
+    thread_local std::uniform_real_distribution<double> rv_func_arg_psi;
+    thread_local std::mt19937 rv_func_arg_psi_gen;
+    thread_local std::uint64_t seed_func_psi_arg{};
+    thread_local std::uniform_real_distribution<double> rv_func_arg_beta;
+    thread_local std::mt19937 rv_func_arg_beta_gen;
+    thread_local std::uint64_t seed_func_beta_arg{};
+    rv_func_arg_theta = std::uniform_real_distribution<double>(lo_theta,hi_theta);
+    seed_func_theta_arg = __rdtsc();
+    rv_func_arg_theta_gen = std::mt19937(seed_func_theta_arg);
+    rv_func_arg_psi = std::uniform_real_distribution<double>(0.0,1.0);
+    seed_func_psi_arg = __rdtsc();
+    rv_func_arg_psi_gen = std::mt19937(seed_func_psi_arg);
+    rv_func_arg_beta    = std::uniform_real_distribution<double>(0.1,1.0);
+    seed_func_beta_arg  = __rdtsc();
+    rv_func_arg_beta_gen     = std::mt19937(seed_func_beta_arg);
+    [[maybe_unused]] std::int32_t printf_ret{};
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!.\n",__func__);
+
+    for(std::int32_t i {0}; i < n_func_args; ++i) 
+    {
+        const std::int32_t outer_idx = i*n_marcum_q_vals;
+        const double psi = rv_func_arg_psi.operator()(rv_func_arg_psi_gen);
+        rv_func_psi_buf[i] = psi;
+        const double beta = rv_func_arg_beta.operator()(rv_func_arg_beta_gen);
+        rv_func_beta_buf[i] = beta;
+        for(std::int32_t j{0}; j < n_marcum_q_vals; ++j)   
+        {
+            const std::int32_t inner_idx = outer_idx+j;
+            const double theta = rv_func_arg_theta.operator()(rv_func_arg_theta_gen);
+#if (UNIT_TEST_INTEGRANDS_FUNC_CH4_DBG_PRINT) == 0
+            print_double("theta:",theta,0);
+#endif
+            in_buf[inner_idx] = theta;
+        }
+    }
+    std::sort(&in_buf[0],&in_buf[tot_elems-1]);
+    std::sort(&rv_func_psi_buf[0],&rv_func_psi_buf[n_func_args-1]);
+    std::sort(&rv_func_beta_buf[0],&rv_func_beta_buf[n_func_args-1]);
+#if (UNIT_TEST_INTEGRANDS_FUNC_CH4_DBG_PRINT) == 0
+     for(std::int32_t i {0}; i < tot_elems; ++i) 
+     {  
+        if(i>=0 && i<=(n_func_args-1)) 
+        {
+          print_double("sort-check: rv_func_beta_buf",rv_func_beta_buf[i],0);
+          print_double("sort-check: rv_func_psi_buf",rv_func_psi_buf[i],0);
+         
+        }
+        print_double("sort-check: in_buf=",in_buf[i],0);
+     }
+#endif 
+
+    for(std::int32_t i{0}; i < n_func_args; ++i) 
+    {  
+      const std::int32_t outer_idx = i*n_marcum_q_vals;
+      const double beta{rv_func_beta_buf[i]}; 
+      const __m128d vbeta{_mm_set1_pd(beta)};
+      const double psi{rv_func_psi_buf[i]};
+      const __m128d vpsi{_mm_set1_pd(psi)};
+      for(std::int32_t j{0}; j < ROUND_DOWN(n_marcum_q_vals,1); j += 2) 
+      {
+          const std::int32_t inner_idx = outer_idx+j;
+          const __m128d theta{_mm_load_pd(&in_buf[inner_idx])};
+          const __m128d marcum_Q_res{gms::fading_channel::integrand_4_16_marcum_Q_func_sse_pd(vbeta,vpsi,theta)};
+#if (UNIT_TEST_INTEGRANDS_FUNC_CH4_DBG_PRINT) == 1
+          const double * __restrict__ p_res{reinterpret_cast<const double * __restrict__>(&marcum_Q_res)};
+          printf_ret = print_double("p_res[0]",p_res[0],0);
+          printf_ret = print_double("p_res[1]",p_res[1],0);
+#endif 
+        _mm_store_pd(&out_buf[inner_idx],marcum_Q_res);
+      }
+    } 
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
+}
+
 int main()
 {
 
@@ -970,6 +1062,7 @@ int main()
    // (void)unit_test_integrand_4_7_y1_gauss_Q_func_sse_pd();
    // (void)unit_test_integrand_4_8_x1_gauss_Q_func_sse_pd();
    // (void)unit_test_integrand_4_8_y1_gauss_Q_func_sse_pd();
-      (void)unit_test_integrand_4_10_marcum_Q_func_sse_pd();
+   //   (void)unit_test_integrand_4_10_marcum_Q_func_sse_pd();
+   (void)unit_test_integrand_4_16_marcum_Q_func_sse_pd();
     return 0;
 }
