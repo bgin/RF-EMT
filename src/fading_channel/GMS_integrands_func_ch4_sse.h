@@ -237,6 +237,32 @@ integrand_4_6_cos_gauss_Q_func_sse_pd(const __m128d x1,const __m128d y1,
   return (_mm_mul_pd(ratio1,exp_val));
 }
 
+#if (INTEGRANDS_FUNC_CH4_SSE_DEFINE_FUNC_BODY) == 1
+
+#define INTEGRAND_4_6_COS_GAUSS_Q_FUNC_SSE_BODY(result,x1,y1,rho,theta,phi_s)\
+{\
+  const __m128d one{_mm_set1_pd(1.0)};\
+  const __m128d squared_sum{_mm_fmadd_pd((x1),(x1),_mm_mul_pd((y1),(y1)))};\
+  const __m128d tsin{_mm_sin_pd((theta))};\
+  const __m128d sin_sqr_tht{_mm_mul_pd(tsin,tsin)};\
+  const __m128d S_hat{_mm_sqrt_pd(squared_sum)};\
+  const __m128d one_m_rho{_mm_sub_pd(one,_mm_mul_pd((rho),(rho)))};\
+  const __m128d sin2theta{_mm_sin_pd(_mm_add_pd((theta),(theta)))};\
+  const __m128d one_m_sin2theta{_mm_sub_pd(one,_mm_mul_pd((rho),sin2theta))};\
+  const __m128d sqr_1m_rho{_mm_sqrt_pd(one_m_rho)};\
+  const __m128d S_hat_half{_mm_mul_pd(_mm_set1_pd(0.5),_mm_mul_pd(S_hat,S_hat))};\
+  const __m128d ratio1{_mm_div_pd(sqr_1m_rho,one_m_sin2theta)};\
+  const __m128d cos_phi_s{_mm_cos_pd((phi_s))};\
+  const __m128d cos_phi_s_sqr{_mm_mul_pd(cos_phi_s,cos_phi_s)};\
+  const __m128d ratio_cos{_mm_div_pd(cos_phi_s_sqr,sin_sqr_tht)};\
+  const __m128d ratio2{_mm_div_pd(one_m_sin2theta,one_m_rho)};\
+  const __m128d exp_arg{_mm_mul_pd(S_hat_half,_mm_mul_pd(ratio2,ratio_cos))};\
+  const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};\
+  (result) = _mm_mul_pd(ratio1,exp_val);\
+}
+
+#endif 
+
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -266,6 +292,28 @@ integrand_4_7_x1_gauss_Q_func_sse_pd(const __m128d x1,
   return (_mm_mul_pd(lead_factor,exp_val));
 }
 
+#if (INTEGRANDS_FUNC_CH4_SSE_DEFINE_FUNC_BODY) == 1
+
+#define INTEGRAND_4_7_X1_GAUSS_Q_FUNC_SSE_BODY(result,x1,rho,theta)\
+{\
+  const __m128d one{_mm_set1_pd(1.0)};\
+  const __m128d half{_mm_set1_pd(0.5)};\
+  const __m128d rho_m_sin2tht{_mm_mul_pd(rho,_mm_sin_pd(_mm_add_pd((theta),(theta))))};\
+  const __m128d one_m_rho_sqr{_mm_sub_pd(one,_mm_mul_pd((rho),(rho)))};\
+  const __m128d tmp_sin{_mm_sin_pd((theta))};\
+  const __m128d sqr1m_rhosqr{_mm_sqrt_pd(one_m_rho_sqr)};\
+  const __m128d one_m_rhosintht{_mm_sub_pd(one,rho_m_sin2tht)};\
+  const __m128d sinthtpow2{_mm_mul_pd(tmp_sin,tmp_sin)};\
+  const __m128d lead_factor{_mm_div_pd(sqr1m_rhosqr,one_m_rhosintht)};\
+  const __m128d half_x1{_mm_mul_pd(half,_mm_mul_pd((x1),(x1)))};\
+  const __m128d ratio{_mm_div_pd(one_m_rhosintht,_mm_mul_pd(one_m_rho_sqr,sinthtpow2))};\
+  const __m128d exp_arg{_mm_mul_pd(half_x1,ratio)};\
+  const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};\
+  (result) = _mm_mul_pd(lead_factor,exp_val);\
+}
+
+#endif 
+
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -294,6 +342,28 @@ integrand_4_7_y1_gauss_Q_func_sse_pd(const __m128d y1,
   const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};
   return (_mm_mul_pd(lead_factor,exp_val));
 }
+
+#if (INTEGRANDS_FUNC_CH4_SSE_DEFINE_FUNC_BODY) == 1
+
+#define INTEGRAND_4_7_Y1_GAUSS_Q_FUNC_SSE_BODY(result,y1,rho,theta)\
+{\
+  const __m128d one{_mm_set1_pd(1.0)};\
+  const __m128d half{_mm_set1_pd(0.5)};\
+  const __m128d rho_m_sin2tht{_mm_mul_pd(rho,_mm_sin_pd(_mm_add_pd((theta),(theta))))};\
+  const __m128d one_m_rho_sqr{_mm_sub_pd(one,_mm_mul_pd((rho),(rho)))};\
+  const __m128d tmp_sin{_mm_sin_pd((theta))};\
+  const __m128d sqr1m_rhosqr{_mm_sqrt_pd(one_m_rho_sqr)};\
+  const __m128d one_m_rhosintht{_mm_sub_pd(one,rho_m_sin2tht)};\
+  const __m128d sinthtpow2{_mm_mul_pd(tmp_sin,tmp_sin)};\
+  const __m128d lead_factor{_mm_div_pd(sqr1m_rhosqr,one_m_rhosintht)};\
+  const __m128d half_y1{_mm_mul_pd(half,_mm_mul_pd((y1),(y1)))};\
+  const __m128d ratio{_mm_div_pd(one_m_rhosintht,_mm_mul_pd(one_m_rho_sqr,sinthtpow2))};\
+  const __m128d exp_arg{_mm_mul_pd(half_y1,ratio)};\
+  const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};\
+  (result) = _mm_mul_pd(lead_factor,exp_val);\
+}
+
+#endif 
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
