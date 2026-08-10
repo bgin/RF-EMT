@@ -385,6 +385,20 @@ integrand_4_8_x1_gauss_Q_func_sse_pd(const __m128d x1,const __m128d theta)
   return (exp_val);
 }
 
+#if (INTEGRANDS_FUNC_CH4_SSE_DEFINE_FUNC_BODY) == 1
+
+#define INTEGRAND_4_8_X1_GAUSS_Q_FUNC_SSE_BODY(result,x1,theta)\
+{\
+  const __m128d x1_sqr{_mm_mul_pd((x1),(x1))};\
+  const __m128d tmp_sin{_mm_sin_pd((theta))};\
+  const __m128d two_sinthtsqr{_mm_add_pd(tmp_sin,tmp_sin)};\
+  const __m128d exp_arg{_mm_div_pd(x1_sqr,two_sinthtsqr)};\
+  const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};\
+  (result) = exp_val;\
+}
+
+#endif 
+
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -404,6 +418,20 @@ integrand_4_8_y1_gauss_Q_func_sse_pd(const __m128d y1,const __m128d theta)
   const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};
   return (exp_val);
 }
+
+#if (INTEGRANDS_FUNC_CH4_SSE_DEFINE_FUNC_BODY) == 1
+
+#define INTEGRAND_4_8_Y1_GAUSS_Q_FUNC_SSE_BODY(result,y1,theta)\
+{\
+  const __m128d y1_sqr{_mm_mul_pd((y1),(y1))};\
+  const __m128d tmp_sin{_mm_sin_pd((theta))};\
+  const __m128d two_sinthtsqr{_mm_add_pd(tmp_sin,tmp_sin)};\
+  const __m128d exp_arg{_mm_div_pd(y1_sqr,two_sinthtsqr)};\
+  const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};\
+  (result) = exp_val;\
+}
+
+#endif 
 
 #include "GMS_bessel_i0_sse.h"
 
@@ -431,6 +459,23 @@ integrand_4_10_marcum_Q_func_sse_pd(const __m128d x,const __m128d s)
   return (_mm_mul_pd(x,_mm_mul_pd(exp_val,besi0_val)));
 }
 
+#if (INTEGRANDS_FUNC_CH4_SSE_DEFINE_FUNC_BODY) == 1
+
+#define INTEGRAND_4_10_MARCUM_Q_FUNC_SSE_BODY(result,x,s)\
+{\
+  const __m128d half{_mm_set1_pd(0.5)};\
+  const __m128d C15{_mm_set1_pd(15)};\
+  const __m128d sx{_mm_mul_pd((s),(x))};\
+  const __mmask8 is_sx_ge15{_mm_cmp_pd_mask(sx,C15,_CMP_GE_OQ)};\
+  const __m128d xspow2{_mm_fmadd_pd((x),(x),_mm_mul_pd((s),(s)))};\
+  const __m128d besi0_val{_mm_mask_blend_pd(is_sx_ge15,bessel_i0_le15_sse_pd(sx),bessel_i0_ge15_sse_pd(sx))};\
+  const __m128d exp_arg{_mm_mul_pd(half,xspow2)};\
+  const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};\
+  (result) = _mm_mul_pd(x,_mm_mul_pd(exp_val,besi0_val));\
+}
+
+#endif 
+
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -456,6 +501,26 @@ integrand_4_16_marcum_Q_func_sse_pd(const __m128d beta,const __m128d psi,
   const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};
   return (_mm_mul_pd(lead_fac_rat,exp_val));
 }
+
+#if (INTEGRANDS_FUNC_CH4_SSE_DEFINE_FUNC_BODY) == 1
+
+#define INTEGRAND_4_16_MARCUM_Q_FUNC_SSE_BODY(result,beta,psi,theta)\
+{\
+  const __m128d one{_mm_set1_pd(1.0)};\
+  const __m128d half{_mm_set1_pd(0.5)};\
+  const __m128d psip2{_mm_mul_pd((psi),(psi))};\
+  const __m128d sintht{_mm_sin_pd((theta))};\
+  const __m128d half_beta{_mm_mul_pd(half,_mm_mul_pd((beta),(beta)))};\
+  const __m128d lead_fac_num{_mm_add_pd(one,sintht)};\
+  const __m128d lead_fac_den{_mm_add_pd(_mm_add_pd(one,_mm_add_pd(sintht,sintht)),psip2)};\
+  const __m128d lead_fac_rat{_mm_div_pd(lead_fac_num,lead_fac_den)};\
+  const __m128d exp_arg{_mm_mul_pd(half_beta,lead_fac_den)};\
+  const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};\
+  (result) = _mm_mul_pd(lead_fac_rat,exp_val);\
+}
+
+#endif 
+
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
@@ -483,6 +548,25 @@ integrand_4_20_marcum_Q_func_lo_sse_pd(const __m128d beta,const __m128d psi,
   return (_mm_mul_pd(lead_fac_rat,exp_val));
 }
 
+#if (INTEGRANDS_FUNC_CH4_SSE_DEFINE_FUNC_BODY) == 1
+
+#define INTEGRAND_4_20_Q_FUNC_LO_SSE_BODY(result,beta,psi,theta)\
+{\
+  const __m128d one{_mm_set1_pd(1.0)};\
+  const __m128d half{_mm_set1_pd(0.5)};\
+  const __m128d psip2{_mm_mul_pd((psi),(psi))};\
+  const __m128d costht{_mm_cos_pd((theta))};\
+  const __m128d lead_fac_num{_mm_sub_pd(one,costht)};\
+  const __m128d half_beta{_mm_mul_pd(half,_mm_mul_pd((beta),(beta)))};\
+  const __m128d lead_fac_den{_mm_add_pd(_mm_sub_pd(one,_mm_add_pd(costht,costht)),psip2)};\
+  const __m128d lead_fac_rat{_mm_div_pd(lead_fac_num,lead_fac_den)};\
+  const __m128d exp_arg{_mm_mul_pd(half_beta,lead_fac_den)};\
+  const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};\
+  (result) = _mm_mul_pd(lead_fac_rat,exp_val);\
+}
+
+#endif 
+
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -508,6 +592,25 @@ integrand_4_20_marcum_Q_func_hi_sse_pd(const __m128d beta,const __m128d psi,
   const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};
   return (_mm_mul_pd(lead_fac_rat,exp_val));
 }
+
+#if (INTEGRANDS_FUNC_CH4_SSE_DEFINE_FUNC_BODY) == 1
+
+#define INTEGRAND_4_20_MARCUM_FUNC_HI_SSE_BODY(result,beta,psi,theta)\
+{\
+  const __m128d one{_mm_set1_pd(1.0)};\
+  const __m128d half{_mm_set1_pd(0.5)};\
+  const __m128d psip2{_mm_mul_pd((psi),(psi))};\
+  const __m128d costht{_mm_cos_pd((theta))};\
+  const __m128d lead_fac_num{_mm_add_pd(one,costht)};\
+  const __m128d half_beta{_mm_mul_pd(half,_mm_mul_pd((beta),(beta)))};\
+  const __m128d lead_fac_den{_mm_add_pd(_mm_add_pd(one,_mm_add_pd(costht,costht)),psip2)};\
+  const __m128d lead_fac_rat{_mm_div_pd(lead_fac_num,lead_fac_den)};\
+  const __m128d exp_arg{_mm_mul_pd(half_beta,lead_fac_den)};\
+  const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};\
+  (result) = _mm_mul_pd(lead_fac_rat,exp_val);\
+}
+
+#endif 
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
@@ -631,6 +734,8 @@ integrand_4_42_marcum_Q_m_func(const __m128d beta,const __m128d psi,
   const __m128d ratio_factor{_mm_div_pd(cos_num_fac,sin_factor)};
   return (_mm_mul_pd(ratio_factor,exp_val));
 }
+
+
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
