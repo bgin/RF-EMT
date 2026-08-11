@@ -35,19 +35,20 @@
 !    Input, real ( kind = 8 ) Y(NTAB), contains the Y values of the data.
 !
 !    Output, real ( kind = 8 ) RESULT.
-!    RESULT is the approximate value of the integra
+!    RESULT is the approximate value of the integral
 
 */
 
-
+#include <limits>
 #include "GMS_simpne_quad.h"
 
 
 
-                        void gms::math::simpne(const int32_t ntab,
-                                    double * __restrict __ATTR_ALIGN__(64) x,
-                                    double * __restrict __ATTR_ALIGN__(64) y,
-                                    double &result) {
+void gms::math::simpne(const int32_t ntab,
+                       double * __restrict  x,
+                       double * __restrict  y,
+                       double &result) 
+                       {
                          
                           if(__builtin_expect(ntab<=2,0)) {
                              result = std::numeric_limits<double>::quiet_NaN();
@@ -61,7 +62,8 @@
                           double x1,x2,x3,f3,e2,del3;
                           int32_t i,n;
                           n = 1;
-                          while(true) {
+                          while(true) 
+                          {
                         
                              x1     = x[n];
                              x2     = x[n+1];
@@ -81,19 +83,18 @@
                              f3 = f*0.3333333333333333333333333333333;
                              e2 = 0.5*e;
                              sum1 = 0.0;
-                             for(i = 0; i != 3; ++i) {
+                             for(i = 0; i != 3; ++i) 
+                             {
                                  const double t0 = f3-g[i]*e2+pi[i]*feints;
-                                 sum1 = sum1*y[n-1+i]*del*t0;
+                                 sum1 = sum1*y[n-1+i]*del[i]*t0;
                              }
                              del3 = del[0]*del[1]*del[2];
                              result = result-sum1/del3;
                              n += 2;
                              if(ntab<=n+1) break;
                            }
-                      
                            const bool b = (ntab%2) != 0;
                            if(b) return;
-                      
                            n      = ntab-2;
                            x1     = x[ntab];
                            x2     = x[ntab-1];
@@ -115,21 +116,23 @@
                            e2 = 0.5*e;
                            for(i = 0; i != 3; ++i) {
                                const double t0 = f3-g[i]*e2+pi[i]*feints;
-                               sum1 = sum1*y[n-1+i]*del*t0;
+                               sum1 = sum1*y[n-1+i]*del[i]*t0;
                           }
                           del3 = del[0]*del[1]*del[2];
                           result = result-sum1/del3;
-                 }
+}                        
 
 
                  
                       
-                        void gms::math::simpne(const int32_t ntab,
-                                    float * __restrict __ATTR_ALIGN__(64) x,
-                                    float * __restrict __ATTR_ALIGN__(64) y,
-                                    float &result) {
+void gms::math::simpne(const int32_t ntab,
+                       float * __restrict  x,
+                       float * __restrict  y,
+                       float &result) 
+{
                          
-                          if(__builtin_expect(ntab<=2,0)) {
+                          if(__builtin_expect(ntab<=2,0)) 
+                          {
                              result = std::numeric_limits<float>::quiet_NaN();
                              return;
                           }
@@ -163,7 +166,7 @@
                              sum1 = 0.0f;
                              for(i = 0; i != 3; ++i) {
                                  const double t0 = f3-g[i]*e2+pi[i]*feints;
-                                 sum1 = sum1*y[n-1+i]*del*t0;
+                                 sum1 = sum1*y[n-1+i]*del[i]*t0;
                              }
                              del3 = del[0]*del[1]*del[2];
                              result = result-sum1/del3;
@@ -195,11 +198,11 @@
                            e2 = 0.5f*e;
                            for(i = 0; i != 3; ++i) {
                                const double t0 = f3-g[i]*e2+pi[i]*feints;
-                               sum1 = sum1*y[n-1+i]*del*t0;
+                               sum1 = sum1*y[n-1+i]*del[i]*t0;
                           }
                           del3 = del[0]*del[1]*del[2];
                           result = result-sum1/del3;
-                 }
+}
  
 
 

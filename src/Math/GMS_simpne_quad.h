@@ -4,7 +4,8 @@
 #define __GMS_SIMPNE_QUAD_H__ 081020221553
 
 
-namespace file_info {
+namespace file_info 
+{
 
 
         const unsigned int GMS_SIMPNE_QUAD_MAJOR = 1;
@@ -63,7 +64,6 @@ namespace file_info {
 */
 
 #include <cstdint>
-#include <limits>
 #include "GMS_config.h"
 
 
@@ -71,36 +71,24 @@ namespace  gms {
 
             namespace math {
                    
-                      
-                        __ATTR_HOT__
-                        __ATTR_ALIGN__(32)
-			
-                        void simpne(const int32_t ntab,
-                                    double * __restrict __ATTR_ALIGN__(64) x,
-                                    double * __restrict __ATTR_ALIGN__(64) y,
-                                    double &result); 
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+void simpne(const int32_t ntab,
+            double * __restrict  x,
+            double * __restrict  y,
+            double &result); 
 
-                 
-                      
-                        __ATTR_HOT__
-                        __ATTR_ALIGN__(32)
-			
-                        void simpne(const int32_t ntab,
-                                    float * __restrict __ATTR_ALIGN__(64) x,
-                                    float * __restrict __ATTR_ALIGN__(64) y,
-                                    float &result); 
+                           
+__ATTR_HOT__
+__ATTR_ALIGN__(32)			
+void simpne(const int32_t ntab,
+            float * __restrict  x,
+            float * __restrict  y,
+            float &result); 
 
          } // math
 
 } // gms
-
-
-
-
-
-
-
-
 
 
 #endif /*__GMS_SIMPNE_QUAD_H__*/
