@@ -18,6 +18,18 @@
 
 #define UNIT_TEST_INTEGRANDS_FUNC_CH4_DBG_PRINT 1
 
+#define FUNCTIONAL_COMPUTE_BODY(j,loop_incr,functional_table)\
+{\
+  for(std::int32_t i{0}; i < tot_elems; i += (loop_incr))\
+  {\
+        double * __restrict__ p_slice_out_buf{&out_buf[i]};\
+        double * __restrict__ p_slice_in_buf{&in_buf[i]};\
+        (void)gms::math::simpne(ntab,&p_slice_in_buf[0],&p_slice_out_buf[0],(functional_table)[(j)]);\
+        printf_ret = print_double("marcum_Q_functional",(functional_table)[(j)],0);\
+        ++(j);\
+    }\
+}
+
 static inline
 bool 
 almostEqual2sComplement(float A,float B, std::int32_t maxUlps) 
@@ -1067,6 +1079,7 @@ void unit_test_integrand_4_20_marcum_Q_func_lo_sse_pd()
     __ATTR_ALIGN__(16) double out_buf[tot_elems];
     __ATTR_ALIGN__(16) double rv_func_psi_buf[n_func_args];
     __ATTR_ALIGN__(16) double rv_func_beta_buf[n_func_args];
+    __ATTR_ALIGN__(16) double marcum_Q_functional[n_func_args];
     thread_local std::uniform_real_distribution<double> rv_func_arg_theta;
     thread_local std::mt19937 rv_func_arg_theta_gen;
     thread_local std::uint64_t seed_func_theta_arg{};
@@ -1141,6 +1154,21 @@ void unit_test_integrand_4_20_marcum_Q_func_lo_sse_pd()
         _mm_store_pd(&out_buf[inner_idx],marcum_Q_res);
       }
     } 
+    constexpr std::int32_t ntab{50};
+    std::int32_t j{0};
+    FUNCTIONAL_COMPUTE_BODY(j,n_marcum_q_vals,marcum_Q_functional);
+/*
+    for(std::int32_t i{0}; i < tot_elems; i += n_marcum_q_vals)
+    {
+        double * __restrict__ p_slice_out_buf{&out_buf[i]};
+        double * __restrict__ p_slice_in_buf{&in_buf[i]};
+        (void)gms::math::simpne(ntab,&p_slice_in_buf[0],&p_slice_out_buf[0],marcum_Q_functional[j]);
+#if (UNIT_TEST_INTEGRANDS_FUNC_CH4_DBG_PRINT) == 1
+        printf_ret = print_double("marcum_Q_functional",marcum_Q_functional[j],0);
+#endif 
+        ++j;
+    }
+*/
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
@@ -1356,8 +1384,8 @@ int main()
   // (void)unit_test_integrand_4_8_y1_gauss_Q_func_sse_pd();
   // (void)unit_test_integrand_4_10_marcum_Q_func_sse_pd();
   // (void)unit_test_integrand_4_16_marcum_Q_func_sse_pd();
-  // (void)unit_test_integrand_4_20_marcum_Q_func_lo_sse_pd();
-  // (void)unit_test_integrand_4_20_marcum_Q_func_hi_sse_pd();
-   (void)unit_test_integrand_4_32_marcum_Q_m_func_sse_pd();
+  (void)unit_test_integrand_4_20_marcum_Q_func_lo_sse_pd();
+  //(void)unit_test_integrand_4_20_marcum_Q_func_hi_sse_pd();
+  // (void)unit_test_integrand_4_32_marcum_Q_m_func_sse_pd();
     return 0;
 }
