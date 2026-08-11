@@ -5,13 +5,14 @@
 #include <functional>
 #include <cmath>
 #include <algorithm>
+#include "GMS_simpne_quad.h"
 #include "GMS_integrands_func_ch4_sse.h"
 
 /*
    icpc -o unit_test_integrands_func_ch4_sse -O3 -fp-model fast=2 -fno-exceptions -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
-   GMS_config.h GMS_bessel_i0_sse.h GMS_integrands_func_ch4_sse.h unit_test_integrands_func_ch4_sse.cpp
+   GMS_config.h GMS_bessel_i0_sse.h GMS_integrands_func_ch4_sse.h GMS_simpne_quad.h GMS_simpne_quad.cpp unit_test_integrands_func_ch4_sse.cpp
    ASM: 
-   icpc -S -O3 -fverbose-asm -masm=intel -fno-exceptions -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_simd_utils.h GMS_bessel_i0_sse.h GMS_integrands_func_ch4_sse.h unit_test_integrands_func_ch4_sse.cpp
+   icpc -S -O3 -fverbose-asm -masm=intel -fno-exceptions -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_bessel_i0_sse.h GMS_simpne_quad.h GMS_simpne_quad.cpp GMS_integrands_func_ch4_sse.h unit_test_integrands_func_ch4_sse.cpp
 
 */
 
@@ -1158,6 +1159,7 @@ void unit_test_integrand_4_20_marcum_Q_func_hi_sse_pd()
     __ATTR_ALIGN__(16) double out_buf[tot_elems];
     __ATTR_ALIGN__(16) double rv_func_psi_buf[n_func_args];
     __ATTR_ALIGN__(16) double rv_func_beta_buf[n_func_args];
+    __ATTR_ALIGN__(16) double marcum_Q_functional[n_func_args];
     thread_local std::uniform_real_distribution<double> rv_func_arg_theta;
     thread_local std::mt19937 rv_func_arg_theta_gen;
     thread_local std::uint64_t seed_func_theta_arg{};
@@ -1232,6 +1234,18 @@ void unit_test_integrand_4_20_marcum_Q_func_hi_sse_pd()
         _mm_store_pd(&out_buf[inner_idx],marcum_Q_res);
       }
     } 
+    constexpr std::int32_t ntab{50};
+    std::int32_t j{0};
+    for(std::int32_t i{0}; i < tot_elems; i += n_marcum_q_vals)
+    {
+        double * __restrict__ p_slice_out_buf{&out_buf[i]};
+        double * __restrict__ p_slice_in_buf{&in_buf[i]};
+        (void)gms::math::simpne(ntab,&p_slice_in_buf[0],&p_slice_out_buf[0],marcum_Q_functional[j]);
+#if (UNIT_TEST_INTEGRANDS_FUNC_CH4_DBG_PRINT) == 1
+        printf_ret = print_double("marcum_Q_functional",marcum_Q_functional[j],0);
+#endif 
+        ++j;
+    }
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
@@ -1249,6 +1263,7 @@ void unit_test_integrand_4_32_marcum_Q_m_func_sse_pd()
     __ATTR_ALIGN__(16) double in_buf[tot_elems];
     __ATTR_ALIGN__(16) double out_buf[tot_elems];
     __ATTR_ALIGN__(16) double rv_func_s_buf[n_func_args];
+    __ATTR_ALIGN__(16) double marcum_Q_functional[n_func_args];
     thread_local std::uniform_real_distribution<double> rv_s_param;
     thread_local std::mt19937 rv_s_param_gen;
     thread_local std::uint64_t seed_s_param{};
@@ -1310,6 +1325,19 @@ void unit_test_integrand_4_32_marcum_Q_m_func_sse_pd()
         _mm_store_pd(&out_buf[inner_idx],marcum_Q_res);
       }
     } 
+    constexpr std::int32_t ntab{50};
+    std::int32_t j{0};
+    for(std::int32_t i{0}; i < tot_elems; i += n_marcum_q_vals)
+    {
+        double * __restrict__ p_slice_out_buf{&out_buf[i]};
+        double * __restrict__ p_slice_in_buf{&in_buf[i]};
+        (void)gms::math::simpne(ntab,&p_slice_in_buf[0],&p_slice_out_buf[0],marcum_Q_functional[j]);
+#if (UNIT_TEST_INTEGRANDS_FUNC_CH4_DBG_PRINT) == 1
+        printf_ret = print_double("marcum_Q_functional",marcum_Q_functional[j],0);
+#endif 
+        ++j;
+    }
+
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
@@ -1318,18 +1346,18 @@ void unit_test_integrand_4_32_marcum_Q_m_func_sse_pd()
 int main()
 {
 
-   (void)unit_test_integrand_4_1_gauss_Q_func_sse_pd();
-   (void)unit_test_integrand_4_2_gauss_Q_func_sse_pd();
-   (void)unit_test_integrand_4_6_sin_gauss_Q_func_sse_pd();
-   (void)unit_test_integrand_4_6_cos_gauss_Q_func_sse_pd();
-   (void)unit_test_integrand_4_7_x1_gauss_Q_func_sse_pd();
-   (void)unit_test_integrand_4_7_y1_gauss_Q_func_sse_pd();
-   (void)unit_test_integrand_4_8_x1_gauss_Q_func_sse_pd();
-   (void)unit_test_integrand_4_8_y1_gauss_Q_func_sse_pd();
-   (void)unit_test_integrand_4_10_marcum_Q_func_sse_pd();
-   (void)unit_test_integrand_4_16_marcum_Q_func_sse_pd();
-   (void)unit_test_integrand_4_20_marcum_Q_func_lo_sse_pd();
-   (void)unit_test_integrand_4_20_marcum_Q_func_hi_sse_pd();
+   //(void)unit_test_integrand_4_1_gauss_Q_func_sse_pd();
+  // (void)unit_test_integrand_4_2_gauss_Q_func_sse_pd();
+  // (void)unit_test_integrand_4_6_sin_gauss_Q_func_sse_pd();
+  // (void)unit_test_integrand_4_6_cos_gauss_Q_func_sse_pd();
+  // (void)unit_test_integrand_4_7_x1_gauss_Q_func_sse_pd();
+  // (void)unit_test_integrand_4_7_y1_gauss_Q_func_sse_pd();
+  // (void)unit_test_integrand_4_8_x1_gauss_Q_func_sse_pd();
+  // (void)unit_test_integrand_4_8_y1_gauss_Q_func_sse_pd();
+  // (void)unit_test_integrand_4_10_marcum_Q_func_sse_pd();
+  // (void)unit_test_integrand_4_16_marcum_Q_func_sse_pd();
+  // (void)unit_test_integrand_4_20_marcum_Q_func_lo_sse_pd();
+  // (void)unit_test_integrand_4_20_marcum_Q_func_hi_sse_pd();
    (void)unit_test_integrand_4_32_marcum_Q_m_func_sse_pd();
     return 0;
 }
