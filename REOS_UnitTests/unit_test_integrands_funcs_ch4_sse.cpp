@@ -91,9 +91,10 @@ void unit_test_integrand_4_1_gauss_Q_func_sse_pd()
     constexpr std::int32_t n_gauss_q_vals{50};
     constexpr std::int32_t tot_elems{n_func_args*n_gauss_q_vals};
     constexpr double lo_x{0.1};
-    constexpr double hi_x{10.0};
+    constexpr double hi_x{1.0};
     __ATTR_ALIGN__(16) double in_buf[tot_elems];
     __ATTR_ALIGN__(16) double out_buf[tot_elems];
+    __ATTR_ALIGN__(16) double gauss_Q_functional[n_func_args];
     thread_local std::uniform_real_distribution<double> rv_func_arg;
     thread_local std::mt19937 rv_func_arg_gen;
     thread_local std::uint64_t seed_func_arg{};
@@ -105,7 +106,7 @@ void unit_test_integrand_4_1_gauss_Q_func_sse_pd()
     rv_func_arg = std::uniform_real_distribution<double>(lo_x,hi_x);
     seed_func_arg = __rdtsc();
     rv_func_arg_gen = std::mt19937(seed_func_arg);
-    rv_gauss_q = std::uniform_real_distribution<double>(y,5.0);
+    rv_gauss_q = std::uniform_real_distribution<double>(y,1.0);
     seed_gauss_q = __rdtsc();
     rv_gauss_q_gen = std::mt19937(seed_gauss_q);
 
@@ -133,6 +134,9 @@ void unit_test_integrand_4_1_gauss_Q_func_sse_pd()
 #endif 
         _mm_store_pd(&out_buf[i],gauss_q_res);
     }
+    constexpr std::int32_t ntab{50};
+    std::int32_t j{0};
+    FUNCTIONAL_COMPUTE_BODY("gauss_Q_functional",j,n_gauss_q_vals,gauss_Q_functional);
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
@@ -150,6 +154,7 @@ void unit_test_integrand_4_2_gauss_Q_func_sse_pd()
     __ATTR_ALIGN__(16) double in_buf[tot_elems];
     __ATTR_ALIGN__(16) double out_buf[tot_elems];
     __ATTR_ALIGN__(16) double in_rv_func_buf[n_func_args];
+    __ATTR_ALIGN__(16) double gauss_Q_functional[n_func_args];
     thread_local std::uniform_real_distribution<double> rv_func_arg;
     thread_local std::mt19937 rv_func_arg_gen;
     thread_local std::uint64_t seed_func_arg{};
@@ -203,6 +208,9 @@ void unit_test_integrand_4_2_gauss_Q_func_sse_pd()
         _mm_store_pd(&out_buf[inner_idx],gauss_Q_res);
       }
     } 
+    constexpr std::int32_t ntab{50};
+    std::int32_t j{0};
+    FUNCTIONAL_COMPUTE_BODY("gauss_Q_functional",j,n_gauss_q_vals,gauss_Q_functional);
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
@@ -227,6 +235,7 @@ void unit_test_integrand_4_6_sin_gauss_Q_func_sse_pd()
     __ATTR_ALIGN__(16) double rv_func_y1_buf[n_func_args];
     __ATTR_ALIGN__(16) double rv_func_rho_buf[n_func_args];
     __ATTR_ALIGN__(16) double rv_phi_arg_buf[n_func_args];
+    __ATTR_ALIGN__(16) double gauss_Q_functional[n_func_args];
     thread_local std::uniform_real_distribution<double> rv_func_arg_x1;
     thread_local std::mt19937 rv_func_arg_x1_gen;
     thread_local std::uint64_t seed_func_x1_arg{};
@@ -323,6 +332,9 @@ void unit_test_integrand_4_6_sin_gauss_Q_func_sse_pd()
         _mm_store_pd(&out_buf[inner_idx],gauss_Q_res);
       }
     } 
+    constexpr std::int32_t ntab{50};
+    std::int32_t j{0};
+    FUNCTIONAL_COMPUTE_BODY("gauss_Q_functional",j,n_gauss_q_vals,gauss_Q_functional);
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
@@ -347,6 +359,7 @@ void unit_test_integrand_4_6_cos_gauss_Q_func_sse_pd()
     __ATTR_ALIGN__(16) double rv_func_y1_buf[n_func_args];
     __ATTR_ALIGN__(16) double rv_func_rho_buf[n_func_args];
     __ATTR_ALIGN__(16) double rv_phi_arg_buf[n_func_args];
+    __ATTR_ALIGN__(16) double gauss_Q_functional[n_func_args];
     thread_local std::uniform_real_distribution<double> rv_func_arg_x1;
     thread_local std::mt19937 rv_func_arg_x1_gen;
     thread_local std::uint64_t seed_func_x1_arg{};
@@ -443,6 +456,9 @@ void unit_test_integrand_4_6_cos_gauss_Q_func_sse_pd()
         _mm_store_pd(&out_buf[inner_idx],gauss_Q_res);
       }
     } 
+    constexpr std::int32_t ntab{50};
+    std::int32_t j{0};
+    FUNCTIONAL_COMPUTE_BODY("gauss_Q_functional",j,n_gauss_q_vals,gauss_Q_functional);
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
@@ -467,6 +483,7 @@ void unit_test_integrand_4_7_x1_gauss_Q_func_sse_pd()
     __ATTR_ALIGN__(16) double rv_func_y1_buf[n_func_args];
     __ATTR_ALIGN__(16) double rv_func_rho_buf[n_func_args];
     __ATTR_ALIGN__(16) double rv_phi_arg_buf[n_func_args];
+    __ATTR_ALIGN__(16) double gauss_Q_functional[n_func_args];
     thread_local std::uniform_real_distribution<double> rv_func_arg_x1;
     thread_local std::mt19937 rv_func_arg_x1_gen;
     thread_local std::uint64_t seed_func_x1_arg{};
@@ -561,6 +578,9 @@ void unit_test_integrand_4_7_x1_gauss_Q_func_sse_pd()
         _mm_store_pd(&out_buf[inner_idx],gauss_Q_res);
       }
     } 
+    constexpr std::int32_t ntab{50};
+    std::int32_t j{0};
+    FUNCTIONAL_COMPUTE_BODY("gauss_Q_functional",j,n_gauss_q_vals,gauss_Q_functional);
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
@@ -585,6 +605,7 @@ void unit_test_integrand_4_7_y1_gauss_Q_func_sse_pd()
     __ATTR_ALIGN__(16) double rv_func_y1_buf[n_func_args];
     __ATTR_ALIGN__(16) double rv_func_rho_buf[n_func_args];
     __ATTR_ALIGN__(16) double rv_phi_arg_buf[n_func_args];
+    __ATTR_ALIGN__(16) double gauss_Q_functional[n_func_args];
     thread_local std::uniform_real_distribution<double> rv_func_arg_x1;
     thread_local std::mt19937 rv_func_arg_x1_gen;
     thread_local std::uint64_t seed_func_x1_arg{};
@@ -679,6 +700,9 @@ void unit_test_integrand_4_7_y1_gauss_Q_func_sse_pd()
         _mm_store_pd(&out_buf[inner_idx],gauss_Q_res);
       }
     } 
+    constexpr std::int32_t ntab{50};
+    std::int32_t j{0};
+    FUNCTIONAL_COMPUTE_BODY("gauss_Q_functional",j,n_gauss_q_vals,gauss_Q_functional);
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
@@ -700,6 +724,7 @@ void unit_test_integrand_4_8_x1_gauss_Q_func_sse_pd()
     __ATTR_ALIGN__(16) double rv_func_x1_buf[n_func_args];
     __ATTR_ALIGN__(16) double rv_func_y1_buf[n_func_args];
     __ATTR_ALIGN__(16) double rv_phi_arg_buf[n_func_args];
+    __ATTR_ALIGN__(16) double gauss_Q_functional[n_func_args];
     thread_local std::uniform_real_distribution<double> rv_func_arg_x1;
     thread_local std::mt19937 rv_func_arg_x1_gen;
     thread_local std::uint64_t seed_func_x1_arg{};
@@ -785,6 +810,9 @@ void unit_test_integrand_4_8_x1_gauss_Q_func_sse_pd()
         _mm_store_pd(&out_buf[inner_idx],gauss_Q_res);
       }
     } 
+    constexpr std::int32_t ntab{50};
+    std::int32_t j{0};
+    FUNCTIONAL_COMPUTE_BODY("gauss_Q_functional",j,n_gauss_q_vals,gauss_Q_functional);
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
@@ -806,6 +834,7 @@ void unit_test_integrand_4_8_y1_gauss_Q_func_sse_pd()
     __ATTR_ALIGN__(16) double rv_func_x1_buf[n_func_args];
     __ATTR_ALIGN__(16) double rv_func_y1_buf[n_func_args];
     __ATTR_ALIGN__(16) double rv_phi_arg_buf[n_func_args];
+    __ATTR_ALIGN__(16) double gauss_Q_functional[n_func_args];
     thread_local std::uniform_real_distribution<double> rv_func_arg_x1;
     thread_local std::mt19937 rv_func_arg_x1_gen;
     thread_local std::uint64_t seed_func_x1_arg{};
@@ -891,6 +920,9 @@ void unit_test_integrand_4_8_y1_gauss_Q_func_sse_pd()
         _mm_store_pd(&out_buf[inner_idx],gauss_Q_res);
       }
     } 
+    constexpr std::int32_t ntab{50};
+    std::int32_t j{0};
+    FUNCTIONAL_COMPUTE_BODY("gauss_Q_functional",j,n_gauss_q_vals,gauss_Q_functional);
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
@@ -1381,19 +1413,18 @@ void unit_test_integrand_4_32_marcum_Q_m_func_sse_pd()
 
 int main()
 {
-
-   //(void)unit_test_integrand_4_1_gauss_Q_func_sse_pd();
-  // (void)unit_test_integrand_4_2_gauss_Q_func_sse_pd();
-  // (void)unit_test_integrand_4_6_sin_gauss_Q_func_sse_pd();
-  // (void)unit_test_integrand_4_6_cos_gauss_Q_func_sse_pd();
-  // (void)unit_test_integrand_4_7_x1_gauss_Q_func_sse_pd();
-  // (void)unit_test_integrand_4_7_y1_gauss_Q_func_sse_pd();
-  // (void)unit_test_integrand_4_8_x1_gauss_Q_func_sse_pd();
-  // (void)unit_test_integrand_4_8_y1_gauss_Q_func_sse_pd();
-  (void)unit_test_integrand_4_10_marcum_Q_func_sse_pd();
-  //(void)unit_test_integrand_4_16_marcum_Q_func_sse_pd();
-  //(void)unit_test_integrand_4_20_marcum_Q_func_lo_sse_pd();
-  //(void)unit_test_integrand_4_20_marcum_Q_func_hi_sse_pd();
-  // (void)unit_test_integrand_4_32_marcum_Q_m_func_sse_pd();
+   (void)unit_test_integrand_4_1_gauss_Q_func_sse_pd();
+   (void)unit_test_integrand_4_2_gauss_Q_func_sse_pd();
+   (void)unit_test_integrand_4_6_sin_gauss_Q_func_sse_pd();
+   (void)unit_test_integrand_4_6_cos_gauss_Q_func_sse_pd();
+   (void)unit_test_integrand_4_7_x1_gauss_Q_func_sse_pd();
+   (void)unit_test_integrand_4_7_y1_gauss_Q_func_sse_pd();
+   (void)unit_test_integrand_4_8_x1_gauss_Q_func_sse_pd();
+   (void)unit_test_integrand_4_8_y1_gauss_Q_func_sse_pd();
+   (void)unit_test_integrand_4_10_marcum_Q_func_sse_pd();
+   (void)unit_test_integrand_4_16_marcum_Q_func_sse_pd();
+   (void)unit_test_integrand_4_20_marcum_Q_func_lo_sse_pd();
+   (void)unit_test_integrand_4_20_marcum_Q_func_hi_sse_pd();
+   (void)unit_test_integrand_4_32_marcum_Q_m_func_sse_pd();
     return 0;
 }
