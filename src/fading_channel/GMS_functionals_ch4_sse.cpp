@@ -88,18 +88,21 @@ gms::fading_channel
     rv_func_arg = std::uniform_real_distribution<double>(lo1_x,hi1_x);
     seed_func_arg = __rdtsc();
     rv_func_arg_gen = std::mt19937(seed_func_arg);
-    rv_gauss_q = std::uniform_real_distribution<double>(lo2_x,hi2_x);
-    seed_gauss_q = __rdtsc();
-    rv_gauss_q_gen = std::mt19937(seed_gauss_q);
+    //rv_gauss_q = std::uniform_real_distribution<double>(lo2_x,hi2_x);
+    //seed_gauss_q = __rdtsc();
+    //rv_gauss_q_gen = std::mt19937(seed_gauss_q);
     for(std::int32_t i {0}; i < nfunc_args; ++i) 
     {
         const std::int32_t outer_idx = i*ngauss_q_vals;
         const double x = rv_func_arg.operator()(rv_func_arg_gen);
+        rv_gauss_q = std::uniform_real_distribution<double>(lo2_x=x,hi2_x);
+        seed_gauss_q = __rdtsc();
+        rv_gauss_q_gen = std::mt19937(seed_gauss_q);
         for(std::int32_t j{0}; j < ngauss_q_vals; ++j)   
         {
             const std::int32_t inner_idx = outer_idx+j;
             const double y = rv_gauss_q.operator()(rv_gauss_q_gen);
-            p_in_buf[inner_idx] = x+y;
+            p_in_buf[inner_idx] = y;
         }
     }
     std::sort(&p_in_buf[0],&p_in_buf[tot_elems-1]);
@@ -185,6 +188,150 @@ gms::fading_channel
     const std::int32_t ntab = ngauss_q_vals;
     std::int32_t j{0};
     FUNCTIONALS_CH4_SSE_COMPUTE_BODY(j,ngauss_q_vals,p_functional);
+    return (0);
+}
+
+std::int32_t 
+gms::fading_channel
+::integrate_4_2_gauss_Q_func_sse(integrator_payload_sse_t * __restrict__ payload)
+{
+    using namespace math;
+    if(__builtin_expect(nullptr==payload,0)) { return (-1);}
+    double * __restrict__ p_in_buf          = payload->in_buf;
+    double * __restrict__ p_out_buf         = payload->out_buf;
+    double * __restrict__ p_functional      = payload->functional;
+    double * __restrict__ p_functional_arg1 = payload->functional_arg1;
+    double                lo1_x             = payload->lo1;
+    double                hi1_x             = payload->hi2;
+    double                lo2_x             = payload->lo2;
+    double                hi2_x             = payload->hi2;
+    std::int32_t          nfunc_args        = payload->n_func_args;
+    std::int32_t          ngauss_q_vals     = payload->n_integrand_vals;
+    const std::int32_t    tot_elems{nfunc_args*ngauss_q_vals};
+    thread_local std::uniform_real_distribution<double> rv_func_arg;
+    thread_local std::mt19937 rv_func_arg_gen;
+    thread_local std::uint64_t seed_func_arg{};
+    //thread_local std::uniform_real_distribution<double> rv_gauss_q;
+    //thread_local std::mt19937 rv_gauss_q_gen;
+    //thread_local std::uint64_t seed_gauss_q{};
+    rv_func_arg = std::uniform_real_distribution<double>(lo1_x,hi1_x);
+    seed_func_arg = __rdtsc();
+    rv_func_arg_gen = std::mt19937(seed_func_arg);
+    //rv_gauss_q = std::uniform_real_distribution<double>(lo2_x,hi2_x);
+    //seed_gauss_q = __rdtsc();
+    //rv_gauss_q_gen = std::mt19937(seed_gauss_q);
+    double theta_arg = 0.0;
+    const double theta_increment = 0.0314159265358979323846264338328;
+    for(std::int32_t i {0}; i < nfunc_args; ++i) 
+    {
+        const std::int32_t outer_idx = i*ngauss_q_vals;
+        const double x = rv_func_arg.operator()(rv_func_arg_gen);
+        p_functional_arg1[i] = x;
+        theta_arg = 0.0;
+        for(std::int32_t j{0}; j < ngauss_q_vals; ++j)   
+        {
+            const std::int32_t inner_idx = outer_idx+j;
+            //const double y = rv_gauss_q.operator()(rv_gauss_q_gen);
+            theta_arg += theta_increment;
+            p_in_buf[inner_idx] = theta_arg;
+        }
+    }
+    //std::sort(&p_in_buf[0],&p_in_buf[tot_elems-1]);
+    std::sort(&p_functional_arg1[0],&p_functional_arg1[nfunc_args-1]);
+    __m128d theta0;
+    __m128d theta1;
+    __m128d theta2;
+    __m128d theta3;
+    __m128d gauss_Q_res0;
+    __m128d gauss_Q_res1;
+    __m128d gauss_Q_res2;
+    __m128d gauss_Q_res3;
+    std::int32_t jj;
+    for(std::int32_t i{0}; i<nfunc_args; ++i) 
+    {
+        const double x = p_functional_arg1[i];
+        const std::int32_t outer_idx = i*ngauss_q_vals;
+        const __m128d vx = _mm_set1_pd(x);
+        for(jj = 0; (jj+7) < ngauss_q_vals; jj+=8)
+        {
+            const std::int32_t inner_idx = outer_idx+jj;
+#if (FUNCTIONALS_CH4_SSE_INTERMIX_LOAD_COMPUTE) == 0
+            theta0 = _mm_load_pd(&p_in_buf[inner_idx+0]);
+            theta1 = _mm_load_pd(&p_in_buf[inner_idx+2]);
+            theta2 = _mm_load_pd(&p_in_buf[inner_idx+4]);
+            theta3 = _mm_load_pd(&p_in_buf[inner_idx+6]);
+            gauss_Q_res0 = integrand_4_2_gauss_Q_func_sse_pd(vx,theta0);
+            gauss_Q_res1 = integrand_4_2_gauss_Q_func_sse_pd(vx,theta1);
+            gauss_Q_res2 = integrand_4_2_gauss_Q_func_sse_pd(vx,theta2);
+            gauss_Q_res3 = integrand_4_2_gauss_Q_func_sse_pd(vx,theta3);
+            _mm_store_pd(&p_out_buf[inner_idx+0],gauss_Q_res0);
+            _mm_store_pd(&p_out_buf[inner_idx+2],gauss_Q_res1);
+            _mm_store_pd(&p_out_buf[inner_idx+4],gauss_Q_res2);
+            _mm_store_pd(&p_out_buf[inner_idx+6],gauss_Q_res3);
+
+#else 
+            theta0 = _mm_load_pd(&p_in_buf[inner_idx+0]);
+            gauss_Q_res0 = integrand_4_2_gauss_Q_func_sse_pd(vx,theta0);
+            _mm_store_pd(&p_out_buf[inner_idx+0],gauss_Q_res0);
+            theta1 = _mm_load_pd(&p_in_buf[inner_idx+2]);
+            gauss_Q_res1 = integrand_4_2_gauss_Q_func_sse_pd(vx,theta1);
+            _mm_store_pd(&p_out_buf[inner_idx+2],gauss_Q_res1);
+            theta2 = _mm_load_pd(&p_in_buf[inner_idx+4]);
+            gauss_Q_res2 = integrand_4_2_gauss_Q_func_sse_pd(vx,theta2);
+            _mm_store_pd(&p_out_buf[inner_idx+4],gauss_Q_res2);
+            theta3 = _mm_load_pd(&p_in_buf[inner_idx+6]);
+            gauss_Q_res3 = integrand_4_2_gauss_Q_func_sse_pd(vx,theta3);
+            _mm_store_pd(&p_out_buf[inner_idx+6],gauss_Q_res3);
+#endif 
+        }
+
+        for(; (jj+3) < ngauss_q_vals; jj+=4)
+        {
+            const std::int32_t inner_idx = outer_idx+jj;
+#if (FUNCTIONALS_CH4_SSE_INTERMIX_LOAD_COMPUTE) == 0
+            theta0 = _mm_load_pd(&p_in_buf[inner_idx+0]);
+            theta1 = _mm_load_pd(&p_in_buf[inner_idx+2]);
+            gauss_Q_res0 = integrand_4_2_gauss_Q_func_sse_pd(vx,theta0);
+            gauss_Q_res1 = integrand_4_2_gauss_Q_func_sse_pd(vx,theta1);
+            _mm_store_pd(&p_out_buf[inner_idx+0],gauss_Q_res0);
+            _mm_store_pd(&p_out_buf[inner_idx+2],gauss_Q_res1);
+#else 
+            theta0 = _mm_load_pd(&p_in_buf[inner_idx+0]);
+            gauss_Q_res0 = integrand_4_2_gauss_Q_func_sse_pd(vx,theta0);
+            _mm_store_pd(&p_out_buf[inner_idx+0],gauss_Q_res0);
+            theta1 = _mm_load_pd(&p_in_buf[inner_idx+2]);
+            gauss_Q_res1 = integrand_4_2_gauss_Q_func_sse_pd(vx,theta1);
+            _mm_store_pd(&p_out_buf[inner_idx+2],gauss_Q_res2);
+#endif 
+        }
+
+        for(; (jj+1) < ngauss_q_vals; jj+=2)
+        {
+            const std::int32_t inner_idx = outer_idx+jj;
+            theta0 = _mm_load_pd(&p_in_buf[inner_idx+0]);
+            gauss_Q_res0 = integrand_4_2_gauss_Q_func_sse_pd(vx,theta0);
+            _mm_store_pd(&p_out_buf[inner_idx+0],gauss_Q_res0);
+        }
+
+        for(; (jj+0) < ngauss_q_vals; jj+=1)
+        {
+            const std::int32_t inner_idx = outer_idx+jj;
+            const double theta = p_in_buf[inner_idx];
+            const double gauss_Q_res = integrand_4_2_gauss_Q_func(x,theta);
+            p_out_buf[inner_idx] = gauss_Q_res;
+        }
+    }
+    const std::int32_t ntab = ngauss_q_vals;
+    std::int32_t j{0};
+    //FUNCTIONALS_CH4_SSE_COMPUTE_BODY(j,ngauss_q_vals,p_functional);
+    for(std::int32_t i{0}; i < tot_elems; i += ngauss_q_vals)
+    {
+        double * __restrict__ p_slice_out_buf{&p_out_buf[i]};
+        double * __restrict__ p_slice_in_buf{&p_in_buf[i]};
+        (void)math::simpne(ntab,&p_slice_in_buf[0],&p_slice_out_buf[0],p_functional[j]);
+        p_functional[j] *= 0.318309886183790671537767526745;
+        ++j;
+    }
     return (0);
 }
 

@@ -75,19 +75,23 @@ namespace fading_channel
 {
 
 
-alignas(64) struct integrator_payload_sse_t
+struct alignas(64) integrator_payload_sse_t
 {
-      double * __restrict__ __ATTR_ALIGN__(16) in_buf{nullptr};
-      double * __restrict__ __ATTR_ALIGN__(16) out_buf{nullptr};
-      double * __restrict__ __ATTR_ALIGN__(16) functional{nullptr};
-      double                lo1;
-      double                hi1;
-      double                lo2;
-      double                hi2;
-      double                lo3;
-      double                hi3;
-      std::int32_t          n_func_args;
-      std::int32_t          n_integrand_vals;
+    double * __restrict__ __ATTR_ALIGN__(16) in_buf{nullptr};
+    double * __restrict__ __ATTR_ALIGN__(16) out_buf{nullptr};
+    double * __restrict__ __ATTR_ALIGN__(16) functional{nullptr};
+    double * __restrict__ __ATTR_ALIGN__(16) functional_arg1{nullptr};
+    double * __restrict__ __ATTR_ALIGN__(16) functional_arg2{nullptr};
+    double                lo1;
+    double                hi1;
+    double                lo2;
+    double                hi2;
+    double                lo3;
+    double                hi3;
+    double                lo4;
+    double                hi4;
+    std::int32_t          n_func_args;
+    std::int32_t          n_integrand_vals;
 };  
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
@@ -102,7 +106,17 @@ __ATTR_ALIGN__(32)
 std::int32_t 
 integrate_4_1_gauss_Q_func_sse(integrator_payload_sse_t * __restrict__);
 
-
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+std::int32_t 
+integrate_4_2_gauss_Q_func_sse(integrator_payload_sse_t * __restrict__);
 
 
 

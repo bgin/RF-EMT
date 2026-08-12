@@ -124,7 +124,8 @@ integrand_4_2_gauss_Q_func_sse_pd(const __m128d x,
   const __m128d tmp_sin_mul{_mm_mul_pd(sin_val,sin_val)};
   const __m128d sin_denom{_mm_add_pd(tmp_sin_mul,tmp_sin_mul)};
   const __m128d exp_arg{_mm_div_pd(xsqr,sin_denom)};
-  const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};
+  //const __m128d exp_val{_mm_exp_pd(negate_xmm2r8(exp_arg))};
+  const __m128d exp_val{_mm_exp_pd(_mm_sub_pd(_mm_setzero_pd(),exp_arg))};
   return (exp_val);
 }
 
