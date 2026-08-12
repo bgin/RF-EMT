@@ -41,12 +41,54 @@ namespace file_info
 
 }
 
+#if !defined(FUNCTIONALS_CH4_SSE_INTERMIX_LOAD_COMPUTE)
+#define FUNCTIONALS_CH4_SSE_INTERMIX_LOAD_COMPUTE 1 
+#endif 
+
+// Enable for the basic PMC tracing (wall-clock) readout (not statistically rigorous)!!
+// *** Warning *** -- An access for the PM hardware counters must be enabled for the user-mode space!!
+// 
+#if !defined (FUNCTIONALS_CH4_SSE_USE_PMC_INSTRUMENTATION)
+#define FUNCTIONALS_CH4_SSE_USE_PMC_INSTRUMENTATION 0
+#endif 
+
+#if (FUNCTIONALS_CH4_SSE_USE_PMC_INSTRUMENTATION) == 1
+#include "GMS_hw_perf_macros.h"
+
+#define PMC_VARS                      \
+uint64_t prog_counters_start[4] = {}; \
+uint64_t prog_counters_stop[4]  = {}; \
+uint64_t tsc_start,tsc_stop;          \
+uint64_t act_cyc_start,act_cyc_stop;  \
+uint64_t ref_cyc_start,ref_cyc_stop;  \
+[[maybe_unused]] uint64_t dummy1;     \
+[[maybe_unused]] uint64_t dummy2;     \
+[[maybe_unused]] uint64_t dummy3;     \
+int32_t core_counter_width;           \
+double utilization,nom_ghz,avg_ghz;
+#endif 
 
 namespace gms 
 {
 
 namespace fading_channel
 {
+
+
+alignas(64) struct integrator_payload_sse_t
+{
+      double * __restrict__ __ATTR_ALIGN__(16) in_buf{nullptr};
+      double * __restrict__ __ATTR_ALIGN__(16) out_buf{nullptr};
+      double * __restrict__ __ATTR_ALIGN__(16) functional{nullptr};
+      double                lo1;
+      double                hi1;
+      double                lo2;
+      double                hi2;
+      double                lo3;
+      double                hi3;
+      std::int32_t          n_func_args;
+      std::int32_t          n_integrand_vals;
+};  
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
@@ -58,14 +100,9 @@ namespace fading_channel
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t 
-integrate_4_1_gauss_Q_func_sse(double * __restrict__ __ATTR_ALIGN__(16), /* in_buf*/
-                               double * __restrict__ __ATTR_ALIGN__(16), /* out_buf*/
-                               double * __restrict__, /* functional values*/
-                               const std::int32_t, /* n_func_args*/
-                               const std::int32_t, /* n_gauss_q_vals*/
-                               const double, /* lo_x*/
-                               const double, /* hi_x*/
-                               const double);/* hi_y*/
+integrate_4_1_gauss_Q_func_sse(integrator_payload_sse_t * __restrict__);
+
+
 
 
 
