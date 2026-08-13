@@ -152,3 +152,223 @@ gms::fading_channel
     }
     return (0);
 }
+
+std::int32_t 
+gms::fading_channel
+::integrand_4_6_gauss_Q_sin_arg_checker(double * __restrict__ arg_range,
+                                       const std::int32_t n_func_args,
+                                       const std::int32_t n_gauss_Q_vals,
+                                       const double lo1,
+                                       const double hi1,
+                                       const double lo2,
+                                       const double hi2,
+                                       const double lo3,
+                                       const double hi3,
+                                       const double lo4,
+                                       const double hi4)
+{
+    thread_local std::uniform_real_distribution<double> rv_func_arg_x1;
+    thread_local std::mt19937 rv_func_arg_x1_gen;
+    thread_local std::uint64_t seed_func_x1_arg{};
+    thread_local std::uniform_real_distribution<double> rv_func_arg_y1;
+    thread_local std::mt19937 rv_func_arg_y1_gen;
+    thread_local std::uint64_t seed_func_y1_arg{};
+    thread_local std::uniform_real_distribution<double> rv_func_arg_rho;
+    thread_local std::mt19937 rv_func_arg_rho_gen;
+    thread_local std::uint64_t seed_func_rho_arg{};
+    thread_local std::uniform_real_distribution<double> rv_gauss_q;
+    thread_local std::mt19937 rv_gauss_q_gen;
+    thread_local std::uint64_t seed_gauss_q{};
+    rv_func_arg_x1 = std::uniform_real_distribution<double>(lo1,hi1);
+    seed_func_x1_arg = __rdtsc();
+    rv_func_arg_x1_gen = std::mt19937(seed_func_x1_arg);
+    rv_func_arg_y1 = std::uniform_real_distribution<double>(lo2,hi2);
+    seed_func_y1_arg = __rdtsc();
+    rv_func_arg_y1_gen = std::mt19937(seed_func_y1_arg);
+    rv_func_arg_rho = std::uniform_real_distribution<double>(lo3,hi3);
+    seed_func_rho_arg = __rdtsc();
+    rv_func_arg_rho_gen = std::mt19937(seed_func_rho_arg);
+    const bool  is_arg_range_null = (arg_range==nullptr);
+    if(!is_arg_range_null)
+    {
+        for(std::int32_t i{0}; i<n_func_args; ++i) 
+        {
+            const std::int32_t outer_idx = i*n_gauss_Q_vals;
+            const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
+            const double y1 = rv_func_arg_y1.operator()(rv_func_arg_y1_gen);
+            const double rho= rv_func_arg_rho.operator()(rv_func_arg_rho_gen);
+            const double one_m_rho{1.0f-(rho*rho)};
+            const double sqr_1_m_rho{std::sqrt(one_m_rho)};
+            const double phi_arg = y1/x1;
+            const double phi_s = std::atan(phi_arg);
+            const double tmp{std::sin(phi_s)};
+            const double sin_or_cos_sqr = tmp*tmp;
+            rv_gauss_q = std::uniform_real_distribution<double>(lo4,hi4-phi_s);
+            seed_gauss_q = __rdtsc();
+            rv_gauss_q_gen = std::mt19937(seed_gauss_q);
+            const double squared_sum{(x1*x1)+(y1*y1)}; 
+            const double S_hat{std::sqrt(squared_sum)};
+            for(std::int32_t j{0}; j<n_gauss_Q_vals; ++j)   
+            {
+                const std::int32_t inner_idx = outer_idx+j;
+                const double theta = rv_gauss_q.operator()(rv_gauss_q_gen);
+                double tsin{std::sin(theta)};
+                const double sin_sqr_tht{tsin*tsin};
+                const double sin2theta{std::sin(theta+theta)};
+                const double one_m_sin2theta{1.0-(rho*sin2theta)};
+                const double S_hat_half{0.5*(S_hat*S_hat)};
+                const double ratio1{sqr_1_m_rho/one_m_sin2theta};
+                const double sin_sin_or_cos_rat = sin_or_cos_sqr/sin_sqr_tht;
+                const double ratio2{one_m_sin2theta/one_m_rho};
+                const double exp_arg{S_hat_half*ratio2*sin_sin_or_cos_rat};
+                arg_range[inner_idx] = exp_arg;
+            }
+        }
+        
+    }
+    else 
+    {
+        for(std::int32_t i{0}; i<n_func_args; ++i) 
+        {
+            const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
+            const double y1 = rv_func_arg_y1.operator()(rv_func_arg_y1_gen);
+            const double rho= rv_func_arg_rho.operator()(rv_func_arg_rho_gen);
+            const double one_m_rho{1.0f-(rho*rho)};
+            const double sqr_1_m_rho{std::sqrt(one_m_rho)};
+            const double phi_arg = y1/x1;
+            const double phi_s = std::atan(phi_arg);
+            const double tmp{std::sin(phi_s)};
+            const double sin_or_cos_sqr = tmp*tmp;
+            rv_gauss_q = std::uniform_real_distribution<double>(lo4,hi4-phi_s);
+            seed_gauss_q = __rdtsc();
+            rv_gauss_q_gen = std::mt19937(seed_gauss_q);
+            const double squared_sum{(x1*x1)+(y1*y1)}; 
+            const double S_hat{std::sqrt(squared_sum)};
+            for(std::int32_t j{0}; j<n_gauss_Q_vals; ++j)   
+            {
+                const double theta = rv_gauss_q.operator()(rv_gauss_q_gen);
+                double tsin{std::sin(theta)};
+                const double sin_sqr_tht{tsin*tsin};
+                const double sin2theta{std::sin(theta+theta)};
+                const double one_m_sin2theta{1.0-(rho*sin2theta)};
+                const double S_hat_half{0.5*(S_hat*S_hat)};
+                const double ratio1{sqr_1_m_rho/one_m_sin2theta};
+                const double sin_sin_or_cos_rat = sin_or_cos_sqr/sin_sqr_tht;
+                const double ratio2{one_m_sin2theta/one_m_rho};
+                const double exp_arg{S_hat_half*ratio2*sin_sin_or_cos_rat};
+                [[maybe_unused]] std::int32_t printf_ret = print_double("exp_arg",exp_arg,0);
+            }
+        }
+    }
+    return (0);
+}
+
+std::int32_t 
+gms::fading_channel
+::integrand_4_6_gauss_Q_cos_arg_checker(double * __restrict__ arg_range,
+                                       const std::int32_t n_func_args,
+                                       const std::int32_t n_gauss_Q_vals,
+                                       const double lo1,
+                                       const double hi1,
+                                       const double lo2,
+                                       const double hi2,
+                                       const double lo3,
+                                       const double hi3,
+                                       const double lo4,
+                                       const double hi4)
+{
+    thread_local std::uniform_real_distribution<double> rv_func_arg_x1;
+    thread_local std::mt19937 rv_func_arg_x1_gen;
+    thread_local std::uint64_t seed_func_x1_arg{};
+    thread_local std::uniform_real_distribution<double> rv_func_arg_y1;
+    thread_local std::mt19937 rv_func_arg_y1_gen;
+    thread_local std::uint64_t seed_func_y1_arg{};
+    thread_local std::uniform_real_distribution<double> rv_func_arg_rho;
+    thread_local std::mt19937 rv_func_arg_rho_gen;
+    thread_local std::uint64_t seed_func_rho_arg{};
+    thread_local std::uniform_real_distribution<double> rv_gauss_q;
+    thread_local std::mt19937 rv_gauss_q_gen;
+    thread_local std::uint64_t seed_gauss_q{};
+    rv_func_arg_x1 = std::uniform_real_distribution<double>(lo1,hi1);
+    seed_func_x1_arg = __rdtsc();
+    rv_func_arg_x1_gen = std::mt19937(seed_func_x1_arg);
+    rv_func_arg_y1 = std::uniform_real_distribution<double>(lo2,hi2);
+    seed_func_y1_arg = __rdtsc();
+    rv_func_arg_y1_gen = std::mt19937(seed_func_y1_arg);
+    rv_func_arg_rho = std::uniform_real_distribution<double>(lo3,hi3);
+    seed_func_rho_arg = __rdtsc();
+    rv_func_arg_rho_gen = std::mt19937(seed_func_rho_arg);
+    const bool  is_arg_range_null = (arg_range==nullptr);
+    if(!is_arg_range_null)
+    {
+        for(std::int32_t i{0}; i<n_func_args; ++i) 
+        {
+            const std::int32_t outer_idx = i*n_gauss_Q_vals;
+            const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
+            const double y1 = rv_func_arg_y1.operator()(rv_func_arg_y1_gen);
+            const double rho= rv_func_arg_rho.operator()(rv_func_arg_rho_gen);
+            const double one_m_rho{1.0f-(rho*rho)};
+            const double sqr_1_m_rho{std::sqrt(one_m_rho)};
+            const double phi_arg = y1/x1;
+            const double phi_s = std::atan(phi_arg);
+            const double tmp{std::cos(phi_s)};
+            const double sin_or_cos_sqr = tmp*tmp;
+            rv_gauss_q = std::uniform_real_distribution<double>(lo4,hi4-phi_s);
+            seed_gauss_q = __rdtsc();
+            rv_gauss_q_gen = std::mt19937(seed_gauss_q);
+            const double squared_sum{(x1*x1)+(y1*y1)}; 
+            const double S_hat{std::sqrt(squared_sum)};
+            for(std::int32_t j{0}; j<n_gauss_Q_vals; ++j)   
+            {
+                const std::int32_t inner_idx = outer_idx+j;
+                const double theta = rv_gauss_q.operator()(rv_gauss_q_gen);
+                double tsin{std::sin(theta)};
+                const double sin_sqr_tht{tsin*tsin};
+                const double sin2theta{std::sin(theta+theta)};
+                const double one_m_sin2theta{1.0-(rho*sin2theta)};
+                const double S_hat_half{0.5*(S_hat*S_hat)};
+                const double ratio1{sqr_1_m_rho/one_m_sin2theta};
+                const double sin_sin_or_cos_rat = sin_or_cos_sqr/sin_sqr_tht;
+                const double ratio2{one_m_sin2theta/one_m_rho};
+                const double exp_arg{S_hat_half*ratio2*sin_sin_or_cos_rat};
+                arg_range[inner_idx] = exp_arg;
+            }
+        }
+        
+    }
+    else 
+    {
+        for(std::int32_t i{0}; i<n_func_args; ++i) 
+        {
+            const double x1 = rv_func_arg_x1.operator()(rv_func_arg_x1_gen);
+            const double y1 = rv_func_arg_y1.operator()(rv_func_arg_y1_gen);
+            const double rho= rv_func_arg_rho.operator()(rv_func_arg_rho_gen);
+            const double one_m_rho{1.0f-(rho*rho)};
+            const double sqr_1_m_rho{std::sqrt(one_m_rho)};
+            const double phi_arg = y1/x1;
+            const double phi_s = std::atan(phi_arg);
+            const double tmp{std::sin(phi_s)};
+            const double sin_or_cos_sqr = tmp*tmp;
+            rv_gauss_q = std::uniform_real_distribution<double>(lo4,hi4-phi_s);
+            seed_gauss_q = __rdtsc();
+            rv_gauss_q_gen = std::mt19937(seed_gauss_q);
+            const double squared_sum{(x1*x1)+(y1*y1)}; 
+            const double S_hat{std::sqrt(squared_sum)};
+            for(std::int32_t j{0}; j<n_gauss_Q_vals; ++j)   
+            {
+                const double theta = rv_gauss_q.operator()(rv_gauss_q_gen);
+                double tsin{std::sin(theta)};
+                const double sin_sqr_tht{tsin*tsin};
+                const double sin2theta{std::sin(theta+theta)};
+                const double one_m_sin2theta{1.0-(rho*sin2theta)};
+                const double S_hat_half{0.5*(S_hat*S_hat)};
+                const double ratio1{sqr_1_m_rho/one_m_sin2theta};
+                const double sin_sin_or_cos_rat = sin_or_cos_sqr/sin_sqr_tht;
+                const double ratio2{one_m_sin2theta/one_m_rho};
+                const double exp_arg{S_hat_half*ratio2*sin_sin_or_cos_rat};
+                [[maybe_unused]] std::int32_t printf_ret = print_double("exp_arg",exp_arg,0);
+            }
+        }
+    }
+    return (0);
+}
