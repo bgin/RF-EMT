@@ -128,6 +128,22 @@ integrand_4_6_gauss_Q_cos_arg_checker(double * __restrict__,
                                       const double,
                                       const double);
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+std::int32_t
+integrand_4_10_marcum_Q_arg_checker(double * __restrict__,
+                                    const std::int32_t,
+                                    const std::int32_t,
+                                    const double,
+                                    const double,
+                                    const double,
+                                    const double);
+
 
 
 } //math

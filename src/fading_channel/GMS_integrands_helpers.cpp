@@ -372,3 +372,65 @@ gms::fading_channel
     }
     return (0);
 }
+
+std::int32_t 
+gms::fading_channel
+::integrand_4_10_marcum_Q_arg_checker( double * __restrict__ arg_range,
+                                       const std::int32_t n_func_args,
+                                       const std::int32_t n_gauss_Q_vals,
+                                       const double lo1,
+                                       const double hi1,
+                                       const double lo2,
+                                       const double hi2)
+{
+    thread_local std::uniform_real_distribution<double> rv_s_param;
+    thread_local std::mt19937 rv_s_param_gen;
+    thread_local std::uint64_t seed_s_param{};
+    thread_local std::uniform_real_distribution<double> rv_marcum_q;
+    thread_local std::mt19937 rv_marcum_q_gen;
+    thread_local std::uint64_t seed_marcum_q{};
+    rv_s_param = std::uniform_real_distribution<double>(lo1,hi1);
+    seed_s_param = __rdtsc();
+    rv_s_param_gen = std::mt19937(seed_s_param);
+    rv_marcum_q = std::uniform_real_distribution<double>(lo2,hi2);
+    seed_marcum_q = __rdtsc();
+    rv_marcum_q_gen = std::mt19937(seed_marcum_q);
+    const bool  is_arg_range_null = (arg_range==nullptr);
+    if(!is_arg_range_null)
+    {
+        for(std::int32_t i{0}; i<n_func_args; ++i) 
+        {
+            const std::int32_t outer_idx = i*n_gauss_Q_vals;
+            const double s = rv_s_param.operator()(rv_s_param_gen);
+            const double ss = s*s;
+            for(std::int32_t j{0}; j<n_gauss_Q_vals; ++j)   
+            {
+                const std::int32_t inner_idx = outer_idx+j;
+                const double x = rv_marcum_q.operator()(rv_marcum_q_gen);
+                const double sx{s*x};
+                const double xspow2{std::fma(x,x,ss)};
+                const double I0_val{std::cyl_bessel_i(0,sx)};
+                const double exp_arg{0.5*xspow2};
+                arg_range[inner_idx] = exp_arg;
+            }
+        }
+    }
+    else 
+    {
+        for(std::int32_t i{0}; i<n_func_args; ++i) 
+        {
+            const double s = rv_s_param.operator()(rv_s_param_gen);
+            const double ss = s*s;
+            for(std::int32_t j{0}; j<n_gauss_Q_vals; ++j)   
+            {
+                const double x = rv_marcum_q.operator()(rv_marcum_q_gen);
+                const double sx{s*x};
+                const double xspow2{std::fma(x,x,ss)};
+                const double I0_val{std::cyl_bessel_i(0,sx)};
+                const double exp_arg{0.5*xspow2};
+                [[maybe_unused]] std::int32_t printf_ret = print_double("exp_arg",exp_arg,0);
+            }
+        }
+    }
+    return (0);
+}
