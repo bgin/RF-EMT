@@ -78,13 +78,6 @@ void simpne(const int32_t ntab,
             double * __restrict  y,
             double &result); 
 
-                           
-__ATTR_HOT__
-__ATTR_ALIGN__(32)			
-void simpne(const int32_t ntab,
-            float * __restrict  x,
-            float * __restrict  y,
-            float &result); 
 
          } // math
 
