@@ -73,22 +73,10 @@ namespace  gms {
                       
                         __ATTR_HOT__
                         __ATTR_ALIGN__(32)
-			
                         void simpn(const int32_t ntab,
                                    const double h,
-                                   double * __restrict __ATTR_ALIGN__(64) y,
+                                   double * __restrict y,
                                    double &result);
-
-
-                      
-                        __ATTR_HOT__
-                        __ATTR_ALIGN__(32)
-			
-                        void simpn(const int32_t ntab,
-                                   const double h,
-                                   float * __restrict __ATTR_ALIGN__(64) y,
-                                   float &result);
-
     } // math
 
 } // gms

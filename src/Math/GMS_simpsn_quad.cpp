@@ -46,106 +46,53 @@
 
 
 
-                        void gms::math::simpn(const int32_t ntab,
-                                   const double h,
-                                   double * __restrict __ATTR_ALIGN__(64) y,
-                                   double &result) {
-
-                            if(__builtin_expect(ntab<=2,0)) {
-                             result = std::numeric_limits<double>::quiet_NaN();
-                             return;
-                           }
-                          __ATTR_ALIGN__(32) double del[4];
-                          __ATTR_ALIGN__(32) double pi[4];
-                          __ATTR_ALIGN__(32) double g[4];
-                          double f,e,sum1,f3,h2;
-                          int32_t i,n;
-                          bool b;
-                          
-                          b = (ntab%2)==0;
-                          if(b)
-                            n = ntab-1;
-                          else
-                            n = ntab;
-
-                          result = y[0]+y[n]+4.0*y[n-1];
-                          for(i = 1; i != n-1; i += 2) {
-                              const double yi = y[i];
-                              const double yi1= y[i+1];
-                              result = result+4.0*yi+2.0*yi1;
-                          }
-                          result = h*result/3.0;
-                          f      = h*h*h;
-                          del[0] = h;
-                          del[1] = -2.0*h;
-                          del[2] = h;
-                          g[0]   = h;
-                          g[1]   = 0.0;
-                          g[2]   = -h;
-                          pi[0]  = 0.0;
-                          pi[1]  = -h*h;
-                          pi[2]  = 0.0;
-                          n      = n-1;
-                          sum1 = 0.0;
-                          f3   = f*0.3333333333333333333333333333333;
-                          h2   = 0.5*h*h;
-                          for(i = 0; i != 2; ++i) {
-                              const double t0 = f3-g[i]*h2+pi[i]*h;
-                              sum1 = sum1+y[n-1+i]*del[i]*t0;
-                          }
-                          result = result+0.5*sum1/f;
-                     }
-
-
-                       
-                        void gms::math::simpn(const int32_t ntab,
-                                   const double h,
-                                   float * __restrict __ATTR_ALIGN__(64) y,
-                                   float &result) {
-
-                            if(__builtin_expect(ntab<=2,0)) {
-                             result = std::numeric_limits<float>::quiet_NaN();
-                             return;
-                           }
-                          __ATTR_ALIGN__(16) double del[4];
-                          __ATTR_ALIGN__(16) double pi[4];
-                          __ATTR_ALIGN__(16) double g[4];
-                          float f,e,sum1,f3,h2;
-                          int32_t i,n;
-                          bool b;
-                          
-                          b = (ntab%2)==0;
-                          if(b)
-                            n = ntab-1;
-                          else
-                            n = ntab;
-
-                          result = y[0]+y[n]+4.0f*y[n-1];
-                          for(i = 1; i != n-1; i += 2) {
-                              const double yi = y[i];
-                              const double yi1= y[i+1];
-                              result = result+4.0f*yi+2.0f*yi1;
-                          }
-                          result = h*result/3.0f;
-                          f      = h*h*h;
-                          del[0] = h;
-                          del[1] = -2.0f*h;
-                          del[2] = h;
-                          g[0]   = h;
-                          g[1]   = 0.0f;
-                          g[2]   = -h;
-                          pi[0]  = 0.0f;
-                          pi[1]  = -h*h;
-                          pi[2]  = 0.0f;
-                          n      = n-1;
-                          sum1 = 0.0f;
-                          f3   = f*0.3333333333333333333333333333333f;
-                          h2   = 0.5f*h*h;
-                          for(i = 0; i != 2; ++i) {
-                              const double t0 = f3-g[i]*h2+pi[i]*h;
-                              sum1 = sum1+y[n-1+i]*del[i]*t0;
-                          }
-                          result = result+0.5f*sum1/f;
-                     }
-
-
+void gms::math::simpn(const int32_t ntab,
+                      const double h,
+                      double * __restrict  y,
+                      double &result) 
+{
+    if(__builtin_expect(ntab<=2,0)) 
+    {
+      result = std::numeric_limits<double>::quiet_NaN();
+      return;
+    }
+    double del[3];
+    double pi[3];
+    double g[3];
+    double f,e,sum1,f3,h2;
+    int32_t i,n;
+    bool b;
+    result = 0.0;           
+    b = ((ntab%2)==0);
+    if(b)
+      n = ntab-1;
+    else
+      n = ntab;
+    result = y[0]+y[n]+4.0*y[n-1];
+    for(i = 1; i != n-2; i += 2) 
+    {
+      const double yi = y[i];
+      const double yi1= y[i+1];
+      result = result+4.0*yi+2.0*yi1;
+    }
+    result = h*result/3.0;
+    const bool b2 = ((ntab%2)==1);
+    if(b2) { return;}
+    f      = h*h*h;
+    del[0] = h;
+    del[1] = -2.0*h;
+    del[2] = h;
+    g[0]   = h;
+    g[1]   = 0.0;
+    g[2]   = -h;
+    pi[0]  = 0.0;
+    pi[1]  = -h*h;
+    pi[2]  = 0.0;
+    n      = n-1;
+    sum1 = 0.0;
+    for(i = 0; i<3; ++i) 
+    {
+       sum1 = sum1+y[n-1+i]*del[i]*(f/3.0-g[i]*0.5*h*h+pi[i]*h);
+    }
+    result = result+0.5*sum1/(h*h*h);
+}
