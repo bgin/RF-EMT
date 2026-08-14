@@ -26,6 +26,8 @@
 #include "GMS_integrands_func_ch4_sse.h"
 #include "GMS_integrands_func_ch4.h"
 #include "GMS_simpne_quad.h"
+#include "GMS_simpsn_quad.h"
+
 
 namespace 
 {
@@ -106,6 +108,7 @@ gms::fading_channel
         }
     }
     std::sort(&p_in_buf[0],&p_in_buf[tot_elems-1]);
+    std::sort(&p_out_buf[0],&p_out_buf[tot_elems-1]);
     __m128d vx0;
     __m128d vx1;
     __m128d vx2;
@@ -178,16 +181,16 @@ gms::fading_channel
         const double gauss_q_res = integrand_4_1_gauss_Q_func(x);
         p_out_buf[jj] = gauss_q_res;
     }
-#if 0
-     for(std::int32_t i{0}; i<tot_elems; ++i) 
-     {
-        print_double("**in_buf**=",p_in_buf[i],0);
-        print_double("**out_buf**=",p_out_buf[i],0);
-     }
-#endif
     const std::int32_t ntab = ngauss_q_vals;
     std::int32_t j{0};
-    FUNCTIONALS_CH4_SSE_COMPUTE_BODY(j,ngauss_q_vals,p_functional);
+    //FUNCTIONALS_CH4_SSE_COMPUTE_BODY(j,ngauss_q_vals,p_functional);
+    const double abscissa_step = 1.0/(static_cast<double>(ntab));
+    for(std::int32_t i{0}; i < tot_elems; i += ngauss_q_vals)
+    {
+        double * __restrict__ p_slice_out_buf{&p_out_buf[i]};
+        (void)math::simpn(ntab,abscissa_step,&p_slice_out_buf[0],p_functional[j]);
+        ++j;
+    }
     return (0);
 }
 
@@ -211,32 +214,29 @@ gms::fading_channel
     thread_local std::uniform_real_distribution<double> rv_func_arg;
     thread_local std::mt19937 rv_func_arg_gen;
     thread_local std::uint64_t seed_func_arg{};
-    //thread_local std::uniform_real_distribution<double> rv_gauss_q;
-    //thread_local std::mt19937 rv_gauss_q_gen;
-    //thread_local std::uint64_t seed_gauss_q{};
+    thread_local std::uniform_real_distribution<double> rv_gauss_q;
+    thread_local std::mt19937 rv_gauss_q_gen;
+    thread_local std::uint64_t seed_gauss_q{};
     rv_func_arg = std::uniform_real_distribution<double>(lo1_x,hi1_x);
     seed_func_arg = __rdtsc();
     rv_func_arg_gen = std::mt19937(seed_func_arg);
-    //rv_gauss_q = std::uniform_real_distribution<double>(lo2_x,hi2_x);
-    //seed_gauss_q = __rdtsc();
-    //rv_gauss_q_gen = std::mt19937(seed_gauss_q);
+    rv_gauss_q = std::uniform_real_distribution<double>(lo2_x,hi2_x);
+    seed_gauss_q = __rdtsc();
+    rv_gauss_q_gen = std::mt19937(seed_gauss_q);
     double theta_arg = 0.0;
-    const double theta_increment = 0.0314159265358979323846264338328;
     for(std::int32_t i {0}; i < nfunc_args; ++i) 
     {
         const std::int32_t outer_idx = i*ngauss_q_vals;
         const double x = rv_func_arg.operator()(rv_func_arg_gen);
         p_functional_arg1[i] = x;
-        theta_arg = 0.0;
         for(std::int32_t j{0}; j < ngauss_q_vals; ++j)   
         {
             const std::int32_t inner_idx = outer_idx+j;
-            //const double y = rv_gauss_q.operator()(rv_gauss_q_gen);
-            theta_arg += theta_increment;
-            p_in_buf[inner_idx] = theta_arg;
+            const double y = rv_gauss_q.operator()(rv_gauss_q_gen);
+            p_in_buf[inner_idx] = y;
         }
     }
-    //std::sort(&p_in_buf[0],&p_in_buf[tot_elems-1]);
+    std::sort(&p_in_buf[0],&p_in_buf[tot_elems-1]);
     std::sort(&p_functional_arg1[0],&p_functional_arg1[nfunc_args-1]);
     __m128d theta0;
     __m128d theta1;
@@ -323,12 +323,11 @@ gms::fading_channel
     }
     const std::int32_t ntab = ngauss_q_vals;
     std::int32_t j{0};
-    //FUNCTIONALS_CH4_SSE_COMPUTE_BODY(j,ngauss_q_vals,p_functional);
+    const double abscissa_step = 1.0/(static_cast<double>(ntab));
     for(std::int32_t i{0}; i < tot_elems; i += ngauss_q_vals)
     {
         double * __restrict__ p_slice_out_buf{&p_out_buf[i]};
-        double * __restrict__ p_slice_in_buf{&p_in_buf[i]};
-        (void)math::simpne(ntab,&p_slice_in_buf[0],&p_slice_out_buf[0],p_functional[j]);
+        (void)math::simpn(ntab,abscissa_step,&p_slice_out_buf[0],p_functional[j]);
         p_functional[j] *= 0.318309886183790671537767526745;
         ++j;
     }

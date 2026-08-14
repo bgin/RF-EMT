@@ -92,6 +92,7 @@ struct alignas(64) integrator_payload_sse_t
     double                hi4;
     std::int32_t          n_func_args;
     std::int32_t          n_integrand_vals;
+    std::int32_t          which_integrator; /*Currently unimplemented, will be done later*/
 };  
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
@@ -105,6 +106,7 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t 
 integrate_4_1_gauss_Q_func_sse(integrator_payload_sse_t * __restrict__);
+
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
