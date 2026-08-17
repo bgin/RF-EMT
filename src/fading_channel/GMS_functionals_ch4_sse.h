@@ -82,6 +82,7 @@ struct alignas(64) integrator_payload_sse_t
     double * __restrict__ __ATTR_ALIGN__(16) functional{nullptr};
     double * __restrict__ __ATTR_ALIGN__(16) functional_arg1{nullptr};
     double * __restrict__ __ATTR_ALIGN__(16) functional_arg2{nullptr};
+    double * __restrict__ __ATTR_ALIGN__(16) work{nullptr}; /* for hiordq*/
     double                lo1;
     double                hi1;
     double                lo2;
@@ -92,7 +93,7 @@ struct alignas(64) integrator_payload_sse_t
     double                hi4;
     std::int32_t          n_func_args;
     std::int32_t          n_integrand_vals;
-    std::int32_t          which_integrator; /*Currently unimplemented, will be done later*/
+    std::int32_t          which_integrator; /*1=hiordq,2=simpsn,3=wedint*/
 };  
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
