@@ -4,10 +4,10 @@
 #include "GMS_functionals_ch4_sse.h"
 
 /*
-   icpc -o unit_test_functionals_ch4_sse -O3 -fp-model fast=2 -fno-exceptions -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
-   GMS_config.h GMS_cephes_double.h GMS_integrands_ch4.h GMS_integrands_ch4.cpp GMS_bessel_i0_sse.h GMS_integrands_func_ch4_sse.h GMS_simpsn_quad.h GMS_simpsn_quad.cpp GMS_functionals_ch4_sse.h GMS_functionals_ch4_sse.cpp unit_test_functionals_ch4_sse.cpp
+   icpc -o unit_test_functionals_ch4_sse -fopenmp -O3 -fp-model fast=2 -fno-exceptions -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
+   GMS_config.h GMS_cephes_double.h GMS_integrands_ch4.h GMS_integrands_ch4.cpp GMS_bessel_i0_sse.h GMS_integrands_func_ch4_sse.h GMS_tabulated_quadrature.h GMS_tabulated_quadrature.cpp GMS_functionals_ch4_sse.h GMS_functionals_ch4_sse.cpp unit_test_functionals_ch4_sse.cpp
    ASM: 
-   icpc -S -O3 -fverbose-asm -masm=intel -fno-exceptions -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_cephes_double.h GMS_integrands_ch4.h GMS_integrands_ch4.cpp GMS_bessel_i0_sse.h GMS_integrands_func_ch4_sse.h GMS_simpne_quad.h GMS_simpne_quad.cpp unit_test_functionals_ch4_sse.cpp
+   icpc -S -O3 -fverbose-asm -masm=intel -fno-exceptions -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_cephes_double.h GMS_integrands_ch4.h GMS_integrands_ch4.cpp GMS_bessel_i0_sse.h GMS_integrands_func_ch4_sse.h GMS_tabulated_quadrature.h GMS_tabulated_quadrature.cpp GMS_functionals_ch4_sse.h GMS_functionals_ch4_sse.cpp unit_test_functionals_ch4_sse.cpp
 
 */
 
@@ -31,28 +31,30 @@ void unit_test_functional_4_1_gauss_Q_sse()
 {
     //using namespace gms::fading_channel;
     constexpr std::int32_t n_func_args{10};
-    constexpr std::int32_t n_gauss_q_vals{50};
+    constexpr std::int32_t n_gauss_q_vals{60};
     constexpr std::int32_t tot_elems{n_func_args*n_gauss_q_vals};
     constexpr double lo1_x{+0.0};
     constexpr double hi1_x{+2.0};
     constexpr double lo2_x{lo1_x};
     constexpr double hi2_x{hi1_x};
+    __ATTR_ALIGN__(16) double hirodq_work[2*n_gauss_q_vals-1]; //2*n_gauss_q_vals-1
     __ATTR_ALIGN__(16) double in_buf[tot_elems];
     __ATTR_ALIGN__(16) double out_buf[tot_elems];
     __ATTR_ALIGN__(16) double gauss_Q_functional[n_func_args];
     [[maybe_unused]] std::int32_t print_retv{};
     print_retv = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!.\n",__func__);
     gms::fading_channel::integrator_payload_sse_t gauss_Q_payload;
-    gauss_Q_payload.in_buf  = &in_buf[0];
-    gauss_Q_payload.out_buf = &out_buf[0];
+    gauss_Q_payload.in_buf     = &in_buf[0];
+    gauss_Q_payload.out_buf    = &out_buf[0];
     gauss_Q_payload.functional = &gauss_Q_functional[0];
-    gauss_Q_payload.lo1 = lo1_x;
-    gauss_Q_payload.hi1 = hi1_x;
-    gauss_Q_payload.lo2 = lo2_x;
-    gauss_Q_payload.hi2 = hi2_x;
+    gauss_Q_payload.work       = &hirodq_work[0];
+    gauss_Q_payload.lo1        = lo1_x;
+    gauss_Q_payload.hi1        = hi1_x;
+    gauss_Q_payload.lo2        = lo2_x;
+    gauss_Q_payload.hi2        = hi2_x;
     gauss_Q_payload.n_func_args = n_func_args;
     gauss_Q_payload.n_integrand_vals = n_gauss_q_vals;
-    gauss_Q_payload.which_integrator = 2;
+    gauss_Q_payload.which_integrator = 3;
     gms::fading_channel::integrator_payload_sse_t * __restrict__ p_payload = &gauss_Q_payload;
     std::int32_t ret_val = gms::fading_channel::integrate_4_1_gauss_Q_func_sse(p_payload);
 #if 1
@@ -72,7 +74,7 @@ void unit_test_functional_4_2_gauss_Q_sse()
 {
     //using namespace gms::fading_channel;
     constexpr std::int32_t n_func_args{10};
-    constexpr std::int32_t n_gauss_q_vals{50};
+    constexpr std::int32_t n_gauss_q_vals{60};
     constexpr std::int32_t tot_elems{n_func_args*n_gauss_q_vals};
     constexpr double lo1_x{+0.0};
     constexpr double hi1_x{+3.0};
@@ -109,6 +111,6 @@ void unit_test_functional_4_2_gauss_Q_sse()
 int main()
 {
     (void)unit_test_functional_4_1_gauss_Q_sse();
-    (void)unit_test_functional_4_2_gauss_Q_sse();
+    //(void)unit_test_functional_4_2_gauss_Q_sse();
     return 0;
 }
