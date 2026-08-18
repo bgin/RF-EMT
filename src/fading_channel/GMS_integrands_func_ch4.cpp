@@ -79,7 +79,13 @@ gms
 #endif
 }
 
-
+double 
+gms
+::fading_channel
+::integrand_4_1_gauss_Q_quad_iface(const double y,void * __restrict__ user_data) /* unused here*/
+{
+        return (integrand_4_1_gauss_Q_func(y));
+}
 
 double 
 gms
@@ -101,6 +107,16 @@ gms
        const double exp_val{gms::math::cephes_d::exp(-exp_arg)};
        return (exp_val);
 #endif 
+}
+
+double 
+gms
+::fading_channel
+::integrand_4_2_gauss_Q_quad_iface(const double theta,void * __restrict__ user_data)
+{
+      func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
+      double xa = p_payload->arg1;
+      return (integrand_4_2_gauss_Q_func(xa,theta));
 }
 
 double 
@@ -174,6 +190,19 @@ gms
 #endif 
 }
 
+double 
+gms 
+::fading_channel
+::integrand_4_6_gauss_Q_quad_iface(const double theta,void * __restrict__ user_data)
+{
+       func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
+       double x1               = p_payload->arg1;
+       double y1               = p_payload->arg2;
+       double rho              = p_payload->arg3;
+       std::int32_t sin_or_cos = p_payload->arg5;
+       return (integrand_4_6_gauss_Q_func(x1,y1,rho,theta,sin_or_cos));
+}
+
 #if (INTEGRANDS_FUNC_CH4_SPLIT_MATH_IMPL_PERF_TEST) == 1
 
 double
@@ -214,6 +243,19 @@ gms
      return(ratio1*exp_val);    
 }
 
+double 
+gms
+::fading_channel
+::integrand_4_6_gauss_Q_cephes_quad_iface(const double theta,void * __restrict__ user_data)
+{
+       func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
+       double x1               = p_payload->arg1;
+       double y1               = p_payload->arg2;
+       double rho              = p_payload->arg3;
+       std::int32_t sin_or_cos = p_payload->arg5;
+       return (integrand_4_6_gauss_Q_func_cephes(x1,y1,rho,theta,sin_or_cos));
+}
+
 double
 gms
 ::fading_channel
@@ -250,6 +292,19 @@ gms
         const double exp_arg{S_hat_half*ratio2*sin_sin_or_cos_rat};
         const double exp_val{std::exp(-exp_arg)};
         return(ratio1*exp_val);
+}
+
+double 
+gms
+::fading_channel
+::integrand_4_6_gauss_Q_stdlib_quad_iface(const double theta,void * __restrict__ user_data)
+{
+       func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
+       double x1               = p_payload->arg1;
+       double y1               = p_payload->arg2;
+       double rho              = p_payload->arg3;
+       std::int32_t sin_or_cos = p_payload->arg5;
+       return (integrand_4_6_gauss_Q_func_stdlib(x1,y1,rho,theta,sin_or_cos));
 }
 
 #endif 
@@ -308,6 +363,19 @@ gms
 }
 
 double 
+gms 
+::fading_channel
+::integrand_4_7_gauss_Q_quad_iface(const double theta,void * __restrict__ user_data)
+{
+       func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
+       double x1               = p_payload->arg1;
+       double y1               = p_payload->arg2;
+       double rho              = p_payload->arg3;
+       std::int32_t x1_or_y1   = p_payload->arg5;
+       return (integrand_4_7_gauss_Q_func(x1,y1,rho,theta,x1_or_y1));
+}
+
+double 
 gms
 ::fading_channel
 ::integrand_4_8_gauss_Q_func(const double x1,const double y1,
@@ -335,6 +403,18 @@ gms
 }
 
 double 
+gms
+::fading_channel
+::integrand_4_8_gauss_Q_quad_iface(const double theta,void * __restrict__ user_data)
+{
+       func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
+       double x1               = p_payload->arg1;
+       double y1               = p_payload->arg2;
+       std::int32_t x1_or_y1   = p_payload->arg5;
+       return (integrand_4_8_gauss_Q_func(x1,y1,theta,x1_or_y1));
+}
+
+double 
 gms 
 ::fading_channel
 ::integrand_4_10_marcum_Q_func(const double x,const double s)
@@ -355,6 +435,16 @@ gms
         const double exp_val{gms::math::cephes_d::exp(-exp_arg)};
         return (x*exp_val*I0_val);
 #endif
+}
+
+double 
+gms 
+::fading_channel
+::integrand_4_10_marcum_Q_quad_iface(const double s,void * __restrict__ user_data)
+{
+      func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
+      double x               = p_payload->arg1;
+      return (integrand_4_10_marcum_Q_func(x,s));
 }
 
 double 
@@ -384,6 +474,17 @@ gms
         const double exp_val{gms::math::cephes_d::exp(-exp_arg)};
         return (lead_fac_rat*exp_val);
 #endif 
+}
+
+double 
+gms
+::fading_channel
+::integrand_4_16_marcum_Q_quad_iface(const double theta,void * __restrict__ user_data)
+{
+       func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
+       double beta   = p_payload->arg1;
+       double psi    = p_payload->arg2;
+       return (integrand_4_16_marcum_Q_func(beta,psi,theta));
 }
 
 double 
@@ -418,6 +519,17 @@ gms
 double 
 gms 
 ::fading_channel
+::integrand_4_20_marcum_Q_quad_iface_lo(const double theta,void * __restrict__ user_data)
+{
+       func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
+       double beta   = p_payload->arg1;
+       double psi    = p_payload->arg2;
+       return (integrand_4_20_marcum_Q_func_lo(beta,psi,theta));  
+}
+
+double 
+gms 
+::fading_channel
 ::integrand_4_20_marcum_Q_func_hi(const double beta,
                                   const double psi,const double theta)
 {
@@ -442,6 +554,17 @@ gms
         const double exp_val{gms::math::cephes_d::exp(-exp_arg)};
         return (lead_fac_rat*exp_val);
 #endif 
+}
+
+double 
+gms 
+::fading_channel
+::integrand_4_20_marcum_Q_quad_iface_hi(const double theta,void * __restrict__ user_data)
+{
+       func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
+       double beta   = p_payload->arg1;
+       double psi    = p_payload->arg2;
+       return (integrand_4_20_marcum_Q_func_hi(beta,psi,theta));  
 }
 
 double 
@@ -477,6 +600,17 @@ gms
         const double right_exp_val{gms::math::cephes_d::exp(-exp_arg_2)};
         return (left_exp_val+right_exp_val);
 #endif 
+}
+
+double 
+gms
+::fading_channel
+::integrand_4_26_marcum_Q_quad_iface(const double theta,void * __restrict__ user_data)
+{
+       func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
+       double beta   = p_payload->arg1;
+       double psi    = p_payload->arg2;
+       return (integrand_4_26_marcum_Q_func(beta,psi,theta));
 }
 
 double 
@@ -517,6 +651,17 @@ gms
 double 
 gms 
 ::fading_channel
+::integrand_4_27_marcum_Q_quad_iface(const double theta,void * __restrict__ user_data)
+{
+       func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
+       double alpha  = p_payload->arg1;
+       double psi    = p_payload->arg2;
+       return (integrand_4_27_marcum_Q_func(alpha,psi,theta));  
+}
+
+double 
+gms 
+::fading_channel
 ::integrand_4_32_marcum_Q_m_func(const double x,const double s,
                                  const double d_m,const std::int32_t i_m)
 {
@@ -539,6 +684,18 @@ gms
         const double exp_val{gms::math::cephes_d::exp(-exp_arg)};
         return (x_to_m*exp_val*cyl_bes_val);
 #endif 
+}
+
+double 
+gms
+::fading_channel
+::integrand_4_32_marcum_Q_m_quad_iface(const double x,void * __restrict__ user_data)
+{
+        func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
+        double s = p_payload->arg1;
+        double d_m = p_payload->arg2;
+        std::int32_t i_m = p_payload->arg5;
+        return (integrand_4_32_marcum_Q_m_func(x,s,d_m,i_m));
 }
 
 double
@@ -582,6 +739,18 @@ gms
 #endif 
 }
 
+double 
+gms 
+::fading_channel
+::integrand_4_42_marcum_Q_m_quad_iface(const double theta,void * __restrict__ user_data)
+{
+        func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
+        double beta = p_payload->arg1;
+        double psi  = p_payload->arg2;
+        double m    = p_payload->arg3;
+        return (integrand_4_42_marcum_Q_m_func(beta,psi,m,theta));
+}
+
 double
 gms
 ::fading_channel
@@ -614,6 +783,17 @@ gms
 #endif 
 }
 
+double 
+gms
+::fading_channel
+::integrand_4_45_marcum_Q_m_quad_iface(const double theta,void * __restrict__ user_data)
+{
+        func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
+        double beta = p_payload->arg1;
+        double m    = p_payload->arg3;
+        return (integrand_4_45_marcum_Q_m_func(theta,beta,m));
+}
+
 double
 gms
 ::fading_channel
@@ -643,6 +823,19 @@ gms
 #endif 
 }
 
+double 
+gms
+::fading_channel
+::integrand_4_66_pawula_quad_iface(const double t,void * __restrict__ user_data)
+{
+        func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
+        double psi     = p_payload->arg1;
+        double delphi  = p_payload->arg2;
+        double A       = p_payload->arg3;
+        double sigmsqr = p_payload->arg4;
+        return (integrand_4_66_pawula_func(psi,delphi,t,A,sigmsqr));
+}
+
 double
 gms
 ::fading_channel
@@ -668,5 +861,17 @@ gms
         const double exp_value{gms::math::cephes_d::exp(-exp_arg)};
         return (lead_factor*exp_value);
 #endif 
+}
+
+double 
+gms
+::fading_channel
+::integrand_4_67_pawula_quad_iface(const double t,void * __restrict__ user_data)
+{
+        func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
+        double psi     = p_payload->arg1;
+        double A       = p_payload->arg3;
+        double sigmsqr = p_payload->arg4;
+        return (integrand_4_67_pawula_func(psi,t,A,sigmsqr));
 }
 

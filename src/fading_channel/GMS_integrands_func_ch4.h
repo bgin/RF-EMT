@@ -59,6 +59,15 @@ namespace gms
 namespace fading_channel
 {
 
+struct alignas(64) func_args_payload_t
+{
+      double arg1;
+      double arg2;
+      double arg3;
+      double arg4;
+      std::int32_t arg5;
+};
+
 /*
    stdlibc++ warmup calls
 */
@@ -99,6 +108,18 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_1_gauss_Q_func(const double);
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double 
+integrand_4_1_gauss_Q_quad_iface(const double, void * __restrict__);
+
 /*
   Chapter 4, formula: 4.2
 */
@@ -112,6 +133,17 @@ double integrand_4_1_gauss_Q_func(const double);
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_2_gauss_Q_func(const double,const double);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_2_gauss_Q_quad_iface(const double,void * __restrict__);
 
 /*
   Chapter 4, formula: 4.6
@@ -128,6 +160,17 @@ __ATTR_ALIGN__(32)
 double integrand_4_6_gauss_Q_func(const double,const double,
                                   const double,const double,
                                   const std::int32_t);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_6_gauss_Q_quad_iface(const double,void * __restrict__);
 
 #if (INTEGRANDS_FUNC_CH4_SPLIT_MATH_IMPL_PERF_TEST) == 1
 /*
@@ -156,9 +199,33 @@ double integrand_4_6_gauss_Q_func_cephes(const double,const double,
 #endif
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
+double 
+integrand_4_6_gauss_Q_cephes_quad_iface(const double,void * __restrict__);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
 double integrand_4_6_gauss_Q_func_stdlib(const double,const double,
                                          const double,const double,
                                          const std::int32_t);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_6_gauss_Q_stdlib_quad_iface(const double,void * __restrict__);
+
 #endif 
 
 /*
@@ -177,6 +244,17 @@ double integrand_4_7_gauss_Q_func(const double,const double,
                              const double,const double,
                              const std::int32_t);
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_7_gauss_Q_quad_iface(const double,void * __restrict__);     
+
 /*
   Chapter 4, formula: 4.8 (case: rho = 0)
 */
@@ -192,6 +270,17 @@ __ATTR_ALIGN__(32)
 double integrand_4_8_gauss_Q_func(const double,const double,
                                   const double,const std::int32_t);
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_8_gauss_Q_quad_iface(const double,void * __restrict__);
+
 /*
    Chapter 4, formula: 4.10
 */
@@ -205,6 +294,17 @@ double integrand_4_8_gauss_Q_func(const double,const double,
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_10_marcum_Q_func(const double,const double);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_10_marcum_Q_quad_iface(const double,void * __restrict__);
 
 /*
    Chapter 4, formula: 4.16
@@ -221,6 +321,17 @@ __ATTR_ALIGN__(32)
 double integrand_4_16_marcum_Q_func(const double,
                                     const double,const double);
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_16_marcum_Q_quad_iface(const double,void * __restrict__);
+                                                          
 /*
    Chapter 4, formula: 4.20
    Range: -PI,0
@@ -236,6 +347,17 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_20_marcum_Q_func_lo(const double,const double,
                                        const double);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_20_marcum_Q_quad_iface_lo(const double,void * __restrict__);
 
 /*
    Chapter 4, formula: 4.20
@@ -253,6 +375,17 @@ __ATTR_ALIGN__(32)
 double integrand_4_20_marcum_Q_func_hi(const double,const double,
                                        const double);
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_20_marcum_Q_quad_iface_hi(const double,void * __restrict__);
+
 /*
    Chapter 4, formula: 4.26
 */
@@ -267,6 +400,17 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_26_marcum_Q_func(const double,const double,
                                     const double);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_26_marcum_Q_quad_iface(const double,void * __restrict__);
 
 /*
    Chapter 4, formula: 4.27
@@ -283,6 +427,17 @@ __ATTR_ALIGN__(32)
 double integrand_4_27_marcum_Q_func(const double,const double,
                                     const double);
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_27_marcum_Q_quad_iface(const double,void * __restrict__);
+
 /*
    Chapter 4, formula: 4.32
 */
@@ -297,6 +452,17 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_32_marcum_Q_m_func(const double,const double,
                                       const double, const std::int32_t);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_32_marcum_Q_m_quad_iface(const double,void * __restrict__);
 
 /*
    Chapter 4, formula: 4.42
@@ -313,6 +479,17 @@ __ATTR_ALIGN__(32)
 double integrand_4_42_marcum_Q_m_func(const double,const double,
                                       const double,const double);
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_42_marcum_Q_m_quad_iface(const double,void * __restrict__);
+
 /*
    Chapter 4, formula: 4.45
 */
@@ -326,6 +503,17 @@ double integrand_4_42_marcum_Q_m_func(const double,const double,
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_45_marcum_Q_m_func(const double,const double,const double);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_45_marcum_Q_m_quad_iface(const double,void * __restrict__);
 
 /*
    Chapter 4, formula: 4.50
@@ -361,6 +549,17 @@ __ATTR_ALIGN__(32)
 double integrand_4_66_pawula_func(const double,const double,const double,
                                   const double,const double);
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_66_pawula_quad_iface(const double,void * __restrict__);
+
 /*
    Chapter 4, formula: 4.67
 */
@@ -375,6 +574,17 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_4_67_pawula_func(const double,const double,
                                   const double,const double);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_4_67_pawula_quad_iface(const double,void * __restrict__);
 
 /*
    Chapter 4, formula: 4.68
