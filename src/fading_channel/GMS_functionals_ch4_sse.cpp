@@ -227,12 +227,14 @@ gms::fading_channel
     double * __restrict__ p_out_buf         = payload->out_buf;
     double * __restrict__ p_functional      = payload->functional;
     double * __restrict__ p_functional_arg1 = payload->functional_arg1;
+    double * __restrict__ p_work            = payload->work;
     double                lo1_x             = payload->lo1;
     double                hi1_x             = payload->hi2;
     double                lo2_x             = payload->lo2;
     double                hi2_x             = payload->hi2;
     std::int32_t          nfunc_args        = payload->n_func_args;
     std::int32_t          ngauss_q_vals     = payload->n_integrand_vals;
+    std::int32_t          which_quadrature  = payload->which_integrator;
     const std::int32_t    tot_elems{nfunc_args*ngauss_q_vals};
     thread_local std::uniform_real_distribution<double> rv_func_arg;
     thread_local std::mt19937 rv_func_arg_gen;
@@ -347,12 +349,36 @@ gms::fading_channel
     const std::int32_t ntab = ngauss_q_vals;
     std::int32_t j{0};
     const double abscissa_step = 1.0/(static_cast<double>(ntab));
-    for(std::int32_t i{0}; i < tot_elems; i += ngauss_q_vals)
+    if(which_quadrature==1)
     {
-        double * __restrict__ p_slice_out_buf{&p_out_buf[i]};
-        (void)math::simpn(ntab,abscissa_step,&p_slice_out_buf[0],p_functional[j]);
-        p_functional[j] *= 0.318309886183790671537767526745;
-        ++j;
+        for(std::int32_t i{0}; i < tot_elems; i += ngauss_q_vals)
+        {
+           double * __restrict__ p_slice_out_buf{&p_out_buf[i]};
+           double * __restrict__ p_slice_work_buf{&p_work[i]};
+           (void)math::hiordq(ntab,abscissa_step,&p_slice_out_buf[0],&p_work[0],p_functional[j]);
+           p_functional[j] *= 0.318309886183790671537767526745;
+           ++j;
+        }
+    }
+    else if(which_quadrature==2)
+    {
+        for(std::int32_t i{0}; i < tot_elems; i += ngauss_q_vals)
+        {
+            double * __restrict__ p_slice_out_buf{&p_out_buf[i]};
+            (void)math::simpn(ntab,abscissa_step,&p_slice_out_buf[0],p_functional[j]);
+            p_functional[j] *= 0.318309886183790671537767526745;
+             ++j;
+        }
+    }
+    else if(which_quadrature==3)
+    {
+        for(std::int32_t i{0}; i < tot_elems; i += ngauss_q_vals)
+        {
+            double * __restrict__ p_slice_out_buf{&p_out_buf[i]};
+            (void)math::wedint(ntab,abscissa_step,&p_slice_out_buf[0],p_functional[j]);
+            p_functional[j] *= 0.318309886183790671537767526745;
+             ++j;
+        }
     }
     return (0);
 }
