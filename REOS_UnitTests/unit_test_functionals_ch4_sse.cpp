@@ -31,7 +31,7 @@ void unit_test_functional_4_1_gauss_Q_sse()
 {
     //using namespace gms::fading_channel;
     constexpr std::int32_t n_func_args{10};
-    constexpr std::int32_t n_gauss_q_vals{60};
+    constexpr std::int32_t n_gauss_q_vals{600};
     constexpr std::int32_t tot_elems{n_func_args*n_gauss_q_vals};
     constexpr double lo1_x{+0.0};
     constexpr double hi1_x{+2.0};
@@ -74,12 +74,13 @@ void unit_test_functional_4_2_gauss_Q_sse()
 {
     //using namespace gms::fading_channel;
     constexpr std::int32_t n_func_args{10};
-    constexpr std::int32_t n_gauss_q_vals{60};
+    constexpr std::int32_t n_gauss_q_vals{600};
     constexpr std::int32_t tot_elems{n_func_args*n_gauss_q_vals};
     constexpr double lo1_x{+0.0};
     constexpr double hi1_x{+3.0};
     constexpr double lo2_x{+0.1};
     constexpr double hi2_x{+1.5707963267948966192313216916398};
+    __ATTR_ALIGN__(16) double work[2*n_gauss_q_vals-1];
     __ATTR_ALIGN__(16) double in_buf[tot_elems];
     __ATTR_ALIGN__(16) double out_buf[tot_elems];
     __ATTR_ALIGN__(16) double functional_arg_buf[n_func_args];
@@ -97,6 +98,7 @@ void unit_test_functional_4_2_gauss_Q_sse()
     gauss_Q_payload.hi2 = hi2_x;
     gauss_Q_payload.n_func_args = n_func_args;
     gauss_Q_payload.n_integrand_vals = n_gauss_q_vals;
+    gauss_Q_payload.which_integrator = 3;
     gms::fading_channel::integrator_payload_sse_t * __restrict__ p_payload = &gauss_Q_payload;
     std::int32_t ret_val = gms::fading_channel::integrate_4_2_gauss_Q_func_sse(p_payload);
 #if 1
@@ -111,6 +113,6 @@ void unit_test_functional_4_2_gauss_Q_sse()
 int main()
 {
     (void)unit_test_functional_4_1_gauss_Q_sse();
-    //(void)unit_test_functional_4_2_gauss_Q_sse();
+    (void)unit_test_functional_4_2_gauss_Q_sse();
     return 0;
 }
