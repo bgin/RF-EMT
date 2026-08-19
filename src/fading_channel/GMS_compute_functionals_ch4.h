@@ -20,6 +20,7 @@
 #define __GMS_COMPUTE_FUNCTIONALS_CH4_H__ 180820261108
 
 #include <cstdint>
+#include <string>
 #include "GMS_config.h"
 #include "GMS_integrands_func_ch4.h"
 
@@ -74,6 +75,7 @@ namespace fading_channel
 
 struct alignas(64) quadpack_integrator_payload_t 
 {
+    const std::string integrators_names[3] = {{"dqage"},{"dqagi"},{"dqags"}};
     double (*integrand)(double,void * __restrict__);
     func_args_payload_t * __restrict__ func_args_payload{nullptr};
     double              * __restrict__ lo{nullptr}; // lower limit of integration
@@ -88,8 +90,16 @@ struct alignas(64) quadpack_integrator_payload_t
     std::int32_t        * __restrict__ neval{nullptr};      // number of evaluation
     std::int32_t        * __restrict__ ier{nullptr};        // integrator error indicator
     std::int32_t        * __restrict__ last{nullptr};
+    double                             rand_lo1{}; // set lower limit for random number generator
+    double                             rand_hi1{}; // as above (1st argument pair)
+    double                             rand_lo2{}; // set lower limit for random number generator
+    double                             rand_hi2{}; // as above (2nd argument pair)
+    double                             rand_lo3{}; // set lower limit for random number generator
+    double                             rand_hi3{}; // as above (3rd argument pair)
+    double                             rand_lo4{}; // set lower limit for random number generator
+    double                             rand_hi4{}; // as above (4th argument pair)
     std::int32_t                       n_func_vals;
-    std::int32_t                       which_integrator; //currently 1=dqage,2=dqagi
+    std::int32_t                       which_integrator; //currently 1=dqage,2=dqagi,3=dqags
 };
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
@@ -101,6 +111,16 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t 
 compute_functional_gauss_Q_4_1(quadpack_integrator_payload_t * __restrict__);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+std::int32_t
+compute_functional_gauss_Q_4_2(quadpack_integrator_payload_t * __restrict__);
 
 
 } // fading_channel
