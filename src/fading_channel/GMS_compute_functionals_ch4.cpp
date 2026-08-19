@@ -19,6 +19,7 @@
 */
 #include <immintrin.h> // __rdtsc
 #include <functional>
+#include <algorithm>
 #include <random>
 #include <cstdio>
 #include "GMS_compute_functionals_ch4.h"
@@ -51,21 +52,21 @@ gms
 {
     if(__builtin_expect(nullptr==p_payload,0)) { return (-1);}
     double (*p_integrand)(const double,void * __restrict__) = p_payload->integrand;
-    double  * __restrict__      p_funcs_args_payload        = p_payload->func_args_payload;
-    double  * __restrict__      p_lo                        = p_payload->lo;
-    double  * __restrict__      p_hi                        = p_payload->hi;
-    double  * __restrict__      p_bound                     = p_payload->bound;
-    std::int32_t * __restrict__ p_inf                       = p_payload->inf;
-    std::int32_t * __restrict__ p_irule                     = p_payload->irule;
-    double  *  __restrict__     p_epsabs                    = p_payload->epsabs;
-    double  *  __restrict__     p_epsrel                    = p_payload->epsrel;
-    double  *  __restrict__     p_abser                     = p_payload->abser;
-    double  *  __restrict__     p_functional                = p_payload->functional;
-    std::int32_t * __restrict__ p_neval                     = p_payload->neval;
-    std::int32_t * __restrict__ p_ier                       = p_payload->ier;
-    std::int32_t * __restrict__ p_last                      = p_payload->last;
-    const std::int32_t          nfunc_vals                  = p_payload->n_func_vals;
-    const std::int32_t          integrator_type             = p_payload->which_integrator;
+    func_args_payload_t  * __restrict__ p_funcs_args_payload = p_payload->func_args_payload;
+    double  * __restrict__      p_lo                         = p_payload->lo;
+    double  * __restrict__      p_hi                         = p_payload->hi;
+    double  * __restrict__      p_bound                      = p_payload->bound;
+    std::int32_t * __restrict__ p_inf                        = p_payload->inf;
+    std::int32_t * __restrict__ p_irule                      = p_payload->irule;
+    double  *  __restrict__     p_epsabs                     = p_payload->epsabs;
+    double  *  __restrict__     p_epsrel                     = p_payload->epsrel;
+    double  *  __restrict__     p_abser                      = p_payload->abser;
+    double  *  __restrict__     p_functional                 = p_payload->functional;
+    std::int32_t * __restrict__ p_neval                      = p_payload->neval;
+    std::int32_t * __restrict__ p_ier                        = p_payload->ier;
+    std::int32_t * __restrict__ p_last                       = p_payload->last;
+    const std::int32_t          nfunc_vals                   = p_payload->n_func_vals;
+    const std::int32_t          integrator_type              = p_payload->which_integrator;
     thread_local std::uniform_real_distribution<double> rv_func_lo;
     thread_local std::mt19937 rv_func_lo_gen;
     thread_local std::uint64_t seed_func_lo{};
@@ -87,19 +88,35 @@ gms
             const double hi_limit{rv_func_hi.operator()(rv_func_hi_gen)};
             p_hi[i] = hi_limit;
         }
-        std::sort(&p_lo[0],p_lo[nfunc_vals-1],std::greater<double>());
-        std::sort(&p_hi[0],p_hi[nfunc_vals-1],std::less<double>());
+        std::sort(&p_lo[0],&p_lo[nfunc_vals-1],std::greater<double>());
+        std::sort(&p_hi[0],&p_hi[nfunc_vals-1],std::less<double>());
         for(std::int32_t i{0}; i<nfunc_vals; ++i) 
         {   
-            const double a{lo_limit[i]};
-            const double b{hi_limit[i]};
-            const double result = dqage(p_integrand,a,b,p_epsabs[0],p_epsrel[0],p_irule[0],p_abser[i],
-                                        p_neval[i],p_ier[i],p_last[i],&p_funcs_args_payload[i]);
+            const double a{p_lo[i]};
+            const double b{p_hi[i]};
+            const double result = dqage(p_integrand,a,b,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_last[i],nullptr);
             p_functional[i] = result;
         }
     }
     else if(integrator_type==2)
     {
-
+        rv_func_lo = std::uniform_real_distribution<double>(-4.0,+10.0);
+        seed_func_lo = __rdtsc();
+        rv_func_lo_gen = std::mt19937(seed_func_lo);
+        for(std::int32_t i{0}; i<nfunc_vals; ++i)
+        {
+            const double lo_limit{rv_func_lo.operator()(rv_func_lo_gen)};
+            p_lo[i] = lo_limit;
+        }
+        std::sort(&p_lo[0],&p_lo[nfunc_vals-1],std::greater<double>());
+        for(std::int32_t i{0}; i<nfunc_vals; ++i) 
+        {
+            const double bound{p_lo[i]};
+            const double result = dqagi(p_integrand,bound,p_inf[0],p_epsabs[0],p_epsrel[0],
+                                        &p_abser[i],&p_neval[i],&p_ier[i],nullptr);
+            p_functional[i] = result;
+        }
     }
+    return (0);
 }
