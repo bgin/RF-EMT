@@ -34,9 +34,7 @@
 #define max(a,b)    (((a) > (b)) ? (a) : (b))
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
+
 
 typedef double(*dq_function_type)(double, void * __restrict);
 
@@ -69,10 +67,20 @@ typedef double(*dq_function_type)(double, void * __restrict);
                                                                 __ATTR_ALIGN__(32);
 
 /* Gauss-Kronrod for integration of weighted function. */
+/*
+ __ATTR_HOT__
+ __ATTR_ALIGN__(32)
  double G_K15W(dq_function_type f, double w(), double p1, double p2, double p3,
     double p4,int kp,double a,double b,double * __restrict  abserr,
-    double * __restrict  resabs, double * __restrict  resasc, void * __restrict   user_data) __ATTR_HOT__
-                                                                                             __ATTR_ALIGN__(32);
+    double * __restrict  resabs, double * __restrict  resasc, void * __restrict   user_data);
+*/
+ __ATTR_HOT__
+ __ATTR_ALIGN__(32)
+ double G_K15W(dq_function_type f,double (*w)(double, double, double, double, double, int),
+    double p1, double p2, double p3,
+    double p4,int kp,double a,double b,double * __restrict  abserr,
+    double * __restrict  resabs, double * __restrict  resasc, void * __restrict   user_data);
+
  double dqext(int * __restrict  n, double epstab [], double * __restrict  abserr,
     double res3la[],int * __restrict  nres) __ATTR_HOT__
                                             __ATTR_ALIGN__(32);
@@ -110,16 +118,16 @@ typedef double(*dq_function_type)(double, void * __restrict);
                                                                                                                           __ATTR_ALIGN__(32);
  double dqc25o(dq_function_type f, double a, double b, double omega, int integr,
     int nrmom,int maxp1,int ksave,double * __restrict  abserr,int * __restrict  neval,
-    double * __restrict  resabs,double * __restrict  resasc,int * __restrict  momcom,double * __restrict  *chebmo, void * __restrict   user_data) __ATTR_HOT__
+    double * __restrict  resabs,double * __restrict  resasc,int * __restrict  momcom,double ** chebmo, void * __restrict   user_data) __ATTR_HOT__
                                                                                                                                                   __ATTR_ALIGN__(32);
  double dqfour(dq_function_type f, double a, double b, double omega, int integr,
     double epsabs,double epsrel,int icall,int maxp1,
     double * __restrict  abserr,int * __restrict  neval,int * __restrict  ier,int * __restrict  momcom,
-    double * __restrict  *chebmo, void * __restrict   user_data) __ATTR_HOT__
+    double **  chebmo, void * __restrict   user_data) __ATTR_HOT__
                                                                 __ATTR_ALIGN__(32);
  double dqawfe(dq_function_type f, double a, double omega, int integr, double epsabs,
     int limlst,int maxp1,double * __restrict  abserr,int * __restrict  neval,int * __restrict  ier,
-    double * __restrict  rslst,double * __restrict  erlist,int * __restrict  ierlst,double * __restrict  *chebmo, void * __restrict   user_data) __ATTR_HOT__
+    double * __restrict  rslst,double * __restrict  erlist,int * __restrict  ierlst,double ** chebmo, void * __restrict   user_data) __ATTR_HOT__
                                                                                                                                                  __ATTR_ALIGN__(32);
  double dqawf(dq_function_type f, double a, double omega, int integr, double epsabs,
     double * __restrict  abserr,int * __restrict  neval,int * __restrict  ier, void * __restrict   user_data) __ATTR_HOT__
@@ -154,9 +162,5 @@ typedef double(*dq_function_type)(double, void * __restrict);
  double G_B15(dq_function_type f, double a, double b, double * __restrict  abserr,
     double * __restrict  resabs, double * __restrict  resasc, void * __restrict   user_data) __ATTR_HOT__
                                                                                              __ATTR_ALIGN__(32);
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
 
 #endif /*__GMS_CQUADPACK_H__*/

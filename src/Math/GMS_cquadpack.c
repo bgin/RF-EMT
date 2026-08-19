@@ -1,4 +1,5 @@
 
+
 #include "GMS_cquadpack.h"
 
 
@@ -2417,7 +2418,7 @@ _270:
 }
 
 
-#include "cquadpack.h"
+//#include "cquadpack.h"
 
 void dqcheb(double x[],double fval[],double cheb12[],double cheb24[])
 {
@@ -3104,9 +3105,11 @@ double G_K15I(dq_function_type f, double boun, int inf, double a, double b,
 }
 
 
+/*
+   originally and errorenously the second argument was declared folowing way: double(*w)()
+*/
 
-
-double G_K15W(dq_function_type f,double w(),double p1,double p2,double p3,
+double G_K15W(dq_function_type f,double (*w)(double, double, double, double, double, int),double p1,double p2,double p3,
     double p4,int kp,double a,double b,double *abserr,
     double *resabs,double *resasc, void* user_data)
 {
@@ -4082,10 +4085,6 @@ double dqng(dq_function_type f,double a,double b,double epsabs,
     return result;
 }
 
-
-#include <float.h>
-#include <math.h>
-#include "cquadpack.h"
 
 void dqsort(int limit,int last,int *maxerr,double *ermax,double elist[],
     int iord[],int *nrmax)
