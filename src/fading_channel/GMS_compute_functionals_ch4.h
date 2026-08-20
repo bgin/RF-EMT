@@ -78,6 +78,10 @@ struct alignas(64) quadpack_integrator_payload_t
     const std::string integrators_names[3] = {{"dqage"},{"dqagi"},{"dqags"}};
     double (*integrand)(double,void * __restrict__);
     func_args_payload_t * __restrict__ func_args_payload{nullptr};
+    double              * __restrict__ tmp_work{nullptr}; //work storage (caller provided) used mainly for the functional a1st rguments sorting.
+    double              * __restrict__ tmp_work2{nullptr};//work storage (caller provided) used mainly for the functional 2nd arguments sorting.
+    double              * __restrict__ tmp_work3{nullptr};//work storage (caller provided) used mainly for the functional 3rd arguments sorting.
+    double              * __restrict__ tmp_work4{nullptr};//work storage (caller provided) used mainly for the functional 4th arguments sorting.
     double              * __restrict__ lo{nullptr}; // lower limit of integration
     double              * __restrict__ hi{nullptr}; // upper limit of integration
     double              * __restrict__ bound{nullptr}; //optional finite bound on integral.
@@ -90,6 +94,7 @@ struct alignas(64) quadpack_integrator_payload_t
     std::int32_t        * __restrict__ neval{nullptr};      // number of evaluation
     std::int32_t        * __restrict__ ier{nullptr};        // integrator error indicator
     std::int32_t        * __restrict__ last{nullptr};
+    std::uint64_t       * __restrict__ crude_tsc_measurement{nullptr}; // crude RDTSCP measurement for approximate TSC assesment (shall not be used for the robust statistics)
     double                             rand_lo1{}; // set lower limit for random number generator
     double                             rand_hi1{}; // as above (1st argument pair)
     double                             rand_lo2{}; // set lower limit for random number generator
@@ -122,10 +127,13 @@ __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_gauss_Q_4_2(quadpack_integrator_payload_t * __restrict__);
 
+//double test_gauss_Q_4_2(double * );
+
 
 } // fading_channel
 
 } //gms
+
 
 
 #endif /*__GMS_COMPUTE_FUNCTIONALS_CH4_H__*/
