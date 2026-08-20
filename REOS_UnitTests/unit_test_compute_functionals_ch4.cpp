@@ -5,9 +5,9 @@
 
 /*
    icpc -o unit_test_compute_functionals_ch4 -fopenmp -O3 -fp-model fast=2 -fno-exceptions -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
-   GMS_config.h GMS_cephes_double.h GMS_integrands_func_ch4.h GMS_integrands_func_ch4.cpp GMS_cquadpack.h GMS_cquadpack.c GMS_compute_functionals_ch4.h GMS_compute_functionals_ch4.cpp unit_test_compute_functionals_ch4.cpp
+   GMS_config.h GMS_cephes_double.h GMS_integrands_func_ch4.h GMS_integrands_func_ch4.cpp GMS_cquadpack.h GMS_cquadpack.c GMS_machine_utils.h GMS_compute_functionals_ch4.h GMS_compute_functionals_ch4.cpp unit_test_compute_functionals_ch4.cpp
    ASM: 
-   icpc -S -O3 -fopenmp -fverbose-asm -masm=intel -fno-exceptions -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_cephes_double.h GMS_integrands_func_ch4.h GMS_integrands_func_ch4.cpp GMS_compute_functionals_ch4.h GMS_compute_functionals_ch4.cpp unit_test_compute_functionals_ch4.cpp
+   icpc -S -O3 -fopenmp -fverbose-asm -masm=intel -fno-exceptions -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_cephes_double.h GMS_integrands_func_ch4.h GMS_integrands_func_ch4.cpp GMS_machine_utils.h GMS_compute_functionals_ch4.h GMS_compute_functionals_ch4.cpp unit_test_compute_functionals_ch4.cpp
 
 */
 
@@ -62,6 +62,7 @@ void unit_test_compute_functional_4_1_gauss_Q()
     __ATTR_ALIGN__(16) std::int32_t neval[n_func_args];
     __ATTR_ALIGN__(16) std::int32_t ier[n_func_args];
     __ATTR_ALIGN__(16) std::int32_t last[n_func_args];
+    __ATTR_ALIGN__(16) std::uint64_t crude_tsc_results[n_func_args];
     double epsabs[1];
     double epsrel[1];
     std::int32_t inf[1];
@@ -87,6 +88,7 @@ void unit_test_compute_functional_4_1_gauss_Q()
     integrator_payload.neval = &neval[0];
     integrator_payload.ier = &ier[0];
     integrator_payload.last = &last[0];
+    integrator_payload.crude_tsc_measurement = &crude_tsc_results[0];
     integrator_payload.rand_lo1 = -4.0;
     integrator_payload.rand_hi1 = +4.0;
     integrator_payload.rand_lo2 = +5.0;
@@ -94,22 +96,28 @@ void unit_test_compute_functional_4_1_gauss_Q()
     integrator_payload.rand_lo3 = -4.0;
     integrator_payload.rand_hi3 = +10.0;
     integrator_payload.n_func_vals = n_func_args;
-    integrator_payload.which_integrator = 3;
+    //integrator_payload.which_integrator = 3;
+    std::int32_t k{0};
     gms::fading_channel::quadpack_integrator_payload_t * __restrict__ p_payload = &integrator_payload;
-    std::int32_t integrator_ret = gms::fading_channel::compute_functional_gauss_Q_4_1(p_payload);
-    if(p_payload->which_integrator==1)
-       print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[0].c_str());
-    else if(p_payload->which_integrator==2)
-       print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[1].c_str());
-    else if(p_payload->which_integrator==3)
-       print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[2].c_str());
-    for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
+    for(std::int32_t ii{0}; ii<3; ++ii)
     {
-        print_retv = print_double("Gauss-Q (f:4.1)",p_payload->functional[i],0);
-    }
-    for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
-    {
-        print_retv = std::printf("Iter=%d,abser=%.17f,neval=%d,ier=%d,last=%d\n",i,abser[i],neval[i],ier[i],last[i]);
+        ++k;
+        integrator_payload.which_integrator = k;
+        std::int32_t integrator_ret = gms::fading_channel::compute_functional_gauss_Q_4_1(p_payload);
+        if(p_payload->which_integrator==1)
+            print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[0].c_str());
+        else if(p_payload->which_integrator==2)
+            print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[1].c_str());
+        else if(p_payload->which_integrator==3)
+            print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[2].c_str());
+        for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
+        {
+            print_retv = print_double("Gauss-Q (f:4.1)",p_payload->functional[i],0);
+        }
+        for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
+        {
+            print_retv = std::printf("Iter=%d,abser=%.17f,neval=%d,ier=%d,last=%d,total_tsc=%llu\n",i,abser[i],neval[i],ier[i],last[i],crude_tsc_results[i]);
+        }
     }
     print_retv = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
@@ -125,6 +133,8 @@ void unit_test_compute_functional_4_2_gauss_Q()
     [[maybe_unused]] __ATTR_ALIGN__(64) gms::fading_channel::func_args_payload_t func_args[n_func_args]; // unused
     __ATTR_ALIGN__(16) double gauss_Q_functional[n_func_args];
     __ATTR_ALIGN__(16) double abser[n_func_args];
+    __ATTR_ALIGN__(16) double tmp_work[n_func_args];
+    __ATTR_ALIGN__(16) std::uint64_t crude_tsc_results[n_func_args];
     __ATTR_ALIGN__(16) std::int32_t neval[n_func_args];
     __ATTR_ALIGN__(16) std::int32_t ier[n_func_args];
     __ATTR_ALIGN__(16) std::int32_t last[n_func_args];
@@ -141,8 +151,9 @@ void unit_test_compute_functional_4_2_gauss_Q()
     gms::fading_channel::quadpack_integrator_payload_t integrator_payload;
     integrator_payload.integrand = &gms::fading_channel::integrand_4_2_gauss_Q_quad_iface;
     integrator_payload.func_args_payload = &func_args[0];
+    integrator_payload.tmp_work = &tmp_work[0];
     integrator_payload.inf   = &inf[0];
-     integrator_payload.irule = &irule[0];
+    integrator_payload.irule = &irule[0];
     integrator_payload.epsabs = &epsabs[0];
     integrator_payload.epsrel = &epsrel[0];
     integrator_payload.abser  = &abser[0];
@@ -150,18 +161,19 @@ void unit_test_compute_functional_4_2_gauss_Q()
     integrator_payload.neval = &neval[0];
     integrator_payload.ier = &ier[0];
     integrator_payload.last = &last[0];
-    integrator_payload.rand_lo1 = +0.1;
+    integrator_payload.crude_tsc_measurement = &crude_tsc_results[0];
+    integrator_payload.rand_lo1 = +0.0;
     integrator_payload.rand_hi1 = +1.570796326794896619231321692;
-    integrator_payload.rand_lo2 = +0.1;
-    integrator_payload.rand_hi2 = +10.0;
+    integrator_payload.rand_lo2 = +0.0;
+    integrator_payload.rand_hi2 = +5.0;
     integrator_payload.n_func_vals = n_func_args;
-    integrator_payload.which_integrator = 1;
+    integrator_payload.which_integrator = 3;
     gms::fading_channel::quadpack_integrator_payload_t * __restrict__ p_payload = &integrator_payload;
     std::int32_t integrator_ret = gms::fading_channel::compute_functional_gauss_Q_4_2(p_payload);
     if(p_payload->which_integrator==1)
        print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[0].c_str());
     else if(p_payload->which_integrator==2)
-       print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[1].c_str());
+       print_retv = std::printf("[UNIT-TEST:] -- 'DQAGI' Not-Supported!!\n");
     else if(p_payload->which_integrator==3)
        print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[2].c_str());
     for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
@@ -170,13 +182,14 @@ void unit_test_compute_functional_4_2_gauss_Q()
     }
     for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
     {
-        print_retv = std::printf("Iter=%d,abser=%.17f,neval=%d,ier=%d,last=%d\n",i,abser[i],neval[i],ier[i],last[i]);
+        print_retv = std::printf("Iter=%d,abser=%.17f,neval=%d,ier=%d,last=%d,total_tsc=%llu\n",i,abser[i],neval[i],ier[i],last[i],crude_tsc_results[i]);
     }
     print_retv = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
 int main()
 {
-    (void)unit_test_compute_functional_4_1_gauss_Q();
+   // (void)unit_test_compute_functional_4_1_gauss_Q();
+      (void)unit_test_compute_functional_4_2_gauss_Q();
     return 0;
 }
