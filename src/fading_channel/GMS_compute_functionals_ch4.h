@@ -78,7 +78,7 @@ struct alignas(64) quadpack_integrator_payload_t
     const std::string integrators_names[3] = {{"dqage"},{"dqagi"},{"dqags"}};
     double (*integrand)(double,void * __restrict__);
     func_args_payload_t * __restrict__ func_args_payload{nullptr};
-    double              * __restrict__ tmp_work{nullptr}; //work storage (caller provided) used mainly for the functional a1st rguments sorting.
+    double              * __restrict__ tmp_work1{nullptr}; //work storage (caller provided) used mainly for the functional a1st rguments sorting.
     double              * __restrict__ tmp_work2{nullptr};//work storage (caller provided) used mainly for the functional 2nd arguments sorting.
     double              * __restrict__ tmp_work3{nullptr};//work storage (caller provided) used mainly for the functional 3rd arguments sorting.
     double              * __restrict__ tmp_work4{nullptr};//work storage (caller provided) used mainly for the functional 4th arguments sorting.
@@ -103,6 +103,8 @@ struct alignas(64) quadpack_integrator_payload_t
     double                             rand_hi3{}; // as above (3rd argument pair)
     double                             rand_lo4{}; // set lower limit for random number generator
     double                             rand_hi4{}; // as above (4th argument pair)
+    double                             rand_lo5{}; // set lower limit for random number generator
+    double                             rand_hi5{}; // as above (5th argument pair)
     std::int32_t                       n_func_vals;
     std::int32_t                       which_integrator; //currently 1=dqage,2=dqagi,3=dqags
 };
@@ -127,7 +129,15 @@ __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_gauss_Q_4_2(quadpack_integrator_payload_t * __restrict__);
 
-//double test_gauss_Q_4_2(double * );
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+std::int32_t
+compute_functional_gauss_Q_4_6(quadpack_integrator_payload_t * __restrict__);
 
 
 } // fading_channel
