@@ -29,6 +29,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <cstdio>
+#include <cstdlib>
 #include "GMS_config.h"
 
 namespace file_info 
