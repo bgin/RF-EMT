@@ -149,6 +149,26 @@ __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_gauss_Q_4_7(quadpack_integrator_payload_t * __restrict__);
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+std::int32_t
+compute_functional_gauss_Q_4_8(quadpack_integrator_payload_t * __restrict__);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+std::int32_t
+compute_functional_marcum_Q_4_10(quadpack_integrator_payload_t * __restrict__);
+
 
 } // fading_channel
 
