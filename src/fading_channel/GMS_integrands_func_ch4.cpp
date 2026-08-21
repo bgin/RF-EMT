@@ -440,10 +440,10 @@ gms
 double 
 gms 
 ::fading_channel
-::integrand_4_10_marcum_Q_quad_iface(const double s,void * __restrict__ user_data)
+::integrand_4_10_marcum_Q_quad_iface(const double x,void * __restrict__ user_data)
 {
       func_args_payload_t * __restrict__ p_payload = reinterpret_cast<func_args_payload_t * __restrict__>(user_data);
-      double x               = p_payload->arg1;
+      double s               = p_payload->arg1;
       return (integrand_4_10_marcum_Q_func(x,s));
 }
 
