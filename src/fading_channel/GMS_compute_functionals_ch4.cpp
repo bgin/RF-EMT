@@ -165,6 +165,38 @@ gms
             p_crude_tsc_meter[i] = end-start;
         }
     }
+    else if(integrator_type==4)
+    {
+        thread_local std::uniform_real_distribution<double> rv_func_hi;
+        thread_local std::mt19937 rv_func_hi_gen;
+        thread_local std::uint64_t seed_func_hi{};
+        rv_func_lo = std::uniform_real_distribution<double>(rand_low1,rand_high1);
+        seed_func_lo = __rdtsc();
+        rv_func_lo_gen = std::mt19937(seed_func_lo);
+        rv_func_hi = std::uniform_real_distribution<double>(rand_low2,rand_high2);
+        seed_func_hi = __rdtsc();
+        rv_func_hi_gen = std::mt19937(seed_func_hi);
+        for(std::int32_t i{0}; i<nfunc_vals; ++i)
+        {
+            const double lo_limit{rv_func_lo.operator()(rv_func_lo_gen)};
+            p_lo[i] = lo_limit;
+            const double hi_limit{rv_func_hi.operator()(rv_func_hi_gen)};
+            p_hi[i] = hi_limit;
+        }
+        std::sort(&p_lo[0],&p_lo[nfunc_vals-1],std::greater<double>());
+        std::sort(&p_hi[0],&p_hi[nfunc_vals-1],std::less<double>());
+        for(std::int32_t i{0}; i<nfunc_vals; ++i) 
+        {   
+            const double a{p_lo[i]};
+            const double b{p_hi[i]};
+            const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+            const double result = dqng(p_integrand,a,b,p_epsabs[0],p_epsrel[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],nullptr);
+            const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+            p_functional[i] = result;
+            p_crude_tsc_meter[i] = end-start;
+        }
+    }
     return (0);
 }
 
@@ -232,6 +264,20 @@ gms
             p_funcs_args_payload[i].arg1 = cpy_x;
             const std::uint64_t start{gms::common::rdtsc_serialized_start()};
             const double result = dqags(p_integrand,rand_low1,rand_high1,p_epsabs[0],p_epsrel[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
+            const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+            p_functional[i] = 0.318309886183790671537767527*result;
+            p_crude_tsc_meter[i] = end-start;
+        }
+    }
+    else if(integrator_type==4)
+    {
+        for(std::int32_t i{0}; i<nfunc_vals; ++i) 
+        {   
+            const double cpy_x{p_tmp_work[i]};
+            p_funcs_args_payload[i].arg1 = cpy_x;
+            const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+            const double result = dqng(p_integrand,rand_low1,rand_high1,p_epsabs[0],p_epsrel[0],&p_abser[i],
                                         &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
             const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
             p_functional[i] = 0.318309886183790671537767527*result;
@@ -348,6 +394,32 @@ gms::fading_channel
                                         &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
             p_funcs_args_payload[i].arg5 = 2;
             const double result2 = dqags(p_integrand,0.0,phi_s,p_epsabs[0],p_epsrel[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
+            const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+            const double full_result1{0.159154943091895335768883763*result1};
+            const double full_result2{0.159154943091895335768883763*result2};
+            p_functional[i] = full_result1+full_result2;
+            p_crude_tsc_meter[i] = end-start;
+        }
+    }
+    else if(integrator_type==4)
+    {
+        for(std::int32_t i{0}; i<nfunc_vals; ++i) 
+        {
+            const double cpy_x1{p_tmp_work1[i]};
+            p_funcs_args_payload[i].arg1 = cpy_x1;
+            const double cpy_y1{p_tmp_work2[i]};
+            p_funcs_args_payload[i].arg2 = cpy_y1;
+            const double phi_arg{cpy_y1/cpy_x1};
+            const double cpy_rho{p_tmp_work3[i]};
+            p_funcs_args_payload[i].arg3 = cpy_rho;
+            const double phi_s{std::atan(phi_arg)};
+            p_funcs_args_payload[i].arg5 = 1;
+            const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+            const double result1 = dqng(p_integrand,0.0,(1.570796326794896619231321692-phi_s),p_epsabs[0],p_epsrel[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
+            p_funcs_args_payload[i].arg5 = 2;
+            const double result2 = dqng(p_integrand,0.0,phi_s,p_epsabs[0],p_epsrel[0],&p_abser[i],
                                         &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
             const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
             const double full_result1{0.159154943091895335768883763*result1};
@@ -503,4 +575,6 @@ gms::fading_channel
     }
     return (0);
 }
+
+
 
