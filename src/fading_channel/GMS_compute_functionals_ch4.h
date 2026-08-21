@@ -75,7 +75,7 @@ namespace fading_channel
 
 struct alignas(64) quadpack_integrator_payload_t 
 {
-    const std::string integrators_names[3] = {{"dqage"},{"dqagi"},{"dqags"}};
+    const std::string integrators_names[3] = {{"dqage"},{"dqagi"},{"dqags"},{"dqng"},{"dqagp"}};
     double (*integrand)(double,void * __restrict__);
     func_args_payload_t * __restrict__ func_args_payload{nullptr};
     double              * __restrict__ tmp_work1{nullptr}; //work storage (caller provided) used mainly for the functional a1st rguments sorting.
