@@ -1,0 +1,594 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <algorithm>
+#include <torch/torch.h>
+
+#include "internal/exceptions.h"
+#include "internal/rl/off_policy/ddpg.h"
+#include "internal/rl/setup.h"
+#include "torchfort.h"
+
+namespace torchfort {
+
+namespace rl {
+
+namespace off_policy {
+
+DDPGSystem::DDPGSystem(const char* name, const YAML::Node& system_node, int model_device, int rb_device)
+    : RLOffPolicySystem(model_device, rb_device) {
+
+  // get basic parameters first
+  auto algo_node = system_node["algorithm"];
+  if (algo_node["parameters"]) {
+    auto params = get_params(algo_node["parameters"]);
+    std::set<std::string> supported_params{
+        "batch_size", "nstep", "nstep_reward_reduction", "gamma", "rho", "normalize_states", "normalize_rewards"};
+    check_params(supported_params, params.keys());
+    batch_size_ = params.get_param<int>("batch_size")[0];
+    gamma_ = params.get_param<float>("gamma")[0];
+    rho_ = params.get_param<float>("rho")[0];
+    nstep_ = params.get_param<int>("nstep", 1)[0];
+    if (params.get_param<bool>("normalize_states", false)[0]) {
+      state_normalizer_ = std::make_unique<RunningNormalizer>();
+    }
+    if (params.get_param<bool>("normalize_rewards", false)[0]) {
+      reward_normalizer_ = std::make_unique<RunningNormalizer>(1e-8f, /* scale_only = */ true);
+    }
+    auto redmode = params.get_param<std::string>("nstep_reward_reduction", "sum")[0];
+    if (redmode == "sum") {
+      nstep_reward_reduction_ = RewardReductionMode::Sum;
+    } else if (redmode == "mean") {
+      nstep_reward_reduction_ = RewardReductionMode::Mean;
+    } else if (redmode == "weighted_mean") {
+      nstep_reward_reduction_ = RewardReductionMode::WeightedMean;
+    } else if (redmode == "sum_no_skip") {
+      nstep_reward_reduction_ = RewardReductionMode::SumNoSkip;
+    } else if (redmode == "mean_no_skip") {
+      nstep_reward_reduction_ = RewardReductionMode::MeanNoSkip;
+    } else if (redmode == "weighted_mean_no_skip") {
+      nstep_reward_reduction_ = RewardReductionMode::WeightedMeanNoSkip;
+    } else {
+      THROW_INVALID_USAGE("Unknown nstep_reward_reduction specified: " + redmode);
+    }
+  } else {
+    THROW_INVALID_USAGE("Missing parameters section in algorithm section in configuration file.");
+  }
+
+  if (system_node["actor"]) {
+    auto actor_node = system_node["actor"];
+    std::string noise_actor_type = sanitize(actor_node["type"].as<std::string>());
+    if (actor_node["parameters"]) {
+      auto params = get_params(actor_node["parameters"]);
+      std::set<std::string> supported_params{"a_low", "a_high", "clip",     "sigma_train",     "sigma_explore",
+                                             "xi",    "dt",     "adaptive", "noise_actor_type"};
+      check_params(supported_params, params.keys());
+      a_low_ = params.get_param<float>("a_low")[0];
+      a_high_ = params.get_param<float>("a_high")[0];
+      float clip = params.get_param<float>("clip")[0];
+      float sigma_train = params.get_param<float>("sigma_train")[0];
+      float sigma_explore = params.get_param<float>("sigma_explore")[0];
+      float mu = 0.f;
+      bool adaptive = params.get_param<bool>("adaptive", false)[0];
+
+      // we need to set up the noise actor type:
+      if (noise_actor_type == "space_noise") {
+        noise_actor_train_ = std::make_shared<ActionNoise<float>>(mu, sigma_train, clip, adaptive);
+        noise_actor_exploration_ = std::make_shared<ActionNoise<float>>(mu, sigma_explore, 0.f, adaptive);
+      } else if (noise_actor_type == "space_noise_ou") {
+        float dt = params.get_param<float>("dt")[0];
+        float xi = params.get_param<float>("xi", 0.)[0];
+        noise_actor_train_ = std::make_shared<ActionNoiseOU<float>>(mu, sigma_train, clip, dt, xi, adaptive);
+        noise_actor_exploration_ = std::make_shared<ActionNoiseOU<float>>(mu, sigma_explore, 0.f, dt, xi, adaptive);
+      } else if (noise_actor_type == "parameter_noise") {
+        noise_actor_train_ = std::make_shared<ParameterNoise<float>>(mu, sigma_train, clip, adaptive);
+        noise_actor_exploration_ = std::make_shared<ParameterNoise<float>>(mu, sigma_explore, 0.f, adaptive);
+      } else if (noise_actor_type == "parameter_noise_ou") {
+        float dt = params.get_param<float>("dt")[0];
+        float xi = params.get_param<float>("xi", 0.)[0];
+        noise_actor_train_ = std::make_shared<ParameterNoiseOU<float>>(mu, sigma_train, clip, dt, xi, adaptive);
+        noise_actor_exploration_ = std::make_shared<ParameterNoiseOU<float>>(mu, sigma_explore, 0.f, dt, xi, adaptive);
+      } else {
+        THROW_INVALID_USAGE(noise_actor_type);
+      }
+    } else {
+      THROW_INVALID_USAGE("Missing parameters section in actor section in configuration file.");
+    }
+  } else {
+    THROW_INVALID_USAGE("Missing actor section in configuration file.");
+  }
+
+  if (system_node["replay_buffer"]) {
+    replay_buffer_ =
+        rl::get_replay_buffer(system_node["replay_buffer"], gamma_, nstep_, nstep_reward_reduction_, rb_device);
+  } else {
+    THROW_INVALID_USAGE("Missing replay_buffer section in configuration file.");
+  }
+
+  // general section
+  // get value model hook
+  if (system_node["critic_model"]) {
+    q_model_.model = get_model(system_node["critic_model"]);
+    q_model_.model->to(model_device_);
+    q_model_target_.model = get_model(system_node["critic_model"]);
+    q_model_target_.model->to(model_device_);
+    // change weights for models
+    init_parameters(q_model_.model);
+    // copy new parameters
+    copy_parameters(q_model_target_.model, q_model_.model);
+    // freeze weights for target
+    set_grad_state(q_model_target_.model, false);
+    // set state
+    std::string qname = "critic";
+    q_model_.state = get_state(qname.c_str(), system_node);
+    qname = "critic_target";
+    q_model_target_.state = get_state(qname.c_str(), system_node);
+  } else {
+    THROW_INVALID_USAGE("Missing critic_model block in configuration file.");
+  }
+
+  // get policy model hook
+  if (system_node["policy_model"]) {
+    p_model_.model = get_model(system_node["policy_model"]);
+    p_model_.model->to(model_device_);
+    p_model_target_.model = get_model(system_node["policy_model"]);
+    p_model_target_.model->to(model_device_);
+    // copy parameters
+    copy_parameters(p_model_target_.model, p_model_.model);
+    // freeze weights
+    set_grad_state(p_model_target_.model, false);
+    // set state:
+    p_model_.state = get_state("actor", system_node);
+    p_model_target_.state = get_state("actor_target", system_node);
+  } else {
+    THROW_INVALID_USAGE("Missing policy_model block in configuration file.");
+  }
+
+  // get optimizers
+  if (system_node["optimizer"]) {
+    // policy model
+    p_model_.optimizer = get_optimizer(system_node["optimizer"], p_model_.model);
+    // value model
+    q_model_.optimizer = get_optimizer(system_node["optimizer"], q_model_.model);
+  } else {
+    THROW_INVALID_USAGE("Missing optimizer block in configuration file.");
+  }
+
+  if (system_node["optimizer"]["general"]) {
+    auto params = get_params(system_node["optimizer"]["general"]);
+    std::set<std::string> supported_params{"grad_accumulation_steps", "max_grad_norm"};
+    check_params(supported_params, params.keys());
+    try {
+      p_model_.grad_accumulation_steps = params.get_param<int>("grad_accumulation_steps")[0];
+      q_model_.grad_accumulation_steps = params.get_param<int>("grad_accumulation_steps")[0];
+    } catch (std::out_of_range) {
+      // default
+    }
+
+    try {
+      p_model_.max_grad_norm = params.get_param<float>("max_grad_norm")[0];
+      q_model_.max_grad_norm = params.get_param<float>("max_grad_norm")[0];
+    } catch (std::out_of_range) {
+      // default
+    }
+  }
+
+  // get schedulers
+  // policy model
+  if (system_node["policy_lr_scheduler"]) {
+    p_model_.lr_scheduler = get_lr_scheduler(system_node["policy_lr_scheduler"], p_model_.optimizer);
+  } else {
+    THROW_INVALID_USAGE("Missing policy_lr_scheduler block in configuration file.");
+  }
+  // critic models
+  if (system_node["critic_lr_scheduler"]) {
+    q_model_.lr_scheduler = get_lr_scheduler(system_node["critic_lr_scheduler"], q_model_.optimizer);
+  } else {
+    THROW_INVALID_USAGE("Missing critic_lr_scheduler block in configuration file.");
+  }
+
+  // Setting up general options
+  system_state_ = get_state(name, system_node);
+
+  // print settings if requested
+  if (system_state_->verbose) {
+    printInfo();
+  }
+
+  return;
+}
+
+void DDPGSystem::printInfo() const {
+  std::cout << "DDPG parameters:" << std::endl;
+  std::cout << "batch_size = " << batch_size_ << std::endl;
+  std::cout << "nstep = " << nstep_ << std::endl;
+  std::cout << "reward_nstep_mode = " << nstep_reward_reduction_ << std::endl;
+  std::cout << "gamma = " << gamma_ << std::endl;
+  std::cout << "rho = " << rho_ << std::endl;
+  std::cout << "a_low = " << a_low_ << std::endl;
+  std::cout << "a_high = " << a_high_ << std::endl << std::endl;
+  std::cout << "training noise:" << std::endl;
+  noise_actor_train_->printInfo();
+  std::cout << "exploration noise:" << std::endl;
+  noise_actor_exploration_->printInfo();
+  std::cout << std::endl;
+  std::cout << "replay buffer:" << std::endl;
+  replay_buffer_->printInfo();
+  return;
+}
+
+torch::Device DDPGSystem::modelDevice() const { return model_device_; }
+
+torch::Device DDPGSystem::rbDevice() const { return rb_device_; }
+
+int DDPGSystem::getRank() const {
+  if (!system_comm_) {
+    return 0;
+  } else {
+    return system_comm_->rank;
+  }
+}
+
+void DDPGSystem::initSystemComm(MPI_Comm mpi_comm) {
+  // Set up distributed communicators for all models
+  // system
+  system_comm_ = std::make_shared<Comm>(mpi_comm, model_device_);
+  system_comm_->initialize();
+  // policy
+  p_model_.comm = std::make_shared<Comm>(mpi_comm, model_device_);
+  p_model_.comm->initialize();
+  p_model_target_.comm = std::make_shared<Comm>(mpi_comm, model_device_);
+  p_model_target_.comm->initialize();
+  // critic
+  q_model_.comm = std::make_shared<Comm>(mpi_comm, model_device_);
+  q_model_.comm->initialize();
+  q_model_target_.comm = std::make_shared<Comm>(mpi_comm, model_device_);
+  q_model_target_.comm->initialize();
+
+  // move to device before broadcasting
+  // policy
+  p_model_.model->to(model_device_);
+  p_model_target_.model->to(model_device_);
+  // critic
+  q_model_.model->to(model_device_);
+  q_model_target_.model->to(model_device_);
+
+  // Broadcast initial model parameters from rank 0
+  // policy
+  for (auto& p : p_model_.model->parameters()) {
+    p_model_.comm->broadcast(p, 0);
+  }
+  for (auto& p : p_model_target_.model->parameters()) {
+    p_model_target_.comm->broadcast(p, 0);
+  }
+  // critic
+  for (auto& p : q_model_.model->parameters()) {
+    q_model_.comm->broadcast(p, 0);
+  }
+  for (auto& p : q_model_target_.model->parameters()) {
+    q_model_target_.comm->broadcast(p, 0);
+  }
+}
+
+// Save checkpoint
+void DDPGSystem::saveCheckpoint(const std::string& checkpoint_dir) const {
+  using namespace torchfort;
+  std::filesystem::path root_dir(checkpoint_dir);
+
+  if (!std::filesystem::exists(root_dir)) {
+    bool rv = std::filesystem::create_directory(root_dir);
+    if (!rv) {
+      THROW_INVALID_USAGE("Could not create checkpoint directory " + root_dir.native() + ".");
+    }
+  }
+
+  // policy
+  save_model_pack(p_model_, root_dir / "policy", true);
+
+  // policy target
+  save_model_pack(p_model_target_, root_dir / "policy_target", false);
+
+  // critic
+  save_model_pack(q_model_, root_dir / "critic", true);
+
+  // critic target
+  save_model_pack(q_model_target_, root_dir / "critic_target", false);
+
+  // system state
+  {
+    auto state_path = root_dir / "state.pt";
+    system_state_->save(state_path.native());
+  }
+
+  // state normalizer
+  if (state_normalizer_) {
+    auto normalizer_path = root_dir / "state_normalizer.pt";
+    state_normalizer_->save(normalizer_path.native());
+  }
+
+  // reward normalizer
+  if (reward_normalizer_) {
+    auto normalizer_path = root_dir / "reward_normalizer.pt";
+    reward_normalizer_->save(normalizer_path.native());
+  }
+
+  // lastly, save the replay buffer:
+  {
+    auto buffer_path = root_dir / "replay_buffer";
+    replay_buffer_->save(buffer_path);
+  }
+}
+
+void DDPGSystem::loadCheckpoint(const std::string& checkpoint_dir) {
+  using namespace torchfort;
+  std::filesystem::path root_dir(checkpoint_dir);
+
+  // policy
+  load_model_pack(p_model_, root_dir / "policy", true);
+
+  // policy target
+  load_model_pack(p_model_target_, root_dir / "policy_target", false);
+
+  // critic
+  load_model_pack(q_model_, root_dir / "critic", true);
+
+  // critic target
+  load_model_pack(q_model_target_, root_dir / "critic_target", false);
+
+  // system state
+  {
+    auto state_path = root_dir / "state.pt";
+    if (!std::filesystem::exists(state_path)) {
+      THROW_INVALID_USAGE("Could not find " + state_path.native() + ".");
+    }
+    system_state_->load(state_path.native());
+  }
+
+  // state normalizer
+  if (state_normalizer_) {
+    auto normalizer_path = root_dir / "state_normalizer.pt";
+    if (!std::filesystem::exists(normalizer_path)) {
+      torchfort::logging::print("DDPG: state normalizer is enabled but no saved state was found in the checkpoint. "
+                                "Starting with empty statistics.",
+                                torchfort::logging::warn);
+    } else {
+      state_normalizer_->load(normalizer_path.native());
+    }
+  }
+
+  // reward normalizer
+  if (reward_normalizer_) {
+    auto normalizer_path = root_dir / "reward_normalizer.pt";
+    if (!std::filesystem::exists(normalizer_path)) {
+      torchfort::logging::print("DDPG: reward normalizer is enabled but no saved state was found in the checkpoint. "
+                                "Starting with empty statistics.",
+                                torchfort::logging::warn);
+    } else {
+      reward_normalizer_->load(normalizer_path.native());
+    }
+  }
+
+  // lastly, load the replay buffer:
+  {
+    auto buffer_path = root_dir / "replay_buffer";
+    if (!std::filesystem::exists(buffer_path)) {
+      THROW_INVALID_USAGE("Could not find " + buffer_path.native() + ".");
+    }
+    replay_buffer_->load(buffer_path);
+  }
+}
+
+// loading only the network weights (e.g. for fine-tuning / transfer learning):
+// this restores the online policy and critic weights from a checkpoint directory, but
+// leaves optimizers, LR schedulers, replay buffer, normalizers and step counters untouched.
+void DDPGSystem::loadModel(const std::string& checkpoint_dir) {
+  using namespace torchfort;
+  std::filesystem::path root_dir(checkpoint_dir);
+
+  // load only the model weights (model.pt) of a model pack, reconnecting the optimizer
+  // to the (possibly newly allocated) model parameters afterwards.
+  auto load_weights = [](auto& model_pack, const std::filesystem::path& dir) {
+    auto model_path = dir / "model.pt";
+    if (!std::filesystem::exists(model_path)) {
+      THROW_INVALID_USAGE("Could not find " + model_path.native() + ".");
+    }
+    model_pack.model->load(model_path.native());
+    if (model_pack.optimizer) {
+      reset_optimizer_parameters(model_pack.optimizer, model_pack.model->parameters());
+    }
+  };
+
+  // online policy and critic
+  load_weights(p_model_, root_dir / "policy");
+  load_weights(q_model_, root_dir / "critic");
+
+  // initialize the target networks from the freshly loaded online networks; the saved
+  // target weights are an artifact of the previous run and are intentionally ignored.
+  copy_parameters(p_model_target_.model, p_model_.model);
+  copy_parameters(q_model_target_.model, q_model_.model);
+}
+
+// we should pass a tuple (s, a, s', r, d)
+void DDPGSystem::updateReplayBuffer(torch::Tensor s, torch::Tensor a, torch::Tensor sp, torch::Tensor r,
+                                    torch::Tensor d) {
+  if (state_normalizer_)
+    state_normalizer_->update(s);
+  if (reward_normalizer_)
+    reward_normalizer_->update(r.unsqueeze(1));
+  replay_buffer_->update(s, a, sp, r, d);
+}
+
+void DDPGSystem::updateReplayBuffer(torch::Tensor s, torch::Tensor a, torch::Tensor sp, float r, bool d) {
+  auto options = torch::TensorOptions().dtype(torch::kFloat32).device(rb_device_);
+  torch::Tensor stensu = torch::unsqueeze(s, 0);
+  torch::Tensor atensu = torch::unsqueeze(a, 0);
+  torch::Tensor sptensu = torch::unsqueeze(sp, 0);
+  torch::Tensor rtensu = torch::tensor({r}, options);
+  torch::Tensor dtensu = torch::tensor({d ? 1. : 0.}, options);
+
+  DDPGSystem::updateReplayBuffer(stensu, atensu, sptensu, rtensu, dtensu);
+}
+
+void DDPGSystem::setSeed(unsigned int seed) { replay_buffer_->setSeed(seed); }
+
+bool DDPGSystem::isReady() { return (replay_buffer_->isReady()); }
+
+std::shared_ptr<ModelState> DDPGSystem::getSystemState_() { return system_state_; }
+
+std::shared_ptr<Comm> DDPGSystem::getSystemComm_() { return system_comm_; }
+
+torch::Tensor DDPGSystem::predictWithNoiseTrain_(torch::Tensor state) {
+  // no grad guard
+  torch::NoGradGuard no_grad;
+
+  // prepare inputs (state is already on model_device_ and already normalized by trainStep)
+  p_model_target_.model->to(model_device_);
+  p_model_target_.model->eval();
+  state = state.to(model_device_);
+
+  // get noisy prediction
+  auto action = (*noise_actor_train_)(p_model_target_, state);
+
+  // clip action
+  action = torch::clamp(action, a_low_, a_high_);
+  return action;
+}
+
+// do exploration step without knowledge about the state
+// for example, apply random action
+torch::Tensor DDPGSystem::explore(torch::Tensor action) {
+  // no grad guard
+  torch::NoGradGuard no_grad;
+
+  // create new empty tensor:
+  auto result = torch::empty_like(action).uniform_(a_low_, a_high_);
+
+  return result;
+}
+
+torch::Tensor DDPGSystem::predict(torch::Tensor state) {
+  // no grad guard
+  torch::NoGradGuard no_grad;
+
+  // prepare inputs
+  p_model_.model->to(model_device_);
+  p_model_.model->eval();
+  state = state.to(model_device_);
+  if (state_normalizer_ && state_normalizer_->isInitialized())
+    state = state_normalizer_->normalize(state);
+
+  // do fwd pass
+  auto action = (p_model_.model)->forward(std::vector<torch::Tensor>{state})[0];
+
+  // clip action
+  action = torch::clamp(action, a_low_, a_high_);
+
+  return action;
+}
+
+torch::Tensor DDPGSystem::predictExplore(torch::Tensor state) {
+  // no grad guard
+  torch::NoGradGuard no_grad;
+
+  // prepare inputs
+  p_model_.model->to(model_device_);
+  p_model_.model->eval();
+  state = state.to(model_device_);
+  if (state_normalizer_ && state_normalizer_->isInitialized())
+    state = state_normalizer_->normalize(state);
+
+  // do fwd pass
+  auto action = (*noise_actor_exploration_)(p_model_, state);
+
+  // clip action
+  action = torch::clamp(action, a_low_, a_high_);
+
+  return action;
+}
+
+torch::Tensor DDPGSystem::evaluate(torch::Tensor state, torch::Tensor action) {
+  // no grad guard
+  torch::NoGradGuard no_grad;
+
+  // prepare inputs
+  q_model_.model->to(model_device_);
+  q_model_.model->eval();
+  state = state.to(model_device_);
+  action = action.to(model_device_);
+  if (state_normalizer_ && state_normalizer_->isInitialized())
+    state = state_normalizer_->normalize(state);
+
+  // do fwd pass
+  torch::Tensor reward = (q_model_.model)->forward(std::vector<torch::Tensor>{state, action})[0];
+
+  // squeeze
+  reward = torch::squeeze(reward, 1);
+
+  return reward;
+}
+
+void DDPGSystem::trainStep(float& p_loss_val, float& q_loss_val) {
+  // increment train step counter first, this avoids an initial policy update at start
+  train_step_count_++;
+
+  // get samples from replay buffer
+  torch::Tensor s, a, ap, sp, r, d, is_weights, sample_indices;
+  {
+    torch::NoGradGuard no_grad;
+
+    // get a sample from the replay buffer
+    std::tie(s, a, sp, r, d, is_weights, sample_indices) = replay_buffer_->sample(batch_size_);
+
+    // upload to device
+    s = s.to(model_device_);
+    a = a.to(model_device_);
+    sp = sp.to(model_device_);
+    r = r.to(model_device_);
+    d = d.to(model_device_);
+    is_weights = is_weights.to(model_device_);
+
+    // sync and apply state normalization
+    if (state_normalizer_) {
+      state_normalizer_->sync(p_model_.comm);
+      s = state_normalizer_->normalize(s);
+      sp = state_normalizer_->normalize(sp);
+    }
+
+    // sync and apply reward normalization
+    if (reward_normalizer_) {
+      reward_normalizer_->sync(p_model_.comm);
+      r = reward_normalizer_->normalize(r.unsqueeze(1)).squeeze(1);
+    }
+
+    // get a new action by predicting one with target network
+    ap = predictWithNoiseTrain_(sp);
+  }
+
+  // train step
+  torch::Tensor td_errors;
+  train_ddpg(p_model_, p_model_target_, q_model_, q_model_target_, s, sp, a, ap, r, d, is_weights,
+             static_cast<float>(std::pow(gamma_, nstep_)), rho_, td_errors, p_loss_val, q_loss_val);
+
+  // update priorities (no-op for uniform buffer)
+  replay_buffer_->update_priorities(sample_indices, td_errors);
+}
+
+} // namespace off_policy
+
+} // namespace rl
+
+} // namespace torchfort

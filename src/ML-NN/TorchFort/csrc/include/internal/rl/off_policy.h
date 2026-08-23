@@ -1,0 +1,266 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 2023-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#pragma once
+#include <unordered_map>
+
+#include <yaml-cpp/yaml.h>
+
+#ifdef ENABLE_GPU
+#include <cuda_runtime.h>
+
+#include <c10/cuda/CUDAGuard.h>
+#include <c10/cuda/CUDAStream.h>
+#endif
+#include <torch/torch.h>
+
+#include "internal/defines.h"
+#include "internal/logging.h"
+#include "internal/utils.h"
+
+namespace torchfort {
+
+namespace rl {
+
+namespace off_policy {
+
+// generic training system
+class RLOffPolicySystem {
+  template <typename T> friend void wandb_log_system(const char*, const char*, int64_t, T);
+
+public:
+  // disable copy constructor
+  RLOffPolicySystem(const RLOffPolicySystem&) = delete;
+
+  // empty constructor:
+  RLOffPolicySystem(int model_device, int rb_device);
+
+  // some important functions which have to be implemented by the base class
+  // single env
+  virtual void updateReplayBuffer(torch::Tensor, torch::Tensor, torch::Tensor, float, bool) = 0;
+  // multi env
+  virtual void updateReplayBuffer(torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor, torch::Tensor) = 0;
+  virtual void setSeed(unsigned int seed) = 0;
+  virtual bool isReady() = 0;
+
+  // these have to be implemented
+  virtual torch::Tensor explore(torch::Tensor) = 0;
+  virtual torch::Tensor predict(torch::Tensor) = 0;
+  virtual torch::Tensor predictExplore(torch::Tensor) = 0;
+  virtual torch::Tensor evaluate(torch::Tensor, torch::Tensor) = 0;
+  virtual void trainStep(float&, float&) = 0;
+  virtual void printInfo() const = 0;
+  virtual void initSystemComm(MPI_Comm mpi_comm) = 0;
+  virtual void saveCheckpoint(const std::string& checkpoint_dir) const = 0;
+  virtual void loadCheckpoint(const std::string& checkpoint_dir) = 0;
+  // load only the network weights (e.g. for fine-tuning), leaving optimizers,
+  // LR schedulers, replay buffer and step counters in their freshly created state
+  virtual void loadModel(const std::string& checkpoint_dir) = 0;
+  virtual torch::Device modelDevice() const = 0;
+  virtual torch::Device rbDevice() const = 0;
+  virtual int getRank() const = 0;
+
+protected:
+  virtual std::shared_ptr<ModelState> getSystemState_() = 0;
+  virtual std::shared_ptr<Comm> getSystemComm_() = 0;
+  size_t train_step_count_;
+  torch::Device model_device_, rb_device_;
+};
+
+// Declaration of external global variables
+extern std::unordered_map<std::string, std::shared_ptr<RLOffPolicySystem>> registry;
+
+// some convenience wrappers
+template <MemoryLayout L, typename T>
+static void update_replay_buffer(const char* name, T* state_old, T* state_new, size_t state_dim, int64_t* state_shape,
+                                 T* action_old, size_t action_dim, int64_t* action_shape, T reward, bool final_state,
+                                 cudaStream_t ext_stream) {
+
+  // no grad
+  torch::NoGradGuard no_grad;
+
+#ifdef ENABLE_GPU
+  auto rb_device = registry[name]->rbDevice();
+  c10::cuda::OptionalCUDAStreamGuard stream_guard;
+  c10::cuda::OptionalCUDAGuard cuda_guard;
+  set_device_and_stream(stream_guard, cuda_guard, rb_device, ext_stream);
+#endif
+
+  // get tensors and copy:
+  auto state_old_tensor = get_tensor<L>(state_old, state_dim, state_shape)
+                              .to(torch::kFloat32, /* non_blocking = */ false, /* copy = */ true);
+  auto state_new_tensor = get_tensor<L>(state_new, state_dim, state_shape)
+                              .to(torch::kFloat32, /* non_blocking = */ false, /* copy = */ true);
+  auto action_old_tensor = get_tensor<L>(action_old, action_dim, action_shape)
+                               .to(torch::kFloat32, /* non_blocking = */ false, /* copy = */ true);
+
+  registry[name]->updateReplayBuffer(state_old_tensor, action_old_tensor, state_new_tensor, static_cast<float>(reward),
+                                     final_state);
+  return;
+}
+
+template <MemoryLayout L, typename T>
+static void update_replay_buffer(const char* name, T* state_old, T* state_new, size_t state_dim, int64_t* state_shape,
+                                 T* action_old, size_t action_dim, int64_t* action_shape, T* reward, size_t reward_dim,
+                                 int64_t* reward_shape, T* final_state, size_t final_state_dim,
+                                 int64_t* final_state_shape, cudaStream_t ext_stream) {
+
+  // no grad
+  torch::NoGradGuard no_grad;
+
+#ifdef ENABLE_GPU
+  auto rb_device = registry[name]->rbDevice();
+  c10::cuda::OptionalCUDAStreamGuard stream_guard;
+  c10::cuda::OptionalCUDAGuard cuda_guard;
+  set_device_and_stream(stream_guard, cuda_guard, rb_device, ext_stream);
+#endif
+
+  // get tensors and copy:
+  auto state_old_tensor = get_tensor<L>(state_old, state_dim, state_shape)
+                              .to(torch::kFloat32, /* non_blocking = */ false, /* copy = */ true);
+  auto state_new_tensor = get_tensor<L>(state_new, state_dim, state_shape)
+                              .to(torch::kFloat32, /* non_blocking = */ false, /* copy = */ true);
+  auto action_old_tensor = get_tensor<L>(action_old, action_dim, action_shape)
+                               .to(torch::kFloat32, /* non_blocking = */ false, /* copy = */ true);
+  auto reward_tensor = get_tensor<L>(reward, reward_dim, reward_shape)
+                           .to(torch::kFloat32, /* non_blocking = */ false, /* copy = */ true);
+  auto final_state_tensor = get_tensor<L>(final_state, final_state_dim, final_state_shape)
+                                .to(torch::kFloat32, /* non_blocking = */ false, /* copy = */ true);
+
+  registry[name]->updateReplayBuffer(state_old_tensor, action_old_tensor, state_new_tensor, reward_tensor,
+                                     final_state_tensor);
+  return;
+}
+
+template <MemoryLayout L, typename T>
+static void predict_explore(const char* name, T* state, size_t state_dim, int64_t* state_shape, T* action,
+                            size_t action_dim, int64_t* action_shape, cudaStream_t ext_stream) {
+
+#ifdef ENABLE_GPU
+  // device and stream handling
+  auto model_device = registry[name]->modelDevice();
+  c10::cuda::OptionalCUDAStreamGuard stream_guard;
+  c10::cuda::OptionalCUDAGuard cuda_guard;
+  set_device_and_stream(stream_guard, cuda_guard, model_device, ext_stream);
+#endif
+
+  // create tensors
+  auto state_tensor =
+      get_tensor<L>(state, state_dim, state_shape).to(torch::kFloat32, /* non_blocking = */ false, /* copy = */ true);
+  auto action_tensor = get_tensor<L>(action, action_dim, action_shape);
+
+  // expand dims if tensors are 1D
+  if (state_tensor.dim() == 1) {
+    state_tensor = state_tensor.unsqueeze(0);
+  }
+
+  // fwd pass
+  auto tmpaction = registry[name]->predictExplore(state_tensor).to(action_tensor.dtype());
+
+  // flatten output if necessary
+  if (action_tensor.dim() == 1) {
+    tmpaction = tmpaction.squeeze(0);
+  }
+
+  // copy into output tensor
+  action_tensor.copy_(tmpaction);
+
+  return;
+}
+
+template <MemoryLayout L, typename T>
+static void predict(const char* name, T* state, size_t state_dim, int64_t* state_shape, T* action, size_t action_dim,
+                    int64_t* action_shape, cudaStream_t ext_stream) {
+
+#ifdef ENABLE_GPU
+  // device and stream handling
+  auto model_device = registry[name]->modelDevice();
+  c10::cuda::OptionalCUDAStreamGuard stream_guard;
+  c10::cuda::OptionalCUDAGuard cuda_guard;
+  set_device_and_stream(stream_guard, cuda_guard, model_device, ext_stream);
+#endif
+
+  // create tensors
+  auto state_tensor =
+      get_tensor<L>(state, state_dim, state_shape).to(torch::kFloat32, /* non_blocking = */ false, /* copy = */ true);
+  auto action_tensor = get_tensor<L>(action, action_dim, action_shape);
+
+  // expand dims if tensors are 1D
+  if (state_tensor.dim() == 1) {
+    state_tensor = state_tensor.unsqueeze(0);
+  }
+
+  // fwd pass
+  auto tmpaction = registry[name]->predict(state_tensor).to(action_tensor.dtype());
+
+  // flatten output if necessary
+  if (action_tensor.dim() == 1) {
+    tmpaction = tmpaction.squeeze(0);
+  }
+
+  action_tensor.copy_(tmpaction);
+
+  return;
+}
+
+template <MemoryLayout L, typename T>
+static void policy_evaluate(const char* name, T* state, size_t state_dim, int64_t* state_shape, T* action,
+                            size_t action_dim, int64_t* action_shape, T* reward, size_t reward_dim,
+                            int64_t* reward_shape, cudaStream_t ext_stream) {
+
+#ifdef ENABLE_GPU
+  // device and stream handling
+  auto model_device = registry[name]->modelDevice();
+  c10::cuda::OptionalCUDAStreamGuard stream_guard;
+  c10::cuda::OptionalCUDAGuard cuda_guard;
+  set_device_and_stream(stream_guard, cuda_guard, model_device, ext_stream);
+#endif
+
+  // create tensors
+  auto state_tensor =
+      get_tensor<L>(state, state_dim, state_shape).to(torch::kFloat32, /* non_blocking = */ false, /* copy = */ true);
+  auto action_tensor = get_tensor<L>(action, action_dim, action_shape)
+                           .to(torch::kFloat32, /* non_blocking = */ false, /* copy = */ true);
+  auto reward_tensor = get_tensor<L>(reward, reward_dim, reward_shape);
+
+  // expand inputs if necessary
+  if (state_tensor.dim() == 1) {
+    state_tensor = state_tensor.unsqueeze(0);
+  }
+
+  if (action_tensor.dim() == 1) {
+    action_tensor = action_tensor.unsqueeze(0);
+  }
+
+  // fwd pass
+  torch::Tensor tmpreward = registry[name]->evaluate(state_tensor, action_tensor).to(reward_tensor.dtype());
+  reward_tensor.copy_(tmpreward);
+
+  return;
+}
+
+// logging helpers
+template <typename T> void wandb_log_system(const char* name, const char* metric_name, int64_t step, T value) {
+  auto system = registry[name];
+
+  wandb_log(system->getSystemState_(), system->getSystemComm_(), name, metric_name, step, value);
+}
+
+} // namespace off_policy
+
+} // namespace rl
+} // namespace torchfort
