@@ -813,3 +813,105 @@ gms::fading_channel
     return (0);
 }
 
+std::int32_t 
+gms::fading_channel
+::compute_functional_marcum_Q_4_16(quadpack_integrator_payload_t * __restrict__ p_payload)
+{
+    if(__builtin_expect(nullptr==p_payload,0)) { return (-1);}
+    double (*p_integrand)(const double,void * __restrict__)  = p_payload->integrand;
+    func_args_payload_t  * __restrict__ p_funcs_args_payload = p_payload->func_args_payload;
+    double       * __restrict__ p_tmp_work1                  = p_payload->tmp_work1;
+    double       * __restrict__ p_tmp_work2                  = p_payload->tmp_work2;
+    std::int32_t * __restrict__ p_inf                        = p_payload->inf;
+    std::int32_t * __restrict__ p_irule                      = p_payload->irule;
+    double  *  __restrict__     p_epsabs                     = p_payload->epsabs;
+    double  *  __restrict__     p_epsrel                     = p_payload->epsrel;
+    double  *  __restrict__     p_abser                      = p_payload->abser;
+    double  *  __restrict__     p_functional                 = p_payload->functional;
+    std::int32_t * __restrict__ p_neval                      = p_payload->neval;
+    std::int32_t * __restrict__ p_ier                        = p_payload->ier;
+    std::int32_t * __restrict__ p_last                       = p_payload->last;
+    std::uint64_t * __restrict__ p_crude_tsc_meter           = p_payload->crude_tsc_measurement;
+    double                      rand_low1                    = p_payload->rand_lo1;
+    double                      rand_high1                   = p_payload->rand_hi1;
+    double                      rand_low2                    = p_payload->rand_lo2;
+    double                      rand_high2                   = p_payload->rand_hi2;
+    const std::int32_t          nfunc_vals                   = p_payload->n_func_vals;
+    const std::int32_t          integrator_type              = p_payload->which_integrator;
+    thread_local std::uniform_real_distribution<double> rv_func_psi;
+    thread_local std::mt19937 rv_func_psi_gen;
+    thread_local std::uint64_t seed_func_psi{};
+    thread_local std::uniform_real_distribution<double> rv_func_beta;
+    thread_local std::mt19937 rv_func_beta_gen;
+    thread_local std::uint64_t seed_func_beta{};
+    rv_func_psi = std::uniform_real_distribution<double>(rand_low1,rand_high1);
+    seed_func_psi = __rdtsc();
+    rv_func_psi_gen = std::mt19937(seed_func_psi);
+    rv_func_beta = std::uniform_real_distribution<double>(rand_low2,rand_high2);
+    seed_func_beta = __rdtsc();
+    rv_func_beta_gen = std::mt19937(seed_func_beta);
+    for(std::int32_t i{0}; i<nfunc_vals; ++i)
+    {
+        const double val_psi{rv_func_psi.operator()(rv_func_psi_gen)};
+        p_tmp_work1[i] = val_psi;
+        const double val_beta{rv_func_beta.operator()(rv_func_beta_gen)};
+        p_tmp_work2[i] = val_beta;
+
+    }
+    std::sort(&p_tmp_work1[0],&p_tmp_work1[nfunc_vals-1],std::less<double>());// psi
+    std::sort(&p_tmp_work2[0],&p_tmp_work2[nfunc_vals-1],std::less<double>());// beta
+    if(integrator_type==1)
+    {
+        for(std::int32_t i{0}; i<nfunc_vals; ++i)
+        {
+            const double cpy_psi{p_tmp_work1[i]};
+            p_funcs_args_payload[i].arg2 = cpy_psi;
+            const double cpy_beta{p_tmp_work2[i]};
+            p_funcs_args_payload[i].arg1 = cpy_beta;
+            const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+            const double result = dqage(p_integrand,-3.141592653589793238462643383,+3.141592653589793238462643383,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_last[i],&p_funcs_args_payload[i]);
+            const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+            p_functional[i] = 0.159154943091895335768883763*result;
+            p_crude_tsc_meter[i] = end-start;
+        }
+    }
+    else if(integrator_type==2)
+    {
+        return (-2);
+    }
+    else if(integrator_type==3)
+    {
+        for(std::int32_t i{0}; i<nfunc_vals; ++i) 
+        {
+            const double cpy_psi{p_tmp_work1[i]};
+            p_funcs_args_payload[i].arg2 = cpy_psi;
+            const double cpy_beta{p_tmp_work2[i]};
+            p_funcs_args_payload[i].arg1 = cpy_beta;
+            const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+            const double result = dqags(p_integrand,-3.141592653589793238462643383,+3.141592653589793238462643383,p_epsabs[0],p_epsrel[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
+            const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+            p_functional[i] = 0.159154943091895335768883763*result;
+            p_crude_tsc_meter[i] = end-start;
+        }
+    }
+    else if(integrator_type==4)
+    {
+        for(std::int32_t i{0}; i<nfunc_vals; ++i) 
+        {
+            const double cpy_psi{p_tmp_work1[i]};
+            p_funcs_args_payload[i].arg2 = cpy_psi;
+            const double cpy_beta{p_tmp_work2[i]};
+            p_funcs_args_payload[i].arg1 = cpy_beta;
+            const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+            const double result = dqng(p_integrand,-3.141592653589793238462643383,+3.141592653589793238462643383,p_epsabs[0],p_epsrel[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
+            const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+            p_functional[i] = 0.159154943091895335768883763*result;
+            p_crude_tsc_meter[i] = end-start;
+        } 
+    }
+    return (0);
+}
+

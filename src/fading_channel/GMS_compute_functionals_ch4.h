@@ -21,6 +21,8 @@
 
 #include <cstdint>
 #include <string>
+#include <valarray>
+#include <array>
 #include "GMS_config.h"
 #include "GMS_integrands_func_ch4.h"
 
@@ -109,6 +111,85 @@ struct alignas(64) quadpack_integrator_payload_t
     std::int32_t                       which_integrator; //currently 1=dqage,2=dqagi,3=dqags
 };
 
+/* 
+    Different implementation of the above-defined major data structure
+    for possibly ADT implementation.
+*/
+
+struct alignas(64) quadpack_integrator_payload_v2_t
+{
+    const std::string integrators_names[5] = {{"dqage"},{"dqagi"},{"dqags"},{"dqng"},{"dqagp"}};
+    double (*integrand)(double,void * __restrict__);
+    std::valarray<func_args_payload_t> func_args_payload;
+    std::valarray<double>              tmp_work1;
+    std::valarray<double>              tmp_work2;
+    std::valarray<double>              tmp_work3;
+    std::valarray<double>              tmp_work4;
+    std::valarray<double>              lo;
+    std::valarray<double>              hi;
+    std::valarray<double>              bound;
+    std::valarray<std::int32_t>        inf;
+    std::valarray<std::int32_t>        irule;
+    std::valarray<double>              epsabs;
+    std::valarray<double>              epsrel;
+    std::valarray<double>              abser;
+    std::valarray<double>              functional;
+    std::valarray<std::int32_t>        neval;
+    std::valarray<std::int32_t>        ier;
+    std::valarray<std::int32_t>        last;
+    std::valarray<std::uint64_t>       crude_tsc_measurements;
+    double                             rand_lo1{}; // set lower limit for random number generator
+    double                             rand_hi1{}; // as above (1st argument pair)
+    double                             rand_lo2{}; // set lower limit for random number generator
+    double                             rand_hi2{}; // as above (2nd argument pair)
+    double                             rand_lo3{}; // set lower limit for random number generator
+    double                             rand_hi3{}; // as above (3rd argument pair)
+    double                             rand_lo4{}; // set lower limit for random number generator
+    double                             rand_hi4{}; // as above (4th argument pair)
+    double                             rand_lo5{}; // set lower limit for random number generator
+    double                             rand_hi5{}; // as above (5th argument pair)
+    std::int32_t                       n_func_vals;
+    std::int32_t                       which_integrator; //currently 1=dqage,2=dqagi,3=dqags
+};
+
+template<std::size_t N>
+struct alignas(64) quadpack_integrator_payload_v3_t
+{
+    static_assert(N>=50ull,"The number of Functional values <=50!!");
+    const std::string integrators_names[5] = {{"dqage"},{"dqagi"},{"dqags"},{"dqng"},{"dqagp"}};
+    double (*integrand)(double,void * __restrict__);
+    std::array<func_args_payload_t,N> funcs_arg_payload;
+    std::array<double,N>              tmp_work1;
+    std::array<double,N>              tmp_work2;
+    std::array<double,N>              tmp_work3;
+    std::array<double,N>              tmp_work4;
+    std::array<double,N>              lo;
+    std::array<double,N>              hi;
+    std::array<double,N>              bound;
+    std::array<std::int32_t,N>        inf;
+    std::array<std::int32_t,N>        irule;
+    std::array<double,N>              epsabs;
+    std::array<double,N>              epsrel;
+    std::array<double,N>              abser;
+    std::array<double,N>              functional;
+    std::array<std::int32_t,N>        neval;
+    std::array<std::int32_t,N>        ier;
+    std::array<std::int32_t,N>        last;
+    std::array<std::uint64_t,N>       crude_tsc_measurememnts;
+    double                             rand_lo1{}; // set lower limit for random number generator
+    double                             rand_hi1{}; // as above (1st argument pair)
+    double                             rand_lo2{}; // set lower limit for random number generator
+    double                             rand_hi2{}; // as above (2nd argument pair)
+    double                             rand_lo3{}; // set lower limit for random number generator
+    double                             rand_hi3{}; // as above (3rd argument pair)
+    double                             rand_lo4{}; // set lower limit for random number generator
+    double                             rand_hi4{}; // as above (4th argument pair)
+    double                             rand_lo5{}; // set lower limit for random number generator
+    double                             rand_hi5{}; // as above (5th argument pair)
+    std::int32_t                       n_func_vals{static_cast<std::int32_t>(N)};
+    std::int32_t                       which_integrator; //currently 1=dqage,2=dqagi,3=dqags    
+};
+
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
@@ -168,6 +249,16 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_marcum_Q_4_10(quadpack_integrator_payload_t * __restrict__);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+std::int32_t
+compute_functional_marcum_Q_4_16(quadpack_integrator_payload_t * __restrict__);
 
 
 } // fading_channel
