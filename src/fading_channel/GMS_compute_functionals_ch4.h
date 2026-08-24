@@ -109,6 +109,7 @@ struct alignas(64) quadpack_integrator_payload_t
     double                             rand_hi5{}; // as above (5th argument pair)
     std::int32_t                       n_func_vals;
     std::int32_t                       which_integrator; //currently 1=dqage,2=dqagi,3=dqags
+    bool                               randomly_generate_inputs; //as the name states: random input generation in use if true, otherwise provide deterministic inputs
 };
 
 /* 
@@ -150,6 +151,7 @@ struct alignas(64) quadpack_integrator_payload_v2_t
     double                             rand_hi5{}; // as above (5th argument pair)
     std::int32_t                       n_func_vals;
     std::int32_t                       which_integrator; //currently 1=dqage,2=dqagi,3=dqags
+    bool                               randomly_generate_inputs; //as the name states: random input generation in use if true, otherwise provide deterministic inputs
 };
 
 template<std::size_t N>
@@ -187,7 +189,8 @@ struct alignas(64) quadpack_integrator_payload_v3_t
     double                             rand_lo5{}; // set lower limit for random number generator
     double                             rand_hi5{}; // as above (5th argument pair)
     std::int32_t                       n_func_vals{static_cast<std::int32_t>(N)};
-    std::int32_t                       which_integrator; //currently 1=dqage,2=dqagi,3=dqags    
+    std::int32_t                       which_integrator; //currently 1=dqage,2=dqagi,3=dqags 
+    bool                               randomly_generate_inputs; //as the name states: random input generation in use if true, otherwise provide deterministic inputs   
 };
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
@@ -270,7 +273,15 @@ __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_marcum_Q_4_20_lo(quadpack_integrator_payload_t * __restrict__);
                                  
-
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+std::int32_t
+compute_functional_marcum_Q_4_20_hi(quadpack_integrator_payload_t * __restrict__);
 
 } // fading_channel
 
