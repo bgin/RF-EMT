@@ -1174,3 +1174,244 @@ gms::fading_channel
     return (0);
 }
 
+std::int32_t 
+gms::fading_channel
+::compute_functional_marcum_m_Q_4_32(quadpack_integrator_payload_t * __restrict__ p_payload)
+{
+    if(__builtin_expect(nullptr==p_payload,0)) { return (-1);}
+    double (*p_integrand)(const double,void * __restrict__)  = p_payload->integrand;
+    func_args_payload_t  * __restrict__ p_funcs_args_payload = p_payload->func_args_payload;
+    double       * __restrict__ p_tmp_work1                  = p_payload->tmp_work1;
+    double       * __restrict__ p_tmp_work2                  = p_payload->tmp_work2;
+    std::int32_t * __restrict__ p_inf                        = p_payload->inf;
+    std::int32_t * __restrict__ p_irule                      = p_payload->irule;
+    double  *  __restrict__     p_epsabs                     = p_payload->epsabs;
+    double  *  __restrict__     p_epsrel                     = p_payload->epsrel;
+    double  *  __restrict__     p_abser                      = p_payload->abser;
+    double  *  __restrict__     p_functional                 = p_payload->functional;
+    std::int32_t * __restrict__ p_neval                      = p_payload->neval;
+    std::int32_t * __restrict__ p_ier                        = p_payload->ier;
+    std::int32_t * __restrict__ p_last                       = p_payload->last;
+    std::uint64_t * __restrict__ p_crude_tsc_meter           = p_payload->crude_tsc_measurement;
+    double                      rand_low1                    = p_payload->rand_lo1;
+    double                      rand_high1                   = p_payload->rand_hi1;
+    double                      rand_low2                    = p_payload->rand_lo2;
+    double                      rand_high2                   = p_payload->rand_hi2;
+    double                      up_lim                       = p_payload->rand_lo3; // upper limit of Marcum-Q first order integration
+    double                      m_order                      = p_payload->rand_hi3; // a d_m value i.e. an order of the Marcum-Q function.
+    const std::int32_t          nfunc_vals                   = p_payload->n_func_vals;
+    const std::int32_t          integrator_type              = p_payload->which_integrator;
+    const bool                  random_input_generation      = p_payload->randomly_generate_inputs;
+    const bool                  rand_in_gen_eq_true          = random_input_generation==true;
+    if(rand_in_gen_eq_true)
+    {
+       thread_local std::uniform_real_distribution<double> rv_func_s;
+       thread_local std::mt19937 rv_func_s_gen;
+       thread_local std::uint64_t seed_func_s{};
+       thread_local std::uniform_real_distribution<double> rv_func_y;
+       thread_local std::mt19937 rv_func_y_gen;
+       thread_local std::uint64_t seed_func_y{};
+       rv_func_s = std::uniform_real_distribution<double>(rand_low1,rand_high1);
+       seed_func_s = __rdtsc();
+       rv_func_s_gen = std::mt19937(seed_func_s);
+       rv_func_y = std::uniform_real_distribution<double>(rand_low2,rand_high2);
+       seed_func_y = __rdtsc();
+       rv_func_y_gen = std::mt19937(seed_func_y);
+       for(std::int32_t i{0}; i<nfunc_vals; ++i)
+       {
+           const double val_s{rv_func_s.operator()(rv_func_s_gen)};
+           p_tmp_work1[i] = val_s;
+           const double val_y{rv_func_y.operator()(rv_func_y_gen)};
+           p_tmp_work2[i] = val_y;
+
+       }
+       std::sort(&p_tmp_work1[0],&p_tmp_work1[nfunc_vals-1],std::less<double>());
+       std::sort(&p_tmp_work2[0],&p_tmp_work2[nfunc_vals-1],std::less<double>());
+    }
+    if(integrator_type==1)
+    {
+        double inv_s{};
+        if(m_order==2.0)
+        {
+            for(std::int32_t i{0}; i<nfunc_vals; ++i)
+            {
+                const double cpy_s{p_tmp_work1[i]};
+                p_funcs_args_payload[i].arg1 = cpy_s;
+                const double cpy_y{p_tmp_work2[i]};
+                p_funcs_args_payload[i].arg2 = m_order;
+                p_funcs_args_payload[i].arg5 = 1;
+                const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+                const double result = dqage(p_integrand,cpy_y,up_lim,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_last[i],&p_funcs_args_payload[i]);
+                const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+                inv_s = 1.0/cpy_s;
+                p_functional[i] = inv_s*result;
+                p_crude_tsc_meter[i] = end-start;
+           }
+        }
+        else if(m_order==3.0)
+        {
+            for(std::int32_t i{0}; i<nfunc_vals; ++i)
+            {
+                const double cpy_s{p_tmp_work1[i]};
+                p_funcs_args_payload[i].arg1 = cpy_s;
+                const double cpy_y{p_tmp_work2[i]};
+                p_funcs_args_payload[i].arg2 = m_order;
+                p_funcs_args_payload[i].arg5 = 1;
+                const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+                const double result = dqage(p_integrand,cpy_y,up_lim,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_last[i],&p_funcs_args_payload[i]);
+                const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+                inv_s = 1.0/(cpy_s*cpy_s);
+                p_functional[i] = inv_s*result;
+                p_crude_tsc_meter[i] = end-start;
+           }
+        }
+        else if(m_order==4.0)
+        {
+            for(std::int32_t i{0}; i<nfunc_vals; ++i)
+            {
+                const double cpy_s{p_tmp_work1[i]};
+                p_funcs_args_payload[i].arg1 = cpy_s;
+                const double cpy_y{p_tmp_work2[i]};
+                p_funcs_args_payload[i].arg2 = m_order;
+                p_funcs_args_payload[i].arg5 = 1;
+                const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+                const double result = dqage(p_integrand,cpy_y,up_lim,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_last[i],&p_funcs_args_payload[i]);
+                const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+                inv_s = 1.0/(cpy_s*cpy_s*cpy_s);
+                p_functional[i] = inv_s*result;
+                p_crude_tsc_meter[i] = end-start;
+           }
+        }
+        else if(m_order==5.0)
+        {
+            for(std::int32_t i{0}; i<nfunc_vals; ++i)
+            {
+                const double cpy_s{p_tmp_work1[i]};
+                p_funcs_args_payload[i].arg1 = cpy_s;
+                const double cpy_y{p_tmp_work2[i]};
+                p_funcs_args_payload[i].arg2 = m_order;
+                p_funcs_args_payload[i].arg5 = 1;
+                const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+                const double result = dqage(p_integrand,cpy_y,up_lim,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_last[i],&p_funcs_args_payload[i]);
+                const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+                inv_s = 1.0/(cpy_s*cpy_s*cpy_s*cpy_s);
+                p_functional[i] = inv_s*result;
+                p_crude_tsc_meter[i] = end-start;
+           }
+        }
+        else if(m_order==6.0)
+        {
+            for(std::int32_t i{0}; i<nfunc_vals; ++i)
+            {
+                const double cpy_s{p_tmp_work1[i]};
+                p_funcs_args_payload[i].arg1 = cpy_s;
+                const double cpy_y{p_tmp_work2[i]};
+                p_funcs_args_payload[i].arg2 = m_order;
+                p_funcs_args_payload[i].arg5 = 1;
+                const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+                const double result = dqage(p_integrand,cpy_y,up_lim,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_last[i],&p_funcs_args_payload[i]);
+                const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+                inv_s = 1.0/(cpy_s*cpy_s*cpy_s*cpy_s*cpy_s);
+                p_functional[i] = inv_s*result;
+                p_crude_tsc_meter[i] = end-start;
+           }
+        }
+        else if(m_order>=7.0)
+        {
+            for(std::int32_t i{0}; i<nfunc_vals; ++i)
+            {
+                const double cpy_s{p_tmp_work1[i]};
+                p_funcs_args_payload[i].arg1 = cpy_s;
+                const double cpy_y{p_tmp_work2[i]};
+                p_funcs_args_payload[i].arg2 = m_order;
+                p_funcs_args_payload[i].arg5 = 1;
+                const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+                const double result = dqage(p_integrand,cpy_y,up_lim,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_last[i],&p_funcs_args_payload[i]);
+                const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+                 inv_s = 1.0/(std::pow(cpy_s,m_order-1.0));
+                p_functional[i] = inv_s*result;
+                p_crude_tsc_meter[i] = end-start;
+           }
+        }
+    }
+    else if(integrator_type==2)
+    {
+        double inv_s{};
+        for(std::int32_t i{0}; i<nfunc_vals; ++i)
+        {
+            const double cpy_s{p_tmp_work1[i]};
+            p_funcs_args_payload[i].arg1 = cpy_s;
+            const double cpy_y{p_tmp_work2[i]};
+            p_funcs_args_payload[i].arg2 = m_order;
+            p_funcs_args_payload[i].arg5 = 1;
+            const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+            const double result = dqagi(p_integrand,cpy_y,p_inf[0],p_epsabs[0],p_epsrel[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
+            const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+            if(m_order==2.0)      inv_s = 1.0/cpy_s;
+            else if(m_order==3.0) inv_s = 1.0/(cpy_s*cpy_s);
+            else if(m_order==4.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s);
+            else if(m_order==5.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s*cpy_s);
+            else if(m_order==6.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s*cpy_s*cpy_s);
+            else if(m_order>=7.0)  inv_s = 1.0/(std::pow(cpy_s,m_order-1.0));
+            p_functional[i] = inv_s*result;
+            p_crude_tsc_meter[i] = end-start;
+        }
+    }
+    else if(integrator_type==3)
+    {   
+        double inv_s{};
+        for(std::int32_t i{0}; i<nfunc_vals; ++i)
+        {
+            const double cpy_s{p_tmp_work1[i]};
+            p_funcs_args_payload[i].arg1 = cpy_s;
+            const double cpy_y{p_tmp_work2[i]};
+            p_funcs_args_payload[i].arg2 = m_order;
+            p_funcs_args_payload[i].arg5 = 1;
+            const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+            const double result = dqags(p_integrand,cpy_y,up_lim,p_epsabs[0],p_epsrel[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
+            const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+            if(m_order==2.0)      inv_s = 1.0/cpy_s;
+            else if(m_order==3.0) inv_s = 1.0/(cpy_s*cpy_s);
+            else if(m_order==4.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s);
+            else if(m_order==5.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s*cpy_s);
+            else if(m_order==6.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s*cpy_s*cpy_s);
+            else if(m_order>=7.0) inv_s = 1.0/(std::pow(cpy_s,m_order-1.0));
+            p_functional[i] = inv_s*result;
+            p_crude_tsc_meter[i] = end-start;
+        }
+    }
+    else if(integrator_type==4)
+    {   
+        double inv_s{};
+        for(std::int32_t i{0}; i<nfunc_vals; ++i)
+        {
+            const double cpy_s{p_tmp_work1[i]};
+            p_funcs_args_payload[i].arg1 = cpy_s;
+            const double cpy_y{p_tmp_work2[i]};
+            p_funcs_args_payload[i].arg2 = m_order;
+            p_funcs_args_payload[i].arg5 = 1;
+            const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+            const double result = dqng(p_integrand,cpy_y,up_lim,p_epsabs[0],p_epsrel[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
+            const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+            if(m_order==2.0)      inv_s = 1.0/cpy_s;
+            else if(m_order==3.0) inv_s = 1.0/(cpy_s*cpy_s);
+            else if(m_order==4.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s);
+            else if(m_order==5.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s*cpy_s);
+            else if(m_order==6.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s*cpy_s*cpy_s);
+            else if(m_order>=7.0) inv_s = 1.0/(std::pow(cpy_s,m_order-1.0));
+            p_functional[i] = inv_s*result;
+            p_crude_tsc_meter[i] = end-start;
+        }
+    }
+    return (0);
+}
+
