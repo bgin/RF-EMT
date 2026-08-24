@@ -562,7 +562,7 @@ void unit_test_compute_functional_4_16_marcum_Q()
         {
             for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
             {
-                print_retv = print_double("Marcum-Q (f:4.10)",p_payload->functional[i],0);
+                print_retv = print_double("Marcum-Q (f:4.16)",p_payload->functional[i],0);
             }
             for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
             {
@@ -573,6 +573,84 @@ void unit_test_compute_functional_4_16_marcum_Q()
     print_retv = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
+__attribute__((hot))
+__attribute__((aligned(32)))
+void unit_test_compute_functional_4_20_marcum_Q_lo();
+
+void unit_test_compute_functional_4_20_marcum_Q_lo()
+{
+    //using namespace gms::fading_channel;
+    constexpr std::int32_t n_func_args{100};
+    [[maybe_unused]] __ATTR_ALIGN__(64) gms::fading_channel::func_args_payload_t func_args[n_func_args]; // unused
+    __ATTR_ALIGN__(16) double marcum_Q_functional[n_func_args];
+    __ATTR_ALIGN__(16) double abser[n_func_args];
+    __ATTR_ALIGN__(16) double tmp_work1[n_func_args];
+    __ATTR_ALIGN__(16) double tmp_work2[n_func_args];
+    __ATTR_ALIGN__(16) std::uint64_t crude_tsc_results[n_func_args];
+    __ATTR_ALIGN__(16) std::int32_t neval[n_func_args];
+    __ATTR_ALIGN__(16) std::int32_t ier[n_func_args];
+    __ATTR_ALIGN__(16) std::int32_t last[n_func_args];
+    double epsabs[1];
+    double epsrel[1];
+    std::int32_t inf[1];
+    std::int32_t irule[1];
+    [[maybe_unused]] std::int32_t print_retv{};
+    print_retv = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!.\n",__func__);
+    epsabs[0] = 0.0;
+    epsrel[0] = 0.001;
+    inf[0]    = 1;
+    irule[0]  = 4;
+    gms::fading_channel::quadpack_integrator_payload_t integrator_payload;
+    integrator_payload.integrand = &gms::fading_channel::integrand_4_20_marcum_Q_quad_iface_lo;
+    integrator_payload.func_args_payload = &func_args[0];
+    integrator_payload.tmp_work1 = &tmp_work1[0];
+    integrator_payload.tmp_work2 = &tmp_work2[0];
+    integrator_payload.inf   = &inf[0];
+    integrator_payload.irule = &irule[0];
+    integrator_payload.epsabs = &epsabs[0];
+    integrator_payload.epsrel = &epsrel[0];
+    integrator_payload.abser  = &abser[0];
+    integrator_payload.functional = &marcum_Q_functional[0];
+    integrator_payload.neval = &neval[0];
+    integrator_payload.ier = &ier[0];
+    integrator_payload.last = &last[0];
+    integrator_payload.crude_tsc_measurement = &crude_tsc_results[0];
+    integrator_payload.rand_lo1 = +0.0;
+    integrator_payload.rand_hi1 = +1.0;
+    integrator_payload.rand_lo2 = +0.1;
+    integrator_payload.rand_hi2 = +2.5;
+    integrator_payload.n_func_vals = n_func_args;
+    //integrator_payload.which_integrator = 3;
+    gms::fading_channel::quadpack_integrator_payload_t * __restrict__ p_payload = &integrator_payload;
+    for(std::int32_t ii{1}; ii<5; ++ii) 
+    {
+        integrator_payload.which_integrator = ii;
+        std::int32_t integrator_ret = gms::fading_channel::compute_functional_marcum_Q_4_20_lo(p_payload);
+        if(p_payload->which_integrator==1)
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[0].c_str());
+        else if(p_payload->which_integrator==2)
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[1].c_str());
+        else if(p_payload->which_integrator==3)
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[2].c_str());
+        else if(p_payload->which_integrator==4)
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[3].c_str());
+        if(integrator_payload.which_integrator!=2)
+        {
+            for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
+            {
+                print_retv = print_double("Marcum-Q (f:4.20-lo)",p_payload->functional[i],0);
+            }
+            for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
+            {
+                print_retv = std::printf("Iter=%d,abser=%.17f,neval=%d,ier=%d,last=%d,total_tsc=%llu,ret=%d\n",i,abser[i],neval[i],ier[i],last[i],crude_tsc_results[i],integrator_ret);
+            }
+        }
+    }
+    print_retv = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
+}
+
+
+
 int main()
 {
     //(void)unit_test_compute_functional_4_1_gauss_Q();
@@ -581,6 +659,7 @@ int main()
     //(void)unit_test_compute_functional_4_7_gauss_Q();
     //(void)unit_test_compute_functional_4_8_gauss_Q();
     //(void)unit_test_compute_functional_4_10_marcum_Q();
-      (void)unit_test_compute_functional_4_16_marcum_Q();
+    //  (void)unit_test_compute_functional_4_16_marcum_Q();
+    (void)unit_test_compute_functional_4_20_marcum_Q_lo();
     return 0;
 }
