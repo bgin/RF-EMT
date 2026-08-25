@@ -1230,11 +1230,10 @@ gms::fading_channel
     }
     if(integrator_type==1)
     {
+        [[maybe_unused]] volatile double tmp_pow_res{std::pow(p_tmp_work1[0],m_order-1.0)};// crude warmup-call ahead of the callsite.
         double inv_s{};
-        if(m_order==2.0)
+        for(std::int32_t i{0}; i<nfunc_vals; ++i)
         {
-            for(std::int32_t i{0}; i<nfunc_vals; ++i)
-            {
                 const double cpy_s{p_tmp_work1[i]};
                 p_funcs_args_payload[i].arg1 = cpy_s;
                 const double cpy_y{p_tmp_work2[i]};
@@ -1244,104 +1243,14 @@ gms::fading_channel
                 const double result = dqage(p_integrand,cpy_y,up_lim,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
                                         &p_neval[i],&p_ier[i],&p_last[i],&p_funcs_args_payload[i]);
                 const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
-                inv_s = 1.0/cpy_s;
+                inv_s = 1.0/(std::pow(cpy_s,m_order-1.0));
                 p_functional[i] = inv_s*result;
                 p_crude_tsc_meter[i] = end-start;
            }
-        }
-        else if(m_order==3.0)
-        {
-            for(std::int32_t i{0}; i<nfunc_vals; ++i)
-            {
-                const double cpy_s{p_tmp_work1[i]};
-                p_funcs_args_payload[i].arg1 = cpy_s;
-                const double cpy_y{p_tmp_work2[i]};
-                p_funcs_args_payload[i].arg2 = m_order;
-                p_funcs_args_payload[i].arg5 = 1;
-                const std::uint64_t start{gms::common::rdtsc_serialized_start()};
-                const double result = dqage(p_integrand,cpy_y,up_lim,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
-                                        &p_neval[i],&p_ier[i],&p_last[i],&p_funcs_args_payload[i]);
-                const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
-                inv_s = 1.0/(cpy_s*cpy_s);
-                p_functional[i] = inv_s*result;
-                p_crude_tsc_meter[i] = end-start;
-           }
-        }
-        else if(m_order==4.0)
-        {
-            for(std::int32_t i{0}; i<nfunc_vals; ++i)
-            {
-                const double cpy_s{p_tmp_work1[i]};
-                p_funcs_args_payload[i].arg1 = cpy_s;
-                const double cpy_y{p_tmp_work2[i]};
-                p_funcs_args_payload[i].arg2 = m_order;
-                p_funcs_args_payload[i].arg5 = 1;
-                const std::uint64_t start{gms::common::rdtsc_serialized_start()};
-                const double result = dqage(p_integrand,cpy_y,up_lim,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
-                                        &p_neval[i],&p_ier[i],&p_last[i],&p_funcs_args_payload[i]);
-                const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
-                inv_s = 1.0/(cpy_s*cpy_s*cpy_s);
-                p_functional[i] = inv_s*result;
-                p_crude_tsc_meter[i] = end-start;
-           }
-        }
-        else if(m_order==5.0)
-        {
-            for(std::int32_t i{0}; i<nfunc_vals; ++i)
-            {
-                const double cpy_s{p_tmp_work1[i]};
-                p_funcs_args_payload[i].arg1 = cpy_s;
-                const double cpy_y{p_tmp_work2[i]};
-                p_funcs_args_payload[i].arg2 = m_order;
-                p_funcs_args_payload[i].arg5 = 1;
-                const std::uint64_t start{gms::common::rdtsc_serialized_start()};
-                const double result = dqage(p_integrand,cpy_y,up_lim,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
-                                        &p_neval[i],&p_ier[i],&p_last[i],&p_funcs_args_payload[i]);
-                const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
-                inv_s = 1.0/(cpy_s*cpy_s*cpy_s*cpy_s);
-                p_functional[i] = inv_s*result;
-                p_crude_tsc_meter[i] = end-start;
-           }
-        }
-        else if(m_order==6.0)
-        {
-            for(std::int32_t i{0}; i<nfunc_vals; ++i)
-            {
-                const double cpy_s{p_tmp_work1[i]};
-                p_funcs_args_payload[i].arg1 = cpy_s;
-                const double cpy_y{p_tmp_work2[i]};
-                p_funcs_args_payload[i].arg2 = m_order;
-                p_funcs_args_payload[i].arg5 = 1;
-                const std::uint64_t start{gms::common::rdtsc_serialized_start()};
-                const double result = dqage(p_integrand,cpy_y,up_lim,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
-                                        &p_neval[i],&p_ier[i],&p_last[i],&p_funcs_args_payload[i]);
-                const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
-                inv_s = 1.0/(cpy_s*cpy_s*cpy_s*cpy_s*cpy_s);
-                p_functional[i] = inv_s*result;
-                p_crude_tsc_meter[i] = end-start;
-           }
-        }
-        else if(m_order>=7.0)
-        {
-            for(std::int32_t i{0}; i<nfunc_vals; ++i)
-            {
-                const double cpy_s{p_tmp_work1[i]};
-                p_funcs_args_payload[i].arg1 = cpy_s;
-                const double cpy_y{p_tmp_work2[i]};
-                p_funcs_args_payload[i].arg2 = m_order;
-                p_funcs_args_payload[i].arg5 = 1;
-                const std::uint64_t start{gms::common::rdtsc_serialized_start()};
-                const double result = dqage(p_integrand,cpy_y,up_lim,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
-                                        &p_neval[i],&p_ier[i],&p_last[i],&p_funcs_args_payload[i]);
-                const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
-                 inv_s = 1.0/(std::pow(cpy_s,m_order-1.0));
-                p_functional[i] = inv_s*result;
-                p_crude_tsc_meter[i] = end-start;
-           }
-        }
     }
     else if(integrator_type==2)
     {
+        [[maybe_unused]] volatile double tmp_pow_res{std::pow(p_tmp_work1[0],m_order-1.0)};// crude warmup-call ahead of the callsite.
         double inv_s{};
         for(std::int32_t i{0}; i<nfunc_vals; ++i)
         {
@@ -1354,18 +1263,14 @@ gms::fading_channel
             const double result = dqagi(p_integrand,cpy_y,p_inf[0],p_epsabs[0],p_epsrel[0],&p_abser[i],
                                         &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
             const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
-            if(m_order==2.0)      inv_s = 1.0/cpy_s;
-            else if(m_order==3.0) inv_s = 1.0/(cpy_s*cpy_s);
-            else if(m_order==4.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s);
-            else if(m_order==5.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s*cpy_s);
-            else if(m_order==6.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s*cpy_s*cpy_s);
-            else if(m_order>=7.0)  inv_s = 1.0/(std::pow(cpy_s,m_order-1.0));
+            inv_s = 1.0/(std::pow(cpy_s,m_order-1.0));
             p_functional[i] = inv_s*result;
             p_crude_tsc_meter[i] = end-start;
         }
     }
     else if(integrator_type==3)
     {   
+        [[maybe_unused]] volatile double tmp_pow_res{std::pow(p_tmp_work1[0],m_order-1.0)};// crude warmup-call ahead of the callsite.
         double inv_s{};
         for(std::int32_t i{0}; i<nfunc_vals; ++i)
         {
@@ -1378,18 +1283,14 @@ gms::fading_channel
             const double result = dqags(p_integrand,cpy_y,up_lim,p_epsabs[0],p_epsrel[0],&p_abser[i],
                                         &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
             const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
-            if(m_order==2.0)      inv_s = 1.0/cpy_s;
-            else if(m_order==3.0) inv_s = 1.0/(cpy_s*cpy_s);
-            else if(m_order==4.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s);
-            else if(m_order==5.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s*cpy_s);
-            else if(m_order==6.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s*cpy_s*cpy_s);
-            else if(m_order>=7.0) inv_s = 1.0/(std::pow(cpy_s,m_order-1.0));
+            inv_s = 1.0/(std::pow(cpy_s,m_order-1.0));
             p_functional[i] = inv_s*result;
             p_crude_tsc_meter[i] = end-start;
         }
     }
     else if(integrator_type==4)
     {   
+        [[maybe_unused]] volatile double tmp_pow_res{std::pow(p_tmp_work1[0],m_order-1.0)};// crude warmup-call ahead of the callsite.
         double inv_s{};
         for(std::int32_t i{0}; i<nfunc_vals; ++i)
         {
@@ -1402,12 +1303,7 @@ gms::fading_channel
             const double result = dqng(p_integrand,cpy_y,up_lim,p_epsabs[0],p_epsrel[0],&p_abser[i],
                                         &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
             const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
-            if(m_order==2.0)      inv_s = 1.0/cpy_s;
-            else if(m_order==3.0) inv_s = 1.0/(cpy_s*cpy_s);
-            else if(m_order==4.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s);
-            else if(m_order==5.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s*cpy_s);
-            else if(m_order==6.0) inv_s = 1.0/(cpy_s*cpy_s*cpy_s*cpy_s*cpy_s);
-            else if(m_order>=7.0) inv_s = 1.0/(std::pow(cpy_s,m_order-1.0));
+            inv_s = 1.0/(std::pow(cpy_s,m_order-1.0));
             p_functional[i] = inv_s*result;
             p_crude_tsc_meter[i] = end-start;
         }
