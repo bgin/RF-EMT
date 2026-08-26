@@ -14,6 +14,37 @@ namespace
     /*0.5*PI*/
     static constexpr const double C15707963267948966192313216916398 = 1.5707963267948966192313216916398;
 
+    static inline  
+    __ATTR_ALWAYS_INLINE__
+    double g(const double theta,const double psi)
+    {
+        const double psi2{psi*psi};
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0
+        const double sintht(std::sin(theta));
+        return (1.0+(psi+psi)*sintht+psi2);
+#else 
+        const double sintht(gms::math::cephes_d::sin(theta));
+        return (1.0+(psi+psi)*sintht+psi2);
+#endif
+    }
+
+    static inline 
+    __ATTR_ALWAYS_INLINE__
+    double h(const double theta,const double psi,const double l)
+    {
+        const double theta_p_pi2{theta+1.570796326794896619231321692};
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0
+        const double psi_to_lpow{1.0/std::pow(psi,l-1.0)};
+        const double costht1{std::cos((l-1.0)*theta_p_pi2)};
+        const double costht2{std::cos(l*theta_p_pi2)};
+#else 
+        const double psi_to_lpow{1.0/gms::math::cephes_d::pow(psi,l-1.0)};
+        const double costht1{gms::math::cephes_d::cos((l-1.0)*theta_p_pi2)};
+        const double costht2{gms::math::cephes_d::cos(l*theta_p_pi2)};
+#endif
+        return (psi_to_lpow*(costht1-costht2));
+    }
+
 }
 
 /*
@@ -306,6 +337,94 @@ gms::fading_channel
     const double xsigma = p_payload->arg4d;
     return (integrand_Log_Norm_Shadow_chan_5_20(x,xtheta,xa,xmu,xsigma));
 }
+
+/* a -- modulation/detection threshold constant,
+   mu -- 10*log10(gamma) [db] i.e. instantenous average SNR per bit
+   sigma -- logarithmic standev of shadowing [db]
+   theta -- outer integral integration variable [0,0.5*PI]
+   m -- Nakagami-m PDF parameter
+*/
+double 
+gms::fading_channel
+::integrand_LNSh_Nakagami_m_chan_5_25(const double x,const double theta,
+                                      const double a,const double mu,
+                                      const double sigma,const double m)
+{
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0
+    const double asqr{a*a};
+    const double xsqr{x*x};
+    const double sintht{std::sin(theta)};
+    const double sinthtp2{sintht*sintht};
+    const double exp_val{std::exp(-xsqr)};
+    const double tmp{x*std::sqrt(sigma+sigma)+mu};
+    const double ten_pow_arg{tmp*0.1};
+    const double den{m+m*sinthtp2};
+    const double ratio{asqr/den};
+    const double ten_to_pow{std::pow(10.0,ten_pow_arg)};
+    const double left_factor{1.0+ratio*ten_to_pow};
+    const double invm_left_factor{1.0/std::pow(left_factor,m)};
+    const double result(invm_left_factor*exp_val);
+    return (result);
+#else 
+    const double asqr{a*a};
+    const double xsqr{x*x};
+    const double sintht{gms::math::cephes_d::sin(theta)};
+    const double sinthtp2{sintht*sintht};
+    const double exp_val{gms::math::cephes_d::exp(-xsqr)};
+    const double tmp{x*gms::math::cephes_d::sqrt(sigma+sigma)+mu};
+    const double ten_pow_arg{tmp*0.1};
+    const double den{m+m*sinthtp2};
+    const double ratio{asqr/den};
+    const double ten_to_pow{gms::math::cephes_d::pow(10.0,ten_pow_arg)};
+    const double left_factor{1.0+ratio*ten_to_pow};
+    const double invm_left_factor{1.0/gms::math::cephes_d::pow(left_factor,m)};
+    const double result(invm_left_factor*exp_val);
+    return (result);
+#endif
+}
+
+double 
+gms::fading_channel
+::integrand_LNSh_Nakagami_m_chan_5_25_iface(const double x,void * __restrict__ user_data)
+{
+    func_args_ch5_payload_t * __restrict__ p_payload{reinterpret_cast<func_args_ch5_payload_t* __restrict__>(user_data)};
+    const double xtheta  = p_payload->arg1d;
+    const double xa      = p_payload->arg2d;
+    const double xmu     = p_payload->arg3d;
+    const double xsigma  = p_payload->arg4d;
+    const double xm      = p_payload->arg5d;
+    return (integrand_LNSh_Nakagami_m_chan_5_25(x,xtheta,xa,xmu,xsigma,xm));
+}
+
+#define G_FUNC_BODY(theta,psi,g_res)\
+const double sintht{gms::math::cephes_d::sin((theta))};\
+const double psi2{(psi)*(psi)};\
+g_res = 1.0+((psi)+(psi))*sintht+psi2;
+
+#define H_FUNC_BODY(theta,psi,l,h_res)\
+const double theta_p_pi2{(theta)+1.570796326794896619231321692};\
+const double psi_to_lpow{1.0/gms::math::cephes_d::pow(psi,(l)-1.0)};\
+const double left_costht{gms::math::cephes_d::cos(((l)-1.0)*theta_p_pi2)};\
+const double right_costht{gms::math::cephes_d::cos((l)*theta_p_pi2)};\
+h_res = psi_to_lpow*(left_costht-right_costht);
+
+double 
+gms::fading_channel
+::integrand_Rayleigh_lt_chan_5_39(const double theta,const double b,
+                                  const double psi,const double gamma,
+                                  const double l)
+{
+    const double g_res{g(theta,psi)};
+    const double left_ratio{h(theta,psi,l)/g_res};
+    const double bsqr{b*b};
+    const double bsqrgamma{b.5*(sqr*gamma)};
+    const double right_factor{1.0/(1.0+bsqrgamma*g_res)};
+    return (left_ratio*right_factor);
+}
+
+
+
+
 
 
 
