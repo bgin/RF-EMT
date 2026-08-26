@@ -154,7 +154,7 @@ double integrand_Hoyt_chan_5_9(const double,const double,
 #endif
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
-double integrand_Hoyt_chan_5_6_iface(const double,void * __restrict__);
+double integrand_Hoyt_chan_5_9_iface(const double,void * __restrict__);
 
 /*
    Chapter 5, formula: 5.12
@@ -227,7 +227,8 @@ double integrand_Nakagami_m_chan_5_16_iface(const double,void * __restrict__);
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Log_Norm_Shadow_chan_5_20(const double,const double,
-                                           const double,const double);
+                                           const double, const double,
+                                           const double);
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
