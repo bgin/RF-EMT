@@ -422,7 +422,58 @@ gms::fading_channel
     return (left_ratio*right_factor);
 }
 
+double 
+gms::fading_channel
+::integrand_Rayleigh_lt_chan_5_39_iface(const double theta,void * __restrict__ user_data)
+{
+    func_args_ch5_payload_t * __restrict__ p_payload{reinterpret_cast<func_args_ch5_payload_t* __restrict__>(user_data)};
+    const double xb    = p_payload->arg1d;
+    const double xpsi  = p_payload->arg2d;
+    const double xgamma= p_payload->arg3d;
+    const double xl    = p_payload->arg4d;
+    return (integrand_Rayleigh_lt_chan_5_39(theta,xb,xpsi,xgamma,xl));
+}
 
+double 
+gms::fading_channel
+::integrand_Hoyt_lt_chan_5_40(const double theta,const double b,
+                              const double psi,const double q,
+                              const double gamma,const double l)
+{
+    const double bb{b*b};
+    const double qq{q*q};
+    const double g_res{g(theta,psi)};
+    const double bp4{bb*bb};
+    const double tmp{1.0+qq};
+    const double denom{tmp*tmp};
+    const double psi2{psi*psi};
+    const double h_res{h(theta,psi,l)};
+    const double gg{g_res*g_res};
+    const double left_ratio{h_res/g_res};
+    const double num{qq*bp4*psi2*gg};
+    const double right_ratio{num/denom};
+    const double tmp2{1.0+bb*psi2*gg};
+    const double right_factor(tmp2+right_ratio);
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0    
+    const double invsqrt{1.0/std::sqrt(right_factor)};
+#else 
+    const double invsqrt{1.0/gms::math::cephes_d::sqrt(right_factor)};
+#endif 
+    return (left_ratio*invsqrt);
+}
+
+double 
+gms::fading_channel
+::integrand_Hoyt_lt_chan_5_40_iface(const double theta,void * __restrict__ user_data)
+{
+    func_args_ch5_payload_t * __restrict__ p_payload{reinterpret_cast<func_args_ch5_payload_t* __restrict__>(user_data)};
+    const double xb     = p_payload->arg1d;
+    const double xpsi   = p_payload->arg2d;
+    const double xq     = p_payload->arg3d;
+    const double xgamma = p_payload->arg4d;
+    const double xl     = p_payload->arg5d;
+    return (integrand_Hoyt_lt_chan_5_40(theta,xb,xpsi,xq,xgamma,xl));
+}
 
 
 
