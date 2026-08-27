@@ -262,7 +262,7 @@ gms::fading_channel
     const double sinthtp2{sintht*sintht};
     const double denom{(m+m)*sinthtp2};
     const double inv_arg{1.0+(asqrgamm/denom)};
-    const double invpow_val{1.0/std::pow(inv_arg)};
+    const double invpow_val{1.0/std::pow(inv_arg,m)};
     return (invpow_val);
 #else 
     const double asqrgamm{a*a*gamma};
@@ -270,7 +270,7 @@ gms::fading_channel
     const double sinthtp2{sintht*sintht};
     const double denom{(m+m)*sinthtp2};
     const double inv_arg{1.0+(asqrgamm/denom)};
-    const double invpow_val{1.0/gms::math::cephes_d::pow(inv_arg)};
+    const double invpow_val{1.0/gms::math::cephes_d::pow(inv_arg,m)};
     return (invpow_val);
 #endif 
 }
@@ -299,7 +299,7 @@ gms::fading_channel
 {
 #if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0
     const double asqr{a*a};
-    const xsqr{x*x};
+    const double xsqr{x*x};
     const double sintht{std::sin(theta)};
     const double sinthtp2{sintht*sintht};
     const double exp_val2{std::exp(-xsqr)};
@@ -312,7 +312,7 @@ gms::fading_channel
     return (result);
 #else 
     const double asqr{a*a};
-    const xsqr{x*x};
+    const double xsqr{x*x};
     const double sintht{gms::math::cephes_d::sin(theta)};
     const double sinthtp2{sintht*sintht};
     const double exp_val2{gms::math::cephes_d::exp(-xsqr)};
@@ -417,7 +417,7 @@ gms::fading_channel
     const double g_res{g(theta,psi)};
     const double left_ratio{h(theta,psi,l)/g_res};
     const double bsqr{b*b};
-    const double bsqrgamma{b.5*(sqr*gamma)};
+    const double bsqrgamma{0.5*(bsqr*gamma)};
     const double right_factor{1.0/(1.0+bsqrgamma*g_res)};
     return (left_ratio*right_factor);
 }
@@ -586,9 +586,9 @@ gms::fading_channel
 #endif 
     const double pow_arg{sqrt_2sigma*0.1};
 #if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0  
-    const double ten_to_pow{std::pow(pow_arg)};
+    const double ten_to_pow{std::pow(10.0,pow_arg)};
 #else 
-    const double ten_to_pow{gms::math::cephes_d::pow(pow_arg)};
+    const double ten_to_pow{gms::math::cephes_d::pow(10.0,pow_arg)};
 #endif
     const double exp_arg1{bbg_res*ten_to_pow};
 #if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0 
@@ -696,7 +696,7 @@ gms::fading_channel
 
 double 
 gms::fading_channel
-::integrand_avg_err_prob_QAM_5_71_iface(const double theta,void * __restrict__)
+::integrand_avg_err_prob_QAM_5_71_iface(const double theta,void * __restrict__ user_data)
 {
     func_args_ch5_payload_t * __restrict__ p_payload{reinterpret_cast<func_args_ch5_payload_t* __restrict__>(user_data)};
     const double xa   = p_payload->arg1d;
@@ -744,7 +744,7 @@ gms::fading_channel
     const double xm      = p_payload->arg3d;
     const double xthetai = p_payload->arg4d;
     const double xpsii   = p_payload->arg5d;
-    return (integrand_avg_err_prob_Nakagami_m_QAM_5_76(phi,ai,gamma,m,thetai,psii));
+    return (integrand_avg_err_prob_Nakagami_m_QAM_5_76(phi,xai,xgamma,xm,xthetai,xpsii));
 }
 
 #define C12_CODE_BLOCK(a1,a2,gamma,phi,c12_res)\
