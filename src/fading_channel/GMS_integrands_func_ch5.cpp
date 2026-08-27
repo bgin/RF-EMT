@@ -704,5 +704,48 @@ gms::fading_channel
     return (integrand_avg_err_prob_QAM_5_71(theta,xa,xphi)); 
 }
 
+#define CI_CODE_BLOCK(ai,gamma,psii,ci_res)\
+const double aagamma{(ai)*(ai)*(gamma)};\
+const double tmp_sin{std::sin((psii))};\
+const double sinp2{tmp_sin*tmp_sin};\
+ci_res = 0.5*aagamma*sinp2;
+
+double
+gms::fading_channel
+::integrand_avg_err_prob_Nakagami_m_QAM_5_76(const double phi,const double ai,
+                                             const double gamma,const double m,
+                                             const double thetai,const double psii)
+{
+    double ci_res{};
+    CI_CODE_BLOCK(ai,gamma,psii,ci_res);
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0 
+    const double tmp_sinphi{std::sin(phi)};
+#else 
+    const double tmp_sinphi{gms::math::cephes_d::sin(phi)}; 
+#endif
+    const double sinphi2{tmp_sinphi*tmp_sinphi};
+    const double ci_res_div_m{ci_res/m};
+    const double ratio{sinphi2/(sinphi2+ci_res_div_m)};
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0 
+    const double ratio_to_pow_m{std::pow(ratio,m)};
+#else
+    const double ratio_to_pow_m{gms::math::cephes_d::pow(ratio,m)};
+#endif 
+    return (ratio_to_pow_m);
+}
+
+double 
+gms::fading_channel
+::integrand_avg_err_prob_Nakagami_m_QAM_5_76_iface(const double phi,void * __restrict__ user_data)
+{
+    func_args_ch5_payload_t * __restrict__ p_payload{reinterpret_cast<func_args_ch5_payload_t* __restrict__>(user_data)};
+    const double xai     = p_payload->arg1d;
+    const double xgamma  = p_payload->arg2d;
+    const double xm      = p_payload->arg3d;
+    const double xthetai = p_payload->arg4d;
+    const double xpsii   = p_payload->arg5d;
+    return (integrand_avg_err_prob_Nakagami_m_QAM_5_76(phi,ai,gamma,m,thetai,psii));
+}
+
 
 
