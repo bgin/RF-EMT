@@ -72,7 +72,8 @@ struct alignas(64) func_args_ch5_payload_t
       double arg4d;
       double arg5d;
       double arg6d;
-      std::int32_t arg7i;
+      double arg7d;
+      std::int32_t arg8i;
 };
 
 namespace detail
@@ -434,7 +435,7 @@ double integrand_Log_Norm_Shadow_lt_chan_5_44_iface(const double,void * __restri
 #endif
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
-double integrand_lnsh_Nakagami_m_lt_cha_5_45(const double,const double,
+double integrand_lnsh_Nakagami_m_lt_cha_5_47(const double,const double,
                                              const double,const double,
                                              const double,const double,
                                              const double);
@@ -448,7 +449,9 @@ double integrand_lnsh_Nakagami_m_lt_cha_5_45(const double,const double,
 #endif
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
-double integrand_lnsh_Nakagami_m_lt_chan_5_45_iface(const double,void * __restrict__);
+double integrand_lnsh_Nakagami_m_lt_chan_5_47_iface(const double,void * __restrict__);
+
+
 
 
 

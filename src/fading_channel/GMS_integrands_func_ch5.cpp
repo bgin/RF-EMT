@@ -613,5 +613,57 @@ gms::fading_channel
     return (integrand_Log_Norm_Shadow_lt_chan_5_44(x,xtheta,xb,xpsi,xmu,xsigma,xl));
 }
 
+double 
+gms::fading_channel
+::integrand_lnsh_Nakagami_m_lt_cha_5_47(const double x,const double theta,
+                                        const double b,const double psi,
+                                        const double mu,const double sigma,
+                                        const double m,const double l)
+{
+    double g_res{};
+#if (INTEGRANDS_FUNC_CH5_USE_PARAM_MACRO) == 1
+    G_FUNC_BODY(theta,psi,g_res);
+#else
+    g_res = g(theta,psi);
+#endif 
+    const double xx{x*x};
+    const double bbg_res{0.5*(b*b*g_res)};
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0 
+    const double exp_val{std::exp(-xx)};
+#else 
+    const double exp_val{gms::math::cephes_d::exp(-xx)};
+#endif 
+    const double ratio{bbg_res/(m+m)};
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0 
+    const double sqrt_val{x*std::sqrt(sigma+sigma)+mu};
+    const double ten_to_pow{std::pow(10.0,sqrt_val*0.1)};
+    const double m_pow_arg{1.0+ratio*ten_to_pow};
+    const double to_m_pow{1.0/std::pow(m_pow_arg,m)};
+#else 
+    const double sqrt_val{x*gms::math::cephes_d::sqrt(sigma+sigma)+mu};
+    const double ten_to_pow{gms::math::cephes_d::pow(10.0,sqrt_val*0.1)};
+    const double m_pow_arg{1.0+ratio*ten_to_pow};
+    const double to_m_pow{1.0/gms::math::cephes_d::pow(m_pow_arg,m)};
+#endif
+    return (to_m_pow*exp_val);
+}
+
+double 
+gms::fading_channel
+::integrand_lnsh_Nakagami_m_lt_chan_5_47_iface(const double x,void * __restrict__ user_data)
+{
+    func_args_ch5_payload_t * __restrict__ p_payload{reinterpret_cast<func_args_ch5_payload_t* __restrict__>(user_data)};
+    const double xtheta  = p_payload->arg1d;
+    const double xb      = p_payload->arg2d;
+    const double xpsi    = p_payload->arg3d;
+    const double xmu     = p_payload->arg4d;
+    const double xsigma  = p_payload->arg5d;
+    const double xm      = p_payload->arg6d;
+    const double xl      = p_payload->arg7d;
+    return (integrand_lnsh_Nakagami_m_lt_cha_5_47(x,xtheta,xb,xpsi,xmu,xsigma,xm,xl));
+}
+
+
+
 
 
