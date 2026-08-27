@@ -747,5 +747,50 @@ gms::fading_channel
     return (integrand_avg_err_prob_Nakagami_m_QAM_5_76(phi,ai,gamma,m,thetai,psii));
 }
 
+#define C12_CODE_BLOCK(a1,a2,gamma,phi,c12_res)\
+const double a1a1gamma{0.5*((a1)*(a1)*(gamma))};\
+const double tmp_sinphi{gms::math::cephes_d::sin((phi))};\
+const double sinphip2{tmp_sinphi*tmp_sinphi};\
+const double a2a2gamma{0.5*((a2)*(a2)*(gamma))};\
+const double ratio{sinphip2/(sinphip2+a2a2gamma)};\
+c12_res = a1a1gamma*ratio;
+
+double 
+gms::fading_channel
+::integrand_Rayleigh_M_PSK_err_prob_5_98(const double phi,const double a1,
+                                         const double a2,const double theta_u1,
+                                         const double theta_u2,const double gamma)
+{
+    double c12_res{};
+    C12_CODE_BLOCK(a1,a2,gamma,phi,c12_res);
+    const double one_p_c12{1.0+c12_res};
+    const double left_ratio{c12_res/one_p_c12};
+    const double right_ratio{one_p_c12/c12_res};
+    const double tan_tht_u2{std::tan(theta_u2)};
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0 
+    const double sqrt_lratio{std::sqrt(left_ratio)};
+    const double sqrt_rratio{std::sqrt(right_ratio)};
+#else 
+    const double sqrt_lratio{gms::math::cephes_d::sqrt(left_ratio)};
+    const double sqrt_rratio{gms::math::cephes_d::sqrt(right_ratio)};
+#endif
+    const double atan_val{std::atan(sqrt_rratio*tan_tht_u2)};
+    const double right_factor{theta_u2-sqrt_lratio*atan_val};
+    return (c12_res*right_factor);
+}
+
+double 
+gms::fading_channel
+::integrand_Rayleigh_M_PSK_err_prob_5_98_iface(const double phi,void * __restrict__ user_data)
+{
+    func_args_ch5_payload_t * __restrict__ p_payload{reinterpret_cast<func_args_ch5_payload_t* __restrict__>(user_data)};
+    const double xa1       = p_payload->arg1d;
+    const double xa2       = p_payload->arg2d;
+    const double xtheta_u1 = p_payload->arg3d;
+    const double xtheta_u2 = p_payload->arg4d;
+    const double xgamma    = p_payload->arg5d;
+    return (integrand_Rayleigh_M_PSK_err_prob_5_98(phi,xa1,xa2,xtheta_u1,xtheta_u2,xgamma));
+}
+
 
 

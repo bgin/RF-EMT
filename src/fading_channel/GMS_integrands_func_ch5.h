@@ -510,6 +510,36 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_avg_err_prob_Nakagami_m_QAM_5_76_iface(const double,void * __restrict__);
 
+/*
+   Integer powers of M-PSK Error Probability Integrals
+   Rayleigh Fading Channel
+   a1=a2=a
+   theta_u1=theta_u2 = (M-1)PI*M
+*/
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_Rayleigh_M_PSK_err_prob_5_98(const double,const double,
+                                                const double,const double,
+                                                const double,const double);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_Rayleigh_M_PSK_err_prob_5_98_iface(const double,void * __restrict__);
+
 
 } // fading_channel
 
