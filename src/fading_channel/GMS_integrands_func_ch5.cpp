@@ -440,14 +440,21 @@ gms::fading_channel
                               const double psi,const double q,
                               const double gamma,const double l)
 {
+    double g_res{};
+    double h_res{};
+#if (INTEGRANDS_FUNC_CH5_USE_PARAM_MACRO) == 1
+    G_FUNC_BODY(theta,psi,g_res);
+    H_FUNC_BODY(theta,psi,l);
+#else
+    g_res = g(theta,psi);
+    h_res = h(theta,psi,l);
+#endif   
     const double bb{b*b};
     const double qq{q*q};
-    const double g_res{g(theta,psi)};
     const double bp4{bb*bb};
     const double tmp{1.0+qq};
     const double denom{tmp*tmp};
     const double psi2{psi*psi};
-    const double h_res{h(theta,psi,l)};
     const double gg{g_res*g_res};
     const double left_ratio{h_res/g_res};
     const double num{qq*bp4*psi2*gg};
@@ -473,6 +480,46 @@ gms::fading_channel
     const double xgamma = p_payload->arg4d;
     const double xl     = p_payload->arg5d;
     return (integrand_Hoyt_lt_chan_5_40(theta,xb,xpsi,xq,xgamma,xl));
+}
+
+double 
+gms::fading_channel
+::integrand_Rice_lt_chan_5_41(const double theta,const double b,
+                              const double psi,const double n,
+                              const double gamma,const double l)
+{
+    double g_res{};
+    double h_res{};
+#if (INTEGRANDS_FUNC_CH5_USE_PARAM_MACRO) == 1
+    G_FUNC_BODY(theta,psi,g_res);
+    H_FUNC_BODY(theta,psi,l);
+#else
+    g_res = g(theta,psi);
+    h_res = h(theta,psi,l);
+#endif 
+    const double nn{n*n};
+    const double bbgamma{0.5*(b*b*gamma)};
+    const double one_p_nn{1.0+nn};
+    const double denom{one_p_nn+bbgamma*g_res};
+    const double ratio1{h_res/g_res};
+    const double ratio2{one_p_nn/denom};
+    const double num{nn*bbgamma*g_res};
+    const double exp_arg{num/denom};
+    const double exp_val{-exp_arg};
+    return (ratio1*(ratio2*exp_val));
+}
+
+double 
+gms::fading_channel
+::integrand_Rice_lt_chan_5_41_iface(const double theta,void * __restrict__ user_data)
+{
+    func_args_ch5_payload_t * __restrict__ p_payload{reinterpret_cast<func_args_ch5_payload_t* __restrict__>(user_data)};
+    const double xb   = p_payload->arg1d;
+    const double xpsi = p_payload->arg2d;
+    const double xn   = p_payload->arg3d;
+    const double xgamma = p_payload->arg4d;
+    const double xl   = p_payload->arg5d;
+    return (integrand_Rice_lt_chan_5_41(theta,xb,xpsi,xn,xgamma,xl));
 }
 
 

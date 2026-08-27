@@ -52,6 +52,10 @@ namespace file_info
 #define INTEGRANDS_FUNC_CH5_SPLIT_MATH_IMPL_PERF_TEST 1
 #endif 
 
+#if !defined(INTEGRANDS_FUNC_CH5_USE_PARAM_MACRO)
+#define INTEGRANDS_FUNC_CH5_USE_PARAM_MACRO 0
+#endif
+
 
 namespace gms
 {
