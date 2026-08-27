@@ -451,8 +451,33 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_lnsh_Nakagami_m_lt_chan_5_47_iface(const double,void * __restrict__);
 
+/*
+   ai -- SNR for the ith signal
+   thetai -- angle associated with the correct signal detection decision region (the ith signal)
+   psii   -- same as above (the ith signal)
+   The integral will be computed for the each ith signal in the 2D signal set.
+*/
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_avg_err_prob_QAM_5_71(const double,const double,const double);
 
-
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_avg_err_prob_QAM_5_71_iface(const double,void * __restrict__);
 
 
 } // fading_channel

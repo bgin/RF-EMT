@@ -663,7 +663,46 @@ gms::fading_channel
     return (integrand_lnsh_Nakagami_m_lt_cha_5_47(x,xtheta,xb,xpsi,xmu,xsigma,xm,xl));
 }
 
+double 
+gms::fading_channel
+::integrand_avg_err_prob_QAM_5_71(const double theta,const double a,const double phi)
+{
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0 
+    const double aa{a*a};
+    const double tht_p_phi{theta+phi};
+    const double tmp1{std::sin(phi)};
+    const double sinphip2{tmp1*tmp1};
+    const double tmp2{std::sin(tht_p_phi)};
+    const double sinthtphip2{tmp2*tmp2};
+    const double num{aa*sinphip2};
+    const double den{sinthtphip2+sinthtphip2};
+    const double exp_arg{num/den};
+    const double exp_val{std::exp(-exp_arg)}; 
+    return (exp_val);
+#else 
+    const double aa{a*a};
+    const double tht_p_phi{theta+phi};
+    const double tmp1{gms::math::cephes_d::sin(phi)};
+    const double sinphip2{tmp1*tmp1};
+    const double tmp2{gms::math::cephes_d::sin(tht_p_phi)};
+    const double sinthtphip2{tmp2*tmp2};
+    const double num{aa*sinphip2};
+    const double den{sinthtphip2+sinthtphip2};
+    const double exp_arg{num/den};
+    const double exp_val{gms::math::cephes_d::exp(-exp_arg)}; 
+    return (exp_val);
+#endif 
+}
 
+double 
+gms::fading_channel
+::integrand_avg_err_prob_QAM_5_71_iface(const double theta,void * __restrict__)
+{
+    func_args_ch5_payload_t * __restrict__ p_payload{reinterpret_cast<func_args_ch5_payload_t* __restrict__>(user_data)};
+    const double xa   = p_payload->arg1d;
+    const double xphi = p_payload->arg2d;
+    return (integrand_avg_err_prob_QAM_5_71(theta,xa,xphi)); 
+}
 
 
 
