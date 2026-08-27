@@ -522,7 +522,96 @@ gms::fading_channel
     return (integrand_Rice_lt_chan_5_41(theta,xb,xpsi,xn,xgamma,xl));
 }
 
+double 
+gms::fading_channel
+::integrand_Nakagami_m_lt_chan_5_43(const double theta,const double b,
+                                    const double psi,const double m,
+                                    const double gamma,const double l)
+{
+    double g_res{};
+    double h_res{};
+#if (INTEGRANDS_FUNC_CH5_USE_PARAM_MACRO) == 1
+    G_FUNC_BODY(theta,psi,g_res);
+    H_FUNC_BODY(theta,psi,l);
+#else
+    g_res = g(theta,psi);
+    h_res = h(theta,psi,l);
+#endif 
+    const double bbgamma{b*b*gamma};
+    const double hg_ratio{h_res/g_res};
+    const double ratio{bbgamma/(m+m)};
+    const double invm_term{1.0+ratio*g_res};
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0  
+    const double to_m_pow{1.0/std::pow(invm_term,m)};
+#else 
+    const double to_m_pow{1.0/gms::math::cephes_d::pow(invm_term,m)};
+#endif
+    return (hg_ratio*to_m_pow);
+}
 
+double 
+gms::fading_channel 
+::integrand_Nakagami_m_lt_chan_5_43_iface(const double theta,void * __restrict__ user_data)
+{
+    func_args_ch5_payload_t * __restrict__ p_payload{reinterpret_cast<func_args_ch5_payload_t* __restrict__>(user_data)};
+    const double xb   = p_payload->arg1d;
+    const double xpsi = p_payload->arg2d;
+    const double xm   = p_payload->arg3d;
+    const double xgamma = p_payload->arg4d;
+    const double xl   = p_payload->arg5d;
+    return (integrand_Nakagami_m_lt_chan_5_43(theta,xb,xpsi,xm,xgamma,xl));
+}
+
+double 
+gms::fading_channel
+::integrand_Log_Norm_Shadow_lt_chan_5_44(const double x,const double theta,
+                                         const double b,const double psi,
+                                         const double mu,const double sigma,
+                                         const double l)
+{
+    double g_res{};
+#if (INTEGRANDS_FUNC_CH5_USE_PARAM_MACRO) == 1
+    G_FUNC_BODY(theta,psi,g_res);
+#else
+    g_res = g(theta,psi);
+#endif 
+    const double xx{x*x};
+    const double bbg_res{0.5*(b*b*g_res)};
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0  
+    const double exp_val2{std::exp(-xx)};
+    const double sqrt_2sigma{x*std::sqrt(sigma+sigma)+mu};
+#else 
+    const double exp_val2{gms::math::cephes_d::exp(-xx)};
+    const double sqrt_2sigma{x*gms::math::cephes_d::sqrt(sigma+sigma)+mu};
+#endif 
+    const double pow_arg{sqrt_2sigma*0.1};
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0  
+    const double ten_to_pow{std::pow(pow_arg)};
+#else 
+    const double ten_to_pow{gms::math::cephes_d::pow(pow_arg)};
+#endif
+    const double exp_arg1{bbg_res*ten_to_pow};
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0 
+    const double exp_val1{std::exp(-exp_arg1)};
+#else 
+    const double exp_val1{gms::math::cephes_d::exp(-exp_arg1)};
+#endif
+    return (exp_val1*exp_val2);
+}
+
+double 
+gms::fading_channel
+::integrand_Log_Norm_Shadow_lt_chan_5_44_iface(const double x,void * __restrict__ user_data)
+{
+    func_args_ch5_payload_t * __restrict__ p_payload{reinterpret_cast<func_args_ch5_payload_t* __restrict__>(user_data)};
+    const double xtheta  = p_payload->arg1d;
+    const double xb      = p_payload->arg2d;
+    const double xpsi    = p_payload->arg3d;
+    const double xmu     = p_payload->arg4d;
+    const double xsigma  = p_payload->arg5d;
+    const double xl      = p_payload->arg6d;
+    return (integrand_Log_Norm_Shadow_lt_chan_5_44(x,xtheta,xb,xpsi,xmu,xsigma,xl));
+}
 
 
 
