@@ -262,6 +262,16 @@ __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_Nakagami_m_chan_5_16(quadpack_integrator_payload_ch5_t * __restrict__);
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+std::int32_t
+compute_functional_LogNormShadow_chan_5_20(quadpack_integrator_payload_ch5_t * __restrict__);
+
 
 } // fading_channel
 
