@@ -460,10 +460,10 @@ void unit_test_compute_functional_LogNormShadow_chan_5_20()
 
 int main()
 {
-   // (void)unit_test_compute_functional_Rayleigh_chan_5_6();
-   // (void)unit_test_compute_functional_Hoyt_chan_5_6();
-   //(void)unit_test_compute_functional_Rice_chan_5_12();
-   //(void)unit_test_compute_functional_Nakagami_m_chan_5_16();
+   (void)unit_test_compute_functional_Rayleigh_chan_5_6();
+   (void)unit_test_compute_functional_Hoyt_chan_5_6();
+   (void)unit_test_compute_functional_Rice_chan_5_12();
+   (void)unit_test_compute_functional_Nakagami_m_chan_5_16();
    (void)unit_test_compute_functional_LogNormShadow_chan_5_20();
     return 0;
 }
