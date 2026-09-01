@@ -77,6 +77,7 @@ namespace fading_channel
 struct alignas(64) quadpack_integrator_payload_ch5_t 
 {
     const std::string integrators_names[6] = {{"dqage"},{"dqagi"},{"dqags"},{"dqng"},{"dqagp"},{"dqaws"}};
+    const std::string tabulated_integrators_names[4] = {{"hiordq"},{"simpn"},{"wedint"},{"avint"}};
     double (*integrand)(double,void * __restrict__);
     func_args_ch5_payload_t * __restrict__ func_args_payload{nullptr};
     double              * __restrict__ tmp_work1{nullptr}; //work storage (caller provided) used mainly for the functional a1st rguments sorting.
@@ -134,6 +135,7 @@ struct alignas(64) quadpack_integrator_payload_ch5_t
 struct alignas(64) quadpack_integrator_payload_ch5_v2_t
 {
     const std::string integrators_names[6] = {{"dqage"},{"dqagi"},{"dqags"},{"dqng"},{"dqagp"},{"dqaws"}};
+    const std::string tabulated_integrators_names[4] = {{"hiordq"},{"simpn"},{"wedint"},{"avint"}};
     double (*integrand)(double,void * __restrict__);
     std::valarray<func_args_ch5_payload_t> func_args_payload;
     std::valarray<double>              tmp_work1;
@@ -187,7 +189,9 @@ template<std::size_t N,std::size_t M>
 struct alignas(64) quadpack_integrator_payload_ch5_v3_t
 {
     static_assert(N>=50ull,"The number of Functional values <=50!!");
+    static_assert(M>=50ull,"The number of outer Functional values <=50!!");
     const std::string integrators_names[6] = {{"dqage"},{"dqagi"},{"dqags"},{"dqng"},{"dqagp"},{"dqaws"}};
+    const std::string tabulated_integrators_names[4] = {{"hiordq"},{"simpn"},{"wedint"},{"avint"}};
     double (*integrand)(double,void * __restrict__);
     std::array<func_args_ch5_payload_t,N> funcs_arg_payload;
     std::array<double,N>              tmp_work1;
