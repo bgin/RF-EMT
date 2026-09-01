@@ -93,13 +93,16 @@ struct alignas(64) quadpack_integrator_payload_ch5_t
     double              * __restrict__ epsabs{nullptr};
     double              * __restrict__ epsrel{nullptr};
     double              * __restrict__ abser{nullptr}; // integrator abosulute error
-    double              * __restrict__ functional{nullptr}; // computed functional values
+    double              * __restrict__ functional{nullptr}; // computed (inner if applicable) functional values
+    double              * __restrict__ outer_functional{nullptr}; // computed outer functional values 
     std::int32_t        * __restrict__ neval{nullptr};      // number of evaluation
     std::int32_t        * __restrict__ ier{nullptr};        // integrator error indicator
     std::int32_t        * __restrict__ last{nullptr};
     std::uint64_t       * __restrict__ crude_tsc_start{nullptr};
     std::uint64_t       * __restrict__ crude_tsc_end{nullptr};
     std::uint64_t       * __restrict__ crude_tsc_measurement{nullptr}; // crude RDTSCP measurement for approximate TSC assesment (shall not be used for the robust statistics)
+    std::uint64_t       * __restrict__ crude_tsc_meas_outer{nullptr}; // crude RDTSCP measurement for approximate TSC assesment if the outer functional (shall not be used for the robust statistics)
+    double                            outer_func_tmp_res; // result for outer functional computation 
     double                             rand_lo1{}; // set lower limit for random number generator
     double                             rand_hi1{}; // as above (1st argument pair)
     double                             rand_lo2{}; // set lower limit for random number generator
@@ -116,9 +119,11 @@ struct alignas(64) quadpack_integrator_payload_ch5_t
     double                             rand_hi7{}; // as above (7th argument pair)
     double                             rand_lo8{}; // set lower limit for random number generator
     double                             rand_hi8{}; // as above (8th argument pair)
-    std::int32_t                       n_func_vals;
-    std::int32_t                       which_integrator; //currently 1=dqage,2=dqagi,3=dqags
-    bool                               randomly_generate_inputs; //as the name states: random input generation in use if true, otherwise provide deterministic inputs
+    std::int32_t                       n_func_vals{}; 
+    std::int32_t                       n_outer_func_vals{}; // outer functional number of values.
+    std::int32_t                       which_integrator{}; //currently 1=dqage,2=dqagi,3=dqags,4=dqng,5=dqagp,6=dqaws
+    std::int32_t                       which_tabulated_integrator{};
+    bool                               randomly_generate_inputs{}; //as the name states: random input generation in use if true, otherwise provide deterministic inputs
 };
 
 /* 
@@ -146,12 +151,15 @@ struct alignas(64) quadpack_integrator_payload_ch5_v2_t
     std::valarray<double>              epsrel;
     std::valarray<double>              abser;
     std::valarray<double>              functional;
+    std::valarray<double>              outer_functional;
     std::valarray<std::int32_t>        neval;
     std::valarray<std::int32_t>        ier;
     std::valarray<std::int32_t>        last;
     std::valarray<std::uint64_t>       crude_tsc_start;
     std::valarray<std::uint64_t>       crude_tsc_end;
     std::valarray<std::uint64_t>       crude_tsc_measurements;
+    std::valarray<std::uint64_t>       crude_tsc_meas_outer;
+    double                            outer_func_tmp_res; // result for outer functional computation 
     double                             rand_lo1{}; // set lower limit for random number generator
     double                             rand_hi1{}; // as above (1st argument pair)
     double                             rand_lo2{}; // set lower limit for random number generator
@@ -162,18 +170,20 @@ struct alignas(64) quadpack_integrator_payload_ch5_v2_t
     double                             rand_hi4{}; // as above (4th argument pair)
     double                             rand_lo5{}; // set lower limit for random number generator
     double                             rand_hi5{}; // as above (5th argument pair)
-     double                            rand_lo6{}; // set lower limit for random number generator
+    double                             rand_lo6{}; // set lower limit for random number generator
     double                             rand_hi6{}; // as above (6th argument pair)
     double                             rand_lo7{}; // set lower limit for random number generator
     double                             rand_hi7{}; // as above (7th argument pair)
     double                             rand_lo8{}; // set lower limit for random number generator
     double                             rand_hi8{}; // as above (8th argument pair)
-    std::int32_t                       n_func_vals;
-    std::int32_t                       which_integrator; //currently 1=dqage,2=dqagi,3=dqags
-    bool                               randomly_generate_inputs; //as the name states: random input generation in use if true, otherwise provide deterministic inputs
+    std::int32_t                       n_func_vals{};
+    std::int32_t                       n_outer_func_vals{}; // outer functional values of nest 
+    std::int32_t                       which_integrator{}; //currently 1=dqage,2=dqagi,3=dqags,4=dqng,5=dqagp,6=dqaws
+    std::int32_t                       which_tabulated_integrator{};
+    bool                               randomly_generate_inputs{}; //as the name states: random input generation in use if true, otherwise provide deterministic inputs
 };
 
-template<std::size_t N>
+template<std::size_t N,std::size_t M>
 struct alignas(64) quadpack_integrator_payload_ch5_v3_t
 {
     static_assert(N>=50ull,"The number of Functional values <=50!!");
@@ -195,12 +205,15 @@ struct alignas(64) quadpack_integrator_payload_ch5_v3_t
     std::array<double,N>              epsrel;
     std::array<double,N>              abser;
     std::array<double,N>              functional;
+    std::array<double,M>              outer_functional;
     std::array<std::int32_t,N>        neval;
     std::array<std::int32_t,N>        ier;
     std::array<std::int32_t,N>        last;
     std::array<std::uint64_t,N>       crude_tsc_start;
     std::array<std::uint64_t,N>       crude_tsc_end;
     std::array<std::uint64_t,N>       crude_tsc_measurememnts;
+    std::array<std::uint64_t,M>       crude_tsc_meas_outer; 
+    double                            outer_func_tmp_res; // result for outer functional computation 
     double                             rand_lo1{}; // set lower limit for random number generator
     double                             rand_hi1{}; // as above (1st argument pair)
     double                             rand_lo2{}; // set lower limit for random number generator
@@ -218,7 +231,9 @@ struct alignas(64) quadpack_integrator_payload_ch5_v3_t
     double                             rand_lo8{}; // set lower limit for random number generator
     double                             rand_hi8{}; // as above (8th argument pair)
     std::int32_t                       n_func_vals{static_cast<std::int32_t>(N)};
-    std::int32_t                       which_integrator; //currently 1=dqage,2=dqagi,3=dqags 
+    std::int32_t                       n_outer_func_vals{static_cast<std::int32_t>(M)}; // outer functional values.
+    std::int32_t                       which_integrator; //currently 1=dqage,2=dqagi,3=dqags,4=dqng,5=dqagp,6=dqaws
+    std::int32_t                       which_tabulated_integrator{};
     bool                               randomly_generate_inputs; //as the name states: random input generation in use if true, otherwise provide deterministic inputs   
 };
 
@@ -271,6 +286,16 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_LogNormShadow_chan_5_20(quadpack_integrator_payload_ch5_t * __restrict__);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+std::int32_t
+compute_outer_functional_LogNormShadow_chan_5_20(quadpack_integrator_payload_ch5_t * __restrict__);
 
 
 } // fading_channel
