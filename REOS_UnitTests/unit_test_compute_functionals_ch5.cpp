@@ -524,8 +524,8 @@ void unit_test_compute_outer_functional_LogNormShadow_chan_5_20()
     integrator_payload.rand_hi5 = +7.5;
     integrator_payload.n_func_vals = n_func_args;
     integrator_payload.randomly_generate_inputs = true;
-    integrator_payload.which_integrator = 3;
-    integrator_payload.which_tabulated_integrator = 1;
+    integrator_payload.which_integrator = 1;
+    //integrator_payload.which_tabulated_integrator = 1;
     /*
     gms::fading_channel::quadpack_integrator_payload_ch5_t * __restrict__ p_payload = &integrator_payload;
     for(std::int32_t ii{1}; ii<5; ++ii) 
@@ -553,13 +553,14 @@ void unit_test_compute_outer_functional_LogNormShadow_chan_5_20()
     }
     */
     gms::fading_channel::quadpack_integrator_payload_ch5_t * __restrict__ p_payload = &integrator_payload;
+    integrator_payload.which_tabulated_integrator = 1;
     for(std::int32_t ii{0}; ii<n_outer_func_args; ++ii) 
     {
-        std::int32_t integrator_ret = gms::fading_channel::compute_outer_functional_LogNormShadow_chan_5_20(p_payload);
-        const double outer_func_res = p_payload->outer_func_tmp_res;
-        outer_LogNormShadow_Channel_functional[ii] = outer_func_res;
-        print_retv = print_double("Outer LogNormShadow-Channel Functional (f:5.20)",outer_func_res,0);
-        print_retv = std::printf("[UNIT_TEST]: tsc-delta=%llu\n",p_payload->crude_tsc_meas_outer[ii]);
+            std::int32_t integrator_ret = gms::fading_channel::compute_outer_functional_LogNormShadow_chan_5_20(p_payload);
+            const double outer_func_res = p_payload->outer_func_tmp_res;
+            outer_LogNormShadow_Channel_functional[ii] = outer_func_res;
+            print_retv = print_double("Outer LogNormShadow-Channel Functional (f:5.20)",outer_func_res,0);
+            print_retv = std::printf("[UNIT_TEST]: tsc-delta=%llu\n",p_payload->crude_tsc_meas_outer[ii]);
     }
     print_retv = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
