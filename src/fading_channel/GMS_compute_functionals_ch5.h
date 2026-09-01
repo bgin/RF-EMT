@@ -302,6 +302,8 @@ std::int32_t
 compute_outer_functional_LogNormShadow_chan_5_20(quadpack_integrator_payload_ch5_t * __restrict__);
 
 
+
+
 } // fading_channel
 
 } //gms

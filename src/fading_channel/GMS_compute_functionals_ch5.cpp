@@ -869,6 +869,7 @@ gms::fading_channel
         { 
             const std::uint64_t start{gms::common::rdtsc_serialized_start()};
             (void)math::hiordq(nfunc_vals,abscissa_step,&p_functional[0],&p_tmp_hiordq_work[0],p_payload->outer_func_tmp_res); 
+            p_payload->outer_func_tmp_res *= 0.318309886183790671537767527;
             const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
             call_counter += 1;
             p_crude_tsc_meas_outer[call_counter] = end-start;
@@ -877,6 +878,7 @@ gms::fading_channel
         {   
             const std::uint64_t start{gms::common::rdtsc_serialized_start()};
             (void)math::simpn(nfunc_vals,abscissa_step,&p_functional[0],p_payload->outer_func_tmp_res); 
+            p_payload->outer_func_tmp_res *= 0.318309886183790671537767527;
             const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
             call_counter += 1;
             p_crude_tsc_meas_outer[call_counter] = end-start;
@@ -885,6 +887,7 @@ gms::fading_channel
         {  
             const std::uint64_t start{gms::common::rdtsc_serialized_start()};
             (void)math::wedint(nfunc_vals,abscissa_step,&p_functional[0],p_payload->outer_func_tmp_res);
+            p_payload->outer_func_tmp_res *= 0.318309886183790671537767527;
             const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
             call_counter += 1;
             p_crude_tsc_meas_outer[call_counter] = end-start;
@@ -920,6 +923,7 @@ gms::fading_channel
         { 
             const std::uint64_t start{gms::common::rdtsc_serialized_start()};
             (void)math::hiordq(nfunc_vals,abscissa_step,&p_functional[0],&p_tmp_hiordq_work[0],p_payload->outer_func_tmp_res); 
+            p_payload->outer_func_tmp_res *= 0.318309886183790671537767527;
             const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
             call_counter += 1;
             p_crude_tsc_meas_outer[call_counter] = end-start;
@@ -928,6 +932,7 @@ gms::fading_channel
         { 
             const std::uint64_t start{gms::common::rdtsc_serialized_start()};
             (void)math::simpn(nfunc_vals,abscissa_step,&p_functional[0],p_payload->outer_func_tmp_res); 
+            p_payload->outer_func_tmp_res *= 0.318309886183790671537767527;
             const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
             call_counter += 1;
             p_crude_tsc_meas_outer[call_counter] = end-start;
@@ -936,6 +941,7 @@ gms::fading_channel
         {   
             const std::uint64_t start{gms::common::rdtsc_serialized_start()};
             (void)math::wedint(nfunc_vals,abscissa_step,&p_functional[0],p_payload->outer_func_tmp_res);
+            p_payload->outer_func_tmp_res *= 0.318309886183790671537767527;
             const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
             call_counter += 1;
             p_crude_tsc_meas_outer[call_counter] = end-start;
@@ -971,6 +977,7 @@ gms::fading_channel
         {   
             const std::uint64_t start{gms::common::rdtsc_serialized_start()};
             (void)math::hiordq(nfunc_vals,abscissa_step,&p_functional[0],&p_tmp_hiordq_work[0],p_payload->outer_func_tmp_res); 
+            p_payload->outer_func_tmp_res *= 0.318309886183790671537767527;
             const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
             call_counter += 1;
             p_crude_tsc_meas_outer[call_counter] = end-start;
@@ -979,6 +986,7 @@ gms::fading_channel
         { 
             const std::uint64_t start{gms::common::rdtsc_serialized_start()};
             (void)math::simpn(nfunc_vals,abscissa_step,&p_functional[0],p_payload->outer_func_tmp_res); 
+            p_payload->outer_func_tmp_res *= 0.318309886183790671537767527;
             const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
             call_counter += 1;
             p_crude_tsc_meas_outer[call_counter] = end-start;
@@ -987,6 +995,7 @@ gms::fading_channel
         {   
             const std::uint64_t start{gms::common::rdtsc_serialized_start()};
             (void)math::wedint(nfunc_vals,abscissa_step,&p_functional[0],p_payload->outer_func_tmp_res);
+            p_payload->outer_func_tmp_res *= 0.318309886183790671537767527;
             const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
             call_counter += 1;
             p_crude_tsc_meas_outer[call_counter] = end-start;
@@ -1022,6 +1031,7 @@ gms::fading_channel
         { 
             const std::uint64_t start{gms::common::rdtsc_serialized_start()};
             (void)math::hiordq(nfunc_vals,abscissa_step,&p_functional[0],&p_tmp_hiordq_work[0],p_payload->outer_func_tmp_res); 
+            p_payload->outer_func_tmp_res *= 0.318309886183790671537767527;
             const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
             call_counter += 1;
             p_crude_tsc_meas_outer[call_counter] = end-start;
@@ -1030,6 +1040,7 @@ gms::fading_channel
         {   
             const std::uint64_t start{gms::common::rdtsc_serialized_start()};
             (void)math::simpn(nfunc_vals,abscissa_step,&p_functional[0],p_payload->outer_func_tmp_res); 
+            p_payload->outer_func_tmp_res *= 0.318309886183790671537767527;
             const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
             call_counter += 1;
             p_crude_tsc_meas_outer[call_counter] = end-start;
@@ -1038,6 +1049,7 @@ gms::fading_channel
         {   
             const std::uint64_t start{gms::common::rdtsc_serialized_start()};
             (void)math::wedint(nfunc_vals,abscissa_step,&p_functional[0],p_payload->outer_func_tmp_res);
+            p_payload->outer_func_tmp_res *= 0.318309886183790671537767527;
             const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
             call_counter += 1;
             p_crude_tsc_meas_outer[call_counter] = end-start;
