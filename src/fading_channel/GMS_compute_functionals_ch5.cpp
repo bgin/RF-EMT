@@ -21,6 +21,9 @@
 #include <random>
 #include <cstdio> // for debugging
 #include <cmath>
+#ifdef _OPENMP
+#include <omp.h>
+#endif 
 #include "GMS_compute_functionals_ch5.h"
 #include "GMS_cquadpack.h"
 #include "GMS_machine_utils.h" // for RDTSCP wrapper
@@ -542,6 +545,26 @@ gms::fading_channel
     const bool                  rand_in_gen_eq_true          = random_input_generation==true;
     if(rand_in_gen_eq_true)
     {
+#ifdef _OPENMP
+       std::uniform_real_distribution<double> rv_func_a;
+       std::mt19937 rv_func_a_gen;
+       std::uint64_t seed_func_a{};
+       std::uniform_real_distribution<double> rv_func_gamma;
+       std::mt19937 rv_func_gamma_gen;
+       std::uint64_t seed_func_gamma{};
+       std::uniform_real_distribution<double> rv_func_m;
+       std::mt19937 rv_func_m_gen;
+       std::uint64_t seed_func_m{};
+#pragma omp threadprivate(rv_func_a)
+#pragma omp threadprivate(rv_func_a_gen)
+#pragma omp threadprivate(seed_func_a)
+#pragma omp threadprivate(rv_func_gamma)
+#pragma omp threadprivate(rv_func_gamma_gen)
+#pragma omp threadprivate(seed_func_gamma)
+#pragma omp threadprivate(rv_func_m)
+#pragma omp threadprivate(rv_func_m_gen)
+#pragma omp threadprivate(seed_func_m)
+#else 
        thread_local std::uniform_real_distribution<double> rv_func_a;
        thread_local std::mt19937 rv_func_a_gen;
        thread_local std::uint64_t seed_func_a{};
@@ -551,6 +574,7 @@ gms::fading_channel
        thread_local std::uniform_real_distribution<double> rv_func_m;
        thread_local std::mt19937 rv_func_m_gen;
        thread_local std::uint64_t seed_func_m{};
+#endif 
        rv_func_a = std::uniform_real_distribution<double>(rand_low1,rand_high1);
        seed_func_a = __rdtsc();
        rv_func_a_gen = std::mt19937(seed_func_a);
@@ -680,6 +704,31 @@ gms::fading_channel
     const bool                  rand_in_gen_eq_true          = random_input_generation==true;
     if(rand_in_gen_eq_true)
     {
+#ifdef _OPENMP
+       std::uniform_real_distribution<double> rv_func_theta;
+       std::mt19937 rv_func_theta_gen;
+       std::uint64_t seed_func_theta{};
+       std::uniform_real_distribution<double> rv_func_a;
+       std::mt19937 rv_func_a_gen;
+       std::uint64_t seed_func_a{};
+       std::uniform_real_distribution<double> rv_func_mu;
+       std::mt19937 rv_func_mu_gen;
+       std::uint64_t seed_func_mu{};
+       std::uniform_real_distribution<double> rv_func_sigma;
+       std::mt19937 rv_func_sigma_gen;
+       std::uint64_t seed_func_sigma{};
+#pragma omp threadprivate(rv_func_theta)
+#pragma omp threadprivate(rv_func_theta_gen)
+#pragma omp threadprivate(seed_func_theta)
+#pragma omp threadprivate(rv_func_a)
+#pragma omp threadprivate(seed_func_a)
+#pragma omp threadprivate(rv_func_mu)
+#pragma omp threadprivate(rv_func_mu_gen)
+#pragma omp threadprivate(seed_func_mu)
+#pragma omp threadprivate(rv_func_sigma)
+#pragma omp threadprivate(rv_func_sigma_gen)
+#pragma omp threadprivate(seed_func_sigma)
+#else 
        thread_local std::uniform_real_distribution<double> rv_func_theta;
        thread_local std::mt19937 rv_func_theta_gen;
        thread_local std::uint64_t seed_func_theta{};
@@ -692,6 +741,7 @@ gms::fading_channel
        thread_local std::uniform_real_distribution<double> rv_func_sigma;
        thread_local std::mt19937 rv_func_sigma_gen;
        thread_local std::uint64_t seed_func_sigma{};
+#endif 
        rv_func_theta = std::uniform_real_distribution<double>(rand_low1,rand_high1);
        seed_func_theta = __rdtsc();
        rv_func_theta_gen = std::mt19937(seed_func_theta);
