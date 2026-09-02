@@ -105,12 +105,12 @@ gms::fading_channel
     if(rand_in_gen_eq_true)
     {
 #ifdef _OPENMP
-       std::uniform_real_distribution<double> rv_func_a;
-       std::mt19937 rv_func_a_gen;
-       std::uint64_t seed_func_a;
-       std::uniform_real_distribution<double> rv_func_gamma;
-       std::mt19937 rv_func_gamma_gen;
-       std::uint64_t seed_func_gamma;
+    static   std::uniform_real_distribution<double> rv_func_a;
+    static   std::mt19937 rv_func_a_gen;
+    static   std::uint64_t seed_func_a;
+    static   std::uniform_real_distribution<double> rv_func_gamma;
+    static   std::mt19937 rv_func_gamma_gen;
+    static   std::uint64_t seed_func_gamma;
 #pragma omp threadprivate(rv_func_a)
 #pragma omp threadprivate(rv_func_a_gen)
 #pragma omp threadprivate(seed_func_a)
@@ -238,15 +238,15 @@ gms::fading_channel
     if(rand_in_gen_eq_true)
     {
 #ifdef _OPENMP
-       std::uniform_real_distribution<double> rv_func_a;
-       std::mt19937 rv_func_a_gen;
-       std::uint64_t seed_func_a{};
-       std::uniform_real_distribution<double> rv_func_gamma;
-       std::mt19937 rv_func_gamma_gen;
-       std::uint64_t seed_func_gamma{};
-       std::uniform_real_distribution<double> rv_func_q;
-       std::mt19937 rv_func_q_gen;
-       std::uint64_t seed_func_q{};
+    static   std::uniform_real_distribution<double> rv_func_a;
+    static   std::mt19937 rv_func_a_gen;
+    static   std::uint64_t seed_func_a{};
+    static   std::uniform_real_distribution<double> rv_func_gamma;
+    static   std::mt19937 rv_func_gamma_gen;
+    static   std::uint64_t seed_func_gamma{};
+    static   std::uniform_real_distribution<double> rv_func_q;
+    static   std::mt19937 rv_func_q_gen;
+    static   std::uint64_t seed_func_q{};
 #pragma omp threadprivate(rv_func_a)
 #pragma omp threadprivate(rv_func_a_gen)
 #pragma omp threadprivate(seed_func_a)
@@ -392,15 +392,15 @@ gms::fading_channel
     if(rand_in_gen_eq_true)
     {
 #ifdef _OPENMP
-       std::uniform_real_distribution<double> rv_func_a;
-       std::mt19937 rv_func_a_gen;
-       std::uint64_t seed_func_a{};
-       std::uniform_real_distribution<double> rv_func_gamma;
-       std::mt19937 rv_func_gamma_gen;
-       std::uint64_t seed_func_gamma{};
-       std::uniform_real_distribution<double> rv_func_n;
-       std::mt19937 rv_func_n_gen;
-       std::uint64_t seed_func_n{};
+    static   std::uniform_real_distribution<double> rv_func_a;
+    static   std::mt19937 rv_func_a_gen;
+    static   std::uint64_t seed_func_a{};
+    static   std::uniform_real_distribution<double> rv_func_gamma;
+    static   std::mt19937 rv_func_gamma_gen;
+    static   std::uint64_t seed_func_gamma{};
+    static   std::uniform_real_distribution<double> rv_func_n;
+    static   std::mt19937 rv_func_n_gen;
+    static   std::uint64_t seed_func_n{};
 #pragma omp threadprivate(rv_func_a)
 #pragma omp threadprivate(rv_func_a_gen)
 #pragma omp threadprivate(seed_func_a)
@@ -546,15 +546,15 @@ gms::fading_channel
     if(rand_in_gen_eq_true)
     {
 #ifdef _OPENMP
-       std::uniform_real_distribution<double> rv_func_a;
-       std::mt19937 rv_func_a_gen;
-       std::uint64_t seed_func_a{};
-       std::uniform_real_distribution<double> rv_func_gamma;
-       std::mt19937 rv_func_gamma_gen;
-       std::uint64_t seed_func_gamma{};
-       std::uniform_real_distribution<double> rv_func_m;
-       std::mt19937 rv_func_m_gen;
-       std::uint64_t seed_func_m{};
+    static   std::uniform_real_distribution<double> rv_func_a;
+    static   std::mt19937 rv_func_a_gen;
+    static   std::uint64_t seed_func_a{};
+    static   std::uniform_real_distribution<double> rv_func_gamma;
+    static   std::mt19937 rv_func_gamma_gen;
+    static   std::uint64_t seed_func_gamma{};
+    static   std::uniform_real_distribution<double> rv_func_m;
+    static   std::mt19937 rv_func_m_gen;
+    static   std::uint64_t seed_func_m{};
 #pragma omp threadprivate(rv_func_a)
 #pragma omp threadprivate(rv_func_a_gen)
 #pragma omp threadprivate(seed_func_a)
@@ -705,18 +705,18 @@ gms::fading_channel
     if(rand_in_gen_eq_true)
     {
 #ifdef _OPENMP
-       std::uniform_real_distribution<double> rv_func_theta;
-       std::mt19937 rv_func_theta_gen;
-       std::uint64_t seed_func_theta{};
-       std::uniform_real_distribution<double> rv_func_a;
-       std::mt19937 rv_func_a_gen;
-       std::uint64_t seed_func_a{};
-       std::uniform_real_distribution<double> rv_func_mu;
-       std::mt19937 rv_func_mu_gen;
-       std::uint64_t seed_func_mu{};
-       std::uniform_real_distribution<double> rv_func_sigma;
-       std::mt19937 rv_func_sigma_gen;
-       std::uint64_t seed_func_sigma{};
+    static   std::uniform_real_distribution<double> rv_func_theta;
+    static   std::mt19937 rv_func_theta_gen;
+    static   std::uint64_t seed_func_theta{};
+    static   std::uniform_real_distribution<double> rv_func_a;
+    static   std::mt19937 rv_func_a_gen;
+    static   std::uint64_t seed_func_a{};
+    static   std::uniform_real_distribution<double> rv_func_mu;
+    static   std::mt19937 rv_func_mu_gen;
+    static   std::uint64_t seed_func_mu{};
+    static   std::uniform_real_distribution<double> rv_func_sigma;
+    static   std::mt19937 rv_func_sigma_gen;
+    static   std::uint64_t seed_func_sigma{};
 #pragma omp threadprivate(rv_func_theta)
 #pragma omp threadprivate(rv_func_theta_gen)
 #pragma omp threadprivate(seed_func_theta)
@@ -862,6 +862,7 @@ gms::fading_channel
     return (0);
 }
 
+
 std::int32_t 
 gms::fading_channel
 ::compute_outer_functional_LogNormShadow_chan_5_20(quadpack_integrator_payload_ch5_t * __restrict__ p_payload)
@@ -906,18 +907,18 @@ gms::fading_channel
     if(rand_in_gen_eq_true)
     {
 #ifdef _OPENMP
-       std::uniform_real_distribution<double> rv_func_theta;
-       std::mt19937 rv_func_theta_gen;
-       std::uint64_t seed_func_theta{};
-       std::uniform_real_distribution<double> rv_func_a;
-       std::mt19937 rv_func_a_gen;
-       std::uint64_t seed_func_a{};
-       std::uniform_real_distribution<double> rv_func_mu;
-       std::mt19937 rv_func_mu_gen;
-       std::uint64_t seed_func_mu{};
-       std::uniform_real_distribution<double> rv_func_sigma;
-       std::mt19937 rv_func_sigma_gen;
-       std::uint64_t seed_func_sigma{};
+    static   std::uniform_real_distribution<double> rv_func_theta;
+    static   std::mt19937 rv_func_theta_gen;
+    static   std::uint64_t seed_func_theta{};
+    static   std::uniform_real_distribution<double> rv_func_a;
+    static   std::mt19937 rv_func_a_gen;
+    static   std::uint64_t seed_func_a{};
+    static   std::uniform_real_distribution<double> rv_func_mu;
+    static   std::mt19937 rv_func_mu_gen;
+    static   std::uint64_t seed_func_mu{};
+    static   std::uniform_real_distribution<double> rv_func_sigma;
+    static   std::mt19937 rv_func_sigma_gen;
+    static   std::uint64_t seed_func_sigma{};
 #pragma omp threadprivate(rv_func_theta)
 #pragma omp threadprivate(rv_func_theta_gen)
 #pragma omp threadprivate(seed_func_theta)
@@ -999,7 +1000,7 @@ gms::fading_channel
         thread_local static std::int32_t call_counter = 0;
 #else 
         static std::int32_t call_counter = 0;
-#pragma threadprivate(call_counter)
+#pragma omp threadprivate(call_counter)
 #endif 
         if(tabular_integrator_type==1) 
         { 
@@ -1035,7 +1036,7 @@ gms::fading_channel
         thread_local static std::int32_t call_counter = 0;
 #else 
         static std::int32_t call_counter = 0;
-#pragma threadprivate(call_counter)
+#pragma omp threadprivate(call_counter)
 #endif 
         for(std::int32_t i{0}; i<nfunc_vals; ++i)
         {
@@ -1091,7 +1092,7 @@ gms::fading_channel
         thread_local static std::int32_t call_counter = 0;
 #else 
         static std::int32_t call_counter = 0;
-#pragma threadprivate(call_counter)
+#pragma omp threadprivate(call_counter)
 #endif 
         for(std::int32_t i{0}; i<nfunc_vals; ++i)
         {
@@ -1147,7 +1148,7 @@ gms::fading_channel
         thread_local static std::int32_t call_counter = 0;
 #else 
         static std::int32_t call_counter = 0;
-#pragma threadprivate(call_counter)
+#pragma omp threadprivate(call_counter)
 #endif 
         for(std::int32_t i{0}; i<nfunc_vals; ++i)
         {
@@ -1200,6 +1201,7 @@ gms::fading_channel
     return (0);
 }
 
+
 std::int32_t 
 gms::fading_channel
 ::compute_functional_LNSh_Nakagami_m_chan_5_25(quadpack_integrator_payload_ch5_t * __restrict__ p_payload)
@@ -1244,21 +1246,21 @@ gms::fading_channel
     if(rand_in_gen_eq_true)
     {
 #ifdef _OPENMP
-       std::uniform_real_distribution<double> rv_func_theta;
-       std::mt19937 rv_func_theta_gen;
-       std::uint64_t seed_func_theta;
-       std::uniform_real_distribution<double> rv_func_a;
-       std::mt19937 rv_func_a_gen;
-       std::uint64_t seed_func_a;
-       std::uniform_real_distribution<double> rv_func_mu;
-       std::mt19937 rv_func_mu_gen;
-       std::uint64_t seed_func_mu;
-       std::uniform_real_distribution<double> rv_func_sigma;
-       std::mt19937 rv_func_sigma_gen;
-       std::uint64_t seed_func_sigma;
-       std::uniform_real_distribution<double> rv_func_m;
-       std::mt19937 rv_func_m_gen;
-       std::uint64_t seed_func_m;
+    static   std::uniform_real_distribution<double> rv_func_theta;
+    static   std::mt19937 rv_func_theta_gen;
+    static   std::uint64_t seed_func_theta;
+    static   std::uniform_real_distribution<double> rv_func_a;
+    static   std::mt19937 rv_func_a_gen;
+    static   std::uint64_t seed_func_a;
+    static   std::uniform_real_distribution<double> rv_func_mu;
+    static   std::mt19937 rv_func_mu_gen;
+    static   std::uint64_t seed_func_mu;
+    static   std::uniform_real_distribution<double> rv_func_sigma;
+    static   std::mt19937 rv_func_sigma_gen;
+    static   std::uint64_t seed_func_sigma;
+    static   std::uniform_real_distribution<double> rv_func_m;
+    static   std::mt19937 rv_func_m_gen;
+    static   std::uint64_t seed_func_m;
 #pragma omp threadprivate(rv_func_theta)
 #pragma omp threadprivate(rv_func_theta_gen)
 #pragma omp threadprivate(seed_func_theta)
@@ -1421,3 +1423,5 @@ gms::fading_channel
     }
     return (0);
 }
+
+
