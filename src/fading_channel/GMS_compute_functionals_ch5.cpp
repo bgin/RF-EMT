@@ -388,6 +388,26 @@ gms::fading_channel
     const bool                  rand_in_gen_eq_true          = random_input_generation==true;
     if(rand_in_gen_eq_true)
     {
+#ifdef _OPENMP
+       std::uniform_real_distribution<double> rv_func_a;
+       std::mt19937 rv_func_a_gen;
+       std::uint64_t seed_func_a{};
+       std::uniform_real_distribution<double> rv_func_gamma;
+       std::mt19937 rv_func_gamma_gen;
+       std::uint64_t seed_func_gamma{};
+       std::uniform_real_distribution<double> rv_func_n;
+       std::mt19937 rv_func_n_gen;
+       std::uint64_t seed_func_n{};
+#pragma omp threadprivate(rv_func_a)
+#pragma omp threadprivate(rv_func_a_gen)
+#pragma omp threadprivate(seed_func_a)
+#pragma omp threadprivate(rv_func_gamma)
+#pragma omp threadprivate(rv_func_gamma_gen)
+#pragma omp threadprivate(seed_func_gamma)
+#pragma omp threadprivate(rv_func_n)
+#pragma omp threadprivate(rv_func_n_gen)
+#pragma omp threadprivate(seed_func_n)
+#else 
        thread_local std::uniform_real_distribution<double> rv_func_a;
        thread_local std::mt19937 rv_func_a_gen;
        thread_local std::uint64_t seed_func_a{};
@@ -397,6 +417,7 @@ gms::fading_channel
        thread_local std::uniform_real_distribution<double> rv_func_n;
        thread_local std::mt19937 rv_func_n_gen;
        thread_local std::uint64_t seed_func_n{};
+#endif 
        rv_func_a = std::uniform_real_distribution<double>(rand_low1,rand_high1);
        seed_func_a = __rdtsc();
        rv_func_a_gen = std::mt19937(seed_func_a);
