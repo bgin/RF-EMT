@@ -74,10 +74,11 @@ namespace gms
 namespace fading_channel
 {
 
+const static std::string integrators_names_ch5[6] = {{"dqage"},{"dqagi"},{"dqags"},{"dqng"},{"dqagp"},{"dqaws"}};
+const static std::string tabulated_integrators_names_ch5[4] = {{"hiordq"},{"simpn"},{"wedint"},{"avint"}};
+
 struct alignas(64) quadpack_integrator_payload_ch5_t 
 {
-    const std::string integrators_names[6] = {{"dqage"},{"dqagi"},{"dqags"},{"dqng"},{"dqagp"},{"dqaws"}};
-    const std::string tabulated_integrators_names[4] = {{"hiordq"},{"simpn"},{"wedint"},{"avint"}};
     double (*integrand)(double,void * __restrict__);
     func_args_ch5_payload_t * __restrict__ func_args_payload{nullptr};
     double              * __restrict__ tmp_work1{nullptr}; //work storage (caller provided) used mainly for the functional a1st rguments sorting.
@@ -134,8 +135,6 @@ struct alignas(64) quadpack_integrator_payload_ch5_t
 
 struct alignas(64) quadpack_integrator_payload_ch5_v2_t
 {
-    const std::string integrators_names[6] = {{"dqage"},{"dqagi"},{"dqags"},{"dqng"},{"dqagp"},{"dqaws"}};
-    const std::string tabulated_integrators_names[4] = {{"hiordq"},{"simpn"},{"wedint"},{"avint"}};
     double (*integrand)(double,void * __restrict__);
     std::valarray<func_args_ch5_payload_t> func_args_payload;
     std::valarray<double>              tmp_work1;
@@ -190,8 +189,6 @@ struct alignas(64) quadpack_integrator_payload_ch5_v3_t
 {
     static_assert(N>=50ull,"The number of Functional values <=50!!");
     static_assert(M>=50ull,"The number of outer Functional values <=50!!");
-    const std::string integrators_names[6] = {{"dqage"},{"dqagi"},{"dqags"},{"dqng"},{"dqagp"},{"dqaws"}};
-    const std::string tabulated_integrators_names[4] = {{"hiordq"},{"simpn"},{"wedint"},{"avint"}};
     double (*integrand)(double,void * __restrict__);
     std::array<func_args_ch5_payload_t,N> funcs_arg_payload;
     std::array<double,N>              tmp_work1;
@@ -310,6 +307,16 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_LNSh_Nakagami_m_chan_5_25(quadpack_integrator_payload_ch5_t * __restrict__);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+std::int32_t
+compute_outer_functional_LNSh_Nakagami_m_chan_5_25(quadpack_integrator_payload_ch5_t * __restrict__);
 
 
 } // fading_channel
