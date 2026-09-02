@@ -525,33 +525,6 @@ void unit_test_compute_outer_functional_LogNormShadow_chan_5_20()
     integrator_payload.n_func_vals = n_func_args;
     integrator_payload.randomly_generate_inputs = true;
     integrator_payload.which_integrator = 1;
-    //integrator_payload.which_tabulated_integrator = 1;
-    /*
-    gms::fading_channel::quadpack_integrator_payload_ch5_t * __restrict__ p_payload = &integrator_payload;
-    for(std::int32_t ii{1}; ii<5; ++ii) 
-    {
-        integrator_payload.which_integrator = ii;
-        std::int32_t integrator_ret = gms::fading_channel::compute_functional_LogNormShadow_chan_5_20(p_payload);
-        if(p_payload->which_integrator==1)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[0].c_str());
-        else if(p_payload->which_integrator==2)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[1].c_str());
-        else if(p_payload->which_integrator==3)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[2].c_str());
-        else if(p_payload->which_integrator==4)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[3].c_str());
-         for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
-         {
-               print_retv = print_double("Log-Normal Shadowing-Channel (f:5.20)",p_payload->functional[i],0);
-           }
-           for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
-           {
-               const std::uint64_t start = crude_tsc_start[i];
-               const std::uint64_t end   = crude_tsc_end[i];
-               print_retv = std::printf("Iter=%d,abser=%.17f,neval=%d,ier=%d,last=%d,tsc_start=%llu,tsc_end=%llu,total_tsc=%llu,ret=%d\n",i,abser[i],neval[i],ier[i],last[i],start,end,crude_tsc_results[i],integrator_ret);
-         }
-    }
-    */
     gms::fading_channel::quadpack_integrator_payload_ch5_t * __restrict__ p_payload = &integrator_payload;
     integrator_payload.which_tabulated_integrator = 1;
     for(std::int32_t ii{0}; ii<n_outer_func_args; ++ii) 
@@ -565,6 +538,100 @@ void unit_test_compute_outer_functional_LogNormShadow_chan_5_20()
     print_retv = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
+__attribute__((hot))
+__attribute__((aligned(32)))
+void unit_test_compute_functional_compositeLogNormShadow_chan_5_25();
+
+void unit_test_compute_functional_compositeLogNormShadow_chan_5_25()
+{
+    //using namespace gms::fading_channel;
+    constexpr std::int32_t n_func_args{100};
+    [[maybe_unused]] __ATTR_ALIGN__(64) gms::fading_channel::func_args_ch5_payload_t func_args[n_func_args]; // unused
+    __ATTR_ALIGN__(16) double compositeLogNormShadow_Channel_functional[n_func_args];
+    __ATTR_ALIGN__(16) double abser[n_func_args];
+    __ATTR_ALIGN__(16) double tmp_work1[n_func_args];
+    __ATTR_ALIGN__(16) double tmp_work2[n_func_args];
+    __ATTR_ALIGN__(16) double tmp_work3[n_func_args];
+    __ATTR_ALIGN__(16) double tmp_work4[n_func_args];
+    __ATTR_ALIGN__(16) double tmp_work5[n_func_args];
+    __ATTR_ALIGN__(16) std::uint64_t crude_tsc_results[n_func_args];
+    __ATTR_ALIGN__(16) std::uint64_t crude_tsc_start[n_func_args];
+    __ATTR_ALIGN__(16) std::uint64_t crude_tsc_end[n_func_args];
+    __ATTR_ALIGN__(16) std::int32_t neval[n_func_args];
+    __ATTR_ALIGN__(16) std::int32_t ier[n_func_args];
+    __ATTR_ALIGN__(16) std::int32_t last[n_func_args];
+    double epsabs[1];
+    double epsrel[1];
+    std::int32_t inf[1];
+    std::int32_t irule[1];
+    [[maybe_unused]] std::int32_t print_retv{};
+    print_retv = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!.\n",__func__);
+    epsabs[0] = 0.0;
+    epsrel[0] = 0.001;
+    inf[0]    = 1;
+    irule[0]  = 4;
+    gms::fading_channel::quadpack_integrator_payload_ch5_t integrator_payload;
+    integrator_payload.integrand = &gms::fading_channel::integrand_LNSh_Nakagami_m_chan_5_25_iface;
+    integrator_payload.func_args_payload = &func_args[0];
+    integrator_payload.tmp_work1 = &tmp_work1[0];
+    integrator_payload.tmp_work2 = &tmp_work2[0];
+    integrator_payload.tmp_work3 = &tmp_work3[0];
+    integrator_payload.tmp_work4 = &tmp_work4[0]; 
+    integrator_payload.tmp_work5 = &tmp_work5[0];
+    integrator_payload.inf   = &inf[0];
+    integrator_payload.irule = &irule[0];
+    integrator_payload.epsabs = &epsabs[0];
+    integrator_payload.epsrel = &epsrel[0];
+    integrator_payload.abser  = &abser[0];
+    integrator_payload.functional = &compositeLogNormShadow_Channel_functional[0];
+    integrator_payload.neval = &neval[0];
+    integrator_payload.ier = &ier[0];
+    integrator_payload.last = &last[0];
+    integrator_payload.crude_tsc_start = &crude_tsc_start[0];
+    integrator_payload.crude_tsc_end   = &crude_tsc_end[0];
+    integrator_payload.crude_tsc_measurement = &crude_tsc_results[0];
+    integrator_payload.rand_lo1 = +0.0;
+    integrator_payload.rand_hi1 = +1.570796326794896619231321692;
+    integrator_payload.rand_lo2 = +0.1;
+    integrator_payload.rand_hi2 = +1.1;
+    integrator_payload.rand_lo3 = +10.0*std::log10(5.0);
+    integrator_payload.rand_hi3 = +10.0*std::log10(15.0);
+    integrator_payload.rand_lo4 = +4.5;
+    integrator_payload.rand_hi4 = +7.58;
+    integrator_payload.rand_lo5 = +0.0;
+    integrator_payload.rand_hi5 = +7.5;
+    integrator_payload.rand_lo6 = +0.51;
+    integrator_payload.rand_hi6 = +2.78956423555547;
+    integrator_payload.n_func_vals = n_func_args;
+    integrator_payload.randomly_generate_inputs = true;
+    //integrator_payload.which_integrator = 3;
+    gms::fading_channel::quadpack_integrator_payload_ch5_t * __restrict__ p_payload = &integrator_payload;
+    for(std::int32_t ii{1}; ii<5; ++ii) 
+    {
+        integrator_payload.which_integrator = ii;
+        std::int32_t integrator_ret = gms::fading_channel::compute_functional_LNSh_Nakagami_m_chan_5_25(p_payload);
+        if(p_payload->which_integrator==1)
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[0].c_str());
+        else if(p_payload->which_integrator==2)
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[1].c_str());
+        else if(p_payload->which_integrator==3)
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[2].c_str());
+        else if(p_payload->which_integrator==4)
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[3].c_str());
+         for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
+         {
+               print_retv = print_double("Composite Log-Normal Shadowing-Channel (f:5.25)",p_payload->functional[i],0);
+           }
+           for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
+           {
+               const std::uint64_t start = crude_tsc_start[i];
+               const std::uint64_t end   = crude_tsc_end[i];
+               print_retv = std::printf("Iter=%d,abser=%.17f,neval=%d,ier=%d,last=%d,tsc_start=%llu,tsc_end=%llu,total_tsc=%llu,ret=%d\n",i,abser[i],neval[i],ier[i],last[i],start,end,crude_tsc_results[i],integrator_ret);
+         }
+    }
+    print_retv = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
+}
+
 int main()
 {
    //(void)unit_test_compute_functional_Rayleigh_chan_5_6();
@@ -572,6 +639,7 @@ int main()
    //(void)unit_test_compute_functional_Rice_chan_5_12();
    //(void)unit_test_compute_functional_Nakagami_m_chan_5_16();
    //(void)unit_test_compute_functional_LogNormShadow_chan_5_20();
-   (void)unit_test_compute_outer_functional_LogNormShadow_chan_5_20();
+   //(void)unit_test_compute_outer_functional_LogNormShadow_chan_5_20();
+   (void)unit_test_compute_functional_compositeLogNormShadow_chan_5_25();
     return 0;
 }
