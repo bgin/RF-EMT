@@ -718,6 +718,98 @@ void unit_test_compute_outer_functional_compositeLogNormShadow_chan_5_25()
     print_retv = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
+__attribute__((hot))
+__attribute__((aligned(32)))
+void unit_test_compute_functional_Rayleigh_LaplaceT_chan_5_39();
+
+void unit_test_compute_functional_Rayleigh_LaplaceT_chan_5_39()
+{
+    //using namespace gms::fading_channel;
+    constexpr std::int32_t n_func_args{100};
+    [[maybe_unused]] __ATTR_ALIGN__(64) gms::fading_channel::func_args_ch5_payload_t func_args[n_func_args]; // unused
+    __ATTR_ALIGN__(16) double Rayleigh_LaplaceT_Channel_functional[n_func_args];
+    __ATTR_ALIGN__(16) double abser[n_func_args];
+    __ATTR_ALIGN__(16) double tmp_work1[n_func_args];
+    __ATTR_ALIGN__(16) double tmp_work2[n_func_args];
+    __ATTR_ALIGN__(16) double tmp_work3[n_func_args];
+    __ATTR_ALIGN__(16) double tmp_work4[n_func_args];
+    __ATTR_ALIGN__(16) std::uint64_t crude_tsc_results[n_func_args];
+    __ATTR_ALIGN__(16) std::uint64_t crude_tsc_start[n_func_args];
+    __ATTR_ALIGN__(16) std::uint64_t crude_tsc_end[n_func_args];
+    __ATTR_ALIGN__(16) std::int32_t neval[n_func_args];
+    __ATTR_ALIGN__(16) std::int32_t ier[n_func_args];
+    __ATTR_ALIGN__(16) std::int32_t last[n_func_args];
+    double epsabs[1];
+    double epsrel[1];
+    std::int32_t inf[1];
+    std::int32_t irule[1];
+    [[maybe_unused]] std::int32_t print_retv{};
+    print_retv = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!.\n",__func__);
+    epsabs[0] = 0.0;
+    epsrel[0] = 0.001;
+    inf[0]    = 1;
+    irule[0]  = 4;
+    gms::fading_channel::quadpack_integrator_payload_ch5_t integrator_payload;
+    integrator_payload.integrand = &gms::fading_channel::integrand_Rayleigh_lt_chan_5_39_iface;
+    integrator_payload.func_args_payload = &func_args[0];
+    integrator_payload.tmp_work1 = &tmp_work1[0];
+    integrator_payload.tmp_work2 = &tmp_work2[0];
+    integrator_payload.tmp_work3 = &tmp_work3[0];
+    integrator_payload.tmp_work4 = &tmp_work4[0];
+    integrator_payload.inf   = &inf[0];
+    integrator_payload.irule = &irule[0];
+    integrator_payload.epsabs = &epsabs[0];
+    integrator_payload.epsrel = &epsrel[0];
+    integrator_payload.abser  = &abser[0];
+    integrator_payload.functional = &Rayleigh_LaplaceT_Channel_functional[0];
+    integrator_payload.neval = &neval[0];
+    integrator_payload.ier = &ier[0];
+    integrator_payload.last = &last[0];
+    integrator_payload.crude_tsc_start = &crude_tsc_start[0];
+    integrator_payload.crude_tsc_end   = &crude_tsc_end[0];
+    integrator_payload.crude_tsc_measurement = &crude_tsc_results[0];
+    integrator_payload.rand_lo1 = +0.1;
+    integrator_payload.rand_hi1 = +1.0;
+    integrator_payload.rand_lo2 = +0.1;
+    integrator_payload.rand_hi2 = +1.0;
+    integrator_payload.rand_lo3 = +5.5;
+    integrator_payload.rand_hi3 = +15.0;
+    integrator_payload.rand_lo4 = +2.0;
+    integrator_payload.rand_lo4 = 10.0;
+    integrator_payload.n_func_vals = n_func_args;
+    integrator_payload.randomly_generate_inputs = true;
+    //integrator_payload.which_integrator = 3;
+    gms::fading_channel::quadpack_integrator_payload_ch5_t * __restrict__ p_payload = &integrator_payload;
+    for(std::int32_t ii{1}; ii<5; ++ii) 
+    {
+        integrator_payload.which_integrator = ii;
+        std::int32_t integrator_ret = gms::fading_channel::compute_functional_Rayleigh_LaplaceT_chan_5_39(p_payload);
+        if(p_payload->which_integrator==1)
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch5[0].c_str());
+        else if(p_payload->which_integrator==2)
+           print_retv = std::printf("[UNIT-TEST:] -- 'DQAGI' Not-Supported!!\n");
+        else if(p_payload->which_integrator==3)
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch5[2].c_str());
+        else if(p_payload->which_integrator==4)
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch5[3].c_str());
+        if(p_payload->which_integrator!=2)
+        {
+           for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
+           {
+               print_retv = print_double("Rayleigh-Fading Channel (f:5.39)",p_payload->functional[i],0);
+           }
+           for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
+           {
+               const std::uint64_t start = crude_tsc_start[i];
+               const std::uint64_t end   = crude_tsc_end[i];
+               print_retv = std::printf("Iter=%d,abser=%.17f,neval=%d,ier=%d,last=%d,tsc_start=%llu,tsc_end=%llu,total_tsc=%llu,ret=%d\n",i,abser[i],neval[i],ier[i],last[i],start,end,crude_tsc_results[i],integrator_ret);
+           }
+        }
+    }
+    print_retv = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
+}
+
+
 int main()
 {
    //(void)unit_test_compute_functional_Rayleigh_chan_5_6();
@@ -727,6 +819,7 @@ int main()
    //(void)unit_test_compute_functional_LogNormShadow_chan_5_20();
    //(void)unit_test_compute_outer_functional_LogNormShadow_chan_5_20();
    //(void)unit_test_compute_functional_compositeLogNormShadow_chan_5_25();
-   (void)unit_test_compute_outer_functional_compositeLogNormShadow_chan_5_25();
+   //(void)unit_test_compute_outer_functional_compositeLogNormShadow_chan_5_25();
+   (void)unit_test_compute_functional_Rayleigh_LaplaceT_chan_5_39();
     return 0;
 }
