@@ -905,6 +905,32 @@ gms::fading_channel
     const bool                  rand_in_gen_eq_true          = random_input_generation==true;
     if(rand_in_gen_eq_true)
     {
+#ifdef _OPENMP
+       std::uniform_real_distribution<double> rv_func_theta;
+       std::mt19937 rv_func_theta_gen;
+       std::uint64_t seed_func_theta{};
+       std::uniform_real_distribution<double> rv_func_a;
+       std::mt19937 rv_func_a_gen;
+       std::uint64_t seed_func_a{};
+       std::uniform_real_distribution<double> rv_func_mu;
+       std::mt19937 rv_func_mu_gen;
+       std::uint64_t seed_func_mu{};
+       std::uniform_real_distribution<double> rv_func_sigma;
+       std::mt19937 rv_func_sigma_gen;
+       std::uint64_t seed_func_sigma{};
+#pragma omp threadprivate(rv_func_theta)
+#pragma omp threadprivate(rv_func_theta_gen)
+#pragma omp threadprivate(seed_func_theta)
+#pragma omp threadprivate(rv_func_a)
+#pragma omp threadprivate(rv_func_a_gen)
+#pragma omp threadprivate(seed_func_a)
+#pragma omp threadprivate(rv_func_mu)
+#pragma omp threadprivate(rv_func_mu_gen)
+#pragma omp threadprivate(seed_func_mu)
+#pragma omp threadprivate(rv_func_sigma)
+#pragma omp threadprivate(rv_func_sigma_gen)
+#pragma omp threadprivate(seed_func_sigma)
+#else 
        thread_local std::uniform_real_distribution<double> rv_func_theta;
        thread_local std::mt19937 rv_func_theta_gen;
        thread_local std::uint64_t seed_func_theta{};
@@ -917,6 +943,7 @@ gms::fading_channel
        thread_local std::uniform_real_distribution<double> rv_func_sigma;
        thread_local std::mt19937 rv_func_sigma_gen;
        thread_local std::uint64_t seed_func_sigma{};
+#endif 
        rv_func_theta = std::uniform_real_distribution<double>(rand_low1,rand_high1);
        seed_func_theta = __rdtsc();
        rv_func_theta_gen = std::mt19937(seed_func_theta);
@@ -968,8 +995,10 @@ gms::fading_channel
             p_crude_tsc_meter[i] = end-start;
         }
         const double abscissa_step = 1.0/static_cast<double>(nfunc_vals);
+#ifndef _OPENMP
+        thread_local static std::int32_t call_counter = 0;
+#else 
         static std::int32_t call_counter = 0;
-#ifdef _OPENMP
 #pragma threadprivate(call_counter)
 #endif 
         if(tabular_integrator_type==1) 
@@ -1002,8 +1031,10 @@ gms::fading_channel
     }
     else if(integrator_type==2)
     {
-         static std::int32_t call_counter = 0;
-#ifdef _OPENMP
+#ifndef _OPENMP
+        thread_local static std::int32_t call_counter = 0;
+#else 
+        static std::int32_t call_counter = 0;
 #pragma threadprivate(call_counter)
 #endif 
         for(std::int32_t i{0}; i<nfunc_vals; ++i)
@@ -1056,8 +1087,10 @@ gms::fading_channel
     }
     else if(integrator_type==3)
     {
+#ifndef _OPENMP
+        thread_local static std::int32_t call_counter = 0;
+#else 
         static std::int32_t call_counter = 0;
-#ifdef _OPENMP
 #pragma threadprivate(call_counter)
 #endif 
         for(std::int32_t i{0}; i<nfunc_vals; ++i)
@@ -1110,8 +1143,10 @@ gms::fading_channel
     }
     else if(integrator_type==4)
     {
-    static std::int32_t call_counter = 0;
-#ifdef _OPENMP
+#ifndef _OPENMP
+        thread_local static std::int32_t call_counter = 0;
+#else 
+        static std::int32_t call_counter = 0;
 #pragma threadprivate(call_counter)
 #endif 
         for(std::int32_t i{0}; i<nfunc_vals; ++i)
