@@ -780,8 +780,10 @@ void unit_test_compute_functional_Rayleigh_LaplaceT_chan_5_39()
     integrator_payload.randomly_generate_inputs = true;
     //integrator_payload.which_integrator = 3;
     gms::fading_channel::quadpack_integrator_payload_ch5_t * __restrict__ p_payload = &integrator_payload;
+    std::int32_t integrators_cnt = 0;
     for(std::int32_t ii{1}; ii<5; ++ii) 
-    {
+    {   
+        ++integrators_cnt;
         integrator_payload.which_integrator = ii;
         std::int32_t integrator_ret = gms::fading_channel::compute_functional_Rayleigh_LaplaceT_chan_5_39(p_payload);
         if(p_payload->which_integrator==1)
@@ -794,6 +796,11 @@ void unit_test_compute_functional_Rayleigh_LaplaceT_chan_5_39()
            print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch5[3].c_str());
         if(p_payload->which_integrator!=2)
         {
+           const std::string append_integrator_name{gms::fading_channel::integrators_names_ch5[integrators_cnt].c_str()};
+           gms::fading_channel::create_functional_ch5_plot(p_payload->n_func_vals,nullptr,&p_payload->functional[0],
+                                                           "unit_test_compute_functional_Rayleigh_LaplaceT_chan_5_39_"+append_integrator_name,
+                                                           "Functional of Rayleigh Fading Channel computed by:"+append_integrator_name,false);
+                                                           
            for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
            {
                print_retv = print_double("Rayleigh-Fading Channel (f:5.39)",p_payload->functional[i],0);
