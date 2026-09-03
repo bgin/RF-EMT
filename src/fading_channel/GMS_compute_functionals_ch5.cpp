@@ -21,6 +21,9 @@
 #include <random>
 #include <cstdio> // for debugging
 #include <cmath>
+#include <iostream>
+#include <fstream>
+#include <iomanip>
 #ifdef _OPENMP
 #include <omp.h>
 #endif 
@@ -71,6 +74,67 @@
     std::int32_t                       which_integrator; //currently 1=dqage,2=dqagi,3=dqags
     bool                               randomly_generate_inputs; //as the name states: random input generation in use if true, otherwise provide deterministic inputs
 */
+
+void 
+gms::fading_channel
+::create_functional_ch5_plot(const std::int32_t n_ordinates,
+                             const double * __restrict__ abscissas,
+                             const double * __restrict__ ordinates,
+                             const std::string &header,
+                             const std::string &title,
+                             const bool is_abscissa_present)
+{
+    std::string plot_fname;
+    std::string sig_fname;
+    std::ofstream plot_unit;
+    std::ofstream sig_unit;
+    sig_fname = header+"_plot.txt";
+    sig_unit.open(sig_fname.c_str());
+    constexpr std::int32_t max_precision{std::numeric_limits<long double>::digits10 + 1};
+    if(is_abscissa_present==true)
+    {
+        for(std::int32_t i{0ull}; i != n_ordinates; ++i)
+        {
+            sig_unit << std::setprecision(max_precision) << " " << abscissas[i] << " "
+                                                                << ordinates[i] << "\n";
+        }
+    }
+    else
+    {
+        for(std::int32_t i{0}; i != n_ordinates; ++i)
+        {
+            sig_unit << std::setprecision(max_precision) << " " << ordinates[i] << "\n";
+         
+        }
+    }
+    sig_unit.close();
+    std::cout << "Created Functional (chapter: 5) data file \"" << sig_fname << "\".\n";
+    plot_fname = header+"_plot_commands.txt";
+    plot_unit.open(plot_fname.c_str());
+    plot_unit << "#" << plot_fname << "\n";
+    plot_unit << "#\n";
+    plot_unit << "# Usage:\n";
+    plot_unit << "# gnuplot < " << plot_fname << "\n";
+    plot_unit << "#\n";
+    plot_unit << "set term png\n";
+    plot_unit << "set output \"" << header << ".png\"\n";
+    plot_unit << "set xlabel 't'\n";
+    plot_unit << "set ylabel 'y(t)'\n";
+    plot_unit << "set title '" << title << "'\n";
+    plot_unit << "set grid\n";
+    plot_unit << "set style data lines\n";
+    if(is_abscissa_present==true)
+    {
+            plot_unit << "plot \"" << sig_fname << "\" using 1:2 lw 1 linecolor rgb \"red\"\n";
+    }
+    else
+    {
+            plot_unit << "plot \"" << sig_fname << "\" lw 1 linecolor rgb \"red\"\n";
+    }
+    plot_unit << "quit\n";
+    plot_unit.close();
+    std::cout << " Created Functional (chapter: 5) data file \"" << plot_fname << "\"\n";
+}
 
 std::int32_t 
 gms::fading_channel

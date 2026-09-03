@@ -245,6 +245,21 @@ struct alignas(64) quadpack_integrator_payload_ch5_v3_t
 #endif
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
+void 
+create_functional_ch5_plot(const std::int32_t,
+                           const double * __restrict__,
+                           const double * __restrict__,
+                           const std::string&,
+                           const std::string&,
+                           const bool);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
 std::int32_t 
 compute_functional_Rayleigh_chan_5_6(quadpack_integrator_payload_ch5_t * __restrict__);
 
