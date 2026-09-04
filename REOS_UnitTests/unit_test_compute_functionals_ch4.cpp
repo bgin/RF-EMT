@@ -104,11 +104,11 @@ void unit_test_compute_functional_4_1_gauss_Q()
         integrator_payload.which_integrator = ii;
         std::int32_t integrator_ret = gms::fading_channel::compute_functional_gauss_Q_4_1(p_payload);
         if(p_payload->which_integrator==1)
-            print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[0].c_str());
+            print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[0].c_str());
         else if(p_payload->which_integrator==2)
-            print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[1].c_str());
+            print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[1].c_str());
         else if(p_payload->which_integrator==3)
-            print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[2].c_str());
+            print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[2].c_str());
         for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
         {
             print_retv = print_double("Gauss-Q (f:4.1)",p_payload->functional[i],0);
@@ -174,11 +174,11 @@ void unit_test_compute_functional_4_2_gauss_Q()
         integrator_payload.which_integrator = ii;
         std::int32_t integrator_ret = gms::fading_channel::compute_functional_gauss_Q_4_2(p_payload);
         if(p_payload->which_integrator==1)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[0].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[0].c_str());
         else if(p_payload->which_integrator==2)
            print_retv = std::printf("[UNIT-TEST:] -- 'DQAGI' Not-Supported!!\n");
         else if(p_payload->which_integrator==3)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[2].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[2].c_str());
         for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
         {
             print_retv = print_double("Gauss-Q (f:4.2)",p_payload->functional[i],0);
@@ -250,11 +250,11 @@ void unit_test_compute_functional_4_6_gauss_Q()
         integrator_payload.which_integrator = ii;
         std::int32_t integrator_ret = gms::fading_channel::compute_functional_gauss_Q_4_6(p_payload);
         if(p_payload->which_integrator==1)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[0].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[0].c_str());
         else if(p_payload->which_integrator==2)
            print_retv = std::printf("[UNIT-TEST:] -- 'DQAGI' Not-Supported!!\n");
         else if(p_payload->which_integrator==3)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[2].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[2].c_str());
         if(p_payload->which_integrator!=2)
         {
            for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
@@ -329,13 +329,13 @@ void unit_test_compute_functional_4_7_gauss_Q()
         integrator_payload.which_integrator = ii;
         std::int32_t integrator_ret = gms::fading_channel::compute_functional_gauss_Q_4_7(p_payload);
         if(p_payload->which_integrator==1)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[0].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[0].c_str());
         else if(p_payload->which_integrator==2)
            print_retv = std::printf("[UNIT-TEST:] -- 'DQAGI' Not-Supported!!\n");
         else if(p_payload->which_integrator==3)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[2].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[2].c_str());
         else if(p_payload->which_integrator==4)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[3].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[3].c_str());
         if(p_payload->which_integrator!=2)
         {
            for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
@@ -406,13 +406,13 @@ void unit_test_compute_functional_4_8_gauss_Q()
         integrator_payload.which_integrator = ii;
         std::int32_t integrator_ret = gms::fading_channel::compute_functional_gauss_Q_4_8(p_payload);
         if(p_payload->which_integrator==1)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[0].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[0].c_str());
         else if(p_payload->which_integrator==2)
            print_retv = std::printf("[UNIT-TEST:] -- 'DQAGI' Not-Supported!!\n");
         else if(p_payload->which_integrator==3)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[2].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[2].c_str());
         else if(p_payload->which_integrator==4)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[3].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[3].c_str());
         if(p_payload->which_integrator!=2)
         {
            for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
@@ -484,13 +484,13 @@ void unit_test_compute_functional_4_10_marcum_Q()
         integrator_payload.which_integrator = ii;
         std::int32_t integrator_ret = gms::fading_channel::compute_functional_marcum_Q_4_10(p_payload);
         if(p_payload->which_integrator==1)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[0].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[0].c_str());
         else if(p_payload->which_integrator==2)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[1].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[1].c_str());
         else if(p_payload->which_integrator==3)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[2].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[2].c_str());
         else if(p_payload->which_integrator==4)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[3].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[3].c_str());
         for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
         {
                print_retv = print_double("Marcum-Q (f:4.10)",p_payload->functional[i],0);
@@ -558,13 +558,13 @@ void unit_test_compute_functional_4_16_marcum_Q()
         integrator_payload.which_integrator = ii;
         std::int32_t integrator_ret = gms::fading_channel::compute_functional_marcum_Q_4_16(p_payload);
         if(p_payload->which_integrator==1)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[0].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[0].c_str());
         else if(p_payload->which_integrator==2)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[1].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[1].c_str());
         else if(p_payload->which_integrator==3)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[2].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[2].c_str());
         else if(p_payload->which_integrator==4)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[3].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[3].c_str());
         if(integrator_payload.which_integrator!=2)
         {
             for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
@@ -635,13 +635,13 @@ void unit_test_compute_functional_4_20_marcum_Q_lo()
         integrator_payload.which_integrator = ii;
         std::int32_t integrator_ret = gms::fading_channel::compute_functional_marcum_Q_4_20_lo(p_payload);
         if(p_payload->which_integrator==1)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[0].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[0].c_str());
         else if(p_payload->which_integrator==2)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[1].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[1].c_str());
         else if(p_payload->which_integrator==3)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[2].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[2].c_str());
         else if(p_payload->which_integrator==4)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[3].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[3].c_str());
         if(integrator_payload.which_integrator!=2)
         {
             for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
@@ -713,13 +713,13 @@ void unit_test_compute_functional_4_20_marcum_Q_hi()
         integrator_payload.which_integrator = ii;
         std::int32_t integrator_ret = gms::fading_channel::compute_functional_marcum_Q_4_20_hi(p_payload);
         if(p_payload->which_integrator==1)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[0].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[0].c_str());
         else if(p_payload->which_integrator==2)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[1].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[1].c_str());
         else if(p_payload->which_integrator==3)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[2].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[2].c_str());
         else if(p_payload->which_integrator==4)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[3].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[3].c_str());
         if(integrator_payload.which_integrator!=2)
         {
             for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
@@ -792,13 +792,13 @@ void unit_test_compute_functional_4_32_marcum_m_Q()
         integrator_payload.which_integrator = ii;
         std::int32_t integrator_ret = gms::fading_channel::compute_functional_marcum_m_Q_4_32(p_payload);
         if(p_payload->which_integrator==1)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[0].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[0].c_str());
         else if(p_payload->which_integrator==2)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[1].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[1].c_str());
         else if(p_payload->which_integrator==3)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[2].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[2].c_str());
         else if(p_payload->which_integrator==4)
-           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",p_payload->integrators_names[3].c_str());
+           print_retv = std::printf("[UNIT-TEST:] -- currently executing: %s integrator\n",gms::fading_channel::integrators_names_ch4[3].c_str());
         for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
         {
                 print_retv = print_double("Marcum-Q (f:4.32)",p_payload->functional[i],0);
