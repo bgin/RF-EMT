@@ -1,7 +1,6 @@
 
 #include <cmath> // bessel J0
 #include <cstdio>
-#include "GMS_cephes_double.h"
 #include "GMS_integrands_func_ch5.h"
 
 
@@ -13,37 +12,6 @@ namespace
     static constexpr const double C0318309886183790671537767526745  = 0.318309886183790671537767526745;
     /*0.5*PI*/
     static constexpr const double C15707963267948966192313216916398 = 1.5707963267948966192313216916398;
-
-    static inline  
-    __ATTR_ALWAYS_INLINE__
-    double g(const double theta,const double psi)
-    {
-        const double psi2{psi*psi};
-#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0
-        const double sintht(std::sin(theta));
-        return (1.0+(psi+psi)*sintht+psi2);
-#else 
-        const double sintht(gms::math::cephes_d::sin(theta));
-        return (1.0+(psi+psi)*sintht+psi2);
-#endif
-    }
-
-    static inline 
-    __ATTR_ALWAYS_INLINE__
-    double h(const double theta,const double psi,const double l)
-    {
-        const double theta_p_pi2{theta+1.570796326794896619231321692};
-#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0
-        const double psi_to_lpow{1.0/std::pow(psi,l-1.0)};
-        const double costht1{std::cos((l-1.0)*theta_p_pi2)};
-        const double costht2{std::cos(l*theta_p_pi2)};
-#else 
-        const double psi_to_lpow{1.0/gms::math::cephes_d::pow(psi,l-1.0)};
-        const double costht1{gms::math::cephes_d::cos((l-1.0)*theta_p_pi2)};
-        const double costht2{gms::math::cephes_d::cos(l*theta_p_pi2)};
-#endif
-        return (psi_to_lpow*(costht1-costht2));
-    }
 
 }
 
@@ -566,8 +534,8 @@ double
 gms::fading_channel
 ::integrand_Log_Norm_Shadow_lt_chan_5_44(const double x,const double theta,
                                          const double b,const double psi,
-                                         const double mu,const double sigma,
-                                         const double l)
+                                         const double mu,const double sigma)
+                                         
 {
     double g_res{};
 #if (INTEGRANDS_FUNC_CH5_USE_PARAM_MACRO) == 1
@@ -609,8 +577,7 @@ gms::fading_channel
     const double xpsi    = p_payload->arg3d;
     const double xmu     = p_payload->arg4d;
     const double xsigma  = p_payload->arg5d;
-    const double xl      = p_payload->arg6d;
-    return (integrand_Log_Norm_Shadow_lt_chan_5_44(x,xtheta,xb,xpsi,xmu,xsigma,xl));
+    return (integrand_Log_Norm_Shadow_lt_chan_5_44(x,xtheta,xb,xpsi,xmu,xsigma));
 }
 
 double 

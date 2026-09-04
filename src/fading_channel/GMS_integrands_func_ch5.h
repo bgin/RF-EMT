@@ -21,6 +21,7 @@
 
 #include <cstdint>
 #include "GMS_config.h"
+#include "GMS_cephes_double.h"
 
 namespace file_info 
 {
@@ -104,6 +105,36 @@ double warmup_cyl_bess_j(const std::int32_t,const double);
 
 }// detail
 
+ static inline  
+ __ATTR_ALWAYS_INLINE__
+double g(const double theta,const double psi)
+{
+    const double psi2{psi*psi};
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0
+    const double sintht(std::sin(theta));
+    return (1.0+(psi+psi)*sintht+psi2);
+#else 
+    const double sintht(gms::math::cephes_d::sin(theta));
+    return (1.0+(psi+psi)*sintht+psi2);
+#endif
+}
+
+static inline 
+__ATTR_ALWAYS_INLINE__
+double h(const double theta,const double psi,const double l)
+{
+    const double theta_p_pi2{theta+1.570796326794896619231321692};
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0
+    const double psi_to_lpow{1.0/std::pow(psi,l-1.0)};
+    const double costht1{std::cos((l-1.0)*theta_p_pi2)};
+    const double costht2{std::cos(l*theta_p_pi2)};
+#else 
+    const double psi_to_lpow{1.0/gms::math::cephes_d::pow(psi,l-1.0)};
+    const double costht1{gms::math::cephes_d::cos((l-1.0)*theta_p_pi2)};
+    const double costht2{gms::math::cephes_d::cos(l*theta_p_pi2)};
+#endif
+    return (psi_to_lpow*(costht1-costht2));
+}
 /*
    Chapter 5, formula: 5.6
    Rayleigh Fading Channel SNR PDF passed through the MGF (Moment Generating Function)

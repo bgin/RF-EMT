@@ -87,6 +87,7 @@ struct alignas(64) quadpack_integrator_payload_ch5_t
     double              * __restrict__ tmp_work4{nullptr};//work storage (caller provided) used mainly for the functional 4th arguments sorting.
     double              * __restrict__ tmp_work5{nullptr};//work storage (caller provided) used mainly for the functional 5th arguments sorting.
     double              * __restrict__ tmp_work6{nullptr};//work storage (caller provided) used mainly for the functional 6th arguments sorting.
+    double              * __restrict__ tmp_work7{nullptr};//work storage (caller provided) used mainly for the functional 7th arguments sorting.
     double              * __restrict__ lo{nullptr}; // lower limit of integration
     double              * __restrict__ hi{nullptr}; // upper limit of integration
     double              * __restrict__ bound{nullptr}; //optional finite bound on integral.
@@ -143,6 +144,7 @@ struct alignas(64) quadpack_integrator_payload_ch5_v2_t
     std::valarray<double>              tmp_work4;
     std::valarray<double>              tmp_work5;
     std::valarray<double>              tmp_work6;
+    std::valarray<double>              tmp_work7;
     std::valarray<double>              lo;
     std::valarray<double>              hi;
     std::valarray<double>              bound;
@@ -197,6 +199,7 @@ struct alignas(64) quadpack_integrator_payload_ch5_v3_t
     std::array<double,N>              tmp_work4;
     std::array<double,N>              tmp_work5;
     std::array<double,N>              tmp_work6;
+    std::array<double,N>              tmp_work7;
     std::array<double,N>              lo;
     std::array<double,N>              hi;
     std::array<double,N>              bound;
@@ -372,6 +375,16 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_Nakagami_m_LaplaceT_chan_5_43(quadpack_integrator_payload_ch5_t * __restrict__);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+std::int32_t
+compute_functional_LogNormShadow_LaplaceT_chan_5_44(quadpack_integrator_payload_ch5_t * __restrict__);
 
 
 } // fading_channel

@@ -1534,7 +1534,7 @@ gms::fading_channel
     const std::int32_t          tabular_integrator_type      = p_payload->which_tabulated_integrator;
     const bool                  random_input_generation      = p_payload->randomly_generate_inputs;
     const bool                  rand_in_gen_eq_true          = random_input_generation==true;
-     if(rand_in_gen_eq_true)
+    if(rand_in_gen_eq_true)
     {
 #ifdef _OPENMP
     static   std::uniform_real_distribution<double> rv_func_theta;
@@ -2713,46 +2713,46 @@ gms::fading_channel
        thread_local std::uniform_real_distribution<double> rv_func_theta;
        thread_local std::mt19937 rv_func_theta_gen;
        thread_local std::uint64_t seed_func_theta{};
-       thread_local std::uniform_real_distribution<double> rv_func_a;
-       thread_local std::mt19937 rv_func_a_gen;
-       thread_local std::uint64_t seed_func_a{};
+       thread_local std::uniform_real_distribution<double> rv_func_b;
+       thread_local std::mt19937 rv_func_b_gen;
+       thread_local std::uint64_t seed_func_b{};
+       thread_local std::uniform_real_distribution<double> rv_func_psi;
+       thread_local std::mt19937 rv_func_psi_gen;
+       thread_local std::uint64_t seed_func_psi{};
        thread_local std::uniform_real_distribution<double> rv_func_mu;
        thread_local std::mt19937 rv_func_mu_gen;
        thread_local std::uint64_t seed_func_mu{};
        thread_local std::uniform_real_distribution<double> rv_func_sigma;
        thread_local std::mt19937 rv_func_sigma_gen;
-       thread_local std::uint64_t seed_func_sigma{};
-       thread_local std::uniform_real_distribution<double> rv_func_m;
-       thread_local std::mt19937 rv_func_m_gen;
-       thread_local std::uint64_t seed_func_m;
+       thread_local std::uint64_t seed_func_sigma;
 #endif
        rv_func_theta = std::uniform_real_distribution<double>(rand_low1,rand_high1);
        seed_func_theta = __rdtsc();
        rv_func_theta_gen = std::mt19937(seed_func_theta);
-       rv_func_a = std::uniform_real_distribution<double>(rand_low2,rand_high2);
-       seed_func_a = __rdtsc();
-       rv_func_a_gen = std::mt19937(seed_func_a);
-       rv_func_mu = std::uniform_real_distribution<double>(rand_low3,rand_high3);
+       rv_func_b = std::uniform_real_distribution<double>(rand_low2,rand_high2);
+       seed_func_b = __rdtsc();
+       rv_func_b_gen = std::mt19937(seed_func_b);
+       rv_func_psi = std::uniform_real_distribution<double>(rand_low3,rand_high3);
+       seed_func_psi = __rdtsc();
+       rv_func_psi_gen = std::mt19937(seed_func_mu);
+       rv_func_mu = std::uniform_real_distribution<double>(rand_low4,rand_high4);
        seed_func_mu = __rdtsc();
-       rv_func_mu_gen = std::mt19937(seed_func_mu);
-       rv_func_sigma = std::uniform_real_distribution<double>(rand_low4,rand_high4);
+       rv_func_mu_gen = std::mt19937(seed_func_sigma);
+       rv_func_sigma = std::uniform_real_distribution<double>(rand_low6,rand_high6);
        seed_func_sigma = __rdtsc();
        rv_func_sigma_gen = std::mt19937(seed_func_sigma);
-       rv_func_m = std::uniform_real_distribution<double>(rand_low6,rand_high6);
-       seed_func_m = __rdtsc();
-       rv_func_m_gen = std::mt19937(seed_func_m);
        for(std::int32_t i{0}; i<nfunc_vals; ++i) 
        {
            const double val_theta{rv_func_theta.operator()(rv_func_theta_gen)};
            p_tmp_work1[i] = val_theta;
-           const double val_a{rv_func_a.operator()(rv_func_a_gen)};
-           p_tmp_work2[i] = val_a;
-           const double val_mu{rv_func_mu.operator()(rv_func_mu_gen)};
-           p_tmp_work3[i] = val_mu;
+           const double val_b{rv_func_b.operator()(rv_func_b_gen)};
+           p_tmp_work2[i] = val_b;
+           const double val_psi{rv_func_psi.operator()(rv_func_psi_gen)};
+           p_tmp_work3[i] = val_psi;
+           const double val_mu{rv_func_sigma.operator()(rv_func_mu_gen)};
+           p_tmp_work4[i] = val_mu;
            const double val_sigma{rv_func_sigma.operator()(rv_func_sigma_gen)};
-           p_tmp_work4[i] = val_sigma;
-           const double val_m{rv_func_m.operator()(rv_func_m_gen)};
-           p_tmp_work5[i] = val_m;
+           p_tmp_work5[i] = val_sigma;
        }
        std::sort(&p_tmp_work1[0],&p_tmp_work1[nfunc_vals-1],std::less<double>());
        std::sort(&p_tmp_work2[0],&p_tmp_work2[nfunc_vals-1],std::less<double>());
@@ -2760,5 +2760,103 @@ gms::fading_channel
        std::sort(&p_tmp_work4[0],&p_tmp_work4[nfunc_vals-1],std::less<double>());
        std::sort(&p_tmp_work5[0],&p_tmp_work5[nfunc_vals-1],std::less<double>());
     }
+    if(integrator_type==1)
+    {
+        for(std::int32_t i{0}; i<nfunc_vals; ++i)
+        {
+            const double cpy_theta{p_tmp_work1[i]};
+            p_funcs_args_payload[i].arg1d = cpy_theta;
+            const double cpy_b{p_tmp_work2[i]};
+            p_funcs_args_payload[i].arg2d = cpy_b;
+            const double cpy_psi{p_tmp_work3[i]};
+            p_funcs_args_payload[i].arg3d = cpy_psi;
+            const double cpy_mu{p_tmp_work4[i]};
+            p_funcs_args_payload[i].arg4d = cpy_mu;
+            const double cpy_sigma{p_tmp_work5[i]};
+            p_funcs_args_payload[i].arg5d = cpy_sigma;
+            const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+            const double result = dqage(p_integrand,rand_low5,rand_high5,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_last[i],&p_funcs_args_payload[i]);
+            const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+            p_functional[i] = 0.564189583547756286948079452*result;
+            p_crude_tsc_start[i] = start;
+            p_crude_tsc_end[i]   = end;
+            p_crude_tsc_meter[i] = end-start;
+        }
+    }
+    else if(integrator_type==2)
+    {
+        for(std::int32_t i{0}; i<nfunc_vals; ++i)
+        {
+            const double cpy_theta{p_tmp_work1[i]};
+            p_funcs_args_payload[i].arg1d = cpy_theta;
+            const double cpy_b{p_tmp_work2[i]};
+            p_funcs_args_payload[i].arg2d = cpy_b;
+            const double cpy_psi{p_tmp_work3[i]};
+            p_funcs_args_payload[i].arg3d = cpy_psi;
+            const double cpy_mu{p_tmp_work4[i]};
+            p_funcs_args_payload[i].arg4d = cpy_mu;
+            const double cpy_sigma{p_tmp_work5[i]};
+            p_funcs_args_payload[i].arg5d = cpy_sigma;
+            const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+            const double result = dqagi(p_integrand,rand_low5,p_inf[0],p_epsabs[0],p_epsrel[0],
+                                        &p_abser[i],&p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
+            const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+            p_functional[i] = 0.564189583547756286948079452*result;
+            p_crude_tsc_start[i] = start;
+            p_crude_tsc_end[i]   = end;
+            p_crude_tsc_meter[i] = end-start;
+        }
+    }
+    else if(integrator_type==3)
+    {
+        for(std::int32_t i{0}; i<nfunc_vals; ++i)
+        {
+            const double cpy_theta{p_tmp_work1[i]};
+            p_funcs_args_payload[i].arg1d = cpy_theta;
+            const double cpy_b{p_tmp_work2[i]};
+            p_funcs_args_payload[i].arg2d = cpy_b;
+            const double cpy_psi{p_tmp_work3[i]};
+            p_funcs_args_payload[i].arg3d = cpy_psi;
+            const double cpy_mu{p_tmp_work4[i]};
+            p_funcs_args_payload[i].arg4d = cpy_mu;
+            const double cpy_sigma{p_tmp_work5[i]};
+            p_funcs_args_payload[i].arg5d = cpy_sigma;
+            const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+            const double result = dqags(p_integrand,rand_low5,rand_high5,p_epsabs[0],p_epsrel[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
+            const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+            p_functional[i] = 0.564189583547756286948079452*result;
+            p_crude_tsc_start[i] = start;
+            p_crude_tsc_end[i]   = end;
+            p_crude_tsc_meter[i] = end-start;
+        }
+    }
+    else if(integrator_type==4)
+    {
+        for(std::int32_t i{0}; i<nfunc_vals; ++i)
+        {
+            const double cpy_theta{p_tmp_work1[i]};
+            p_funcs_args_payload[i].arg1d = cpy_theta;
+            const double cpy_b{p_tmp_work2[i]};
+            p_funcs_args_payload[i].arg2d = cpy_b;
+            const double cpy_psi{p_tmp_work3[i]};
+            p_funcs_args_payload[i].arg3d = cpy_psi;
+            const double cpy_mu{p_tmp_work4[i]};
+            p_funcs_args_payload[i].arg4d = cpy_mu;
+            const double cpy_sigma{p_tmp_work5[i]};
+            p_funcs_args_payload[i].arg5d = cpy_sigma;
+            const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+            const double result = dqng(p_integrand,rand_low5,rand_high5,p_epsabs[0],p_epsrel[0],&p_abser[i],
+                                        &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
+            const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+            p_functional[i] = 0.564189583547756286948079452*result;
+            p_crude_tsc_start[i] = start;
+            p_crude_tsc_end[i]   = end;
+            p_crude_tsc_meter[i] = end-start;
+        }
+    }
+    return (0);
 }
+
 
