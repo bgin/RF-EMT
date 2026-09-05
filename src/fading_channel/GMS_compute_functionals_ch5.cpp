@@ -207,6 +207,11 @@ gms::fading_channel
     }
     if(integrator_type==1)
     {
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
+#pragma omp parallel for default(none) private(i,cpy_a,cpy_gamma,start,result,end) \
+        shared(nfunc_vals,p_tmp_work1,p_tmp_work2,p_funcs_arg_payload,p_integrand,p_epsabs,p_epsrel,p_irule,p_abser,\
+            p_neval,p_ier,p_last) schedule(static) num_threads(6)
+#endif 
         for(std::int32_t i{0}; i<nfunc_vals; ++i)
         {
             const double cpy_a{p_tmp_work1[i]};

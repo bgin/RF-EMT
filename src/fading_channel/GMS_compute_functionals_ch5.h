@@ -45,6 +45,12 @@ namespace file_info
 }
 
  
+#ifdef _OPENMP
+#if !defined(COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS)
+#define COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS 1
+#endif 
+#endif 
+
 // Enable for the basic PMC tracing (wall-clock) readout (not statistically rigorous)!!
 // *** Warning *** -- An access for the PM hardware counters must be enabled for the user-mode space!!
 // 
