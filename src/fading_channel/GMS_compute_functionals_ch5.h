@@ -132,6 +132,7 @@ struct alignas(64) quadpack_integrator_payload_ch5_t
     std::int32_t                       n_outer_func_vals{}; // outer functional number of values.
     std::int32_t                       which_integrator{}; //currently 1=dqage,2=dqagi,3=dqags,4=dqng,5=dqagp,6=dqaws
     std::int32_t                       which_tabulated_integrator{};
+    std::int32_t                       set_n_threads{}; // set OMP threads.
     bool                               randomly_generate_inputs{}; //as the name states: random input generation in use if true, otherwise provide deterministic inputs
 };
 
@@ -189,6 +190,7 @@ struct alignas(64) quadpack_integrator_payload_ch5_v2_t
     std::int32_t                       n_outer_func_vals{}; // outer functional values of nest 
     std::int32_t                       which_integrator{}; //currently 1=dqage,2=dqagi,3=dqags,4=dqng,5=dqagp,6=dqaws
     std::int32_t                       which_tabulated_integrator{};
+    std::int32_t                       set_n_threads{};
     bool                               randomly_generate_inputs{}; //as the name states: random input generation in use if true, otherwise provide deterministic inputs
 };
 
@@ -244,6 +246,7 @@ struct alignas(64) quadpack_integrator_payload_ch5_v3_t
     std::int32_t                       n_outer_func_vals{static_cast<std::int32_t>(M)}; // outer functional values.
     std::int32_t                       which_integrator; //currently 1=dqage,2=dqagi,3=dqags,4=dqng,5=dqagp,6=dqaws
     std::int32_t                       which_tabulated_integrator{};
+    std::int32_t                       set_n_threads{};
     bool                               randomly_generate_inputs; //as the name states: random input generation in use if true, otherwise provide deterministic inputs   
 };
 
