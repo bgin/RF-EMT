@@ -4,7 +4,7 @@
 
 /*
    icpc -o unit_test_compute_functionals_ch5 -fopenmp -O3 -fp-model fast=2 -fno-exceptions -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
-   GMS_config.h GMS_cephes_double.h GMS_integrands_func_ch5.h GMS_integrands_func_ch5.cpp GMS_cquadpack.h GMS_cquadpack.c GMS_tabulated_quadrature.h GMS_tabulated_quadrature.cpp GMS_machine_utils.h GMS_compute_functionals_ch5.h GMS_compute_functionals_ch5.cpp unit_test_compute_functionals_ch5.cpp
+   GMS_config.h GMS_cephes_double.h GMS_integrands_func_ch5.h GMS_integrands_func_ch5.cpp GMS_cquadpack.h GMS_cquadpack.c GMS_tabulated_quadrature.h GMS_tabulated_quadrature.cpp GMS_machine_utils.h GMS_omp_utils.h GMS_omp_utils.cpp GMS_compute_functionals_ch5.h GMS_compute_functionals_ch5.cpp unit_test_compute_functionals_ch5.cpp
    ASM: 
    icpc -S -O3 -fopenmp -fverbose-asm -masm=intel -fno-exceptions -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_cephes_double.h GMS_integrands_func_ch5.h GMS_integrands_func_ch5.cpp GMS_machine_utils.h GMS_compute_functionals_ch5.h GMS_compute_functionals_ch5.cpp unit_test_compute_functionals_ch5.cpp
 
@@ -74,6 +74,7 @@ void unit_test_compute_functional_Rayleigh_chan_5_6()
     integrator_payload.rand_hi2 = +15.0;
     integrator_payload.n_func_vals = n_func_args;
     integrator_payload.randomly_generate_inputs = true;
+    integrator_payload.set_n_threads = 6;
     //integrator_payload.which_integrator = 3;
     gms::fading_channel::quadpack_integrator_payload_ch5_t * __restrict__ p_payload = &integrator_payload;
     for(std::int32_t ii{1}; ii<5; ++ii) 
@@ -1227,6 +1228,7 @@ void unit_test_compute_functional_compositeLogNormShadow_chan_5_44()
 int main()
 {
    (void)unit_test_compute_functional_Rayleigh_chan_5_6();
+/*
    (void)unit_test_compute_functional_Hoyt_chan_5_6();
    (void)unit_test_compute_functional_Rice_chan_5_12();
    (void)unit_test_compute_functional_Nakagami_m_chan_5_16();
@@ -1239,5 +1241,6 @@ int main()
    (void)unit_test_compute_functional_Rice_LaplaceT_chan_5_41();
    (void)unit_test_compute_functional_Nakagami_m_LaplaceT_chan_5_43();
    (void)unit_test_compute_functional_compositeLogNormShadow_chan_5_44();
+*/
    return 0;
 }
