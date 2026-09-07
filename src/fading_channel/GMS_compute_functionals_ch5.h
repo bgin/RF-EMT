@@ -49,6 +49,9 @@ namespace file_info
 #if !defined(COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS)
 #define COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS 1
 #endif 
+#if !defined(COMPUTE_FUNCTIONALS_CH5_SHOW_THREAD_AFFINITY_AND_BINDING)
+#define COMPUTE_FUNCTIONALS_CH5_SHOW_THREAD_AFFINITY_AND_BINDING 1
+#endif 
 #endif 
 
 // Enable for the basic PMC tracing (wall-clock) readout (not statistically rigorous)!!
