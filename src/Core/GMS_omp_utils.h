@@ -1,6 +1,6 @@
 
 /*
-
+   The LLVM Project is under the Apache License v2.0 with LLVM Exceptions:
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
    You may obtain a copy of the License at
@@ -36,6 +36,7 @@
 #define __GMS_OMP_UTILS_H__ 070920260928
 
 #include <cstdint>
+#include <sched.h>
 #include "GMS_config.h"
 
 namespace file_info 
@@ -60,6 +61,12 @@ namespace gms
 
 namespace common
 {
+
+typedef struct __attribute__((aligned(16))) affinity_mask_t 
+{
+  std::size_t setsize;
+  cpu_set_t * set;
+}affinity_mask_t;
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
@@ -91,6 +98,7 @@ __ATTR_ALIGN__(32)
 void 
 print_affinity_environment();
 
+/*
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
@@ -100,6 +108,8 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 void 
 verify_thread_limit(const char * ,const std::int32_t,const std::int32_t);
+*/
+
 
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
@@ -170,6 +180,150 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 void
 check_host(const std::int32_t);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+void 
+affinity_mask_zero(affinity_mask_t *);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+affinity_mask_t * affinity_mask_allocate();
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+void 
+affinity_mask_free(affinity_mask_t *);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+void 
+affinity_mask_copy(affinity_mask_t * __restrict__,
+                   const affinity_mask_t * __restrict__);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+void 
+affinity_mask_set(affinity_mask_t * ,std::int32_t);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+void 
+affinity_mask_clear(affinity_mask_t * ,std::int32_t);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+std::int32_t 
+affinity_mask_isset(affinity_mask_t,std::int32_t);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+std::int32_t 
+affinity_mask_count(affinity_mask_t * ,std::int32_t);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+std::int32_t 
+affinity_mask_equal(const affinity_mask_t * __restrict__,
+                    const affinity_mask_t * __restrict__);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+void 
+get_thread_affinity(affinity_mask_t *);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+void 
+set_thread_affinity(const affinity_mask_t * __restrict__);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+void 
+affinity_update_snprintf_values(char ** __restrict__,std::size_t * __restrict__,
+                                std::size_t,std::size_t * __restrict__);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+std::size_t 
+affinity_mask_snprintf(char * __restrict__,std::size_t,
+                       affinity_mask_t * __restrict__);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+void 
+display_affinity_environment();
+
 
 
 } // common
