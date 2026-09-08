@@ -26,6 +26,7 @@
 #include <iomanip>
 #ifdef _OPENMP
 #include <omp.h>
+#include "GMS_omp_utils.h"
 #endif 
 #include "GMS_compute_functionals_ch5.h"
 #include "GMS_cquadpack.h"
@@ -243,7 +244,7 @@ gms::fading_channel
 #pragma omp parallel for default(none) private(i,cpy_a,cpy_gamma,start,result,end) \
         shared(nfunc_vals,p_tmp_work1,p_tmp_work2,p_funcs_args_payload,p_integrand,p_epsabs,p_epsrel,p_irule,p_abser,\
                p_neval,p_ier,p_last,p_functional,p_crude_tsc_start,p_crude_tsc_end,p_crude_tsc_meter) \
-        schedule(static) num_threads(n_threads) proc_bind(close)
+        schedule(static) num_threads(n_threads) proc_bind(close) if(nfunc_vals>=6)
 #endif 
         for(i = 0; i<nfunc_vals; ++i)
         {
@@ -260,7 +261,7 @@ gms::fading_channel
             p_crude_tsc_end[i]   = end;
             p_crude_tsc_meter[i] = end-start;
 #if (COMPUTE_FUNCTIONALS_CH5_SHOW_THREAD_AFFINITY_AND_BINDING) == 1
-            print_thread_affinity();
+            common::print_omp_thread_affinity();
 #endif 
         }
     }
@@ -274,7 +275,7 @@ gms::fading_channel
 #pragma omp parallel for default(none) private(i,cpy_a,cpy_gamma,start,result,end) \
         shared(nfunc_vals,p_tmp_work1,p_tmp_work2,p_funcs_args_payload,p_integrand,p_epsabs,p_epsrel,p_abser,\
                p_neval,p_ier,p_functional,p_crude_tsc_start,p_crude_tsc_end,p_crude_tsc_meter) \
-        schedule(static) num_threads(n_threads) proc_bind(close)
+        schedule(static) num_threads(n_threads) proc_bind(close) if(nfunc_vals)
 #endif
         for(i = 0; i<nfunc_vals; ++i)
         {
@@ -291,7 +292,7 @@ gms::fading_channel
             p_crude_tsc_end[i]   = end;
             p_crude_tsc_meter[i] = end-start;
 #if (COMPUTE_FUNCTIONALS_CH5_SHOW_THREAD_AFFINITY_AND_BINDING) == 1
-            print_thread_affinity();
+            common::print_omp_thread_affinity();
 #endif 
         }
     }
@@ -301,7 +302,7 @@ gms::fading_channel
 #pragma omp parallel for default(none) private(i,cpy_a,cpy_gamma,start,result,end) \
         shared(nfunc_vals,p_tmp_work1,p_tmp_work2,p_funcs_args_payload,p_integrand,p_epsabs,p_epsrel,p_abser,\
                p_neval,p_ier,p_functional,p_crude_tsc_start,p_crude_tsc_end,p_crude_tsc_meter) \
-        schedule(static) num_threads(n_threads) proc_bind(close)
+        schedule(static) num_threads(n_threads) proc_bind(close) if(nfunc_vals)
 #endif
         for(i = 0; i<nfunc_vals; ++i)
         {
@@ -318,7 +319,7 @@ gms::fading_channel
             p_crude_tsc_end[i]   = end;
             p_crude_tsc_meter[i] = end-start;
 #if (COMPUTE_FUNCTIONALS_CH5_SHOW_THREAD_AFFINITY_AND_BINDING) == 1
-            print_thread_affinity();
+            common::print_omp_thread_affinity();
 #endif 
         }
     }
