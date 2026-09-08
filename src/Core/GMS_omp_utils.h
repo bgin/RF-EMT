@@ -62,6 +62,62 @@ namespace gms
 namespace common
 {
 
+struct alignas(64) omp_environment_settings_t
+{
+    const char * __restrict__ set_omp_schedule{"OMP_SCHEDULE"};
+    char       * __restrict__ omp_schedule_value{nullptr}; // e.g. "guided,4","dynamic","nonmonotonic:dynamic,4"
+    const char * __restrict__ set_omp_num_threads{"OMP_NUM_THREADS"};
+    char       * __restrict__ omp_num_threads_value{nullptr}; // e.g. "1,2,4"
+    const char * __restrict__ set_omp_dynamic{"OMP_DYNAMIC"};
+    char       * __restrict__ omp_dynamic_value{nullptr}; // e.g. TRUE ! FALSE
+    const char * __restrict__ set_omp_proc_bind{"OMP_PROC_BIND"};
+    char       * __restrict__ omp_proc_bind_values{nullptr}; // FALSE/TRUE and subsequent call "spread,spread,close"
+    const char * __restrict__ set_omp_places{"OMP_PLACES"};
+    char       * __restrict__ omp_places_values{nullptr}; // "threads", "threads(4)","{0,1,2,3},{4,5,6,7},{8,9,10,11},{12,13,14,15}", "cores","sockets"
+    const char * __restrict__ set_omp_stacksize{"OMP_STACKSIZE"};
+    char       * __restrict__ omp_stacksize_values{nullptr}; // "3000 k", "1500", "1G"
+    const char * __restrict__ set_omp_wait_policy{"OMP_WAIT_POLICY"};
+    char       * __restrict__ omp_wait_policy_values{nullptr}; // "ACTIVE" or "PASSIVE"
+    const char * __restrict__ set_omp_max_active_levels{"OMP_MAX_ACTIVE_LEVELS"};
+    char       * __restrict__ omp_max_active_levels_values{nullptr}; // e.g "5"
+    const char * __restrict__ set_omp_nested{"OMP_NESTED"};
+    char       * __restrict__ omp_nested_values{nullptr}; // "FALSE" or "TRUE"
+    const char * __restrict__ set_omp_thread_limits{"OMP_THREAD_LIMIT"};
+    char       * __restrict__ omp_thread_limit_values{nullptr}; // e.g. "7"
+    const char * __restrict__ set_omp_cancellation{"OMP_CANCELLATION"};
+    char       * __restrict__ omp_cancellation_values{nullptr}; // "FALSE" or "TRUE"
+    const char * __restrict__ set_omp_display_env{"OMP_DISPLAY_ENV"};
+    char       * __restrict__ omp_display_env_values{nullptr}; // "TRUE" or "FALSE" or "VERBOSE"
+    const char * __restrict__ set_omp_display_affinity{"OMP_DISPLAY_AFFINITY"};
+    char       * __restrict__ omp_display_affinity_values{nullptr}; // "TRUE" or "FALSE"
+    const char * __restrict__ set_omp_affinity_format{"OMP_AFFINITY_FORMAT"};
+    char       * __restrict__ omp_affinity_format_values{nullptr}; // "Thread Affinity: %0.3L %.8n %.15{thread_affinity} %.12H"
+    const char * __restrict__ set_omp_default_device{"OMP_DEFAULT_DEVICE"};
+    char       * __restrict__ omp_default_device_values{nullptr}; // "1"
+    const char * __restrict__ set_omp_max_taks_priority{"OMP_MAX_TASK_PRIORITY"};
+    char       * __restrict__ omp_max_taks_priority_values{nullptr}; // "26"
+    const char * __restrict__ set_omp_target_offload{"OMP_TARGET_OFFLOAD"};
+    char       * __restrict__ omp_target_offload_values{nullptr}; // "MANDATORY" , "DISABLED", "DEFAULT"
+    const char * __restrict__ set_omp_tool{"OMP_TOOL"};
+    char       * __restrict__ omp_tool_values{nullptr}; // "ENABLED", "DISABLED"
+    const char * __restrict__ set_omp_tool_libraries{"OMP_TOOL_LIBRARIES"};
+    char       * __restrict__ omp_tool_libraries_values{nullptr};// "libtoolXY64.so:/usr/local/lib/14libtoolXY32.so"
+    const char * __restrict__ set_omp_debug{"OMP_DEBUG"};
+    char       * __restrict__ omp_omp_debug_values{nullptr}; // "ENABLED", "DISABLED"
+    const char * __restrict__ set_omp_allocator{"OMP_ALLOCATOR"};
+    char       * __restrict__ omp_allocator_values{nullptr}; // Allocator values are stated below
+    /*
+       "omp_default_mem_alloc" 
+       "omp_large_cap_mem_alloc" 
+       "omp_const_mem_alloc" 
+       "omp_high_bw_mem_alloc" 
+       "omp_low_lat_mem_alloc" 
+       "omp_cgroup_mem_alloc" 
+       "omp_pteam_mem_alloc" 
+       "omp_thread_mem_alloc"
+    */
+};
+
 typedef struct __attribute__((aligned(16))) affinity_mask_t 
 {
   std::size_t setsize;
