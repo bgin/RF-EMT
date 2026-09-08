@@ -356,6 +356,7 @@ gms::fading_channel
     double                      rand_high3                   = p_payload->rand_hi3;
     const std::int32_t          nfunc_vals                   = p_payload->n_func_vals;
     const std::int32_t          integrator_type              = p_payload->which_integrator;
+    const std::int32_t          n_threads                    = p_payload->set_n_threads;
     const bool                  random_input_generation      = p_payload->randomly_generate_inputs;
     const bool                  rand_in_gen_eq_true          = random_input_generation==true;
     if(rand_in_gen_eq_true)
@@ -424,7 +425,7 @@ gms::fading_channel
     {
 #if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
 #pragma omp parallel for default(none) private(i,cpy_a,cpy_gamma,cpy_q,start,result,end) \
-        shared(nfunc_vals,p_tmp_work1,p_tmp_work2,p_funcs_args_payload,p_integrand,p_epsabs,p_epsrel,p_irule,p_abser,\
+        shared(nfunc_vals,p_tmp_work1,p_tmp_work2,p_tmp_work3,p_funcs_args_payload,p_integrand,p_epsabs,p_epsrel,p_irule,p_abser,\
                p_neval,p_ier,p_last,p_functional,p_crude_tsc_start,p_crude_tsc_end,p_crude_tsc_meter) \
         schedule(static) num_threads(n_threads) proc_bind(close) if(nfunc_vals>=n_threads)
 #endif
@@ -444,6 +445,9 @@ gms::fading_channel
             p_crude_tsc_start[i] = start;
             p_crude_tsc_end[i]   = end;
             p_crude_tsc_meter[i] = end-start;
+#if (COMPUTE_FUNCTIONALS_CH5_SHOW_THREAD_AFFINITY_AND_BINDING) == 1
+            common::print_omp_thread_affinity();
+#endif
         }
     }
     else if(integrator_type==2)
@@ -454,7 +458,7 @@ gms::fading_channel
     {
 #if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
 #pragma omp parallel for default(none) private(i,cpy_a,cpy_gamma,cpy_q,start,result,end) \
-        shared(nfunc_vals,p_tmp_work1,p_tmp_work2,p_funcs_args_payload,p_integrand,p_epsabs,p_epsrel,p_abser,\
+        shared(nfunc_vals,p_tmp_work1,p_tmp_work2,p_tmp_work3,p_funcs_args_payload,p_integrand,p_epsabs,p_epsrel,p_abser,\
                p_neval,p_ier,p_functional,p_crude_tsc_start,p_crude_tsc_end,p_crude_tsc_meter) \
         schedule(static) num_threads(n_threads) proc_bind(close) if(nfunc_vals>=n_threads)
 #endif
@@ -474,10 +478,19 @@ gms::fading_channel
             p_crude_tsc_start[i] = start;
             p_crude_tsc_end[i]   = end;
             p_crude_tsc_meter[i] = end-start;
+#if (COMPUTE_FUNCTIONALS_CH5_SHOW_THREAD_AFFINITY_AND_BINDING) == 1
+            common::print_omp_thread_affinity();
+#endif
         }
     }
     else if(integrator_type==4)
     {
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
+#pragma omp parallel for default(none) private(i,cpy_a,cpy_gamma,cpy_q,start,result,end) \
+        shared(nfunc_vals,p_tmp_work1,p_tmp_work2,p_tmp_work3,p_funcs_args_payload,p_integrand,p_epsabs,p_epsrel,p_abser,\
+               p_neval,p_ier,p_functional,p_crude_tsc_start,p_crude_tsc_end,p_crude_tsc_meter) \
+        schedule(static) num_threads(n_threads) proc_bind(close) if(nfunc_vals>=n_threads)
+#endif
         for(i = 0; i<nfunc_vals; ++i)
         {
             cpy_a = p_tmp_work1[i];
@@ -486,14 +499,17 @@ gms::fading_channel
             p_funcs_args_payload[i].arg2d = cpy_gamma;
             cpy_q = p_tmp_work3[i];
             p_funcs_args_payload[i].arg3d = cpy_q;
-            const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+            start = gms::common::rdtsc_serialized_start();
             const double result = dqng(p_integrand,0.0,1.570796326794896619231321692,p_epsabs[0],p_epsrel[0],&p_abser[i],
                                         &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
-            const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+            end = gms::common::rdtsc_serialized_stop();
             p_functional[i] = 0.318309886183790671537767527*result;
             p_crude_tsc_start[i] = start;
             p_crude_tsc_end[i]   = end;
             p_crude_tsc_meter[i] = end-start;
+#if (COMPUTE_FUNCTIONALS_CH5_SHOW_THREAD_AFFINITY_AND_BINDING) == 1
+            common::print_omp_thread_affinity();
+#endif
         }
     }
     return (0);
