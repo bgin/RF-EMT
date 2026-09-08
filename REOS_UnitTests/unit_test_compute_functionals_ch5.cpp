@@ -1,6 +1,8 @@
 #include <cstdio>
 #include <cstdlib>
+#include <errno.h>
 #include "GMS_compute_functionals_ch5.h"
+#include "GMS_omp_utils.h"
 
 /*
    icpc -o unit_test_compute_functionals_ch5 -fopenmp -O3 -fp-model fast=2 -fno-exceptions -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
@@ -75,7 +77,15 @@ void unit_test_compute_functional_Rayleigh_chan_5_6()
     integrator_payload.n_func_vals = n_func_args;
     integrator_payload.randomly_generate_inputs = true;
     integrator_payload.set_n_threads = 6;
+    integrator_payload.omp_places_value = "threads";
+    std::int32_t setenv_ret;
+    setenv_ret = setenv(integrator_payload.set_omp_places,integrator_payload.omp_places_value,1);
+    if(setenv_ret==-1)
+    {
+       (void)perror("***ERROR*** in: setenv -- ");
+    }
     //integrator_payload.which_integrator = 3;
+    (void)gms::common::display_affinity_environment();
     gms::fading_channel::quadpack_integrator_payload_ch5_t * __restrict__ p_payload = &integrator_payload;
     for(std::int32_t ii{1}; ii<5; ++ii) 
     {
