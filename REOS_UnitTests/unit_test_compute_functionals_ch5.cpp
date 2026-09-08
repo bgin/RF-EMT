@@ -76,8 +76,8 @@ void unit_test_compute_functional_Rayleigh_chan_5_6()
     integrator_payload.rand_hi2 = +15.0;
     integrator_payload.n_func_vals = n_func_args;
     integrator_payload.randomly_generate_inputs = true;
+    // OMP settings
     integrator_payload.set_n_threads = 6;
-    //integrator_payload.omp_places_value = "threads";
     integrator_payload.omp_env_settings.omp_places_values = "threads";
     integrator_payload.omp_env_settings.omp_display_env_values = "VERBOSE";
     integrator_payload.omp_env_settings.omp_proc_bind_values ="close";
@@ -131,9 +131,9 @@ void unit_test_compute_functional_Rayleigh_chan_5_6()
 
 __attribute__((hot))
 __attribute__((aligned(32)))
-void unit_test_compute_functional_Hoyt_chan_5_6();
+void unit_test_compute_functional_Hoyt_chan_5_9();
 
-void unit_test_compute_functional_Hoyt_chan_5_6()
+void unit_test_compute_functional_Hoyt_chan_5_9()
 {
     //using namespace gms::fading_channel;
     constexpr std::int32_t n_func_args{100};
@@ -185,10 +185,32 @@ void unit_test_compute_functional_Hoyt_chan_5_6()
     integrator_payload.rand_hi3 = +1.0;
     integrator_payload.n_func_vals = n_func_args;
     integrator_payload.randomly_generate_inputs = true;
+    integrator_payload.set_n_threads = 6;
+    integrator_payload.omp_env_settings.omp_places_values = "threads";
+    integrator_payload.omp_env_settings.omp_display_env_values = "VERBOSE";
+    integrator_payload.omp_env_settings.omp_proc_bind_values ="close";
+    std::int32_t setenv_ret;
+    setenv_ret = setenv(integrator_payload.omp_env_settings.set_omp_places,integrator_payload.omp_env_settings.omp_places_values,1);
+    if(setenv_ret==-1)
+    {
+       (void)perror("***ERROR*** in: setenv -- ");
+    }
+    setenv_ret = setenv(integrator_payload.omp_env_settings.set_omp_display_env,integrator_payload.omp_env_settings.omp_display_env_values,1);
+    if(setenv_ret==-1)
+    {
+       (void)perror("***ERROR*** in: setenv -- ");
+    }
+    setenv_ret = setenv(integrator_payload.omp_env_settings.set_omp_proc_bind,integrator_payload.omp_env_settings.omp_proc_bind_values,1);
+    if(setenv_ret==-1)
+    {
+       (void)perror("***ERROR*** in: setenv -- ");
+    }
     //integrator_payload.which_integrator = 3;
     gms::fading_channel::quadpack_integrator_payload_ch5_t * __restrict__ p_payload = &integrator_payload;
+    std::int32_t integrators_cnt = 0;
     for(std::int32_t ii{1}; ii<5; ++ii) 
     {
+        ++integrators_cnt;
         integrator_payload.which_integrator = ii;
         std::int32_t integrator_ret = gms::fading_channel::compute_functional_Hoyt_chan_5_9(p_payload);
         if(p_payload->which_integrator==1)
@@ -211,6 +233,11 @@ void unit_test_compute_functional_Hoyt_chan_5_6()
                const std::uint64_t end   = crude_tsc_end[i];
                print_retv = std::printf("Iter=%d,abser=%.17f,neval=%d,ier=%d,last=%d,tsc_start=%llu,tsc_end=%llu,total_tsc=%llu,ret=%d\n",i,abser[i],neval[i],ier[i],last[i],start,end,crude_tsc_results[i],integrator_ret);
            }
+
+           const std::string append_integrator_name{gms::fading_channel::integrators_names_ch5[integrators_cnt].c_str()};
+           gms::fading_channel::create_functional_ch5_plot(p_payload->n_func_vals,nullptr,&p_payload->functional[0],
+                                                         "unit_test_compute_functional_Hoyt_5_9_"+append_integrator_name,
+                                                         "Functional of Hoyt Fading Channel computed by:"+append_integrator_name,false);
         }
     }
     print_retv = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
@@ -1250,9 +1277,9 @@ void unit_test_compute_functional_compositeLogNormShadow_chan_5_44()
 
 int main()
 {
-   (void)unit_test_compute_functional_Rayleigh_chan_5_6();
+   //(void)unit_test_compute_functional_Rayleigh_chan_5_6();
+   (void)unit_test_compute_functional_Hoyt_chan_5_9();
 /*
-   (void)unit_test_compute_functional_Hoyt_chan_5_6();
    (void)unit_test_compute_functional_Rice_chan_5_12();
    (void)unit_test_compute_functional_Nakagami_m_chan_5_16();
    (void)unit_test_compute_functional_LogNormShadow_chan_5_20();
