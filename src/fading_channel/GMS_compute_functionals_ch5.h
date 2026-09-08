@@ -25,6 +25,9 @@
 #include <array>
 #include "GMS_config.h"
 #include "GMS_integrands_func_ch5.h"
+#ifdef _OPENMP
+#include "GMS_omp_utils.h"
+#endif
 
 namespace file_info 
 {
@@ -86,6 +89,7 @@ namespace fading_channel
 const static std::string integrators_names_ch5[6] = {{"dqage"},{"dqagi"},{"dqags"},{"dqng"},{"dqagp"},{"dqaws"}};
 const static std::string tabulated_integrators_names_ch5[4] = {{"hiordq"},{"simpn"},{"wedint"},{"avint"}};
 
+
 struct alignas(64) quadpack_integrator_payload_ch5_t 
 {
     double (*integrand)(double,void * __restrict__);
@@ -115,8 +119,9 @@ struct alignas(64) quadpack_integrator_payload_ch5_t
     std::uint64_t       * __restrict__ crude_tsc_measurement{nullptr}; // crude RDTSCP measurement for approximate TSC assesment (shall not be used for the robust statistics)
     std::uint64_t       * __restrict__ crude_tsc_meas_outer{nullptr}; // crude RDTSCP measurement for approximate TSC assesment if the outer functional (shall not be used for the robust statistics)
 #if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
-    const char          * __restrict__ set_omp_places{"OMP_PLACES"};
-    char                * __restrict__ omp_places_value{nullptr}; // must: threads,cores,sockets
+    common::omp_environment_settings_t omp_env_settings;
+    //const char          * __restrict__ set_omp_places{"OMP_PLACES"};
+    //char                * __restrict__ omp_places_value{nullptr}; // must: threads,cores,sockets
 #endif 
     double                            outer_func_tmp_res; // result for outer functional computation 
     double                             rand_lo1{}; // set lower limit for random number generator
