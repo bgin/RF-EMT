@@ -77,15 +77,28 @@ void unit_test_compute_functional_Rayleigh_chan_5_6()
     integrator_payload.n_func_vals = n_func_args;
     integrator_payload.randomly_generate_inputs = true;
     integrator_payload.set_n_threads = 6;
-    integrator_payload.omp_places_value = "threads";
+    //integrator_payload.omp_places_value = "threads";
+    integrator_payload.omp_env_settings.omp_places_values = "threads";
+    integrator_payload.omp_env_settings.omp_display_env_values = "VERBOSE";
+    integrator_payload.omp_env_settings.omp_proc_bind_values ="close";
     std::int32_t setenv_ret;
-    setenv_ret = setenv(integrator_payload.set_omp_places,integrator_payload.omp_places_value,1);
+    setenv_ret = setenv(integrator_payload.omp_env_settings.set_omp_places,integrator_payload.omp_env_settings.omp_places_values,1);
+    if(setenv_ret==-1)
+    {
+       (void)perror("***ERROR*** in: setenv -- ");
+    }
+    setenv_ret = setenv(integrator_payload.omp_env_settings.set_omp_display_env,integrator_payload.omp_env_settings.omp_display_env_values,1);
+    if(setenv_ret==-1)
+    {
+       (void)perror("***ERROR*** in: setenv -- ");
+    }
+    setenv_ret = setenv(integrator_payload.omp_env_settings.set_omp_proc_bind,integrator_payload.omp_env_settings.omp_proc_bind_values,1);
     if(setenv_ret==-1)
     {
        (void)perror("***ERROR*** in: setenv -- ");
     }
     //integrator_payload.which_integrator = 3;
-    (void)gms::common::display_affinity_environment();
+    //(void)gms::common::display_affinity_environment();
     gms::fading_channel::quadpack_integrator_payload_ch5_t * __restrict__ p_payload = &integrator_payload;
     for(std::int32_t ii{1}; ii<5; ++ii) 
     {
