@@ -666,6 +666,29 @@ void unit_test_compute_outer_functional_LogNormShadow_chan_5_20()
     integrator_payload.n_func_vals = n_func_args;
     integrator_payload.randomly_generate_inputs = true;
     integrator_payload.which_integrator = 1;
+    integrator_payload.set_n_threads = 6;
+    integrator_payload.omp_env_settings.omp_places_values = "{0,1,2,3,4,5}";
+    integrator_payload.omp_env_settings.omp_display_env_values = "VERBOSE";
+    integrator_payload.omp_env_settings.omp_proc_bind_values ="spread";
+    std::int32_t setenv_ret;
+    setenv_ret = setenv(integrator_payload.omp_env_settings.set_omp_places,integrator_payload.omp_env_settings.omp_places_values,1);
+    if(setenv_ret==-1)
+    {
+      print_retv = std::printf("Function=%s,line=%d\n",__func__,__LINE__);
+      (void)perror("***ERROR*** in: setenv -- ");
+    }
+    setenv_ret = setenv(integrator_payload.omp_env_settings.set_omp_display_env,integrator_payload.omp_env_settings.omp_display_env_values,1);
+    if(setenv_ret==-1)
+    {
+      print_retv = std::printf("Function=%s,line=%d\n",__func__,__LINE__);
+      (void)perror("***ERROR*** in: setenv -- ");
+    }
+    setenv_ret = setenv(integrator_payload.omp_env_settings.set_omp_proc_bind,integrator_payload.omp_env_settings.omp_proc_bind_values,1);
+    if(setenv_ret==-1)
+    {
+      print_retv = std::printf("Function=%s,line=%d\n",__func__,__LINE__);
+      (void)perror("***ERROR*** in: setenv -- ");
+    }
     gms::fading_channel::quadpack_integrator_payload_ch5_t * __restrict__ p_payload = &integrator_payload;
     integrator_payload.which_tabulated_integrator = 1;
     for(std::int32_t ii{0}; ii<n_outer_func_args; ++ii) 
@@ -676,6 +699,10 @@ void unit_test_compute_outer_functional_LogNormShadow_chan_5_20()
             print_retv = print_double("Outer LogNormShadow-Channel Functional (f:5.20)",outer_func_res,0);
             print_retv = std::printf("[UNIT_TEST]: tsc-delta=%llu\n",p_payload->crude_tsc_meas_outer[ii]);
     }
+    //const std::string append_integrator_name{gms::fading_channel::integrators_names_ch5[integrators_cnt].c_str()};
+    gms::fading_channel::create_functional_ch5_plot(p_payload->n_outer_func_vals,nullptr,&outer_LogNormShadow_Channel_functional[0],
+                                                    "unit_test_compute_outer_functional_LogNormShadow_5_20_",
+                                                    "Outer LogNormShadow-Channel Functional (f:5.20)",false);
     print_retv = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
 
@@ -1371,10 +1398,10 @@ int main()
    // (void)unit_test_compute_functional_Hoyt_chan_5_9();
    //(void)unit_test_compute_functional_Rice_chan_5_12();
    //(void)unit_test_compute_functional_Nakagami_m_chan_5_16();
+   //(void)unit_test_compute_functional_LogNormShadow_chan_5_20();
 
-   (void)unit_test_compute_functional_LogNormShadow_chan_5_20();
-/*
    (void)unit_test_compute_outer_functional_LogNormShadow_chan_5_20();
+/*
    (void)unit_test_compute_functional_compositeLogNormShadow_chan_5_25();
    (void)unit_test_compute_outer_functional_compositeLogNormShadow_chan_5_25();
    (void)unit_test_compute_functional_Rayleigh_LaplaceT_chan_5_39();
