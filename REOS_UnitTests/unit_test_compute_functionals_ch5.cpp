@@ -1100,6 +1100,11 @@ void unit_test_compute_functional_Hoyt_LaplaceT_chan_5_40()
     __ATTR_ALIGN__(16) std::int32_t neval[n_func_args];
     __ATTR_ALIGN__(16) std::int32_t ier[n_func_args];
     __ATTR_ALIGN__(16) std::int32_t last[n_func_args];
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
+                       std::uint64_t omp_loop_start[1];
+                       std::uint64_t omp_loop_end[1];
+                       std::uint64_t omp_loop_delta[1];
+#endif 
     double epsabs[1];
     double epsrel[1];
     std::int32_t inf[1];
@@ -1130,6 +1135,11 @@ void unit_test_compute_functional_Hoyt_LaplaceT_chan_5_40()
     integrator_payload.crude_tsc_start = &crude_tsc_start[0];
     integrator_payload.crude_tsc_end   = &crude_tsc_end[0];
     integrator_payload.crude_tsc_measurement = &crude_tsc_results[0];
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
+    integrator_payload.omp_loop_start = &omp_loop_start[0];
+    integrator_payload.omp_loop_end   = &omp_loop_end[0];
+    integrator_payload.omp_loop_delta = &omp_loop_delta[0];
+#endif
     integrator_payload.rand_lo1 = +0.1;
     integrator_payload.rand_hi1 = +1.0;
     integrator_payload.rand_lo2 = +0.1;
@@ -1142,6 +1152,33 @@ void unit_test_compute_functional_Hoyt_LaplaceT_chan_5_40()
     integrator_payload.rand_hi5 = +1.0;
     integrator_payload.n_func_vals = n_func_args;
     integrator_payload.randomly_generate_inputs = true;
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
+    integrator_payload.set_n_threads = 6;
+    integrator_payload.omp_env_settings.omp_places_values = "{0,1,2,3,4,5}";
+    integrator_payload.omp_env_settings.omp_display_env_values = "VERBOSE";
+    integrator_payload.omp_env_settings.omp_proc_bind_values ="spread";
+
+    std::int32_t setenv_ret;
+    setenv_ret = setenv(integrator_payload.omp_env_settings.set_omp_places,integrator_payload.omp_env_settings.omp_places_values,1);
+    if(setenv_ret==-1)
+    {
+      print_retv = std::printf("Function=%s,line=%d\n",__func__,__LINE__);
+      (void)perror("***ERROR*** in: setenv -- ");
+    }
+    setenv_ret = setenv(integrator_payload.omp_env_settings.set_omp_display_env,integrator_payload.omp_env_settings.omp_display_env_values,1);
+    if(setenv_ret==-1)
+    {
+      print_retv = std::printf("Function=%s,line=%d\n",__func__,__LINE__);
+      (void)perror("***ERROR*** in: setenv -- ");
+    }
+    setenv_ret = setenv(integrator_payload.omp_env_settings.set_omp_proc_bind,integrator_payload.omp_env_settings.omp_proc_bind_values,1);
+    if(setenv_ret==-1)
+    {
+      print_retv = std::printf("Function=%s,line=%d\n",__func__,__LINE__);
+      (void)perror("***ERROR*** in: setenv -- ");
+    }
+#endif 
+
     //integrator_payload.which_integrator = 3;
     gms::fading_channel::quadpack_integrator_payload_ch5_t * __restrict__ p_payload = &integrator_payload;
     std::int32_t integrators_cnt = 0;
@@ -1162,8 +1199,9 @@ void unit_test_compute_functional_Hoyt_LaplaceT_chan_5_40()
         {
            const std::string append_integrator_name{gms::fading_channel::integrators_names_ch5[integrators_cnt].c_str()};
            gms::fading_channel::create_functional_ch5_plot(p_payload->n_func_vals,nullptr,&p_payload->functional[0],
-                                                           "unit_test_compute_functional_Hoyt_LaplaceT_chan_5_40_"+append_integrator_name,
-                                                           "Functional of Hoyt Fading Channel computed by:"+append_integrator_name,false);
+                                                           "unit_test_omp_compute_functional_Hoyt_LaplaceT_chan_5_40_"+append_integrator_name,
+                                                           "Functional of Hoyt Fading Channel parallel computing by:"+append_integrator_name,false);
+           print_retv = std::printf("OpenMP processing for: %s, consumed=%llu(TSC)\n",append_integrator_name.c_str(),p_payload->omp_loop_delta[0]);
                                                            
            for(std::int32_t i{0}; i < p_payload->n_func_vals; ++i) 
            {
@@ -1496,10 +1534,10 @@ int main()
    //(void)unit_test_compute_outer_functional_LogNormShadow_chan_5_20();
    //(void)unit_test_compute_functional_compositeLogNormShadow_chan_5_25();
    //(void)unit_test_compute_outer_functional_compositeLogNormShadow_chan_5_25();
+   //(void)unit_test_compute_functional_Rayleigh_LaplaceT_chan_5_39();
 
-   (void)unit_test_compute_functional_Rayleigh_LaplaceT_chan_5_39();
-/*
    (void)unit_test_compute_functional_Hoyt_LaplaceT_chan_5_40();
+/*
    (void)unit_test_compute_functional_Rice_LaplaceT_chan_5_41();
    (void)unit_test_compute_functional_Nakagami_m_LaplaceT_chan_5_43();
    (void)unit_test_compute_functional_compositeLogNormShadow_chan_5_44();
