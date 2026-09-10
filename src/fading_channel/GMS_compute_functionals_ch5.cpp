@@ -2322,27 +2322,51 @@ gms::fading_channel
        std::sort(&p_tmp_work3[0],&p_tmp_work3[nfunc_vals-1],std::less<double>());
        std::sort(&p_tmp_work4[0],&p_tmp_work4[nfunc_vals-1],std::less<double>());
     }
+    
+    std::int32_t i;
+    double cpy_b{};
+    double cpy_psi{};
+    double cpy_gamma{};
+    double cpy_l{};
+    double result{};
+    std::uint64_t start{};
+    std::uint64_t end{};
     if(integrator_type==1)
     {
-        for(std::int32_t i{0}; i<nfunc_vals; ++i)
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
+        p_omp_loop_start[0] = gms::common::rdtsc_serialized_start();
+#pragma omp parallel for default(none) private(i,cpy_b,cpy_psi,cpy_gamma,cpy_l,start,result,end) \
+        shared(nfunc_vals,p_tmp_work1,p_tmp_work2,p_tmp_work3,p_tmp_work4,p_funcs_args_payload, \
+               p_integrand,p_epsabs,p_epsrel,p_irule,p_abser,\
+               p_neval,p_ier,p_last,p_functional,p_crude_tsc_start,p_crude_tsc_end,p_crude_tsc_meter) \
+        schedule(static) num_threads(n_threads) proc_bind(spread) if(nfunc_vals>=n_threads)
+#endif
+        for(i = 0; i<nfunc_vals; ++i)
         {
-            const double cpy_b{p_tmp_work1[i]};
+            cpy_b = p_tmp_work1[i];
             p_funcs_args_payload[i].arg1d = cpy_b;
-            const double cpy_psi{p_tmp_work2[i]};
+            cpy_psi = p_tmp_work2[i];
             p_funcs_args_payload[i].arg2d = cpy_psi;
-            const double cpy_gamma{p_tmp_work3[i]};
+            cpy_gamma = p_tmp_work3[i];
             p_funcs_args_payload[i].arg3d = cpy_gamma;
-            const double cpy_l{p_tmp_work4[i]};
+            cpy_l = p_tmp_work4[i];
             p_funcs_args_payload[i].arg4d = cpy_l;
-            const std::uint64_t start{gms::common::rdtsc_serialized_start()};
+            start = gms::common::rdtsc_serialized_start();
             const double result = dqage(p_integrand,-3.141592653589793238462643383,+3.141592653589793238462643383,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
                                         &p_neval[i],&p_ier[i],&p_last[i],&p_funcs_args_payload[i]);
-            const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+            end = gms::common::rdtsc_serialized_stop();
             p_functional[i] = 0.159154943091895335768883763*result;
             p_crude_tsc_start[i] = start;
             p_crude_tsc_end[i]   = end;
             p_crude_tsc_meter[i] = end-start;
+#if (COMPUTE_FUNCTIONALS_CH5_SHOW_THREAD_AFFINITY_AND_BINDING) == 1
+            common::print_omp_thread_affinity();
+#endif
         }
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
+        p_omp_loop_end[0] = gms::common::rdtsc_serialized_stop();
+        p_omp_loop_delta[0] = p_omp_loop_end[0]-p_omp_loop_start[0];
+#endif
     }
     else if(integrator_type==2)
     {
@@ -2350,47 +2374,77 @@ gms::fading_channel
     }
     else if(integrator_type==3)
     {
-        for(std::int32_t i{0}; i<nfunc_vals; ++i)
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
+        p_omp_loop_start[0] = gms::common::rdtsc_serialized_start();
+#pragma omp parallel for default(none) private(i,cpy_b,cpy_psi,cpy_gamma,cpy_l,start,result,end) \
+        shared(nfunc_vals,p_tmp_work1,p_tmp_work2,p_tmp_work3,p_tmp_work4,p_funcs_args_payload, \
+               p_integrand,p_epsabs,p_epsrel,p_abser,\
+               p_neval,p_ier,p_functional,p_crude_tsc_start,p_crude_tsc_end,p_crude_tsc_meter) \
+        schedule(static) num_threads(n_threads) proc_bind(spread) if(nfunc_vals>=n_threads)
+#endif
+        for(i = 0; i<nfunc_vals; ++i)
         {
-            const double cpy_b{p_tmp_work1[i]};
+            cpy_b = p_tmp_work1[i];
             p_funcs_args_payload[i].arg1d = cpy_b;
-            const double cpy_psi{p_tmp_work2[i]};
+            cpy_psi = p_tmp_work2[i];
             p_funcs_args_payload[i].arg2d = cpy_psi;
-            const double cpy_gamma{p_tmp_work3[i]};
+            cpy_gamma = p_tmp_work3[i];
             p_funcs_args_payload[i].arg3d = cpy_gamma;
-            const double cpy_l{p_tmp_work4[i]};
+            cpy_l = p_tmp_work4[i];
             p_funcs_args_payload[i].arg4d = cpy_l;
-            const std::uint64_t start{gms::common::rdtsc_serialized_start()};
-            const double result = dqags(p_integrand,-3.141592653589793238462643383,+3.141592653589793238462643383,p_epsabs[0],p_epsrel[0],&p_abser[i],
+            start = gms::common::rdtsc_serialized_start();
+            result = dqags(p_integrand,-3.141592653589793238462643383,+3.141592653589793238462643383,p_epsabs[0],p_epsrel[0],&p_abser[i],
                                         &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
-            const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+            end = gms::common::rdtsc_serialized_stop();
             p_functional[i] = 0.159154943091895335768883763*result;
             p_crude_tsc_start[i] = start;
             p_crude_tsc_end[i]   = end;
             p_crude_tsc_meter[i] = end-start;
+#if (COMPUTE_FUNCTIONALS_CH5_SHOW_THREAD_AFFINITY_AND_BINDING) == 1
+            common::print_omp_thread_affinity();
+#endif
         }
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
+        p_omp_loop_end[0] = gms::common::rdtsc_serialized_stop();
+        p_omp_loop_delta[0] = p_omp_loop_end[0]-p_omp_loop_start[0];
+#endif
     }
     else if(integrator_type==4)
     {
-        for(std::int32_t i{0}; i<nfunc_vals; ++i)
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
+        p_omp_loop_start[0] = gms::common::rdtsc_serialized_start();
+#pragma omp parallel for default(none) private(i,cpy_b,cpy_psi,cpy_gamma,cpy_l,start,result,end) \
+        shared(nfunc_vals,p_tmp_work1,p_tmp_work2,p_tmp_work3,p_tmp_work4,p_funcs_args_payload, \
+               p_integrand,p_epsabs,p_epsrel,p_abser,\
+               p_neval,p_ier,p_functional,p_crude_tsc_start,p_crude_tsc_end,p_crude_tsc_meter) \
+        schedule(static) num_threads(n_threads) proc_bind(spread) if(nfunc_vals>=n_threads)
+#endif 
+        for(i = 0; i<nfunc_vals; ++i)
         {
-            const double cpy_b{p_tmp_work1[i]};
+            cpy_b = p_tmp_work1[i];
             p_funcs_args_payload[i].arg1d = cpy_b;
-            const double cpy_psi{p_tmp_work2[i]};
+            cpy_psi = p_tmp_work2[i];
             p_funcs_args_payload[i].arg2d = cpy_psi;
-            const double cpy_gamma{p_tmp_work3[i]};
+            cpy_gamma = p_tmp_work3[i];
             p_funcs_args_payload[i].arg3d = cpy_gamma;
-            const double cpy_l{p_tmp_work4[i]};
+            cpy_l = p_tmp_work4[i];
             p_funcs_args_payload[i].arg4d = cpy_l;
-            const std::uint64_t start{gms::common::rdtsc_serialized_start()};
-            const double result = dqng(p_integrand,-3.141592653589793238462643383,+-3.141592653589793238462643383,p_epsabs[0],p_epsrel[0],&p_abser[i],
+            start = gms::common::rdtsc_serialized_start();
+            result = dqng(p_integrand,-3.141592653589793238462643383,+-3.141592653589793238462643383,p_epsabs[0],p_epsrel[0],&p_abser[i],
                                         &p_neval[i],&p_ier[i],&p_funcs_args_payload[i]);
-            const std::uint64_t end{gms::common::rdtsc_serialized_stop()};
+            end = gms::common::rdtsc_serialized_stop();
             p_functional[i] = 0.159154943091895335768883763*result;
             p_crude_tsc_start[i] = start;
             p_crude_tsc_end[i]   = end;
             p_crude_tsc_meter[i] = end-start;
+#if (COMPUTE_FUNCTIONALS_CH5_SHOW_THREAD_AFFINITY_AND_BINDING) == 1
+            common::print_omp_thread_affinity();
+#endif          
         }
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
+        p_omp_loop_end[0] = gms::common::rdtsc_serialized_stop();
+        p_omp_loop_delta[0] = p_omp_loop_end[0]-p_omp_loop_start[0];
+#endif
     }
     return (0);
 }
