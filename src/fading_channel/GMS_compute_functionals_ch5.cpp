@@ -186,7 +186,9 @@ gms::fading_channel
     double                      rand_high2                   = p_payload->rand_hi2;
     const std::int32_t          nfunc_vals                   = p_payload->n_func_vals;
     const std::int32_t          integrator_type              = p_payload->which_integrator;
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
     const std::int32_t          n_threads                    = p_payload->set_n_threads;
+#endif 
     const bool                  random_input_generation      = p_payload->randomly_generate_inputs;
     const bool                  rand_in_gen_eq_true          = random_input_generation==true;
     if(rand_in_gen_eq_true)
@@ -356,7 +358,9 @@ gms::fading_channel
     double                      rand_high3                   = p_payload->rand_hi3;
     const std::int32_t          nfunc_vals                   = p_payload->n_func_vals;
     const std::int32_t          integrator_type              = p_payload->which_integrator;
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
     const std::int32_t          n_threads                    = p_payload->set_n_threads;
+#endif 
     const bool                  random_input_generation      = p_payload->randomly_generate_inputs;
     const bool                  rand_in_gen_eq_true          = random_input_generation==true;
     if(rand_in_gen_eq_true)
@@ -546,7 +550,9 @@ gms::fading_channel
     double                      rand_high3                   = p_payload->rand_hi3;
     const std::int32_t          nfunc_vals                   = p_payload->n_func_vals;
     const std::int32_t          integrator_type              = p_payload->which_integrator;
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
     const std::int32_t          n_threads                    = p_payload->set_n_threads;
+#endif 
     const bool                  random_input_generation      = p_payload->randomly_generate_inputs;
     const bool                  rand_in_gen_eq_true          = random_input_generation==true;
     if(rand_in_gen_eq_true)
@@ -736,7 +742,9 @@ gms::fading_channel
     double                      rand_high3                   = p_payload->rand_hi3;
     const std::int32_t          nfunc_vals                   = p_payload->n_func_vals;
     const std::int32_t          integrator_type              = p_payload->which_integrator;
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
     const std::int32_t          n_threads                    = p_payload->set_n_threads;
+#endif 
     const bool                  random_input_generation      = p_payload->randomly_generate_inputs;
     const bool                  rand_in_gen_eq_true          = random_input_generation==true;
     if(rand_in_gen_eq_true)
@@ -931,7 +939,9 @@ gms::fading_channel
     double                      rand_high5                   = p_payload->rand_hi5;
     const std::int32_t          nfunc_vals                   = p_payload->n_func_vals;
     const std::int32_t          integrator_type              = p_payload->which_integrator;
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
     const std::int32_t          n_threads                    = p_payload->set_n_threads;
+#endif 
     const bool                  random_input_generation      = p_payload->randomly_generate_inputs;
     const bool                  rand_in_gen_eq_true          = random_input_generation==true;
     if(rand_in_gen_eq_true)
@@ -1179,7 +1189,9 @@ gms::fading_channel
     const std::int32_t          nfunc_vals                   = p_payload->n_func_vals;
     const std::int32_t          integrator_type              = p_payload->which_integrator;
     const std::int32_t          tabular_integrator_type      = p_payload->which_tabulated_integrator;
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
     const std::int32_t          n_threads                    = p_payload->set_n_threads;
+#endif 
     const bool                  random_input_generation      = p_payload->randomly_generate_inputs;
     const bool                  rand_in_gen_eq_true          = random_input_generation==true;
     if(rand_in_gen_eq_true)
@@ -1557,7 +1569,9 @@ gms::fading_channel
     double                      rand_high6                   = p_payload->rand_hi6;
     const std::int32_t          nfunc_vals                   = p_payload->n_func_vals;
     const std::int32_t          integrator_type              = p_payload->which_integrator;
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
     const std::int32_t          n_threads                    = p_payload->set_n_threads;
+#endif 
     const bool                  random_input_generation      = p_payload->randomly_generate_inputs;
     const bool                  rand_in_gen_eq_true          = random_input_generation==true;
     if(rand_in_gen_eq_true)
@@ -1835,7 +1849,9 @@ gms::fading_channel
     const std::int32_t          nfunc_vals                   = p_payload->n_func_vals;
     const std::int32_t          integrator_type              = p_payload->which_integrator;
     const std::int32_t          tabular_integrator_type      = p_payload->which_tabulated_integrator;
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
     const std::int32_t          n_threads                    = p_payload->set_n_threads;
+#endif 
     const bool                  random_input_generation      = p_payload->randomly_generate_inputs;
     const bool                  rand_in_gen_eq_true          = random_input_generation==true;
     if(rand_in_gen_eq_true)
@@ -2217,6 +2233,11 @@ gms::fading_channel
     std::uint64_t * __restrict__ p_crude_tsc_start           = p_payload->crude_tsc_start;
     std::uint64_t * __restrict__ p_crude_tsc_end             = p_payload->crude_tsc_end;
     std::uint64_t * __restrict__ p_crude_tsc_meter           = p_payload->crude_tsc_measurement;
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
+    std::uint64_t * __restrict__ p_omp_loop_start            = p_payload->omp_loop_start;
+    std::uint64_t * __restrict__ p_omp_loop_end              = p_payload->omp_loop_end;
+    std::uint64_t * __restrict__ p_omp_loop_delta            = p_payload->omp_loop_delta;
+#endif 
     double                      rand_low1                    = p_payload->rand_lo1;
     double                      rand_high1                   = p_payload->rand_hi1;
     double                      rand_low2                    = p_payload->rand_lo2;
@@ -2227,6 +2248,9 @@ gms::fading_channel
     double                      rand_high4                   = p_payload->rand_hi4;
     const std::int32_t          nfunc_vals                   = p_payload->n_func_vals;
     const std::int32_t          integrator_type              = p_payload->which_integrator;
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
+    const std::int32_t          n_threads                    = p_payload->set_n_threads;
+#endif 
     const bool                  random_input_generation      = p_payload->randomly_generate_inputs;
     const bool                  rand_in_gen_eq_true          = random_input_generation==true;
     if(rand_in_gen_eq_true)
