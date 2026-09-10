@@ -120,6 +120,10 @@ struct alignas(64) quadpack_integrator_payload_ch5_t
     std::uint64_t       * __restrict__ crude_tsc_meas_outer{nullptr}; // crude RDTSCP measurement for approximate TSC assesment if the outer functional (shall not be used for the robust statistics)
 #if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
     common::omp_environment_settings_t omp_env_settings;
+    // crude TSC of OpenMP parallel for processing
+    std::uint64_t       * __restrict__ omp_loop_start{nullptr}; 
+    std::uint64_t       * __restrict__ omp_loop_end{nullptr};
+    std::uint64_t       * __restrict__ omp_loop_delta{nullptr};
 #endif 
     double                            outer_func_tmp_res; // result for outer functional computation 
     double                             rand_lo1{}; // set lower limit for random number generator
@@ -181,6 +185,10 @@ struct alignas(64) quadpack_integrator_payload_ch5_v2_t
     std::valarray<std::uint64_t>       crude_tsc_meas_outer;
 #if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
     common::omp_environment_settings_t omp_env_settings;
+     // crude TSC of OpenMP parallel for processing
+    std::valarray<std::uint64_t>       omp_loop_start; 
+    std::valarray<std::uint64_t>       omp_loop_end;
+    std::valarray<std::uint64_t>       omp_loop_delta;
 #endif 
     double                            outer_func_tmp_res; // result for outer functional computation 
     double                             rand_lo1{}; // set lower limit for random number generator
@@ -240,6 +248,10 @@ struct alignas(64) quadpack_integrator_payload_ch5_v3_t
     std::array<std::uint64_t,M>       crude_tsc_meas_outer; 
 #if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
     common::omp_environment_settings_t omp_env_settings;
+     // crude TSC of OpenMP parallel for processing
+    std::array<std::uint64_t,N>        omp_loop_start; 
+    std::array<std::uint64_t,N>        omp_loop_end;
+    std::array<std::uint64_t,N>        omp_loop_delta;
 #endif 
     double                            outer_func_tmp_res; // result for outer functional computation 
     double                             rand_lo1{}; // set lower limit for random number generator
