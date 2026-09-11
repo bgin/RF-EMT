@@ -482,6 +482,30 @@ __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_lnsh_Nakagami_m_lt_chan_5_47_iface(const double,void * __restrict__);
 
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_Hoyt_lt_chan_5_56(const double,const double,
+                                   const double,const double,
+                                   const double);
+
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_Hoyt_lt_chan_5_56_iface(const double,void * __restrict__);                                  
+
 /*
    ai -- SNR for the ith signal
    thetai -- angle associated with the correct signal detection decision region (the ith signal)
