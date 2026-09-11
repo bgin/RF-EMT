@@ -2,6 +2,7 @@
 #include <cmath> // bessel J0
 #include <cstdio>
 #include "GMS_integrands_func_ch5.h"
+#include "GMS_hypergeometric_func.h"
 
 
 namespace
@@ -628,6 +629,75 @@ gms::fading_channel
     const double xm      = p_payload->arg6d;
     const double xl      = p_payload->arg7d;
     return (integrand_lnsh_Nakagami_m_lt_cha_5_47(x,xtheta,xb,xpsi,xmu,xsigma,xm,xl));
+}
+
+double 
+gms::fading_channel
+::integrand_Hoyt_lt_chan_5_56(const double theta,const double b,
+                              const double q,const double gamma,
+                              const double l)
+{
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0 
+    const double bbgamma{b*b*gamma};
+    const double tsin{std::sin(theta)};
+    const double twosintht{2.0+(tsin*tsin)};
+    const double qq{q*q};
+    const double qp4{qq*qq};
+    const double tcos{std::cos(theta)};
+    const double sinthtpl{std::pow(tsin,1.0+(l+l))};
+    const double inv4qq{1.0/(4.0*qq)};
+    const double left_ratio{bbgamma/twosintht};
+    const double one_p_qq{1.0+qq};
+    const double one_p_qqs{one_p_qq*one_p_qq};
+    const double mid_ratio{one_p_qqs*inv4qq};
+    const double one_m_qp4{(1.0-qp4)*inv4qq};
+    const double one_m_qp4s{one_m_qp4*one_m_qp4};
+    const double tan_ratio{tcos/sinthtpl};
+    const double tmp1{left_ratio+mid_ratio};
+    const double left_mid_rat_sqr{tmp1*tmp1};
+    const double mid_factor{left_mid_rat_sqr-one_m_qp4s};
+    const double mid_factor_pow{1.0/std::pow(mid_factor,0.5*(l+1.0))};
+    const double mid_factor_sqrt{std::sqrt(mid_factor)};
+    const double hypergeom_arg{left_mid_rat_sqr/mid_factor_sqrt};
+    const double hypergeom_val{gms::math::hyperg<double>(-l,l+1.0,1.0,0.5-0.5*hypergeom_arg)};
+    return (tan_ratio*mid_factor_pow*hypergeom_val);
+#else
+    const double bbgamma{b*b*gamma};
+    const double tsin{gms::math::cephes_d::sin(theta)};
+    const double twosintht{2.0+(tsin*tsin)};
+    const double qq{q*q};
+    const double qp4{qq*qq};
+    const double tcos{gms::math::cephes_d::cos(theta)};
+    const double sinthtpl{gms::math::cephes_d::pow(tsin,1.0+(l+l))};
+    const double inv4qq{1.0/(4.0*qq)};
+    const double left_ratio{bbgamma/twosintht};
+    const double one_p_qq{1.0+qq};
+    const double one_p_qqs{one_p_qq*one_p_qq};
+    const double mid_ratio{one_p_qqs*inv4qq};
+    const double one_m_qp4{(1.0-qp4)*inv4qq};
+    const double one_m_qp4s{one_m_qp4*one_m_qp4};
+    const double tan_ratio{tcos/sinthtpl};
+    const double tmp1{left_ratio+mid_ratio};
+    const double left_mid_rat_sqr{tmp1*tmp1};
+    const double mid_factor{left_mid_rat_sqr-one_m_qp4s};
+    const double mid_factor_pow{1.0/gms::math::cephes_d::pow(mid_factor,0.5*(l+1.0))};
+    const double mid_factor_sqrt{gms::math::cephes_d::sqrt(mid_factor)};
+    const double hypergeom_arg{left_mid_rat_sqr/mid_factor_sqrt};
+    const double hypergeom_val{gms::math::hyperg<double>(-l,l+1.0,1.0,0.5-0.5*hypergeom_arg)};
+    return (tan_ratio*mid_factor_pow*hypergeom_val);
+#endif 
+}
+
+double 
+gms::fading_channel
+::integrand_Hoyt_lt_chan_5_56_iface(const double theta,void * __result__ user_data)
+{
+    func_args_ch5_payload_t * __restrict__ p_payload{reinterpret_cast<func_args_ch5_payload_t* __restrict__>(user_data)};
+    const double xb     = p_payload->arg1d;
+    const double xq     = p_payload->arg2d;
+    const double xgamma = p_payload->arg3d;
+    const double xl     = p_payload->arg4d;
+    return (integrand_Hoyt_lt_chan_5_56(theta,xb,xq,xgamma,xl));
 }
 
 double 
