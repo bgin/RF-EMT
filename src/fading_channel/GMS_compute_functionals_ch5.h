@@ -41,7 +41,7 @@ namespace file_info
      static const char GMS_COMPUTE_FUNCTIONALS_CH5_CREATION_DATE[] = "28-08-2026 06:03AM +00200 (FRI 28 AUG 2026 GMT+2)";
      static const char GMS_COMPUTE_FUNCTIONALS_CH5_BUILD_DATE[]    = __DATE__; 
      static const char GMS_COMPUTE_FUNCTIONALS_CH5_BUILD_TIME[]    = __TIME__;
-     static const char GMS_COMPUTE_FUNCTIONALS_CH5_SYNOPSIS[]      = "Numerical integration by the QUADPACK of the integrands (ch.4) used for the fading channel PDF/CDF and BER,BEP,SER,SEP quadrature computation(QUADPACK).\
+     static const char GMS_COMPUTE_FUNCTIONALS_CH5_SYNOPSIS[]      = "Numerical integration by the QUADPACK of the integrands (chapter: 5) used for the fading channel PDF/CDF and BER,BEP,SER,SEP quadrature computation(QUADPACK).\
 	                                                          Based on the M.K Simon, M.S. Alouini: Digital Communication over Fading Channels 1st ed\
 															  ISBN-13 978-0471317791";
 
