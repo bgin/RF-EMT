@@ -690,7 +690,7 @@ gms::fading_channel
 
 double 
 gms::fading_channel
-::integrand_Hoyt_lt_chan_5_56_iface(const double theta,void * __result__ user_data)
+::integrand_Hoyt_lt_chan_5_56_iface(const double theta,void * __restrict__ user_data)
 {
     func_args_ch5_payload_t * __restrict__ p_payload{reinterpret_cast<func_args_ch5_payload_t* __restrict__>(user_data)};
     const double xb     = p_payload->arg1d;
