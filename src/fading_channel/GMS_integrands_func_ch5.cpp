@@ -702,6 +702,61 @@ gms::fading_channel
 
 double 
 gms::fading_channel
+::integrand_Rice_lt_chan_5_57(const double theta,const double b,
+                              const double n,const double gamma,
+                              const double l)
+{
+#if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0
+    const double one_p_nn{1.0+n*n};
+    const double cost{std::cos(theta)};
+    const double bbgamma{b*b*gamma};
+    const double sint{std::sin(theta)};
+    const double two_sint_sqr{2.0*(sint*sint)};
+    const double ratio{bbgamma/two_sint_sqr};
+    const double numerator{n*n*one_p_nn};
+    const double denom{one_p_nn+two_sint_sqr};
+    const double hypergeo_arg{numerator/denom};
+    const double sint_l_pow{std::pow(sint,1.0+(l+l))};
+    const double tan_ratio{cost/sint_l_pow};
+    const double ratio_l_pow{one_p_nn*std::pow(ratio,l-1.0)};
+    const double inv_pow_l_ratio{1.0/ratio_l_pow};
+    const double left_factor{tan_ratio*inv_pow_l_ratio};
+    const double hypergeo_val{gms::math::conf_hyperg_series<double>(1.0+l,1,hypergeo_arg)};
+    return (left_factor*hypergeo_val);
+#else 
+    const double one_p_nn{1.0+n*n};
+    const double cost{gms::math::cephes_d::cos(theta)};
+    const double bbgamma{b*b*gamma};
+    const double sint{gms::math::cephes_d::sin(theta)};
+    const double two_sint_sqr{2.0*(sint*sint)};
+    const double ratio{bbgamma/two_sint_sqr};
+    const double numerator{n*n*one_p_nn};
+    const double denom{one_p_nn+two_sint_sqr};
+    const double hypergeo_arg{numerator/denom};
+    const double sint_l_pow{gms::math::cephes_d::pow(sint,1.0+(l+l))};
+    const double tan_ratio{cost/sint_l_pow};
+    const double ratio_l_pow{one_p_nn*gms::math::cephes_d::pow(ratio,l-1.0)};
+    const double inv_pow_l_ratio{1.0/ratio_l_pow};
+    const double left_factor{tan_ratio*inv_pow_l_ratio};
+    const double hypergeo_val{gms::math::conf_hyperg_series<double>(1.0+l,1,hypergeo_arg)};
+    return (left_factor*hypergeo_val);
+#endif 
+}
+
+double 
+gms::fading_channel 
+::integrand_Rice_lt_chan_5_57_iface(const double theta,void * __restrict__ user_data)
+{
+    func_args_ch5_payload_t * __restrict__ p_payload{reinterpret_cast<func_args_ch5_payload_t* __restrict__>(user_data)};
+    const double xb     = p_payload->arg1d;
+    const double xn    = p_payload->arg2d;
+    const double xgamma = p_payload->arg3d;
+    const double xl     = p_payload->arg4d;
+    return (integrand_Rice_lt_chan_5_57(theta,xb,xn,xgamma,xl));
+}
+
+double 
+gms::fading_channel
 ::integrand_avg_err_prob_QAM_5_71(const double theta,const double a,const double phi)
 {
 #if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0 
