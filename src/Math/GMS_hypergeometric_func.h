@@ -581,7 +581,9 @@ namespace math
               return hyperg_series(__a, __b, __c, __x);
         }
       else
+      {
         return hyperg_luke(__a, __b, __c, __x);
+      }
     }
 
 
