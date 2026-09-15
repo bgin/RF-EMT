@@ -148,7 +148,8 @@ namespace math
     static inline 
     conf_hyperg_luke(_Tp __a, _Tp __c, _Tp __xin) 
     {
-      const _Tp __big = std::pow(std::numeric_limits<_Tp>::max(), _Tp(0.16L));
+      //const _Tp __big = std::pow(std::numeric_limits<_Tp>::max(), _Tp(0.16L));
+      const _Tp __big = std::pow(static_cast<_Tp>(1.79769e+308),_Tp(0.16L));
       const int __nmax = 20000;
       const _Tp __eps = std::numeric_limits<_Tp>::epsilon();
       const _Tp __x  = -__xin;
@@ -297,7 +298,8 @@ namespace math
     _Tp
     hyperg_luke(_Tp __a, _Tp __b, _Tp __c, _Tp __xin)
     {
-      const _Tp __big = std::pow(std::numeric_limits<_Tp>::max(), _Tp(0.16L));
+      //const _Tp __big = std::pow(std::numeric_limits<_Tp>::max(), _Tp(0.16L));
+      const _Tp __big = std::pow(static_cast<_Tp>(1.79769e+308),_Tp(0.16L));
       const int __nmax = 20000;
       const _Tp __eps = std::numeric_limits<_Tp>::epsilon();
       const _Tp __x  = -__xin;
@@ -439,7 +441,7 @@ namespace math
     _Tp
     log_gamma_lanczos(_Tp __x)
     {
-      constexpr _Tp __xm1 = __x - _Tp(1);
+      const _Tp __xm1 = __x - _Tp(1);
 
       constexpr _Tp __lanczos_cheb_7[9] = {
        _Tp( 0.99999999999980993227684700473478L),
@@ -514,17 +516,100 @@ namespace math
     log_gamma(_Tp __x)
     {
       if (__x > _Tp(0.5L))
-        return __log_gamma_lanczos(__x);
+        return log_gamma_lanczos(__x);
       else
         {
           const _Tp __sin_fact
                  = std::abs(std::sin(static_cast<_Tp>(3.1415926535897932384626433832795029L) * __x));
           if (__sin_fact == _Tp(0)) {return (std::numeric_limits<_Tp>::quiet_NaN());}
              
-          return __numeric_constants<_Tp>::__lnpi()
+          return static_cast<_Tp>(1.1447298858494001741434273513530587L)
                      - std::log(__sin_fact)
                      - log_gamma_lanczos(_Tp(1) - __x);
         }
+    }
+
+     /**
+     *   @brief  Return the beta function \f$B(x,y)\f$ using
+     *           the log gamma functions.
+     * 
+     *   The beta function is defined by
+     *   @f[
+     *     B(x,y) = \frac{\Gamma(x)\Gamma(y)}{\Gamma(x+y)}
+     *   @f]
+     *
+     *   @param __x The first argument of the beta function.
+     *   @param __y The second argument of the beta function.
+     *   @return  The beta function.
+     */
+    template<typename _Tp>
+    __ATTR_ALWAYS_INLINE__
+    static inline 
+    _Tp
+    beta_lgamma(_Tp __x, _Tp __y)
+    {
+      _Tp __bet = log_gamma(__x)
+                + log_gamma(__y)
+                - log_gamma(__x + __y);
+      __bet = std::exp(__bet);
+      return __bet;
+    }
+
+     /**
+     *   @brief  Return the beta function \f$B(x,y)\f$ using
+     *           the product form.
+     * 
+     *   The beta function is defined by
+     *   @f[
+     *     B(x,y) = \frac{\Gamma(x)\Gamma(y)}{\Gamma(x+y)}
+     *   @f]
+     *
+     *   @param __x The first argument of the beta function.
+     *   @param __y The second argument of the beta function.
+     *   @return  The beta function.
+     */
+    template<typename _Tp>
+    __ATTR_ALWAYS_INLINE__
+    static inline
+    _Tp
+    __beta_product(_Tp __x, _Tp __y)
+    {
+
+      _Tp __bet = (__x + __y) / (__x * __y);
+
+      std::uint32_t __max_iter = 1000000;
+      for (std::uint32_t __k = 1; __k < __max_iter; ++__k)
+        {
+          _Tp __term = (_Tp(1) + (__x + __y) / __k)
+                     / ((_Tp(1) + __x / __k) * (_Tp(1) + __y / __k));
+          __bet *= __term;
+        }
+
+      return __bet;
+    }
+
+      /**
+     *   @brief  Return the beta function \f$ B(x,y) \f$.
+     * 
+     *   The beta function is defined by
+     *   @f[
+     *     B(x,y) = \frac{\Gamma(x)\Gamma(y)}{\Gamma(x+y)}
+     *   @f]
+     *
+     *   @param __x The first argument of the beta function.
+     *   @param __y The second argument of the beta function.
+     *   @return  The beta function.
+     */
+    template<typename _Tp>
+    __ATTR_ALWAYS_INLINE__
+    static inline
+    _Tp
+    beta(_Tp __x, _Tp __y)
+    {
+      if (__isnan(__x) || __isnan(__y))
+        return std::numeric_limits<_Tp>::quiet_NaN();
+      else
+        return beta_lgamma(__x, __y);
     }
 
      /**
