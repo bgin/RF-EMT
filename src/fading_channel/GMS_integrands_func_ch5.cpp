@@ -769,7 +769,9 @@ gms::fading_channel
        cost += 0.1;
     }
     double bbgamma = b*b*gamma;
+#if 0
     __asm__ __volatile__("int3");
+#endif 
     sint           = std::sin(theta);
     if(0.0e+00==sint)
     {
