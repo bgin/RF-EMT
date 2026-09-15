@@ -757,6 +757,49 @@ gms::fading_channel
 
 double 
 gms::fading_channel
+::integrand_Nakagami_m_lt_chan_5_59(const double theta,const double b,
+                                    const double m,const double gamma,
+                                    const double l)
+{
+    double sint;
+    double cost;
+    cost    = std::cos(theta);
+    if(0.0e+00==cost)
+    {
+       cost += 0.1;
+    }
+    double bbgamma = b*b*gamma;
+    __asm__ __volatile__("int3");
+    sint           = std::sin(theta);
+    if(0.0e+00==sint)
+    {
+
+       sint += 0.1;
+    }
+    double sint_sqr= (m+m*(sint*sint));
+    double sint_pow= std::pow(sint,1.0+2.0*l);
+    double rratio  = 1.0+(bbgamma/sint_sqr);
+    double lratio  = cost/sint_pow;
+    double inv_rratio = 1.0/std::pow(rratio,l-m);
+    //std::printf("sint_sqr=%.17f,sint_pow=%.17f,rratio=%.17f,lratio=%.17f,inv_rratio=%.17f\n",sint_sqr,sint_pow,rratio,lratio,inv_rratio);
+    double result = lratio*rratio;
+    return (result);
+}
+
+double 
+gms::fading_channel
+::integrand_Nakagami_m_lt_chan_5_59_iface(const double theta,void * __restrict__ user_data)
+{
+    func_args_ch5_payload_t * __restrict__ p_payload{reinterpret_cast<func_args_ch5_payload_t* __restrict__>(user_data)};
+    const double xb     = p_payload->arg1d;
+    const double xm     = p_payload->arg2d;
+    const double xgamma = p_payload->arg3d;
+    const double xl     = p_payload->arg4d;
+    return (integrand_Nakagami_m_lt_chan_5_59(theta,xb,xm,xgamma,xl));
+}
+
+double 
+gms::fading_channel
 ::integrand_avg_err_prob_QAM_5_71(const double theta,const double a,const double phi)
 {
 #if (INTEGRANDS_FUNC_CH5_USE_CEPHES_DOUBLE) == 0 
