@@ -5,7 +5,7 @@
 #include "GMS_omp_utils.h"
 
 /*
-   icpc -o unit_test_compute_functionals_ch5 -fopenmp -O3 -fp-model -fasm-blocks fast=2 -fno-exceptions -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
+   icpc -o unit_test_compute_functionals_ch5 -fopenmp -O3 -fp-model fast=2 -fasm-blocks -fno-exceptions -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
    GMS_config.h GMS_cephes_double.h GMS_hypergeometric_func.h GMS_integrands_func_ch5.h GMS_integrands_func_ch5.cpp GMS_cquadpack.h GMS_cquadpack.c GMS_tabulated_quadrature.h GMS_tabulated_quadrature.cpp GMS_machine_utils.h GMS_omp_utils.h GMS_omp_utils.cpp GMS_compute_functionals_ch5.h GMS_compute_functionals_ch5.cpp unit_test_compute_functionals_ch5.cpp
    ASM: 
    icpc -S -O3 -fopenmp -fverbose-asm -masm=intel -fno-exceptions -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 GMS_config.h GMS_cephes_double.h GMS_integrands_func_ch5.h GMS_integrands_func_ch5.cpp GMS_machine_utils.h GMS_compute_functionals_ch5.h GMS_compute_functionals_ch5.cpp unit_test_compute_functionals_ch5.cpp
@@ -1929,7 +1929,7 @@ void unit_test_compute_functional_Nakagami_m_LaplaceT_chan_5_59()
     __ATTR_ALIGN__(16) std::int32_t neval[n_func_args];
     __ATTR_ALIGN__(16) std::int32_t ier[n_func_args];
     __ATTR_ALIGN__(16) std::int32_t last[n_func_args];
-#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 0
+#if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
                        std::uint64_t omp_loop_start[1];
                        std::uint64_t omp_loop_end[1];
                        std::uint64_t omp_loop_delta[1];
@@ -1974,8 +1974,8 @@ void unit_test_compute_functional_Nakagami_m_LaplaceT_chan_5_59()
     integrator_payload.rand_hi2 = +5.0;//m
     integrator_payload.rand_lo3 = +2.0;
     integrator_payload.rand_hi3 = +7.0;
-    integrator_payload.rand_lo4 = +7.5;//l 
-    integrator_payload.rand_hi4 = +10.77545;//l
+    integrator_payload.rand_lo4 = +1.0;//l 
+    integrator_payload.rand_hi4 = +3.0;//l
     integrator_payload.n_func_vals = n_func_args;
     integrator_payload.randomly_generate_inputs = true;
 #if (COMPUTE_FUNCTIONALS_CH5_PARALLELIZE_QUADPACK_CALLS) == 1
@@ -2048,21 +2048,21 @@ void unit_test_compute_functional_Nakagami_m_LaplaceT_chan_5_59()
 
 int main()
 {
-   //(void)unit_test_compute_functional_Rayleigh_chan_5_6();
-   // (void)unit_test_compute_functional_Hoyt_chan_5_9();
-   //(void)unit_test_compute_functional_Rice_chan_5_12();
-   //(void)unit_test_compute_functional_Nakagami_m_chan_5_16();
-   //(void)unit_test_compute_functional_LogNormShadow_chan_5_20();
-   //(void)unit_test_compute_outer_functional_LogNormShadow_chan_5_20();
-   //(void)unit_test_compute_functional_compositeLogNormShadow_chan_5_25();
-   //(void)unit_test_compute_outer_functional_compositeLogNormShadow_chan_5_25();
-   //(void)unit_test_compute_functional_Rayleigh_LaplaceT_chan_5_39();
-   //(void)unit_test_compute_functional_Hoyt_LaplaceT_chan_5_40();
-   //(void)unit_test_compute_functional_Rice_LaplaceT_chan_5_41();
-  // (void)unit_test_compute_functional_Nakagami_m_LaplaceT_chan_5_43();
-  // (void)unit_test_compute_functional_compositeLogNormShadow_chan_5_44();
-  //(void)unit_test_compute_functional_Hoyt_LaplaceT_chan_5_56();
-  //(void)unit_test_compute_functional_Rice_LaplaceT_chan_5_57();
+  (void)unit_test_compute_functional_Rayleigh_chan_5_6();
+  (void)unit_test_compute_functional_Hoyt_chan_5_9();
+  (void)unit_test_compute_functional_Rice_chan_5_12();
+  (void)unit_test_compute_functional_Nakagami_m_chan_5_16();
+  (void)unit_test_compute_functional_LogNormShadow_chan_5_20();
+  (void)unit_test_compute_outer_functional_LogNormShadow_chan_5_20();
+  (void)unit_test_compute_functional_compositeLogNormShadow_chan_5_25();
+  (void)unit_test_compute_outer_functional_compositeLogNormShadow_chan_5_25();
+  (void)unit_test_compute_functional_Rayleigh_LaplaceT_chan_5_39();
+  (void)unit_test_compute_functional_Hoyt_LaplaceT_chan_5_40();
+  (void)unit_test_compute_functional_Rice_LaplaceT_chan_5_41();
+  (void)unit_test_compute_functional_Nakagami_m_LaplaceT_chan_5_43();
+  (void)unit_test_compute_functional_compositeLogNormShadow_chan_5_44();
+  (void)unit_test_compute_functional_Hoyt_LaplaceT_chan_5_56();
+  (void)unit_test_compute_functional_Rice_LaplaceT_chan_5_57();
   (void)unit_test_compute_functional_Nakagami_m_LaplaceT_chan_5_59();
 
    return 0;
