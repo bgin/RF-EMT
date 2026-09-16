@@ -1,6 +1,7 @@
 
 #include <cmath> // bessel J0
 #include <cstdio>
+#include <immintrin.h>
 #include "GMS_integrands_func_ch5.h"
 #include "GMS_hypergeometric_func.h"
 
@@ -755,6 +756,21 @@ gms::fading_channel
     return (integrand_Rice_lt_chan_5_57(theta,xb,xn,xgamma,xl));
 }
 
+/* Correct only in [-pi, pi]
+   Absolute error bounded by 2e-9
+   Continuous error */
+__ATTR_ALWAYS_INLINE__
+static inline
+double sin_approx_d(double val) 
+{
+  double val2 = val*val;
+  return
+    val * (0.9999999945159759653 + val2 * (-0.1666666458182987439 +
+     val2 * (8.3333103922589284663e-3 + val2 * (-1.9840155355055654144e-4 +
+      val2 * (2.7529454331962521774e-6 + val2 * (-2.4676970823046321831e-8 +
+       val2 * 1.3451481340051383601e-10))))));
+}
+
 double 
 gms::fading_channel
 ::integrand_Nakagami_m_lt_chan_5_59(const double theta,const double b,
@@ -764,27 +780,28 @@ gms::fading_channel
     double sint;
     double cost;
     cost    = std::cos(theta);
-    if(0.0e+00==cost)
-    {
-       cost += 0.1;
-    }
     double bbgamma = b*b*gamma;
 #if 0
     __asm__ __volatile__("int3");
 #endif 
-    sint           = std::sin(theta);
-    if(0.0e+00==sint)
-    {
-
-       sint += 0.1;
-    }
+    //sint           = std::sin(theta);
+    sint             = sin_approx_d(theta);
+    __m128d vsint = _mm_set1_pd(sint);
+    __m128d vzero = _mm_setzero_pd();
+    __m128d vC000153398078788564 = _mm_set1_pd(0.00153398078788564);
+    const __mmask8 vsint_eq_0 = _mm_cmp_pd_mask(vsint,vzero,_CMP_EQ_OQ);
+    vsint = _mm_mask_blend_pd(vsint_eq_0,vsint,_mm_add_pd(vsint,vC000153398078788564));
+    sint  = _mm_cvtsd_f64(vsint);
+    //if(0.0e+00==sint)
+    //{
+     //  sint += 0.00153398078788564; // 1/2048*PI
+    //}
     double sint_sqr= (m+m*(sint*sint));
     double sint_pow= std::pow(sint,1.0+2.0*l);
     double rratio  = 1.0+(bbgamma/sint_sqr);
     double lratio  = cost/sint_pow;
     double inv_rratio = 1.0/std::pow(rratio,l-m);
-    //std::printf("sint_sqr=%.17f,sint_pow=%.17f,rratio=%.17f,lratio=%.17f,inv_rratio=%.17f\n",sint_sqr,sint_pow,rratio,lratio,inv_rratio);
-    double result = lratio*rratio;
+    double result = lratio*inv_rratio;
     return (result);
 }
 

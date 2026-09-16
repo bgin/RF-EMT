@@ -57,6 +57,10 @@ namespace file_info
 #define INTEGRANDS_FUNC_CH5_USE_PARAM_MACRO 0
 #endif
 
+#if !defined(INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE)
+#define INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE 0
+#endif 
+
 
 namespace gms
 {
@@ -141,6 +145,7 @@ double h(const double theta,const double psi,const double l)
    i.e. the Laplace Transform and further integrated.
    I(a,gamma), where a is constant modulation-detection dependent, gamma is instantenous SNR.
 */
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -148,11 +153,13 @@ double h(const double theta,const double psi,const double l)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Rayleigh_chan_5_6(const double,const double,
                                    const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -160,6 +167,7 @@ double integrand_Rayleigh_chan_5_6(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Rayleigh_chan_5_6_iface(const double,void * __restrict__);
@@ -169,6 +177,7 @@ double integrand_Rayleigh_chan_5_6_iface(const double,void * __restrict__);
     Nakagami-q (Hoyt) Fading Channel
     I(a,q,gamma), where a is constant modulation-detection dependent, gamma is instantenous SNR, q - PDF parameter.
 */
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -176,11 +185,13 @@ double integrand_Rayleigh_chan_5_6_iface(const double,void * __restrict__);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Hoyt_chan_5_9(const double,const double,
                                const double,const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -188,6 +199,7 @@ double integrand_Hoyt_chan_5_9(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Hoyt_chan_5_9_iface(const double,void * __restrict__);
@@ -197,6 +209,7 @@ double integrand_Hoyt_chan_5_9_iface(const double,void * __restrict__);
    Nakagami-n (Rice) Fading Channel
    I(a,n,gamma), where a is constant modulation-detection dependent, gamma is instantenous SNR, n -  PDF parameter.
 */
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -204,11 +217,13 @@ double integrand_Hoyt_chan_5_9_iface(const double,void * __restrict__);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Rice_chan_5_12(const double,const double,
                                 const double,const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -216,6 +231,7 @@ double integrand_Rice_chan_5_12(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Rice_chan_5_12_iface(const double,void * __restrict__);
@@ -225,6 +241,7 @@ double integrand_Rice_chan_5_12_iface(const double,void * __restrict__);
    Nakagami-m Fading Channel
    I(a,m,gamma), where a is constant modulation-detection dependent, gamma is instantenous SNR, n -  PDF parameter.
 */
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -232,11 +249,13 @@ double integrand_Rice_chan_5_12_iface(const double,void * __restrict__);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Nakagami_m_chan_5_16(const double,const double,
                                       const double,const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -244,6 +263,7 @@ double integrand_Nakagami_m_chan_5_16(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Nakagami_m_chan_5_16_iface(const double,void * __restrict__);
@@ -253,6 +273,7 @@ double integrand_Nakagami_m_chan_5_16_iface(const double,void * __restrict__);
     Log-Normal Shadowing channel
     I(a,mu,sigma), where a is constant modulation-detection dependent,mu is a 10*log10(gamma),sigma - logarithmic standard deviation of shadowing
 */
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -260,12 +281,14 @@ double integrand_Nakagami_m_chan_5_16_iface(const double,void * __restrict__);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Log_Norm_Shadow_chan_5_20(const double,const double,
                                            const double, const double,
                                            const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -273,6 +296,7 @@ double integrand_Log_Norm_Shadow_chan_5_20(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Log_Norm_Shadow_chan_5_20_iface(const double,void * __restrict__);
@@ -283,6 +307,7 @@ double integrand_Log_Norm_Shadow_chan_5_20_iface(const double,void * __restrict_
     I(a,mu,sigma,m), where a is constant modulation-detection dependent,mu is a 10*log10(gamma),sigma - logarithmic standard deviation of shadowing
                      m -- parameter of the Nakagami-m PDF
 */
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -290,12 +315,14 @@ double integrand_Log_Norm_Shadow_chan_5_20_iface(const double,void * __restrict_
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_LNSh_Nakagami_m_chan_5_25(const double,const double,
                                           const double,const double,
                                           const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -303,6 +330,7 @@ double integrand_LNSh_Nakagami_m_chan_5_25(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_LNSh_Nakagami_m_chan_5_25_iface(const double,void * __restrict__);
@@ -312,6 +340,7 @@ double integrand_LNSh_Nakagami_m_chan_5_25_iface(const double,void * __restrict_
     Rayleigh Fading Channel (Laplace Transform of SNR (per-bit) PDF)
     I(b,psi,gamma,l), described by the 5.38
 */
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -319,12 +348,14 @@ double integrand_LNSh_Nakagami_m_chan_5_25_iface(const double,void * __restrict_
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Rayleigh_lt_chan_5_39(const double,const double,
                                        const double,const double,
                                        const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -332,6 +363,7 @@ double integrand_Rayleigh_lt_chan_5_39(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Rayleigh_lt_chan_5_39_iface(const double,void * __restrict__);
@@ -341,6 +373,7 @@ double integrand_Rayleigh_lt_chan_5_39_iface(const double,void * __restrict__);
     Nakagami-q (Hoyt) Fading Channel (Laplace Transform of SNR (per-bit) PDF)
     I(b,psi,n,gamma,l), described by the 5.38
 */
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -348,12 +381,14 @@ double integrand_Rayleigh_lt_chan_5_39_iface(const double,void * __restrict__);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Hoyt_lt_chan_5_40(const double,const double,
                                    const double,const double,
                                    const double,const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -361,6 +396,7 @@ double integrand_Hoyt_lt_chan_5_40(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Hoyt_lt_chan_5_40_iface(const double,void * __restrict__);
@@ -370,6 +406,7 @@ double integrand_Hoyt_lt_chan_5_40_iface(const double,void * __restrict__);
     Nakagami-n (Rice) Fading Channel (Laplace Transform of SNR (per-bit) PDF)
     I(b,psi,n,gamma,l), described by the 5.38
 */
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -377,12 +414,14 @@ double integrand_Hoyt_lt_chan_5_40_iface(const double,void * __restrict__);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Rice_lt_chan_5_41(const double,const double,
                                    const double,const double,
                                    const double,const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -390,6 +429,7 @@ double integrand_Rice_lt_chan_5_41(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Rice_lt_chan_5_41_iface(const double,void * __restrict__);
@@ -399,6 +439,7 @@ double integrand_Rice_lt_chan_5_41_iface(const double,void * __restrict__);
     Nakagami-m Fading Channel (Laplace Transform of SNR (per-bit) PDF)
     I(b,psi,n,gamma,l), described by the 5.38
 */
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -406,12 +447,14 @@ double integrand_Rice_lt_chan_5_41_iface(const double,void * __restrict__);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Nakagami_m_lt_chan_5_43(const double,const double,
                                          const double,const double,
                                          const double,const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -419,6 +462,7 @@ double integrand_Nakagami_m_lt_chan_5_43(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Nakagami_m_lt_chan_5_43_iface(const double,void * __restrict__);
@@ -428,6 +472,7 @@ double integrand_Nakagami_m_lt_chan_5_43_iface(const double,void * __restrict__)
     Log-Normal Shadowing Fading Channel (Laplace Transform of SNR (per-bit) PDF)
     I(b,psi,mu,sigma,l), described by the 5.38
 */
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -435,12 +480,14 @@ double integrand_Nakagami_m_lt_chan_5_43_iface(const double,void * __restrict__)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Log_Norm_Shadow_lt_chan_5_44(const double,const double,
                                               const double,const double,
                                               const double,const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -448,6 +495,7 @@ double integrand_Log_Norm_Shadow_lt_chan_5_44(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Log_Norm_Shadow_lt_chan_5_44_iface(const double,void * __restrict__);
@@ -457,6 +505,8 @@ double integrand_Log_Norm_Shadow_lt_chan_5_44_iface(const double,void * __restri
     Log-Normal Shadowing composed with the Nakagami-m Fading Channel (Laplace Transform of SNR (per-bit) PDF)
     I(b,psi,mu,sigma,m,l), described by the 5.38
 */
+
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -464,6 +514,7 @@ double integrand_Log_Norm_Shadow_lt_chan_5_44_iface(const double,void * __restri
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_lnsh_Nakagami_m_lt_cha_5_47(const double,const double,
@@ -471,6 +522,7 @@ double integrand_lnsh_Nakagami_m_lt_cha_5_47(const double,const double,
                                              const double,const double,
                                              const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -478,10 +530,12 @@ double integrand_lnsh_Nakagami_m_lt_cha_5_47(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_lnsh_Nakagami_m_lt_chan_5_47_iface(const double,void * __restrict__);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -489,12 +543,14 @@ double integrand_lnsh_Nakagami_m_lt_chan_5_47_iface(const double,void * __restri
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Hoyt_lt_chan_5_56(const double,const double,
                                    const double,const double,
                                    const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -502,10 +558,12 @@ double integrand_Hoyt_lt_chan_5_56(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Hoyt_lt_chan_5_56_iface(const double,void * __restrict__);        
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -513,12 +571,14 @@ double integrand_Hoyt_lt_chan_5_56_iface(const double,void * __restrict__);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Rice_lt_chan_5_57(const double,const double,
                                    const double,const double,
                                    const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -526,10 +586,12 @@ double integrand_Rice_lt_chan_5_57(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Rice_lt_chan_5_57_iface(const double,void * __restrict__);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -537,12 +599,14 @@ double integrand_Rice_lt_chan_5_57_iface(const double,void * __restrict__);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Nakagami_m_lt_chan_5_59(const double,const double,
                                          const double,const double,
                                          const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -550,6 +614,7 @@ double integrand_Nakagami_m_lt_chan_5_59(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Nakagami_m_lt_chan_5_59_iface(const double,void * __restrict__);
@@ -560,6 +625,7 @@ double integrand_Nakagami_m_lt_chan_5_59_iface(const double,void * __restrict__)
    phii   -- same as above (the ith signal)
    The integral will be computed for the each ith signal in the 2D signal set.
 */
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -567,10 +633,12 @@ double integrand_Nakagami_m_lt_chan_5_59_iface(const double,void * __restrict__)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_avg_err_prob_QAM_5_71(const double,const double,const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -578,6 +646,7 @@ double integrand_avg_err_prob_QAM_5_71(const double,const double,const double);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_avg_err_prob_QAM_5_71_iface(const double,void * __restrict__);
@@ -589,6 +658,7 @@ double integrand_avg_err_prob_QAM_5_71_iface(const double,void * __restrict__);
    gamma -- SNR
    m - Nakagami-m PDF parameter
 */
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -596,12 +666,14 @@ double integrand_avg_err_prob_QAM_5_71_iface(const double,void * __restrict__);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_avg_err_prob_Nakagami_m_QAM_5_76(const double,const double,
                                                   const double,const double,
                                                   const double,const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -609,6 +681,7 @@ double integrand_avg_err_prob_Nakagami_m_QAM_5_76(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_avg_err_prob_Nakagami_m_QAM_5_76_iface(const double,void * __restrict__);
@@ -619,6 +692,7 @@ double integrand_avg_err_prob_Nakagami_m_QAM_5_76_iface(const double,void * __re
    a1=a2=a
    theta_u1=theta_u2 = (M-1)PI*M
 */
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -626,12 +700,14 @@ double integrand_avg_err_prob_Nakagami_m_QAM_5_76_iface(const double,void * __re
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Rayleigh_M_PSK_err_prob_5_98(const double,const double,
                                                 const double,const double,
                                                 const double,const double);
 
+#if (INTEGRANDS_FUNC_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -639,6 +715,7 @@ double integrand_Rayleigh_M_PSK_err_prob_5_98(const double,const double,
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 double integrand_Rayleigh_M_PSK_err_prob_5_98_iface(const double,void * __restrict__);
