@@ -69,6 +69,10 @@ namespace file_info
 #include <cstdio>
 #include "GMS_config.h"
 
+#if !defined(FAST_SIMD_FUNCS_APPROX_OVERRIDE_COMPILER_CMD_LINE)
+#define FAST_SIMD_FUNCS_APPROX_OVERRIDE_COMPILER_CMD_LINE 1
+#endif 
+
 namespace gms 
 {
 
@@ -76,7 +80,7 @@ namespace gms
 namespace math 
 {
    
-
+#if (FAST_SIMD_FUNCS_APPROX_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -84,6 +88,7 @@ namespace math
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m128 
@@ -122,6 +127,7 @@ __m128  horner_scheme = _mm_fmadd_ps(
 return (_mm_mul_ps(xu.v_f,horner_scheme));
 }
 
+#if (FAST_SIMD_FUNCS_APPROX_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -129,6 +135,7 @@ return (_mm_mul_ps(xu.v_f,horner_scheme));
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m128d
@@ -171,6 +178,7 @@ __m128d horner_scheme = _mm_fmadd_pd(
 return (_mm_mul_pd(xu.v_f,horner_scheme));
 }
 
+#if (FAST_SIMD_FUNCS_APPROX_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -178,6 +186,7 @@ return (_mm_mul_pd(xu.v_f,horner_scheme));
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m128 
@@ -211,6 +220,7 @@ __m128 horner_scheme = _mm_fmadd_ps(
 return (_mm_fmadd_ps(x,horner_scheme,factor));
 }
 
+#if (FAST_SIMD_FUNCS_APPROX_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -218,6 +228,7 @@ return (_mm_fmadd_ps(x,horner_scheme,factor));
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m128d 
@@ -260,6 +271,7 @@ __m128d horner_scheme = _mm_fmadd_pd(
 return (_mm_fmadd_pd(x,horner_scheme,factor));
 }
 
+#if (FAST_SIMD_FUNCS_APPROX_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -267,6 +279,7 @@ return (_mm_fmadd_pd(x,horner_scheme,factor));
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m128 
@@ -296,6 +309,7 @@ return (cos_horner_scheme);
                  val2 * (-9.7393350917248365e-12)))))));
 */
 
+#if (FAST_SIMD_FUNCS_APPROX_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -303,6 +317,7 @@ return (cos_horner_scheme);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m128d 
@@ -334,6 +349,7 @@ __m128d cos_horner_scheme = _mm_fmadd_pd(
 return (cos_horner_scheme);                                                                        
 }
 
+#if (FAST_SIMD_FUNCS_APPROX_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -341,6 +357,7 @@ return (cos_horner_scheme);
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m128 
@@ -364,6 +381,7 @@ __m128 sin_horner_scheme = _mm_fmadd_ps(
 return (_mm_mul_ps(val,sin_horner_scheme));
 }
 
+#if (FAST_SIMD_FUNCS_APPROX_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=SSE
@@ -371,6 +389,7 @@ return (_mm_mul_ps(val,sin_horner_scheme));
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif 
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m128d
