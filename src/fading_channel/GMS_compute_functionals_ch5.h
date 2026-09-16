@@ -57,6 +57,10 @@ namespace file_info
 #endif 
 #endif 
 
+#if !defined(COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE)
+#define COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE 0
+#endif 
+
 // Enable for the basic PMC tracing (wall-clock) readout (not statistically rigorous)!!
 // *** Warning *** -- An access for the PM hardware counters must be enabled for the user-mode space!!
 // 
@@ -278,11 +282,13 @@ struct alignas(64) quadpack_integrator_payload_ch5_v3_t
     bool                               randomly_generate_inputs; //as the name states: random input generation in use if true, otherwise provide deterministic inputs   
 };
 
+#if (COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 void 
@@ -293,161 +299,193 @@ create_functional_ch5_plot(const std::int32_t,
                            const std::string&,
                            const bool);
 
+#if (COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t 
 compute_functional_Rayleigh_chan_5_6(quadpack_integrator_payload_ch5_t * __restrict__);
 
+#if (COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_Hoyt_chan_5_9(quadpack_integrator_payload_ch5_t * __restrict__);
 
+#if (COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_Rice_chan_5_12(quadpack_integrator_payload_ch5_t * __restrict__);
 
+#if (COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_Nakagami_m_chan_5_16(quadpack_integrator_payload_ch5_t * __restrict__);
 
+#if (COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_LogNormShadow_chan_5_20(quadpack_integrator_payload_ch5_t * __restrict__);
 
+#if (COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_outer_functional_LogNormShadow_chan_5_20(quadpack_integrator_payload_ch5_t * __restrict__);
 
+#if (COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_LNSh_Nakagami_m_chan_5_25(quadpack_integrator_payload_ch5_t * __restrict__);
 
+#if (COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_outer_functional_LNSh_Nakagami_m_chan_5_25(quadpack_integrator_payload_ch5_t * __restrict__);
 
+#if (COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_Rayleigh_LaplaceT_chan_5_39(quadpack_integrator_payload_ch5_t * __restrict__);
 
+#if (COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_Hoyt_LaplaceT_chan_5_40(quadpack_integrator_payload_ch5_t * __restrict__);
 
+#if (COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_Rice_LaplaceT_chan_5_41(quadpack_integrator_payload_ch5_t * __restrict__);
 
+#if (COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_Nakagami_m_LaplaceT_chan_5_43(quadpack_integrator_payload_ch5_t * __restrict__);
 
+#if (COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_LogNormShadow_LaplaceT_chan_5_44(quadpack_integrator_payload_ch5_t * __restrict__);
 
+#if (COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_Hoyt_LaplaceT_chan_5_56(quadpack_integrator_payload_ch5_t * __restrict__);
 
+#if (COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t
 compute_functional_Rice_LaplaceT_chan_5_57(quadpack_integrator_payload_ch5_t * __restrict__);
 
+#if (COMPUTE_FUNCTIONALS_CH5_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #endif
+#endif 
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
 std::int32_t

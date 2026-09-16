@@ -4220,7 +4220,7 @@ gms::fading_channel
             cpy_l = p_tmp_work4[i];
             p_funcs_args_payload[i].arg4d = cpy_l;
             start = gms::common::rdtsc_serialized_start();
-            result = dqage(p_integrand,+0.0,+1.570796326794896619231321692,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
+            result = dqage(p_integrand,+0.1,+1.57,p_epsabs[0],p_epsrel[0],p_irule[0],&p_abser[i],
                                         &p_neval[i],&p_ier[i],&p_last[i],&p_funcs_args_payload[i]);
             end = gms::common::rdtsc_serialized_stop();
             bbgamma     = cpy_b*cpy_b*cpy_gamma;
