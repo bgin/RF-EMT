@@ -21,7 +21,6 @@
 #define __GMS_GAUSSIAN_Q_APPROX_H__ 160920261342
 
 #include <cstdint>
-#include <algorithm>
 #include "GMS_config.h"
 #include "GMS_fast_simd_funcs_approx.h"
 
