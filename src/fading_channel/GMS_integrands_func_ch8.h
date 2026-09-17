@@ -348,6 +348,20 @@ __ATTR_ALIGN__(32)
 double analytic_BEP_DBPSK_8_36(const double,const double,
                                const double,const double);
 
+#if (INTEGRANDS_FUNC_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double analytic_BEP_DQPSK_8_38(const double,const double,
+                               const double,const double);
+
 }
 
 }
