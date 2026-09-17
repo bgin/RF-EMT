@@ -264,7 +264,89 @@ __ATTR_ALIGN__(32)
 double analytic_SEP_QPSK4_8_19(const double,const double,
                                const double,const double);
 
+#if (INTEGRANDS_FUNC_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_SEP_MPSK_coherent_8_21(const double,const double,
+                                        const double,const double,
+                                        const double);
 
+#if (INTEGRANDS_FUNC_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_SEP_MPSK_coherent_8_21_iface(const double,void * __restrict__);
+
+#if (INTEGRANDS_FUNC_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_BEP_MPSK_8_29(const double,const double,
+                               const double,const double,
+                               const double,const double);
+
+#if (INTEGRANDS_FUNC_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double integrand_BEP_MPSK_8_29_iface(const double,void * __restrict__);
+
+#if (INTEGRANDS_FUNC_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double analytic_BEP_MPSK_AWGN_8_31(const double,const double,
+                                   const double,const double);
+
+#if (INTEGRANDS_FUNC_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_HOT__
+__ATTR_ALIGN__(32)
+double analytic_BEP_DBPSK_8_36(const double,const double,
+                               const double,const double);
 
 }
 
