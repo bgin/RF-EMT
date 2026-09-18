@@ -694,7 +694,7 @@ __ATTR_ALWAYS_INLINE__
 static inline
 double analytic_SEP_QAM4_8_11(const double Ac,const double Ts,
                               const double M,const double N0,
-                            c const std::int32_t n)
+                              const std::int32_t n)
 {
     double result;
     double Q_func_val = -1.0;
@@ -735,6 +735,61 @@ double analytic_SEP_QAM4_8_11(const double Ac,const double Ts,
     const double Q_func_val_a2  = Q_func_val+Q_func_val;
     const double Q_func_val_p2  = Q_func_val*Q_func_val;
     const double diff_result   =  Q_func_val_a2-Q_func_val_p2; 
+    result = diff_result
+    return (result);
+}
+
+#if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+template<Gaussian_Q_approxmations_t Q_func_approx>
+__ATTR_ALWAYS_INLINE__
+static inline
+float analytic_SEP_QAM4_8_11(const float Ac,const float Ts,
+                              const float M,const float N0,
+                              const std::int32_t n)
+{
+    float result;
+    float Q_func_val = -1.0;
+    const float Es   = avg_symbol_E_to_carrier_A<float>(Ac,Ts,M); 
+    const float Q_func_arg = std::sqrt(Es/N0);
+    if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_chiani)
+    {
+       Q_func_val        = gms::math::gaussian_Q_approx_chiani(Q_func_arg);
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_2T)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_loskot_2T(Q_func_arg);
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_3T)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_loskot_3T(Q_func_arg);
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_1T)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_sadhwani_1T(Q_func_arg);
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_2T)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_sadhwani_2T(Q_func_arg);
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg);
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_sadhwani_summed(Q_func_arg,n);
+    }
+    const float Q_func_val_a2  = Q_func_val+Q_func_val;
+    const float Q_func_val_p2  = Q_func_val*Q_func_val;
+    const float diff_result   =  Q_func_val_a2-Q_func_val_p2; 
     result = diff_result
     return (result);
 }
