@@ -915,7 +915,12 @@ double analytic_BEP_QAM_AWGN_8_14(const double Ac,const double Ts,
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed)
     {
-        Q_func_val = gms::math::gaussian_Q_approx_sadhwani_summed(Q_func_arg,n);
+        for(std::int32_t i=1; i<=upper_lim; ++i) 
+        { 
+           const double d_i = static_cast<double>(i);
+           const double mul_fac = (d_i+d_i)-1.0;
+           Q_func_val += gms::math::gaussian_Q_approx_sadhwani_summed(mul_fac*Q_func_arg,n);
+        }
     }
     result = left_term*invlog2M*Q_func_val;
     return (result);
