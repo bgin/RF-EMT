@@ -156,6 +156,23 @@ _Tp tikhonov_phase_err_pdf(const _Tp rho_eq,const _Tp phic)
 #pragma GCC optimize("O3")
 #pragma GCC target("sse")
 #endif
+#endif
+template<typename _Tp>
+__ATTR_ALWAYS_INLINE__
+static inline 
+_Tp G_PLL_bandwidth(const _Tp Bl,const _Tp Tb)
+{
+    return (static_cast<_Tp>(1.0)/(Bl*Tb));
+}
+
+#if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
 #endif 
 template<Gaussian_Q_approxmations_t Q_func_approx>
 __ATTR_ALWAYS_INLINE__
