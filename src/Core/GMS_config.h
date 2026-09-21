@@ -1,24 +1,8 @@
 
-/* Copyright (C) Bernard Gingold, 2020-2026 
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or (at
- * your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*/
-
 #ifndef __GMS_CONFIG_H__
 #define __GMS_CONFIG_H__ 260920182106
 
+#include <string>
 
 namespace file_info 
 {
@@ -714,6 +698,39 @@ constexpr int padding64B{64};
 #if !defined (min_val)
 #define min_val(A,B) ((A)<(B)?(A):(B))
 #endif
+
+std::string active_vec_isa() 
+{
+  std::string s;
+#if defined __AVX512F__
+  s += "-AVX512F";
+#endif
+#if defined __AVX2__
+  s += "-AVX2";
+#endif
+#if defined __AVX__
+  s += "-AVX";
+#endif
+#if defined __SSE__
+  s += "-SSE";
+#endif 
+  return s;
+}
+
+std::string active_compiler_id()
+{
+#if defined __INTEL_COMPILER
+  return "Intel";
+#elif defined __INTEL_LLVM_COMPILER
+  return "IntelLLVM";
+#elif defined __HIPCC__
+  return "AMD Clang";
+#elif defined __GNUG__
+  return "GCC";
+#else
+  return "unknown";
+#endif
+}
 
 
 #endif /*_GMS_CONFIG_H__*/
