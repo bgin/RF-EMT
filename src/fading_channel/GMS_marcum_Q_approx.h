@@ -52,14 +52,24 @@ __ATTR_ALWAYS_INLINE__
 static inline
 double marcum_Q_approx_chiani(const double mu,const double a, const double b)
 {
-    const double pow_term = std::pow(b/s,mu-0.5);
+    const double pow_term = std::pow(b/a,mu-0.5);
     if(b>a)  
        return (pow_term*gaussian_Q_approx_chiani(b-a));
     else if(a>b)
        return (1.0-pow_term*gaussian_Q_approx_chiani(a-b));    
 }
 
-
+/* Using Gaussian-Q approx by Loskot method*/
+__ATTR_ALWAYS_INLINE__
+static inline
+double marcum_Q_approx_loskot_2T(const double mu,const double a, const double b)
+{
+    const double pow_term = std::pow(b/a,mu-0.5);
+    if(b>a)  
+       return (pow_term*gaussian_Q_approx_loskot_2T(b-a));
+    else if(a>b)
+       return (1.0-pow_term*gaussian_Q_approx_loskot_2T(a-b));    
+}
 
 }
 
