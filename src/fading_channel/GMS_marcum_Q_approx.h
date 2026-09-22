@@ -47,6 +47,15 @@ namespace gms
 namespace math 
 {
 
+/*
+    const double a = 0.1;
+   for(int i = 0; i<=10; ++i)
+   {
+       const double d_i = (double)i+0.001;
+       std::printf("a=%.17f,b=%.17f,mu=1,result=%.17f\n",a,d_i,marcum_Q_approx_chiani(1.0,a,d_i));
+   }
+*/
+
 /* Using Gaussian-Q approx by Chiani method*/
 __ATTR_ALWAYS_INLINE__
 static inline
@@ -59,7 +68,7 @@ double marcum_Q_approx_chiani(const double mu,const double a, const double b)
        return (1.0-pow_term*gaussian_Q_approx_chiani(a-b));    
 }
 
-/* Using Gaussian-Q approx by Loskot method*/
+/* Using Gaussian-Q approx by Loskot-2T method*/
 __ATTR_ALWAYS_INLINE__
 static inline
 double marcum_Q_approx_loskot_2T(const double mu,const double a, const double b)
@@ -71,8 +80,19 @@ double marcum_Q_approx_loskot_2T(const double mu,const double a, const double b)
        return (1.0-pow_term*gaussian_Q_approx_loskot_2T(a-b));    
 }
 
+/* Using Gaussian-Q approx by Loskot-3T method*/
+__ATTR_ALWAYS_INLINE__
+static inline
+double marcum_Q_approx_loskot_3T(const double mu,const double a, const double b)
+{
+    const double pow_term = std::pow(b/a,mu-0.5);
+    if(b>a)  
+       return (pow_term*gaussian_Q_approx_loskot_3T(b-a));
+    else if(a>b)
+       return (1.0-pow_term*gaussian_Q_approx_loskot_3T(a-b));    
 }
 
 }
 
+}
 #endif /*__GMS_MARCUM_Q_APPROX_H__*/
