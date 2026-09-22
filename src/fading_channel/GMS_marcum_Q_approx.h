@@ -92,6 +92,18 @@ double marcum_Q_approx_loskot_3T(const double mu,const double a, const double b)
        return (1.0-pow_term*gaussian_Q_approx_loskot_3T(a-b));    
 }
 
+/* Using Gaussian-Q approx by Sadhwani-1T method*/
+__ATTR_ALWAYS_INLINE__
+static inline
+double marcum_Q_approx_sadhwani_1T(const double mu,const double a, const double b)
+{
+    const double pow_term = std::pow(b/a,mu-0.5);
+    if(b>a)  
+       return (pow_term*gaussian_Q_approx_sadhwani_1T(b-a));
+    else if(a>b)
+       return (1.0-pow_term*gaussian_Q_approx_sadhwani_1T(a-b));    
+}
+
 }
 
 }
