@@ -354,6 +354,29 @@ _Tp MSK_param_a2_8_65(  const _Tp Ac,const _Tp Ts,
     return ((Eb/N0)*fac);
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+template<typename _Tp>
+__ATTR_ALWAYS_INLINE__
+static inline 
+_Tp MSK_param_b2_8_65(  const _Tp Ac,const _Tp Ts,
+                        const _Tp M, const _Tp N0,
+                        const _Tp Bl,const _Tp Tb)
+{
+    const _Tp Eb          = avg_bit_E_to_carrier_A<_Tp>(Ac,Ts,M);
+    const _Tp G           = G_PLL_bandwidth<_Tp>(Bl,Tb);
+    constexpr _Tp pi_term = static_cast<_Tp>(0.7026423672846755428877589264195);
+    const _Tp fac         = G+pi_term+std::sqrt<_Tp>(G+G);
+    return ((Eb/N0)*fac);
+}
+
 
 #if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
