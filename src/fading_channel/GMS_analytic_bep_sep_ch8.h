@@ -2657,7 +2657,25 @@ double analytic_BEP_FSK2_noncoh_8_68(const double Ac,const double Ts,
     return (0.5*gms::math::expapprox_d(-exp_arg));
 }
 
-
+#if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+template<Gaussian_Q_approxmations_t Q_func_approx>
+__ATTR_ALWAYS_INLINE__
+static inline
+float analytic_BEP_FSK2_noncoh_8_68(const float Ac,const float Ts,
+                                     const float M,const float N0)
+{
+    const float Eb = avg_bit_E_to_carrier_A<float>(Ac,Ts,M);
+    const float exp_arg = Eb/(N0+N+);
+    return (0.5f*gms::math::expapprox(-exp_arg));
+}
 
 }
 
