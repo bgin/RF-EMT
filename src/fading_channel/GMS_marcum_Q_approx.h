@@ -165,7 +165,115 @@ double marcum_Q_approx_sadhwani_summed(const double mu,const double a, const dou
        return (1.0-pow_term*gaussian_Q_approx_sadhwani_summed(a-b,n));    
 }
 
+//////////////////// single precsion versions ////////////////////////////////////////
 
+__ATTR_ALWAYS_INLINE__
+static inline
+float marcum_Q_approx_chiani(const float mu,const float a, const float b)
+{
+    const float pow_term = std::pow(b/a,mu-0.5f);
+    if(b>a)  
+       return (pow_term*gaussian_Q_approx_chiani(b-a));
+    else if(a>b)
+       return (1.0-pow_term*gaussian_Q_approx_chiani(a-b));    
+}
+
+/* Using Gaussian-Q approx by Loskot-2T method*/
+__ATTR_ALWAYS_INLINE__
+static inline
+float marcum_Q_approx_loskot_2T(const float mu,const float a, const float b)
+{
+    const float pow_term = std::pow(b/a,mu-0.5f);
+    if(b>a)  
+       return (pow_term*gaussian_Q_approx_loskot_2T(b-a));
+    else if(a>b)
+       return (1.0-pow_term*gaussian_Q_approx_loskot_2T(a-b));    
+}
+
+/* Using Gaussian-Q approx by Loskot-3T method*/
+__ATTR_ALWAYS_INLINE__
+static inline
+float marcum_Q_approx_loskot_3T(const float mu,const float a, const float b)
+{
+    const float pow_term = std::pow(b/a,mu-0.5f);
+    if(b>a)  
+       return (pow_term*gaussian_Q_approx_loskot_3T(b-a));
+    else if(a>b)
+       return (1.0-pow_term*gaussian_Q_approx_loskot_3T(a-b));    
+}
+
+/* Using Gaussian-Q approx by Sadhwani-1T method*/
+__ATTR_ALWAYS_INLINE__
+static inline
+float marcum_Q_approx_sadhwani_1T(const float mu,const float a, const float b)
+{
+    const float pow_term = std::pow(b/a,mu-0.5f);
+    if(b>a)  
+       return (pow_term*gaussian_Q_approx_sadhwani_1T(b-a));
+    else if(a>b)
+       return (1.0-pow_term*gaussian_Q_approx_sadhwani_1T(a-b));    
+}
+
+/* Using Gaussian-Q approx by Sadhwani-2T method*/
+__ATTR_ALWAYS_INLINE__
+static inline
+float marcum_Q_approx_sadhwani_2T(const float mu,const float a, const float b)
+{
+    const float pow_term = std::pow(b/a,mu-0.5f);
+    if(b>a)  
+       return (pow_term*gaussian_Q_approx_sadhwani_2T(b-a));
+    else if(a>b)
+       return (1.0-pow_term*gaussian_Q_approx_sadhwani_2T(a-b));    
+}
+
+/* Using Gaussian-Q approx by Sadhwani-4T method*/
+__ATTR_ALWAYS_INLINE__
+static inline
+float marcum_Q_approx_sadhwani_4T(const float mu,const float a, const float b)
+{
+    const float pow_term = std::pow(b/a,mu-0.5f);
+    if(b>a)  
+       return (pow_term*gaussian_Q_approx_sadhwani_4T(b-a));
+    else if(a>b)
+       return (1.0-pow_term*gaussian_Q_approx_sadhwani_4T(a-b));    
+}
+
+/* Using Gaussian-Q approx by Cooper method*/
+__ATTR_ALWAYS_INLINE__
+static inline
+float marcum_Q_approx_cooper(const float mu,const float a, const float b)
+{
+    const float pow_term = std::pow(b/a,mu-0.5f);
+    if(b>a)  
+       return (pow_term*gaussian_Q_approx_cooper(b-a));
+    else if(a>b)
+       return (1.0-pow_term*gaussian_Q_approx_cooper(a-b));    
+}
+
+/* Using Gaussian-Q approx by Borjesson method*/
+__ATTR_ALWAYS_INLINE__
+static inline
+float marcum_Q_approx_borjesson(const float mu,const float a, const float b)
+{
+    const float pow_term = std::pow(b/a,mu-0.5f);
+    if(b>a)  
+       return (pow_term*gaussian_Q_approx_borjesson(b-a));
+    else if(a>b)
+       return (1.0-pow_term*gaussian_Q_approx_borjesson(a-b));    
+}
+
+/* Using Gaussian-Q approx by Sadhwani-summed method*/
+__ATTR_ALWAYS_INLINE__
+static inline
+float marcum_Q_approx_sadhwani_summed(const float mu,const float a, const float b,
+                                       const std::int32_t n)
+{
+    const float pow_term = std::pow(b/a,mu-0.5f);
+    if(b>a)  
+       return (pow_term*gaussian_Q_approx_sadhwani_summed(b-a,n));
+    else if(a>b)
+       return (1.0-pow_term*gaussian_Q_approx_sadhwani_summed(a-b,n));    
+}
 
 }
 
