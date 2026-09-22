@@ -104,6 +104,44 @@ double marcum_Q_approx_sadhwani_1T(const double mu,const double a, const double 
        return (1.0-pow_term*gaussian_Q_approx_sadhwani_1T(a-b));    
 }
 
+/* Using Gaussian-Q approx by Sadhwani-2T method*/
+__ATTR_ALWAYS_INLINE__
+static inline
+double marcum_Q_approx_sadhwani_2T(const double mu,const double a, const double b)
+{
+    const double pow_term = std::pow(b/a,mu-0.5);
+    if(b>a)  
+       return (pow_term*gaussian_Q_approx_sadhwani_2T(b-a));
+    else if(a>b)
+       return (1.0-pow_term*gaussian_Q_approx_sadhwani_2T(a-b));    
+}
+
+/* Using Gaussian-Q approx by Sadhwani-4T method*/
+__ATTR_ALWAYS_INLINE__
+static inline
+double marcum_Q_approx_sadhwani_4T(const double mu,const double a, const double b)
+{
+    const double pow_term = std::pow(b/a,mu-0.5);
+    if(b>a)  
+       return (pow_term*gaussian_Q_approx_sadhwani_4T(b-a));
+    else if(a>b)
+       return (1.0-pow_term*gaussian_Q_approx_sadhwani_4T(a-b));    
+}
+
+/* Using Gaussian-Q approx by Cooper method*/
+__ATTR_ALWAYS_INLINE__
+static inline
+double marcum_Q_approx_cooper(const double mu,const double a, const double b)
+{
+    const double pow_term = std::pow(b/a,mu-0.5);
+    if(b>a)  
+       return (pow_term*gaussian_Q_approx_cooper(b-a));
+    else if(a>b)
+       return (1.0-pow_term*gaussian_Q_approx_cooper(a-b));    
+}
+
+
+
 }
 
 }
