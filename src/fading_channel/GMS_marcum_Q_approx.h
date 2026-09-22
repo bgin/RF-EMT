@@ -152,6 +152,19 @@ double marcum_Q_approx_borjesson(const double mu,const double a, const double b)
        return (1.0-pow_term*gaussian_Q_approx_borjesson(a-b));    
 }
 
+/* Using Gaussian-Q approx by Sadhwani-summed method*/
+__ATTR_ALWAYS_INLINE__
+static inline
+double marcum_Q_approx_sadhwani_summed(const double mu,const double a, const double b,
+                                       const std::int32_t n)
+{
+    const double pow_term = std::pow(b/a,mu-0.5);
+    if(b>a)  
+       return (pow_term*gaussian_Q_approx_sadhwani_summed(b-a,n));
+    else if(a>b)
+       return (1.0-pow_term*gaussian_Q_approx_sadhwani_summed(a-b,n));    
+}
+
 
 
 }
