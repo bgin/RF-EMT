@@ -3029,6 +3029,8 @@ double analytic_avg_BEP_QPSK_MSK_8_63(const double Ac,const double Ts,
                                       const double Bl,const double Tb,
                                       const double mu,const std::int32_t n)
 {
+    // Marcum-Q order=1, is only allowed
+    if(__builtin_expect(mu!=1.0,0)) { return (std::numeric_limits<double>::quiet_NaN());}
     double result;
     double Q1_func_val;
     double tmp1;
@@ -3175,6 +3177,8 @@ float analytic_avg_BEP_QPSK_MSK_8_63(const float Ac,const float Ts,
                                       const float Bl,const float Tb,
                                       const float mu,const std::int32_t n)
 {
+    // Marcum-Q order=1, is only allowed
+    if(__builtin_expect(mu!=1.0,0)) { return (std::numeric_limits<float>::quiet_NaN());}
     float result;
     float Q1_func_val;
     float tmp1;
