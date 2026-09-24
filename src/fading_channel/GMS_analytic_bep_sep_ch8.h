@@ -3882,6 +3882,30 @@ double analytic_BEP_DPSK_chernoff_bound_8_96(const double Ac,const double Ts,
     return (left_term*gms::math::expapprox_d(-exp_func_arg));
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+float analytic_BEP_DPSK_chernoff_bound_8_96(const float Ac,const float Ts,
+                                             const float M, const float N0)
+{
+    const float PI_div_M = 3.1415926535897932384626433832795f/M;
+    const float Es       = avg_symbol_E_to_carrier_A<float>(Ac,Ts,M);
+    const float snr      = (Es+Es)/N0;
+    const float cosPIM   = std::cos(PI_div_M);
+    const float exp_func_arg = std::sqrt(snr*(1-cosPIM));
+    const float cos_ratio = (1.0f+cosPIM)/(cosPIM+cosPIM); 
+    const float left_term = 1.03f*std::sqrt(cos_ratio);
+    return (left_term*gms::math::expapprox(-exp_func_arg));
+}
+
 }
 
 }
