@@ -3906,6 +3906,35 @@ float analytic_BEP_DPSK_chernoff_bound_8_96(const float Ac,const float Ts,
     return (left_term*gms::math::expapprox(-exp_func_arg));
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+double analytic_SEP_QAM4_8_107(const double gamma) //snr average
+{
+    constexpr const double four_div_pi = 1.2732395447351626861510701069801;
+    const double sqrt_arg1              = gamma/(1.0+gamma);
+    const double sqrt_arg2              = (1.0+gamma)/gamma;
+#if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
+    const double sqrt_val1              = gms::math::cephes_d::sqrt(sqrt_arg1);
+    const double sqrt_val2              = gms::math::cephes_d::sqrt(sqrt_arg2);
+#else 
+    const double sqrt_val1              = std::sqrt(sqrt_arg1);
+    const double sqrt_val2              = std::sqrt(sqrt_arg2);
+#endif 
+    const double term1                  = 1.0-sqrt_val1;
+    const double atan_val               = four_div_pi*std::atan(sqrt_val2);
+    const double term2                  = 0.25*term1*atan_val;
+    return (term1-term2);
+}
+
 }
 
 }
