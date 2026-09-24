@@ -4023,6 +4023,26 @@ float analytic_SEP_MPSK_rayleigh_chan_8_112(const float gamma,
     return (term1*term4*atan_val);
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+double riccian_factor_8_144(const double m_I,const double m_Q,
+                            const double sigma)
+{
+    const double m_I_p2   = m_I*m_I;
+    const double m_Q_p2   = m_Q*m_Q;
+    const double sigma_p2 = sigma*sigma;
+    return (m_I_p2+m_Q_p2/(sigma_p2+sigma_p2)); 
+}
+
 }
 
 }
