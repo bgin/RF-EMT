@@ -3995,6 +3995,34 @@ double analytic_SEP_MPSK_rayleigh_chan_8_112(const double gamma,
     return (term1*term4*atan_val);
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+float analytic_SEP_MPSK_rayleigh_chan_8_112(const float gamma,
+                                            const float M) 
+{
+    const float pi_div_M = 3.1415926535897932384626433832795f/M;
+    const float sin_tmp  = std::sin(pi_div_M);
+    const float term1    = (M-1.0f)/M;
+    const float g_psk    = sin_tmp*sin_tmp;
+    const float g_pskgamm= g_psk*gamma;
+    const float term2    = g_pskgamm/(1.0f+g_pskgamm);
+    const float sqrt_val = std::sqrt(term2);
+    const float term3    = M/((M-1.0f)*3.1415926535897932384626433832795f);
+    const float cot_val  = std::tan(1.5707963267948966192313216916398f-pi_div_M);
+    const float term4    = 1.0f-sqrt_val*term3;
+    const float atan_val = 1.5707963267948966192313216916398f+std::atan(sqrt_val*cot_val);
+    return (term1*term4*atan_val);
+}
+
 }
 
 }
