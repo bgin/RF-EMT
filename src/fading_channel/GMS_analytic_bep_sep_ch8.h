@@ -3959,6 +3959,42 @@ float analytic_SEP_QAM4_8_107(const float gamma) //snr average
     return (term1-term2);
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+double analytic_SEP_MPSK_rayleigh_chan_8_112(const double gamma,
+                                             const double M) 
+{
+    const double pi_div_M = 3.1415926535897932384626433832795/M;
+#if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
+    const double sin_tmp  = gms::math::cephes_d::sin(pi_div_M);
+#else 
+    const double sin_tmp  = std::sin(pi_div_M);
+#endif
+    const double term1    = (M-1.0)/M;
+    const double g_psk    = sin_tmp*sin_tmp;
+    const double g_pskgamm= g_psk*gamma;
+    const double term2    = g_pskgamm/(1.0+g_pskgamm);
+#if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
+    const double sqrt_val = gms::math::cephes_d::sqrt(term2);
+#else 
+    const double sqrt_val = std::sqrt(term2);
+#endif 
+    const double term3    = M/((M-1.0)*3.1415926535897932384626433832795);
+    const double cot_val  = std::tan(1.5707963267948966192313216916398-pi_div_M);
+    const double term4    = 1.0-sqrt_val*term3;
+    const double atan_val = 1.5707963267948966192313216916398+std::atan(sqrt_val*cot_val);
+    return (term1*term4*atan_val);
+}
+
 }
 
 }
