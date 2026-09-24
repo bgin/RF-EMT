@@ -3803,7 +3803,7 @@ float analytic_BEP_DPSK_up_bound_8_95(const float Ac,const float Ts,
     float result;
     float Q_func_val;
     const float PI_div_M = 3.1415926535897932384626433832795f/M;
-    const float Es       = avg_symbol_E_to_carrier_A<double>(Ac,Ts,M);
+    const float Es       = avg_symbol_E_to_carrier_A<float>(Ac,Ts,M);
     const float snr      = (Es+Es)/N0;
     const float cosPIM   = std::cos(PI_div_M);
     const float Q_func_arg = std::sqrt(snr*(1-cosPIM));
@@ -3847,6 +3847,39 @@ float analytic_BEP_DPSK_up_bound_8_95(const float Ac,const float Ts,
     }
     result = Q_func_val;
     return (result);
+}
+
+#if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+double analytic_BEP_DPSK_chernoff_bound_8_96(const double Ac,const double Ts,
+                                             const double M, const double N0)
+{
+    const double PI_div_M = 3.1415926535897932384626433832795/M;
+    const double Es       = avg_symbol_E_to_carrier_A<double>(Ac,Ts,M);
+    const double snr      = (Es+Es)/N0;
+#if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
+    const double cosPIM   = gms::math::cephes_d::cos(PI_div_M);
+    const double exp_func_arg = gms::math::cephes_d::sqrt(snr*(1-cosPIM));
+#else 
+    const double cosPIM   = std::cos(PI_div_M);
+    const double exp_func_arg = std::sqrt(snr*(1-cosPIM));
+#endif
+    const double cos_ratio = (1.0+cosPIM)/(cosPIM+cosPIM);
+#if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
+    const double left_term = 1.03*gms::math::cephes_d::sqrt(cos_ratio);
+#else 
+    const double left_term = 1.03*std::sqrt(cos_ratio);
+#endif 
+    return (left_term*gms::math::expapprox_d(-exp_func_arg));
 }
 
 }
