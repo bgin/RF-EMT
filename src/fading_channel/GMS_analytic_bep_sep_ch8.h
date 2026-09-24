@@ -3935,6 +3935,30 @@ double analytic_SEP_QAM4_8_107(const double gamma) //snr average
     return (term1-term2);
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+float analytic_SEP_QAM4_8_107(const float gamma) //snr average
+{
+    constexpr const float four_div_pi = 1.2732395447351626861510701069801f;
+    const float sqrt_arg1              = gamma/(1.0f+gamma);
+    const float sqrt_arg2              = (1.0f+gamma)/gamma;
+    const float sqrt_val1              = std::sqrt(sqrt_arg1);
+    const float sqrt_val2              = std::sqrt(sqrt_arg2);
+    const float term1                  = 1.0f-sqrt_val1;
+    const float atan_val               = four_div_pi*std::atan(sqrt_val2);
+    const float term2                  = 0.25f*term1*atan_val;
+    return (term1-term2);
+}
+
 }
 
 }
