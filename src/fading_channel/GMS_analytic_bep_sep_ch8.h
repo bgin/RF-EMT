@@ -4099,6 +4099,35 @@ float spec_pow_to_rand_pow_8_145(const float m_I,const float m_Q,
     return ((sigma_p2+sigma_p2)*(1.0+riccian_factor_8_144(m_I,m_Q,sigma)));
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+double kth_matched_filter_output(const double m_I,const double m_Q,
+                                 const double sigma,const double Ac,
+                                 const double Tb)
+{
+    const double AA      = Ac*Ac;
+    const double TT      = Tb*Tb;
+    const double K       = riccian_factor_8_144(m_I,m_Q,sigma);
+    const double Omega   = spec_pow_to_rand_pow_8_145(m_I,m_Q,sigma);
+    const double K_term  = K/(1.0+K);
+    const double Om_term = Omega*AA*TT;
+#if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
+    double filter_out = gms::math::cephes_d::sqrt(K_term*Om_term);
+#else 
+    double filter_out = std::sqrt(K_term*Om_term);
+#endif
+    return (filter_out);
+}
+
 }
 
 }
