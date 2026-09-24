@@ -4177,6 +4177,30 @@ double kth_matched_filter_sqr_diff_8_146(const double m_I,const double m_Q,
     return (__builtin_fma(K_term,Om_term,N0*Tb));
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+float kth_matched_filter_sqr_diff_8_146(const float m_I,const float m_Q,
+                                         const float sigma,const float Ac,
+                                         const float Tb,const float N0)
+{
+    const float AA      = Ac*Ac;
+    const float TT      = Tb*Tb;
+    const float K       = riccian_factor_8_144(m_I,m_Q,sigma);
+    const float Omega   = spec_pow_to_rand_pow_8_145(m_I,m_Q,sigma);
+    const float K_term  = K/(1.0+K);
+    const float Om_term = Omega*AA*TT
+    return (__builtin_fmaf(K_term,Om_term,N0*Tb));
+}
+
 }
 
 }
