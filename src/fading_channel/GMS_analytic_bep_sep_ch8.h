@@ -4063,6 +4063,24 @@ float riccian_factor_8_144(const float m_I,const float m_Q,
     return (m_I_p2+m_Q_p2/(sigma_p2+sigma_p2)); 
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+double spec_pow_to_rand_pow_8_145(const float m_I,const float m_Q,
+                                  const float sigma)
+{
+    const double sigma_p2 = sigma*sigma;
+    return ((sigma_p2+sigma_p2)*(1.0+riccian_factor_8_144(m_I,m_Q,sigma)));
+}
+
 }
 
 }
