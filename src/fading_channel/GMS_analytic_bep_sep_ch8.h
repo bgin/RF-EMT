@@ -4110,7 +4110,7 @@ float spec_pow_to_rand_pow_8_145(const float m_I,const float m_Q,
 #endif 
 __ATTR_ALWAYS_INLINE__
 static inline
-double kth_matched_filter_output(const double m_I,const double m_Q,
+double kth_matched_filter_output_8_146(const double m_I,const double m_Q,
                                  const double sigma,const double Ac,
                                  const double Tb)
 {
@@ -4139,7 +4139,7 @@ double kth_matched_filter_output(const double m_I,const double m_Q,
 #endif 
 __ATTR_ALWAYS_INLINE__
 static inline
-float kth_matched_filter_output(const float m_I,const float m_Q,
+float kth_matched_filter_output_8_146(const float m_I,const float m_Q,
                                  const float sigma,const float Ac,
                                  const float Tb)
 {
@@ -4151,6 +4151,30 @@ float kth_matched_filter_output(const float m_I,const float m_Q,
     const float Om_term = Omega*AA*TT;
     float filter_out = std::sqrt(K_term*Om_term);
     return (filter_out);
+}
+
+#if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+double kth_matched_filter_sqr_diff_8_146(const double m_I,const double m_Q,
+                                         const double sigma,const double Ac,
+                                         const double Tb,const double N0)
+{
+    const double AA      = Ac*Ac;
+    const double TT      = Tb*Tb;
+    const double K       = riccian_factor_8_144(m_I,m_Q,sigma);
+    const double Omega   = spec_pow_to_rand_pow_8_145(m_I,m_Q,sigma);
+    const double K_term  = K/(1.0+K);
+    const double Om_term = Omega*AA*TT
+    return (__builtin_fma(K_term,Om_term,N0*Tb));
 }
 
 }
