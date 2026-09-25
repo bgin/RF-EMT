@@ -355,11 +355,110 @@ void unit_test_MSK_param_b2_8_65(const T lo1,const T hi1,
     }
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n",__func__);
 }
-
-
+ 
+__attribute__((aligned(32)))
+void unit_test_analytic_SEP_MAM_8_1(const double lo1,const double hi1,
+                                    const double lo2,const double hi2,
+                                    const double M,const std::int32_t n)
+{
+    constexpr double Ts = 0.000001;
+    const double lo_Ac{lo1}; // 0.1
+    const double hi_Ac{hi1}; // 1.0
+    const double lo_N0{lo2}; // 0.001
+    const double hi_N0{hi2}; // 1.5
+    [[maybe_unused]] std::int32_t printf_ret{};
+    thread_local std::uniform_real_distribution<double> rv_Ac_arg;
+    thread_local std::mt19937 rv_Ac_arg_gen;
+    thread_local std::uint64_t seed_Ac_arg{};
+    thread_local std::uniform_real_distribution<double> rv_N0_arg;
+    thread_local std::mt19937 rv_N0_arg_gen;
+    thread_local std::uint64_t seed_N0_arg{};
+    rv_Ac_arg = std::uniform_real_distribution<double>(lo_Ac,hi_Ac);
+    seed_Ac_arg = __rdtsc();
+    rv_Ac_arg_gen = std::mt19937(seed_Ac_arg);
+    rv_N0_arg = std::uniform_real_distribution<double>(lo_N0,hi_N0);
+    seed_N0_arg = __rdtsc();
+    rv_N0_arg_gen = std::mt19937(seed_N0_arg);
+    const double rv_Ac = rv_Ac_arg.operator()(rv_Ac_arg_gen);
+    const double rv_N0 = rv_N0_arg.operator()(rv_N0_arg_gen);
+    printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!\n",__func__);
+    const double sep_mam_1 = 
+    gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_chiani>(rv_Ac,Ts,M,rv_N0,n);
+    if(is_number_subnormal<double>(sep_mam_1))
+    {
+        printf_ret = std::printf("[UNIT-TEST]: detected subnormal in: %s, of value=%.17f\n",__func__,sep_mam_1);
+    }  
+    printf_ret = print_double("sep_mam_1",sep_mam_1,0);
+    printf_ret = std::printf("===========================================================\n");
+    const double sep_mam_2 = 
+    gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_2T>(rv_Ac,Ts,M,rv_N0,n);
+    if(is_number_subnormal<double>(sep_mam_2))
+    {
+        printf_ret = std::printf("[UNIT-TEST]: detected subnormal in: %s, of value=%.17f\n",__func__,sep_mam_2);
+    }  
+    printf_ret = print_double("sep_mam_2",sep_mam_2,0);
+    printf_ret = std::printf("===========================================================\n");
+    const double sep_mam_3 = 
+    gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_3T>(rv_Ac,Ts,M,rv_N0,n);
+    if(is_number_subnormal<double>(sep_mam_3))
+    {
+        printf_ret = std::printf("[UNIT-TEST]: detected subnormal in: %s, of value=%.17f\n",__func__,sep_mam_3);
+    }  
+    printf_ret = print_double("sep_mam_3",sep_mam_3,0);
+    printf_ret = std::printf("===========================================================\n");
+    const double sep_mam_4 = 
+    gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_1T>(rv_Ac,Ts,M,rv_N0,n);
+    if(is_number_subnormal<double>(sep_mam_4))
+    {
+        printf_ret = std::printf("[UNIT-TEST]: detected subnormal in: %s, of value=%.17f\n",__func__,sep_mam_4);
+    }  
+    printf_ret = print_double("sep_mam_4",sep_mam_4,0);
+    printf_ret = std::printf("===========================================================\n");
+    const double sep_mam_5 = 
+    gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_2T>(rv_Ac,Ts,M,rv_N0,n);
+    if(is_number_subnormal<double>(sep_mam_5))
+    {
+        printf_ret = std::printf("[UNIT-TEST]: detected subnormal in: %s, of value=%.17f\n",__func__,sep_mam_5);
+    }  
+    printf_ret = print_double("sep_mam_5",sep_mam_5,0);
+    printf_ret = std::printf("===========================================================\n");
+    const double sep_mam_6 = 
+    gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T>(rv_Ac,Ts,M,rv_N0,n);
+    if(is_number_subnormal<double>(sep_mam_6))
+    {
+        printf_ret = std::printf("[UNIT-TEST]: detected subnormal in: %s, of value=%.17f\n",__func__,sep_mam_6);
+    }  
+    printf_ret = print_double("sep_mam_6",sep_mam_6,0);
+    printf_ret = std::printf("===========================================================\n");
+    const double sep_mam_7 = 
+    gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper>(rv_Ac,Ts,M,rv_N0,n);
+    if(is_number_subnormal<double>(sep_mam_7))
+    {
+        printf_ret = std::printf("[UNIT-TEST]: detected subnormal in: %s, of value=%.17f\n",__func__,sep_mam_7);
+    }  
+    printf_ret = print_double("sep_mam_7",sep_mam_7,0);
+    printf_ret = std::printf("===========================================================\n");
+    const double sep_mam_8 = 
+    gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson>(rv_Ac,Ts,M,rv_N0,n);
+    if(is_number_subnormal<double>(sep_mam_8))
+    {
+        printf_ret = std::printf("[UNIT-TEST]: detected subnormal in: %s, of value=%.17f\n",__func__,sep_mam_8);
+    }  
+    printf_ret = print_double("sep_mam_8",sep_mam_8,0);
+    printf_ret = std::printf("===========================================================\n");
+    const double sep_mam_9 = 
+    gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed>(rv_Ac,Ts,M,rv_N0,n);
+    if(is_number_subnormal<double>(sep_mam_9))
+    {
+        printf_ret = std::printf("[UNIT-TEST]: detected subnormal in: %s, of value=%.17f\n",__func__,sep_mam_9);
+    }  
+    printf_ret = print_double("sep_mam_9",sep_mam_9,0);
+    printf_ret = std::printf("===========================================================\n");
+}
 
 int main()
 {
+/*
    (void)unit_test_BPSK_param_a_8_61<double>(1.0,5.0,0.1,1.0);
    (void)unit_test_BPSK_param_a_8_61<float>(1.0f,5.0f,0.1f,1.0f);
    (void)unit_test_BPSK_param_b_8_61<double>(1.0,4.5,0.01,0.9);
@@ -372,5 +471,7 @@ int main()
    (void)unit_test_MSK_param_a2_8_65<float>(1.0f,4.5f,0.01f,1.0f);
    (void)unit_test_MSK_param_b2_8_65<double>(1.0,5.0,0.1,1.0);
    (void)unit_test_MSK_param_b2_8_65<float>(1.0f,4.5f,0.01f,1.0f);
+*/
+   (void)unit_test_analytic_SEP_MAM_8_1(1.0,5.0,0.1,1.0,32,128);
    return (0);
 }
