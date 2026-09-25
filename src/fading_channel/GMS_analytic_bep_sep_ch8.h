@@ -4261,7 +4261,132 @@ float ref_signal_1st_moment_8_146(const float m_I,const float m_Q,
     return (c_r);
 }
 
-
+#if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+double analytic_BEP_BPSK_noncoh_8_150(const double m_I,const double m_Q,
+                                      const double sigma,const double Ac,
+                                      const double Tb,const double Gs,
+                                      const double Gr,const double Ac,
+                                      const double Ts,const double M, 
+                                      const double N0,const double mu,
+                                      const std::int32_t n) 
+{
+    double result;
+    double Q1_func_val;
+    const double K     = riccian_factor_8_144(m_I,m_Q,sigma);
+    const double Eb    = avg_bit_E_to_carrier_A<double>(Ac,Ts,M);
+    const double Om    = spec_pow_to_rand_pow_8_145(m_I,m_Q,sigma);
+    const double gamma = (Om*Eb)/N0;
+    const double K_fac1= K/(K+1.0);
+    const double K_fac2= 1.0/(1.0+K);
+    const double Gsg   = Gs*gamma;
+    const double Grg   = Gr*gamma;
+    const double ratio1= K_fac1*Gsg/(__builtin_fma(Grg,K_fac2,1.0));
+    const double ratio2= K_fac1*gamma/(__builtin_fma(gamma,K_fac2,1.0));
+#if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
+    const double sqr_rat1 = gms::math::cephes_d::sqrt(ratio1);
+    const double sqr_rat2 = gms::math::cephes_d::sqrt(ratio2);
+#else 
+    const double sqr_rat1 = std::sqrt(ratio1);
+    const double sqr_rat2 = std::sqrt(ratio2);
+#endif 
+    const double a     = 0.5*(sqr_rat1-sqr_rat2);
+    const double b     = 0.5*(sqr_rat1+sqr_rat2);
+    const double inv1K = 1.0/(1.0+K);
+    const double G_fac = Gr*inv1K*gamma;
+    const double gm_fac= __builtin_fma(inv1K,gamma,1.0);
+#if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
+    const double sqr_Gr= gms::math::cephes_d::sqrt(Gr);
+#else 
+    const double sqr_Gr= std::sqrt(Gr);
+#endif 
+    const double num   = sqr_Gr*inv1K*gamma;
+    const double den   = G_fac*gm_fac;
+#if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
+    const double sqrden= gms::math::cephes_d::sqrt(den);
+    const double sqr_ab= gms::math::cephes_d::sqrt(a*b);
+#else 
+    const double sqrden= std::sqrt(den);
+    const double sqr_ab= std::sqrt(a*b);
+#endif 
+    const double A     = num/sqrden;
+    const double bessI0= std::cyl_bessel_i(0,sqr_ab);
+    const double expval= gms::math::expapprox_d(-0.5*(a+b));
+    const double right_fac= 0.5*A*expval*bessI0;
+#if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
+    const double a_sqrt = gms::math::cephes_d::sqrt(a);
+    const double b_sqrt = gms::math::cephes_d::sqrt(b);
+#else 
+    const double a_sqrt = std::sqrt(a);
+    const double b_sqrt = std::sqrt(b);
+#endif 
+    if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_chiani)
+    {
+        Q1_func_val = 0.5*(1.0-gms::math::marcum_Q_approx_chiani(mu,b_sqrt,a_sqrt)+
+                               gms::math::marcum_Q_approx_chiani(mu,a_sqrt,b_sqrt))
+                               -right_fac;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_2T)
+    {
+        Q1_func_val = 0.5*(1.0-gms::math::marcum_Q_approx_loskot_2T(mu,b_sqrt,a_sqrt)+
+                               gms::math::marcum_Q_approx_loskot_2T(mu,a_sqrt,b_sqrt))
+                               -right_fac;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_3T)
+    {
+        Q1_func_val = 0.5*(1.0-gms::math::marcum_Q_approx_loskot_3T(mu,b_sqrt,a_sqrt)+
+                               gms::math::marcum_Q_approx_loskot_3T(mu,a_sqrt,b_sqrt))
+                               -right_fac;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_1T)
+    {
+        Q1_func_val = 0.5*(1.0-gms::math::marcum_Q_approx_sadhwani_1T(mu,b_sqrt,a_sqrt)+
+                               gms::math::marcum_Q_approx_sadhwani_1T(mu,a_sqrt,b_sqrt))
+                               -right_fac;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_2T)
+    {
+        Q1_func_val = 0.5*(1.0-gms::math::marcum_Q_approx_sadhwani_2T(mu,b_sqrt,a_sqrt)+
+                               gms::math::marcum_Q_approx_sadhwani_2T(mu,a_sqrt,b_sqrt))
+                               -right_fac;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T)
+    {
+        Q1_func_val = 0.5*(1.0-gms::math::marcum_Q_approx_sadhwani_4T(mu,b_sqrt,a_sqrt)+
+                               gms::math::marcum_Q_approx_sadhwani_4T(mu,a_sqrt,b_sqrt))
+                               -right_fac;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
+    {
+        Q1_func_val = 0.5*(1.0-gms::math::marcum_Q_approx_cooper(mu,b_sqrt,a_sqrt)+
+                               gms::math::marcum_Q_approx_cooper(mu,a_sqrt,b_sqrt))
+                               -right_fac;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
+    {
+        Q1_func_val = 0.5*(1.0-gms::math::marcum_Q_approx_borjesson(mu,b_sqrt,a_sqrt)+
+                               gms::math::marcum_Q_approx_borjesson(mu,a_sqrt,b_sqrt))
+                               -right_fac;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed)
+    {
+        Q1_func_val = 0.5*(1.0-gms::math::marcum_Q_approx_sadhwani_summed(mu,b_sqrt,a_sqrt,n)+
+                               gms::math::marcum_Q_approx_sadhwani_summed(mu,a_sqrt,b_sqrt,n))
+                               -right_fac;
+    }
+    result = Q1_func_val;
+    return (result);
+}
+                                      
 
 }
 
