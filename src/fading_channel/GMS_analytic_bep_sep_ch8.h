@@ -268,8 +268,18 @@ _Tp OQPSK_param_a2_8_64(const _Tp Ac,const _Tp Ts,
                         const _Tp Bl,const _Tp Tb)
 {
     const _Tp Eb = avg_bit_E_to_carrier_A<_Tp>(Ac,Ts,M);
-    const _Tp G  = G_PLL_bandwidth<_Tp>(Bl,Tb);
-    const _Tp fac= (G+static_cast<_Tp>(1.0))-std::sqrt<_Tp>(G+G);
+/*
+    ICPC error for commented out code!!
+    GMS_analytic_bep_sep_ch8.h(272): error: no suitable conversion function from "std::complex<double>" to "const double" exists
+      const _Tp fac= G+1.0-std::sqrt<_Tp>(G+G);
+                     ^
+          detected during:
+            instantiation of "_Tp gms::fading_channel::OQPSK_param_a2_8_64(_Tp, _Tp, _Tp, _Tp, _Tp, _Tp) [with _Tp=double]" at line 208 of "unit_test_analytic_bep_sep_ch8.cpp"
+            instantiation of "void unit_test_OQPSK_param_a2_8_64(T, T, T, T) [with T=double]" at line 230 of "unit_test_analytic_bep_sep_ch8.cpp"
+*/
+    //const _Tp G  = G_PLL_bandwidth<_Tp>(Bl,Tb);
+    //const _Tp fac= G+1.0-std::sqrt<_Tp>(G+G);
+    const _Tp fac = G_PLL_bandwidth<_Tp>(Bl,Tb)+1.0-std::sqrt(G_PLL_bandwidth<_Tp>(Bl,Tb)+G_PLL_bandwidth<_Tp>(Bl,Tb));
     return ((Eb/N0)*fac);
 }
 
@@ -290,8 +300,18 @@ _Tp OQPSK_param_b2_8_64(const _Tp Ac,const _Tp Ts,
                         const _Tp Bl,const _Tp Tb)
 {
     const _Tp Eb = avg_bit_E_to_carrier_A<_Tp>(Ac,Ts,M);
-    const _Tp G  = G_PLL_bandwidth<_Tp>(Bl,Tb);
-    const _Tp fac= (G+static_cast<_Tp>(1.0))+std::sqrt<_Tp>(G+G);
+/*
+    ICPC error for commented out code!!
+    GMS_analytic_bep_sep_ch8.h(272): error: no suitable conversion function from "std::complex<double>" to "const double" exists
+      const _Tp fac= G+1.0-std::sqrt<_Tp>(G+G);
+                     ^
+          detected during:
+            instantiation of "_Tp gms::fading_channel::OQPSK_param_a2_8_64(_Tp, _Tp, _Tp, _Tp, _Tp, _Tp) [with _Tp=float]" at line 208 of "unit_test_analytic_bep_sep_ch8.cpp"
+            instantiation of "void unit_test_OQPSK_param_a2_8_64(T, T, T, T) [with T=float]" at line 230 of "unit_test_analytic_bep_sep_ch8.cpp"
+*/
+    //const _Tp G  = G_PLL_bandwidth<_Tp>(Bl,Tb);
+    //const _Tp fac= G+1.0+std::sqrt<_Tp>(G+G);
+    const _Tp fac = G_PLL_bandwidth<_Tp>(Bl,Tb)+1.0-std::sqrt(G_PLL_bandwidth<_Tp>(Bl,Tb)+G_PLL_bandwidth<_Tp>(Bl,Tb));
     return ((Eb/N0)*fac);
 }
 
