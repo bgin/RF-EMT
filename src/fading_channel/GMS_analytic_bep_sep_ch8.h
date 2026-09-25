@@ -4386,6 +4386,113 @@ double analytic_BEP_BPSK_noncoh_8_150(const double m_I,const double m_Q,
     result = Q1_func_val;
     return (result);
 }
+
+#if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+float analytic_BEP_BPSK_noncoh_8_150(const float m_I,const float m_Q,
+                                      const float sigma,const float Ac,
+                                      const float Tb,const float Gs,
+                                      const float Gr,const float Ac,
+                                      const float Ts,const float M, 
+                                      const float N0,const float mu,
+                                      const std::int32_t n) 
+{
+    float result;
+    float Q1_func_val;
+    const float K     = riccian_factor_8_144(m_I,m_Q,sigma);
+    const float Eb    = avg_bit_E_to_carrier_A<float>(Ac,Ts,M);
+    const float Om    = spec_pow_to_rand_pow_8_145(m_I,m_Q,sigma);
+    const float gamma = (Om*Eb)/N0;
+    const float K_fac1= K/(K+1.0f);
+    const float K_fac2= 1.0f/(1.0f+K);
+    const float Gsg   = Gs*gamma;
+    const float Grg   = Gr*gamma;
+    const float ratio1= K_fac1*Gsg/(__builtin_fmaf(Grg,K_fac2,1.0));
+    const float ratio2= K_fac1*gamma/(__builtin_fmaf(gamma,K_fac2,1.0));
+    const float sqr_rat1 = std::sqrt(ratio1);
+    const float sqr_rat2 = std::sqrt(ratio2);
+    const float a     = 0.5f*(sqr_rat1-sqr_rat2);
+    const float b     = 0.5f*(sqr_rat1+sqr_rat2);
+    const float inv1K = 1.0f/(1.0f+K);
+    const float G_fac = Gr*inv1K*gamma;
+    const float gm_fac= __builtin_fmaf(inv1K,gamma,1.0);
+    const float sqr_Gr= std::sqrt(Gr);
+    const float num   = sqr_Gr*inv1K*gamma;
+    const float den   = G_fac*gm_fac;
+    const float sqrden= std::sqrt(den);
+    const float sqr_ab= std::sqrt(a*b);
+    const float A     = num/sqrden;
+    const float bessI0= std::cyl_bessel_i(0,sqr_ab);
+    const float expval= gms::math::expapprox(-0.5f*(a+b));
+    const float right_fac= 0.5f*A*expval*bessI0;
+    const float a_sqrt = std::sqrt(a);
+    const float b_sqrt = std::sqrt(b); 
+    if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_chiani)
+    {
+        Q1_func_val = 0.5f*(1.0f-gms::math::marcum_Q_approx_chiani(mu,b_sqrt,a_sqrt)+
+                               gms::math::marcum_Q_approx_chiani(mu,a_sqrt,b_sqrt))
+                               -right_fac;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_2T)
+    {
+        Q1_func_val = 0.5f*(1.0f-gms::math::marcum_Q_approx_loskot_2T(mu,b_sqrt,a_sqrt)+
+                               gms::math::marcum_Q_approx_loskot_2T(mu,a_sqrt,b_sqrt))
+                               -right_fac;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_3T)
+    {
+        Q1_func_val = 0.5f*(1.0f-gms::math::marcum_Q_approx_loskot_3T(mu,b_sqrt,a_sqrt)+
+                               gms::math::marcum_Q_approx_loskot_3T(mu,a_sqrt,b_sqrt))
+                               -right_fac;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_1T)
+    {
+        Q1_func_val = 0.5f*(1.0f-gms::math::marcum_Q_approx_sadhwani_1T(mu,b_sqrt,a_sqrt)+
+                               gms::math::marcum_Q_approx_sadhwani_1T(mu,a_sqrt,b_sqrt))
+                               -right_fac;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_2T)
+    {
+        Q1_func_val = 0.5f*(1.0f-gms::math::marcum_Q_approx_sadhwani_2T(mu,b_sqrt,a_sqrt)+
+                               gms::math::marcum_Q_approx_sadhwani_2T(mu,a_sqrt,b_sqrt))
+                               -right_fac;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T)
+    {
+        Q1_func_val = 0.5f*(1.0f-gms::math::marcum_Q_approx_sadhwani_4T(mu,b_sqrt,a_sqrt)+
+                               gms::math::marcum_Q_approx_sadhwani_4T(mu,a_sqrt,b_sqrt))
+                               -right_fac;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
+    {
+        Q1_func_val = 0.5f*(1.0f-gms::math::marcum_Q_approx_cooper(mu,b_sqrt,a_sqrt)+
+                               gms::math::marcum_Q_approx_cooper(mu,a_sqrt,b_sqrt))
+                               -right_fac;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
+    {
+        Q1_func_val = 0.5f*(1.0f-gms::math::marcum_Q_approx_borjesson(mu,b_sqrt,a_sqrt)+
+                               gms::math::marcum_Q_approx_borjesson(mu,a_sqrt,b_sqrt))
+                               -right_fac;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed)
+    {
+        Q1_func_val = 0.5f*(1.0f-gms::math::marcum_Q_approx_sadhwani_summed(mu,b_sqrt,a_sqrt,n)+
+                               gms::math::marcum_Q_approx_sadhwani_summed(mu,a_sqrt,b_sqrt,n))
+                               -right_fac;
+    }
+    result = Q1_func_val;
+    return (result);
+}
                                       
 
 }
