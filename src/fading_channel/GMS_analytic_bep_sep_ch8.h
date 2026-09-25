@@ -126,9 +126,9 @@ _Tp avg_bit_E_to_carrier_A(const _Tp Ac,const _Tp Ts,
 {
     const _Tp Eg    = Ac*Ac*Ts;
     const _Tp num   = M*M-1.0;
-    const _Tp log2M = 6.0*std::log2<_Tp>(M);
+    const _Tp log2M = 6.0*std::log2(M);
     return (Eg*(num/log2M));
-}
+} 
 
 #if (ANALYTIC_BEP_SEP_CH8_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
@@ -4270,15 +4270,17 @@ float ref_signal_1st_moment_8_146(const float m_I,const float m_Q,
 #pragma GCC target("sse")
 #endif
 #endif 
+template<Gaussian_Q_approxmations_t Q_func_approx>
 __ATTR_ALWAYS_INLINE__
 static inline
 double analytic_BEP_BPSK_noncoh_8_150(const double m_I,const double m_Q,
                                       const double sigma,const double Ac,
                                       const double Tb,const double Gs,
-                                      const double Gr,const double Ac,
-                                      const double Ts,const double M, 
+                                      const double Gr,const double Ts,
+                                      const double M, 
                                       const double N0,const double mu,
-                                      const std::int32_t n) 
+                                      const std::int32_t n)
+                                       
 {
     double result;
     double Q1_func_val;
@@ -4396,12 +4398,13 @@ double analytic_BEP_BPSK_noncoh_8_150(const double m_I,const double m_Q,
 #pragma GCC target("sse")
 #endif
 #endif 
+template<Gaussian_Q_approxmations_t Q_func_approx>
 __ATTR_ALWAYS_INLINE__
 static inline
 float analytic_BEP_BPSK_noncoh_8_150(const float m_I,const float m_Q,
                                       const float sigma,const float Ac,
                                       const float Tb,const float Gs,
-                                      const float Gr,const float Ac,
+                                      const float Gr,
                                       const float Ts,const float M, 
                                       const float N0,const float mu,
                                       const std::int32_t n) 
