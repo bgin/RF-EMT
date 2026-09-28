@@ -592,6 +592,28 @@ const __m128 C05   = _mm_mul_ps(_mm_set1_ps(-0.5f),xx);
 return (_mm_mul_ps(C025,simd_fast_exp_approx_4xf32(C05)));
 }
 
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128d
+gaussian_Q_approx_sadhwani_1T_2xf64(const __m128d x)
+{
+const __m128d xx    = _mm_mul_pd(x,x);
+const __m128d C025  = _mm_set1_pd(0.25);
+const __m128d C05   = _mm_mul_pd(_mm_set1_ps(-0.5),xx);
+return (_mm_mul_pd(C025,simd_fast_exp_approx_2xf64(C05)));
+}
+
+
+
 }
 
 }
