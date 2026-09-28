@@ -197,7 +197,28 @@ const __m512d right_exp_val                 = _mm512_mul_pd(C025,_mm512_exp_pd(_
 return (_mm512_add_pd(left_exp_val,right_exp_val));
 }
 
-
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128
+gaussian_Q_approx_loskot_2T_4xf32(const __m128 x)
+{
+const __m128 xx     = _mm_mul_ps(x,x);
+const __m128 C0208  = _mm_set1_ps(0.208f);
+const __m128 C0971  = _mm_mul_ps(_mm_set1_ps(-0.971f),xx);
+const __m128 C0147  = _mm_set1_ps(0.147f);
+const __m128 C0525  = _mm_mul_ps(_mm_set1_ps(-0.525f),xx);
+const __m128 term   = _mm_mul_ps(C0147,simd_fast_exp_approx_4xf32(C0525));
+return _mm_fmadd_ps(C0208,simd_fast_exp_approx_4xf32(C0971),term);
+}
 
 }
 
