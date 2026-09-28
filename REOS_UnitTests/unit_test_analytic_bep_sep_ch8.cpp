@@ -593,23 +593,7 @@ void unit_test_analytic_SEP_MAM_8_1(const double,const std::int32_t);
 void unit_test_analytic_SEP_MAM_8_1(const double M,const std::int32_t n)      
 {
     constexpr double Ts = 0.000001;
-   // const double lo_Ac{lo1}; // 0.1
-   // const double hi_Ac{hi1}; // 1.0
-   // const double lo_N0{lo2}; // 0.001
-   // const double hi_N0{hi2}; // 1.5
     [[maybe_unused]] std::int32_t printf_ret{};
-   // thread_local std::uniform_real_distribution<double> rv_Ac_arg;
-   // thread_local std::mt19937 rv_Ac_arg_gen;
-   // thread_local std::uint64_t seed_Ac_arg{};
-   // thread_local std::uniform_real_distribution<double> rv_N0_arg;
-   // thread_local std::mt19937 rv_N0_arg_gen;
-   // thread_local std::uint64_t seed_N0_arg{};
-   // rv_Ac_arg = std::uniform_real_distribution<double>(lo_Ac,hi_Ac);
-   // seed_Ac_arg = __rdtsc();
-  //  rv_Ac_arg_gen = std::mt19937(seed_Ac_arg);
-  //  rv_N0_arg = std::uniform_real_distribution<double>(lo_N0,hi_N0);
-  //  seed_N0_arg = __rdtsc();
-  //  rv_N0_arg_gen = std::mt19937(seed_N0_arg);
     const double rv_Ac = g_rv_Ac_arg.operator()(g_rv_Ac_arg_gen);
     const double rv_N0 = g_rv_N0_arg.operator()(g_rv_N0_arg_gen);
     DOUBLE_FUNC_BODY_BLOCK(gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_chiani>(rv_Ac,Ts,M,rv_N0,n),
@@ -629,23 +613,47 @@ void unit_test_analytic_SEP_MAM_8_1(const float,const std::int32_t);
 void unit_test_analytic_SEP_MAM_8_1(const float M,const std::int32_t n)      
 {
     constexpr double Ts = 0.000001f;
-   // const double lo_Ac{lo1}; // 0.1
-   // const double hi_Ac{hi1}; // 1.0
-   // const double lo_N0{lo2}; // 0.001
-   // const double hi_N0{hi2}; // 1.5
     [[maybe_unused]] std::int32_t printf_ret{};
-   // thread_local std::uniform_real_distribution<double> rv_Ac_arg;
-   // thread_local std::mt19937 rv_Ac_arg_gen;
-   // thread_local std::uint64_t seed_Ac_arg{};
-   // thread_local std::uniform_real_distribution<double> rv_N0_arg;
-   // thread_local std::mt19937 rv_N0_arg_gen;
-   // thread_local std::uint64_t seed_N0_arg{};
-   // rv_Ac_arg = std::uniform_real_distribution<double>(lo_Ac,hi_Ac);
-   // seed_Ac_arg = __rdtsc();
-  //  rv_Ac_arg_gen = std::mt19937(seed_Ac_arg);
-  //  rv_N0_arg = std::uniform_real_distribution<double>(lo_N0,hi_N0);
-  //  seed_N0_arg = __rdtsc();
-  //  rv_N0_arg_gen = std::mt19937(seed_N0_arg);
+    const float rv_Ac = g_rv_Ac_arg.operator()(g_rv_Ac_arg_gen);
+    const float rv_N0 = g_rv_N0_arg.operator()(g_rv_N0_arg_gen);
+    FLOAT_FUNC_BODY_BLOCK(gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_chiani>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_2T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_3T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_1T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_2T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed>(rv_Ac,Ts,M,rv_N0,n))
+
+}
+
+__attribute__((aligned(32)))
+void unit_test_analytic_SEP_MAM_8_3(const double,const std::int32_t);
+ 
+void unit_test_analytic_SEP_MAM_8_3(const double M,const std::int32_t n)      
+{
+    constexpr double Ts = 0.000001;
+    [[maybe_unused]] std::int32_t printf_ret{};
+    const double rv_Ac = g_rv_Ac_arg.operator()(g_rv_Ac_arg_gen);
+    const double rv_N0 = g_rv_N0_arg.operator()(g_rv_N0_arg_gen);
+    DOUBLE_FUNC_BODY_BLOCK(gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_chiani>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_2T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_3T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_1T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_2T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed>(rv_Ac,Ts,M,rv_N0,n))
+                           
+}
+
+__attribute__((aligned(32)))
+void unit_test_analytic_SEP_MAM_8_3(const float,const std::int32_t);
+ 
+void unit_test_analytic_SEP_MAM_8_3(const float M,const std::int32_t n)      
+{
+    constexpr double Ts = 0.000001f;
+    [[maybe_unused]] std::int32_t printf_ret{};
     const float rv_Ac = g_rv_Ac_arg.operator()(g_rv_Ac_arg_gen);
     const float rv_N0 = g_rv_N0_arg.operator()(g_rv_N0_arg_gen);
     FLOAT_FUNC_BODY_BLOCK(gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_chiani>(rv_Ac,Ts,M,rv_N0,n),
@@ -690,6 +698,7 @@ int main()
    }
    (void)unit_test_analytic_SEP_MAM_8_1(32.0,128);
    (void)unit_test_analytic_SEP_MAM_8_1(32.0f,128);
-   
+   (void)unit_test_analytic_SEP_MAM_8_3(32.0,128);
+   (void)unit_test_analytic_SEP_MAM_8_3(32.0f,128);
    return (0);
 }
