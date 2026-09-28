@@ -243,7 +243,28 @@ const __m128d term   = _mm_mul_pd(C0147,simd_fast_exp_approx_2xf64(C0525));
 return _mm_fmadd_pd(C0208,simd_fast_exp_approx_2xf64(C0971),term);
 }
 
-
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m256 
+gaussian_Q_approx_loskot_2T_8xf32(const __m256 x) 
+{
+const __m256 xx     = _mm256_mul_ps(x,x);
+const __m256 C0208  = _mm256_set1_ps(0.208f);
+const __m256 C0971  = _mm256_mul_ps(_mm256_set1_ps(-0.971f),xx);
+const __m256 C0147  = _mm256_set1_ps(0.147f);
+const __m256 C0525  = _mm256_mul_ps(_mm_set1_ps(-0.525f),xx);
+const __m256 term   = _mm256_mul_ps(C0147,mm256_exp_ps(C0525));
+return _mm256_fmadd_ps(C0208,mm256_exp_ps(C0971),term);
+}
 
 }
 
