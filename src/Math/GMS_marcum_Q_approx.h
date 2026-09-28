@@ -152,7 +152,10 @@ double marcum_Q_approx_sadhwani_4T(const double mu,const double a, const double 
     }   
 }
 
-/* Using Gaussian-Q approx by Cooper method*/
+/* ***WARNING***
+ Cooper approximation is wrong!!
+ Using Gaussian-Q approx by Cooper method*/
+#if 0
 __ATTR_ALWAYS_INLINE__
 static inline
 double marcum_Q_approx_cooper(const double mu,const double a, const double b)
@@ -167,6 +170,7 @@ double marcum_Q_approx_cooper(const double mu,const double a, const double b)
        return (1.0-pow_term*gaussian_Q_approx_cooper(a-b));   
     } 
 }
+#endif 
 
 /* Using Gaussian-Q approx by Borjesson method*/
 __ATTR_ALWAYS_INLINE__
@@ -298,7 +302,14 @@ float marcum_Q_approx_sadhwani_4T(const float mu,const float a, const float b)
     }    
 }
 
-/* Using Gaussian-Q approx by Cooper method*/
+
+/*
+  ***WARNING*** 
+  This approximation is completely invalid!! 
+  Using Gaussian-Q approx by Cooper method
+
+*/
+#if 0
 __ATTR_ALWAYS_INLINE__
 static inline
 float marcum_Q_approx_cooper(const float mu,const float a, const float b)
@@ -313,8 +324,8 @@ float marcum_Q_approx_cooper(const float mu,const float a, const float b)
        return (1.0-pow_term*gaussian_Q_approx_cooper(a-b));    
     }
 }
+#endif 
 
-/* Using Gaussian-Q approx by Borjesson method*/
 __ATTR_ALWAYS_INLINE__
 static inline
 float marcum_Q_approx_borjesson(const float mu,const float a, const float b)
