@@ -558,7 +558,7 @@ return (_mm512_fmadd_ps(C0168,_mm512_exp_ps(C0876),
 __ATTR_ALWAYS_INLINE__
 static inline
 __m512d
-gaussian_Q_approx_loskot_3T_16xf32(const __m512d x)
+gaussian_Q_approx_loskot_3T_8xf32(const __m512d x)
 {
 const __m512d xx    = _mm512_mul_pd(x,x);
 const __m512d C0168 = _mm512_set1_pd(0.168);
@@ -570,6 +570,26 @@ const __m512d C0603 = _mm512_mul_pd(_mm512_set1_pd(-0.603),xx);
 return (_mm512_fmadd_pd(C0168,_mm512_exp_pd(C0876),
                      _mm512_fmadd_pd(C0144,_mm512_exp_pd(C0525),
                                  _mm512_mul_pd(C0002,_mm512_exp_pd(C0603)))));
+}
+
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128
+gaussian_Q_approx_sadhwani_1T_4xf32(const __m128 x)
+{
+const __m128 xx    = _mm_mul_ps(x,x);
+const __m128 C025  = _mm_set1_ps(0.25f);
+const __m128 C05   = _mm_mul_ps(_mm_set1_ps(-0.5f),xx);
+return (_mm_mul_ps(C025,simd_fast_exp_approx_4xf32(C05)));
 }
 
 }
