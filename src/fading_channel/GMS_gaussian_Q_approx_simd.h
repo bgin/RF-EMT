@@ -612,6 +612,45 @@ const __m128d C05   = _mm_mul_pd(_mm_set1_ps(-0.5),xx);
 return (_mm_mul_pd(C025,simd_fast_exp_approx_2xf64(C05)));
 }
 
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=AVX2
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx2")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m256
+gaussian_Q_approx_sadhwani_1T_8xf32(const __m256 x)
+{
+const __m256 xx    = _mm256_mul_ps(x,x);
+const __m256 C025  = _mm256_set1_ps(0.25f);
+const __m256 C05   = _mm256_mul_ps(_mm256_set1_ps(-0.5f),xx);
+return (_mm256_mul_ps(C025,_mm256_exp_ps(C05)));
+}
+
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=AVX2
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx2")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m256d
+gaussian_Q_approx_sadhwani_1T_4xf64(const __m256d x)
+{
+const __m256d xx    = _mm256_mul_pd(x,x);
+const __m256d C025  = _mm256_set1_pd(0.25);
+const __m256d C05   = _mm256_mul_pd(_mm256_set1_ps(-0.5),xx);
+return (_mm256_mul_pd(C025,_mm256_exp_pd(C05)));
+}
 
 
 }
