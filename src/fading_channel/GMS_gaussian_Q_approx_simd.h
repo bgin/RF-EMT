@@ -125,6 +125,55 @@ const __m256 right_exp_val                 = _mm256_mul_ps(C025,_mm256_exp_ps(_m
 return (_mm256_add_ps(left_exp_val,right_exp_val));
 }
 
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=AVX2
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx2")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m256d 
+gaussian_Q_approx_chiani_4xf64(const __m256d x)
+{
+const __m256d C0083333333333333333333333333 = _mm256_set1_pd(0.083333333333333333333333333);
+const __m256d CN05                          = _mm256_set1_pd(-0.5);
+const __m256d CN03                          = _mm256_set1_pd(-0.333333333333333333333333333);
+const __m256d C025                          = _mm256_set1_pd(0.25);
+const __m256d xx                            = _mm256_mul_pd(x,x);
+const __m256d left_exp_val                  = _mm256_exp_pd(_mm256_mul_pd(CN05,xx));
+const __m256d right_exp_val                 = _mm256_mul_pd(C025,_mm256_exp_pd(_mm256_mul_pd(CN03,_mm256_add_pd(xx,xx))));
+return (_mm256_add_pd(left_exp_val,right_exp_val));
+}
+
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512f")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m512
+gaussian_Q_approx_chiani_16xf32(const __m512 x)
+{
+const __m512 C0083333333333333333333333333 = _mm512_set1_ps(0.083333333333333333333333333f);
+const __m512 CN05                          = _mm512_set1_ps(-0.5f);
+const __m512 CN03                          = _mm512_set1_ps(-0.333333333333333333333333333f);
+const __m512 C025                          = _mm512_set1_ps(0.25f);
+const __m512 xx                            = _mm512_mul_ps(x,x);
+const __m512 left_exp_val                  = _mm512_exp_ps(_mm512_mul_ps(CN05,xx));
+const __m512 right_exp_val                 = _mm512_mul_ps(C025,_mm512_exp_ps(_mm512_mul_ps(CN03,_mm512_add_ps(xx,xx))));
+return (_mm512_add_ps(left_exp_val,right_exp_val));
+}
+
+
 
 }
 
