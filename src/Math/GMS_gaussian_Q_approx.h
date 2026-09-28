@@ -372,17 +372,22 @@ double gaussian_Q_approx_sadhwani_4T(const double x)
     Bound-based/exponential polynomial based approximations
 */
 
+/*
+  *** WARNING***
+  Cooper-approximation  approximation is 
+  invalid!!
+*/
+#if 0
 __ATTR_ALWAYS_INLINE__
 static inline
 float gaussian_Q_approx_cooper(const float x)
 {
     constexpr float C1 = 0.5f;
-    constexpr float C2 = 6.283185307179586476925286767f;
     const float xx     = x*x;
-    const float sqrt_2pix = std::sqrt(C2*x);
+    const float sqrt_2pix = 0.3989422804014326779399460599344f;
     const float right_term= 1.0f-(1.0f/(xx+xx));
-    const float exp_term  = expapprox(-C1*xx);
-    const float ratio     = exp_term/sqrt_2pix;
+    const float exp_term  = expapprox(-C1*xx)/x;
+    const float ratio     = exp_term*sqrt_2pix;
     return (ratio*right_term);
 }
 
@@ -391,23 +396,23 @@ static inline
 double gaussian_Q_approx_cooper(const double x)
 {
     constexpr double C1 = 0.5;
-    constexpr double C2 = 6.283185307179586476925286767;
     const double xx     = x*x;
-    const double sqrt_2pix = std::sqrt(C2*x);
+    const double sqrt_2pix = 0.3989422804014326779399460599344;
     const double right_term= 1.0-(1.0/(xx+xx));
-    const double exp_term  = expapprox_d(-C1*xx);
-    const double ratio     = exp_term/sqrt_2pix;
+    const double exp_term  = expapprox_d(-C1*xx)/x;
+    const double ratio     = exp_term*sqrt_2pix;
     return (ratio*right_term);
 }
+#endif 
 
 __ATTR_ALWAYS_INLINE__
 static inline 
 float gaussian_Q_approx_borjesson(const float x)
 {
     constexpr float C1 = 0.5f;
-    constexpr float C2 = 2.506628274631000502415765285f;
+    constexpr float inv2PI = 0.3989422804014326779399460599344f;
     const float xx     = x*x;
-    const float exp_val= C2*expapprox(-C1*xx);
+    const float exp_val= inv2PI*expapprox(-C1*xx);
     const float sqrt_term  = 0.339f*std::sqrt(xx+5.510f);
     const float right_term = 1.0f/(__builtin_fmaf(0.661f,x,sqrt_term));
     return (exp_val*right_term);
@@ -418,9 +423,9 @@ static inline
 double gaussian_Q_approx_borjesson(const double x)
 {
     constexpr double C1 = 0.5;
-    constexpr double C2 = 2.506628274631000502415765285;
+    constexpr double inv2PI = 0.3989422804014326779399460599344;
     const double xx     = x*x;
-    const double exp_val= C2*expapprox_d(-C1*xx);
+    const double exp_val= inv2PI*expapprox_d(-C1*xx);
     const double sqrt_term  = 0.339*std::sqrt(xx+5.510);
     const double right_term = 1.0/(__builtin_fma(0.661,x,sqrt_term));
     return (exp_val*right_term);
