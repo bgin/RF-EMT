@@ -101,8 +101,32 @@ const __m128d right_exp_val                 = _mm_mul_pd(C025,simd_fast_exp_appr
 return (_mm_add_pd(left_exp_val,right_exp_val));
 }
 
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=AVX2
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx2")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m256 
+gaussian_Q_approx_chiani_8xf32(const __m256 x)
+{
+const __m256 C0083333333333333333333333333 = _mm256_set1_ps(0.083333333333333333333333333f);
+const __m256 CN05                          = _mm256_set1_ps(-0.5f);
+const __m256 CN03                          = _mm256_set1_ps(-0.333333333333333333333333333f);
+const __m256 C025                          = _mm256_set1_ps(0.25f);
+const __m256 xx                            = _mm256_mul_ps(x,x);
+const __m256 left_exp_val                  = _mm256_exp_ps(_mm256_mul_ps(CN05,xx));
+const __m256 right_exp_val                 = _mm256_mul_ps(C025,_mm256_exp_ps(_mm256_mul_ps(CN03,_mm256_add_ps(xx,xx))));
+return (_mm256_add_ps(left_exp_val,right_exp_val));
 }
+
 
 }
 
+}
 #endif /*__GMS_GAUSSIAN_Q_APPROX_SIMD_H__*/
