@@ -468,6 +468,57 @@ return (_mm_fmadd_pd(C0168,simd_fast_exp_approx_2xf64(C0876),
                                  _mm_mul_pd(C0002,simd_fast_exp_approx_2xf64(C0603)))));
 }
 
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=AVX2
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx2")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m256
+gaussian_Q_approx_loskot_3T_8xf32(const __m256 x)
+{
+const __m256 xx    = _mm256_mul_ps(x,x);
+const __m256 C0168 = _mm256_set1_ps(0.168f);
+const __m256 C0876 = _mm256_mul_ps(_mm256_set1_ps(-0.876f),xx);
+const __m256 C0144 = _mm256_set1_ps(0.144f);
+const __m256 C0525 = _mm256_mul_ps(_mm256_set1_ps(-0.525f),xx);
+const __m256 C0002 = _mm256_set1_ps(0.002f);
+const __m256 C0603 = _mm256_mul_ps(_mm256_set1_ps(-0.603f),xx);
+return (_mm256_fmadd_ps(C0168,_mm256_exp_ps(C0876),
+                     _mm256_fmadd_ps(C0144,_mm256_exp_ps(C0525),
+                                 _mm256_mul_ps(C0002,_mm256_exp_ps(C0603)))));
+}
+
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=AVX2
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx2")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m256d
+gaussian_Q_approx_loskot_3T_4xf64(const __m128d x)
+{
+const __m256d xx    = _mm256_mul_pd(x,x);
+const __m256d C0168 = _mm256_set1_pd(0.168);
+const __m256d C0876 = _mm256_mul_pd(_mm256_set1_pd(-0.876),xx);
+const __m256d C0144 = _mm256_set1_pd(0.144);
+const __m256d C0525 = _mm256_mul_pd(_mm256_set1_pd(-0.525),xx);
+const __m256d C0002 = _mm256_set1_pd(0.002);
+const __m256d C0603 = _mm256_mul_pd(_mm256_set1_pd(-0.603),xx);
+return (_mm256_fmadd_pd(C0168,_mm256_exp_pd(C0876),
+                     _mm256_fmadd_pd(C0144,_mm256_exp_pd(C0525),
+                                 _mm256_mul_pd(C0002,_mm256_exp_pd(C0603)))));
+}
 
 }
 
