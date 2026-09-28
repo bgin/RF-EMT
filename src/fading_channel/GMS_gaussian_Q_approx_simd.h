@@ -77,6 +77,30 @@ const __m128 right_exp_val                 = _mm_mul_ps(C025,simd_fast_exp_appro
 return (_mm_add_ps(left_exp_val,right_exp_val));
 }
 
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128d 
+gaussian_Q_approx_chiani_2xf64(const __m128d x)
+{
+const __m128d C0083333333333333333333333333 = _mm_set1_pd(0.083333333333333333333333333);
+const __m128d CN05                          = _mm_set1_pd(-0.5);
+const __m128d CN03                          = _mm_set1_pd(-0.333333333333333333333333333);
+const __m128d C025                          = _mm_set1_pd(0.25);
+const __m128d xx                            = _mm_mul_pd(x,x);
+const __m128d left_exp_val                  = simd_fast_exp_approx_2xf64(_mm_mul_pd(CN05,xx));
+const __m128d right_exp_val                 = _mm_mul_pd(C025,simd_fast_exp_approx_2xf64(_mm_mul_pd(CN03,_mm_add_pd(xx,xx))));
+return (_mm_add_pd(left_exp_val,right_exp_val));
+}
+
 }
 
 }
