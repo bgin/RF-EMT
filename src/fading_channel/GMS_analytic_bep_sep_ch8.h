@@ -80,7 +80,6 @@ enum class Gaussian_Q_approxmations_t : std::int32_t
     Gaussian_Q_approx_sadhwani_1T,
     Gaussian_Q_approx_sadhwani_2T,
     Gaussian_Q_approx_sadhwani_4T,
-    Gaussian_Q_approx_cooper,
     Gaussian_Q_approx_borjesson,
     Gaussian_Q_approx_sadhwani_summed
 };
@@ -372,7 +371,7 @@ _Tp MSK_param_a2_8_65(  const _Tp Ac,const _Tp Ts,
     const _Tp Eb          = avg_bit_E_to_carrier_A<_Tp>(Ac,Ts,M);
     const _Tp G           = G_PLL_bandwidth<_Tp>(Bl,Tb);
     constexpr _Tp pi_term = static_cast<_Tp>(0.7026423672846755428877589264195);
-    const _Tp fac         = G+pi_term-std::sqrt<_Tp>(G+G);
+    const _Tp fac         = G+pi_term-std::sqrt(G+G);
     return ((Eb/N0)*fac);
 }
 
@@ -395,7 +394,7 @@ _Tp MSK_param_b2_8_65(  const _Tp Ac,const _Tp Ts,
     const _Tp Eb          = avg_bit_E_to_carrier_A<_Tp>(Ac,Ts,M);
     const _Tp G           = G_PLL_bandwidth<_Tp>(Bl,Tb);
     constexpr _Tp pi_term = static_cast<_Tp>(0.7026423672846755428877589264195);
-    const _Tp fac         = G+pi_term+std::sqrt<_Tp>(G+G);
+    const _Tp fac         = G+pi_term+std::sqrt(G+G);
     return ((Eb/N0)*fac);
 }
 
@@ -455,11 +454,6 @@ double analytic_SEP_MAM_8_1(const double Ac,const double Ts,
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T)
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg);
-        result = left_term*Q_func_val;
-    }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q_func_val = gms::math::gaussian_Q_approx_cooper(Q_func_arg);
         result = left_term*Q_func_val;
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
@@ -528,6 +522,11 @@ float analytic_SEP_MAM_8_1(const float Ac,const float Ts,
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg);
         result = left_term*Q_func_val;
     }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_borjesson(Q_func_arg);
+        result = left_term*Q_func_val;
+    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed)
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_summed(Q_func_arg,n);
@@ -594,6 +593,11 @@ double analytic_SEP_MAM_8_3(const double Ac,const double Ts,
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg);
         result = left_term*Q_func_val;
     }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_borjesson(Q_func_arg);
+        result = left_term*Q_func_val;
+    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed)
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_summed(Q_func_arg,n);
@@ -654,6 +658,11 @@ float analytic_SEP_MAM_8_3(const float Ac,const float Ts,
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T)
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg);
+        result = left_term*Q_func_val;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_borjesson(Q_func_arg);
         result = left_term*Q_func_val;
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed)
@@ -719,6 +728,11 @@ double analytic_BEP_MAM2_8_4(const double Ac,const double Ts,
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg);
         result = Q_func_val;
     }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_borjesson(Q_func_arg);
+        result = Q_func_val;
+    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed)
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_summed(Q_func_arg,n);
@@ -776,6 +790,11 @@ float analytic_BEP_MAM2_8_4(const float Ac,const float Ts,
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T)
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg);
+        result = Q_func_val;
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_borjesson(Q_func_arg);
         result = Q_func_val;
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed)
@@ -867,6 +886,14 @@ double analytic_SEP_QAM_8_10(const double Ac,const double Ts,
         const double diff_result   = (left_term*Q_func_val)-(left_term_p2*Q_func_val_p2); 
         result = diff_result;
     }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_borjesson(Q_func_arg);
+        const double Q_func_val_p2 = Q_func_val*Q_func_val;
+        const double left_term_p2  = left_term*left_term;
+        const double diff_result   = (left_term*Q_func_val)-(left_term_p2*Q_func_val_p2); 
+        result = diff_result;
+    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed)
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_summed(Q_func_arg,n);
@@ -951,6 +978,14 @@ float analytic_SEP_QAM_8_10(const float Ac,const float Ts,
         const float diff_result   = (left_term*Q_func_val)-(left_term_p2*Q_func_val_p2); 
         result = diff_result;
     }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_borjesson(Q_func_arg);
+        const float Q_func_val_p2 = Q_func_val*Q_func_val;
+        const float left_term_p2  = left_term*left_term;
+        const float diff_result   = (left_term*Q_func_val)-(left_term_p2*Q_func_val_p2); 
+        result = diff_result;
+    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed)
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_summed(Q_func_arg,n);
@@ -1010,6 +1045,10 @@ double analytic_SEP_QAM4_8_11(const double Ac,const double Ts,
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg);
     }
+    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_borjesson(Q_func_arg);
+    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed)
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_summed(Q_func_arg,n);
@@ -1064,10 +1103,6 @@ float analytic_SEP_QAM4_8_11(const float Ac,const float Ts,
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T)
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg);
-    }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q_func_val = gms::math::gaussian_Q_approx_cooper(Q_func_arg);
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
@@ -1175,15 +1210,6 @@ double analytic_BEP_QAM_AWGN_8_14(const double Ac,const double Ts,
            Q_func_val += gms::math::gaussian_Q_approx_sadhwani_4T(mul_fac*Q_func_arg);
         }
     }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        for(std::int32_t i=1; i<=upper_lim; ++i) 
-        { 
-           const double d_i = static_cast<double>(i);
-           const double mul_fac = (d_i+d_i)-1.0;
-           Q_func_val += gms::math::gaussian_Q_approx_cooper(mul_fac*Q_func_arg);
-        }
-    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
         for(std::int32_t i=1; i<=upper_lim; ++i) 
@@ -1289,15 +1315,6 @@ float analytic_BEP_QAM_AWGN_8_14(const float Ac,const float Ts,
            Q_func_val += gms::math::gaussian_Q_approx_sadhwani_4T(mul_fac*Q_func_arg);
         }
     }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        for(std::int32_t i=1; i<=upper_lim; ++i) 
-        { 
-           const float d_i = static_cast<double>(i);
-           const float mul_fac = (d_i+d_i)-1.0f;
-           Q_func_val += gms::math::gaussian_Q_approx_cooper(mul_fac*Q_func_arg);
-        }
-    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
         for(std::int32_t i=1; i<=upper_lim; ++i) 
@@ -1370,10 +1387,6 @@ double analytic_BEP_MPSK2_8_18(const double Ac,const double Ts,
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg);
     }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q_func_val = gms::math::gaussian_Q_approx_cooper(Q_func_arg);
-    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
         Q_func_val = gms::math::gaussian_Q_approx_borjesson(Q_func_arg);
@@ -1430,10 +1443,6 @@ float analytic_BEP_MPSK2_8_18(const float Ac,const float Ts,
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T)
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg);
-    }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q_func_val = gms::math::gaussian_Q_approx_cooper(Q_func_arg);
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
@@ -1506,12 +1515,6 @@ double analytic_SEP_QPSKM4_8_19(const double Ac,const double Ts,
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T)
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg);
-        sqrQ              = Q_func_val*Q_func_val;
-        result            = (Q_func_val+Q_func_val)-sqrQ;
-    }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q_func_val = gms::math::gaussian_Q_approx_cooper(Q_func_arg);
         sqrQ              = Q_func_val*Q_func_val;
         result            = (Q_func_val+Q_func_val)-sqrQ;
     }
@@ -1588,12 +1591,6 @@ float analytic_SEP_QPSKM4_8_19(const float Ac,const float Ts,
         sqrQ              = Q_func_val*Q_func_val;
         result            = (Q_func_val+Q_func_val)-sqrQ;
     }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q_func_val = gms::math::gaussian_Q_approx_cooper(Q_func_arg);
-        sqrQ              = Q_func_val*Q_func_val;
-        result            = (Q_func_val+Q_func_val)-sqrQ;
-    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
         Q_func_val = gms::math::gaussian_Q_approx_borjesson(Q_func_arg);
@@ -1661,10 +1658,6 @@ double analytic_SEP_MPSK_coherent_8_25(const double Ac,const double Ts,
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg*sin_PIM);
     }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q_func_val = gms::math::gaussian_Q_approx_cooper(Q_func_arg*sin_PIM);
-    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
         Q_func_val = gms::math::gaussian_Q_approx_borjesson(Q_func_arg*sin_PIM);
@@ -1723,10 +1716,6 @@ float analytic_SEP_MPSK_coherent_8_25(const float Ac,const float Ts,
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T)
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg*sin_PIM);
-    }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q_func_val = gms::math::gaussian_Q_approx_cooper(Q_func_arg*sin_PIM);
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
@@ -2109,19 +2098,6 @@ const double lut_val = sin_arg_lut[i];
            Q_func_val += gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg*sin_val);
         }
     }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        for(std::int32_t i=1; i<=upper_lim; ++i) 
-        { 
-const double lut_val = sin_arg_lut[i];
-#if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
-           const double sin_val = gms::math::cephes_d::sin(sin_val*invM);
-#else 
-           const double sin_val = std::sin(sin_val*invM);
-#endif 
-           Q_func_val += gms::math::gaussian_Q_approx_cooper(Q_func_arg*sin_val);
-        }
-    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
         for(std::int32_t i=1; i<=upper_lim; ++i) 
@@ -2493,15 +2469,6 @@ constexpr const float sin_arg_lut[max_M] =
             Q_func_val += gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg*sin_val);
         }
     }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        for(std::int32_t i=1; i<=upper_lim; ++i) 
-        { 
-            const float lut_val = sin_arg_lut[i];
-            const float sin_val = std::sin(sin_val*invM); 
-            Q_func_val += gms::math::gaussian_Q_approx_cooper(Q_func_arg*sin_val);
-        }
-    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
         for(std::int32_t i=1; i<=upper_lim; ++i) 
@@ -2575,10 +2542,6 @@ double analytic_BEP_BPSK_8_47(const double Ac,const double Ts,
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg*cos_phic);
     }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q_func_val = gms::math::gaussian_Q_approx_cooper(Q_func_arg*cos_phic);
-    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
         Q_func_val = gms::math::gaussian_Q_approx_borjesson(Q_func_arg*cos_phic);
@@ -2636,10 +2599,6 @@ float analytic_BEP_BPSK_8_47(const float Ac,const float Ts,
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T)
     {
         Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg*cos_phic);
-    }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q_func_val = gms::math::gaussian_Q_approx_cooper(Q_func_arg*cos_phic);
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
@@ -2720,12 +2679,6 @@ double analytic_BEP_QPSK_8_56(const double Ac,const double Ts,
         const double tmp2 = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg2);
         Q_func_val        = tmp1+tmp2;
     }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        const double tmp1 = gms::math::gaussian_Q_approx_cooper(Q_func_arg1);
-        const double tmp2 = gms::math::gaussian_Q_approx_cooper(Q_func_arg2);
-        Q_func_val        = tmp1+tmp2;
-    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
         const double tmp1 = gms::math::gaussian_Q_approx_borjesson(Q_func_arg1);
@@ -2802,12 +2755,6 @@ float analytic_BEP_QPSK_8_56(const float Ac,const float Ts,
     {
         const float tmp1 = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg1);
         const float tmp2 = gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg2);
-        Q_func_val        = tmp1+tmp2;
-    }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        const float tmp1 = gms::math::gaussian_Q_approx_cooper(Q_func_arg1);
-        const float tmp2 = gms::math::gaussian_Q_approx_cooper(Q_func_arg2);
         Q_func_val        = tmp1+tmp2;
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
@@ -2930,12 +2877,6 @@ double analytic_BEP_BPSK_8_60(const double Ac,const double Ts,
         const double tmp2 = gms::math::marcum_Q_approx_sadhwani_4T(mu,a_sqrt,b_sqrt);
         Q1_func_val        = 0.5*(tmp1+tmp2);
     }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        const double tmp1 = 1.0-gms::math::marcum_Q_approx_cooper(mu,b_sqrt,a_sqrt);
-        const double tmp2 = gms::math::marcum_Q_approx_cooper(mu,a_sqrt,b_sqrt);
-        Q1_func_val        = 0.5*(tmp1+tmp2);
-    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
         const double tmp1 = 1.0-gms::math::marcum_Q_approx_borjesson(mu,b_sqrt,a_sqrt);
@@ -3009,12 +2950,6 @@ float analytic_BEP_BPSK_8_60(const float Ac,const float Ts,
     {
         const float tmp1 = 1.0f-gms::math::marcum_Q_approx_sadhwani_4T(mu,b_sqrt,a_sqrt);
         const float tmp2 = gms::math::marcum_Q_approx_sadhwani_4T(mu,a_sqrt,b_sqrt);
-        Q1_func_val        = 0.5f*(tmp1+tmp2);
-    }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        const float tmp1 = 1.0f-gms::math::marcum_Q_approx_cooper(mu,b_sqrt,a_sqrt);
-        const float tmp2 = gms::math::marcum_Q_approx_cooper(mu,a_sqrt,b_sqrt);
         Q1_func_val        = 0.5f*(tmp1+tmp2);
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
@@ -3147,16 +3082,6 @@ double analytic_avg_BEP_QPSK_MSK_8_63(const double Ac,const double Ts,
         right= 0.25*(tmp3+tmp4);
         Q1_func_val       = left+right;
     }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        tmp1 = 1.0-gms::math::marcum_Q_approx_cooper(mu,b1q_sqrt,a1q_sqrt);
-        tmp2 = gms::math::marcum_Q_approx_cooper(mu,a1m_sqrt,b1m_sqrt);
-        tmp3 = 1.0-gms::math::marcum_Q_approx_cooper(mu,b2q_sqrt,a2q_sqrt);
-        tmp4 = gms::math::marcum_Q_approx_cooper(mu,a2m_sqrt,b2m_sqrt);
-        left = 0.25*(tmp1+tmp2);
-        right= 0.25*(tmp3+tmp4);
-        Q1_func_val       = left+right;
-    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
         tmp1 = 1.0-gms::math::marcum_Q_approx_borjesson(mu,b1q_sqrt,a1q_sqrt);
@@ -3284,16 +3209,6 @@ float analytic_avg_BEP_QPSK_MSK_8_63(const float Ac,const float Ts,
         right= 0.25*(tmp3+tmp4);
         Q1_func_val       = left+right;
     }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        tmp1 = 1.0-gms::math::marcum_Q_approx_cooper(mu,b1q_sqrt,a1q_sqrt);
-        tmp2 = gms::math::marcum_Q_approx_cooper(mu,a1m_sqrt,b1m_sqrt);
-        tmp3 = 1.0-gms::math::marcum_Q_approx_cooper(mu,b2q_sqrt,a2q_sqrt);
-        tmp4 = gms::math::marcum_Q_approx_cooper(mu,a2m_sqrt,b2m_sqrt);
-        left = 0.25*(tmp1+tmp2);
-        right= 0.25*(tmp3+tmp4);
-        Q1_func_val       = left+right;
-    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
         tmp1 = 1.0-gms::math::marcum_Q_approx_borjesson(mu,b1q_sqrt,a1q_sqrt);
@@ -3392,10 +3307,6 @@ double analytic_BEP_MFSK2_nonorthog_8_69(const double Ac,const double Ts,
     {
         Q1_func_val = gms::math::marcum_Q_approx_sadhwani_4T(mu,a_sqrt,b_sqrt)-right_fac;
     }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q1_func_val = gms::math::marcum_Q_approx_cooper(mu,a_sqrt,b_sqrt)-right_fac;
-    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
         Q1_func_val = gms::math::marcum_Q_approx_borjesson(mu,a_sqrt,b_sqrt)-right_fac;
@@ -3468,10 +3379,6 @@ float analytic_BEP_MFSK2_nonorthog_8_69(const float Ac,const float Ts,
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T)
     {
         Q1_func_val = gms::math::marcum_Q_approx_sadhwani_4T(mu,a_sqrt,b_sqrt)-right_fac;
-    }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q1_func_val = gms::math::marcum_Q_approx_cooper(mu,a_sqrt,b_sqrt)-right_fac;
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
@@ -3598,11 +3505,6 @@ double analytic_BEP_MPSK_pair_err_prob_8_80(const double * __restrict__ betak,
         Q1_func_val = 0.5*(1.0-gms::math::marcum_Q_approx_sadhwani_4T(mu,b_sqrt,a_sqrt)+
                                gms::math::marcum_Q_approx_sadhwani_4T(mu,a_sqrt,b_sqrt));
     }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q1_func_val = 0.5*(1.0-gms::math::marcum_Q_approx_cooper(mu,b_sqrt,a_sqrt)+
-                               gms::math::marcum_Q_approx_cooper(mu,a_sqrt,b_sqrt));
-    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
         Q1_func_val = 0.5*(1.0-gms::math::marcum_Q_approx_borjesson(mu,b_sqrt,a_sqrt)+
@@ -3711,11 +3613,6 @@ float analytic_BEP_MPSK_pair_err_prob_8_80( const float * __restrict__ betak,
         Q1_func_val = 0.5*(1.0-gms::math::marcum_Q_approx_sadhwani_4T(mu,b_sqrt,a_sqrt)+
                                gms::math::marcum_Q_approx_sadhwani_4T(mu,a_sqrt,b_sqrt));
     }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q1_func_val = 0.5*(1.0-gms::math::marcum_Q_approx_cooper(mu,b_sqrt,a_sqrt)+
-                               gms::math::marcum_Q_approx_cooper(mu,a_sqrt,b_sqrt));
-    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
         Q1_func_val = 0.5*(1.0-gms::math::marcum_Q_approx_borjesson(mu,b_sqrt,a_sqrt)+
@@ -3788,10 +3685,6 @@ double analytic_BEP_DPSK_up_bound_8_95(const double Ac,const double Ts,
     {
         Q_func_val = left_term*gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg);
     }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q_func_val = left_term*gms::math::gaussian_Q_approx_cooper(Q_func_arg);
-    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
         Q_func_val = left_term*gms::math::gaussian_Q_approx_borjesson(Q_func_arg);
@@ -3852,10 +3745,6 @@ float analytic_BEP_DPSK_up_bound_8_95(const float Ac,const float Ts,
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T)
     {
         Q_func_val = left_term*gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg);
-    }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q_func_val = left_term*gms::math::gaussian_Q_approx_cooper(Q_func_arg);
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
@@ -4387,12 +4276,6 @@ double analytic_BEP_BPSK_noncoh_8_150(const double m_I,const double m_Q,
                                gms::math::marcum_Q_approx_sadhwani_4T(mu,a_sqrt,b_sqrt))
                                -right_fac;
     }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q1_func_val = 0.5*(1.0-gms::math::marcum_Q_approx_cooper(mu,b_sqrt,a_sqrt)+
-                               gms::math::marcum_Q_approx_cooper(mu,a_sqrt,b_sqrt))
-                               -right_fac;
-    }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
     {
         Q1_func_val = 0.5*(1.0-gms::math::marcum_Q_approx_borjesson(mu,b_sqrt,a_sqrt)+
@@ -4493,12 +4376,6 @@ float analytic_BEP_BPSK_noncoh_8_150(const float m_I,const float m_Q,
     {
         Q1_func_val = 0.5f*(1.0f-gms::math::marcum_Q_approx_sadhwani_4T(mu,b_sqrt,a_sqrt)+
                                gms::math::marcum_Q_approx_sadhwani_4T(mu,a_sqrt,b_sqrt))
-                               -right_fac;
-    }
-    else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_cooper)
-    {
-        Q1_func_val = 0.5f*(1.0f-gms::math::marcum_Q_approx_cooper(mu,b_sqrt,a_sqrt)+
-                               gms::math::marcum_Q_approx_cooper(mu,a_sqrt,b_sqrt))
                                -right_fac;
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson)
