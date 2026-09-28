@@ -53,6 +53,87 @@ namespace gms
 namespace math 
 {
 
+/*
+#include <immintrin.h>
+#include <cmath>
+
+__m512 gaussian_Q_approx_sadhwani_1T_vec(__m512 x);
+
+void marcum_Q_approx_sadhwani_1T_vector(
+    const float* __restrict mu, 
+    const float* __restrict a, 
+    const float* __restrict b, 
+    float* __restrict result, 
+    int n) 
+{
+    // Constant for the 0.5f subtraction
+    __m512 v_half = _mm512_set1_ps(0.5f);
+    // Constant for the 1.0f subtraction in the 'else' branch
+    __m512 v_one  = _mm512_set1_ps(1.0f);
+
+    int i = 0;
+    // Process 16 float elements at a time
+    for (; i <= n - 16; i += 16) {
+        // 1. Load inputs into 512-bit registers
+        __m512 v_mu = _mm512_loadu_ps(&mu[i]);
+        __m512 v_a  = _mm512_loadu_ps(&a[i]);
+        __m512 v_b  = _mm512_loadu_ps(&b[i]);
+
+        // 2. Perform unconditional shared math: pow_term = (b/a)^(mu - 0.5)
+        __m512 v_base = _mm512_div_ps(v_b, v_a);
+        __m512 v_exp  = _mm512_sub_ps(v_mu, v_half);
+        // Requires SVML or an AVX-512 compatible math library linkage
+        __m512 v_pow_term = _mm512_pow_ps(v_base, v_exp); 
+
+        // 3. Prepare both conditional code execution branches simultaneously
+        
+        // Path A: b > a -> pow_term * gaussian_Q_approx(b - a)
+        __m512 v_diff_A = _mm512_sub_ps(v_b, v_a);
+        __m512 v_gauss_A = gaussian_Q_approx_sadhwani_1T_vec(v_diff_A);
+        __m512 v_res_A = _mm512_mul_ps(v_pow_term, v_gauss_A);
+
+        // Path B: a > b -> 1.0 - pow_term * gaussian_Q_approx(a - b)
+        __m512 v_diff_B = _mm512_sub_ps(v_a, v_b);
+        __m512 v_gauss_B = gaussian_Q_approx_sadhwani_1T_vec(v_diff_B);
+        __m512 v_res_B = _mm512_sub_ps(v_one, _mm512_mul_ps(v_pow_term, v_gauss_B));
+
+        // 4. If-Conversion: Generate a 16-bit condition mask evaluating (b > a)
+        __mmask16 mask_gt = _mm512_cmp_ps_mask(v_b, v_a, _CMP_GT_OS);
+
+        // 5. Masked Blend: Merge the paths based on the boolean condition mask
+        // If a mask bit is 1 (b > a is true), pick from v_res_A. 
+        // If a mask bit is 0 (b > a is false / a >= b), pick from v_res_B.
+        __m512 v_final_res = _mm512_mask_blend_ps(mask_gt, v_res_B, v_res_A);
+
+        // 6. Store the merged output
+        _mm512_storeu_ps(&result[i], v_final_res);
+    }
+
+    // 7. Cleanup loop for any remaining structural array elements (n % 16)
+    if (i < n) {
+        int remaining = n - i;
+        __mmask16 tail_mask = (1U << remaining) - 1;
+
+        __m512 v_mu = _mm512_maskz_loadu_ps(tail_mask, &mu[i]);
+        __m512 v_a  = _mm512_maskz_loadu_ps(tail_mask, &a[i]);
+        __m512 v_b  = _mm512_maskz_loadu_ps(tail_mask, &b[i]);
+
+        __m512 v_base = _mm512_div_ps(v_b, v_a);
+        __m512 v_exp  = _mm512_sub_ps(v_mu, v_half);
+        __m512 v_pow_term = _mm512_pow_ps(v_base, v_exp);
+
+        __m512 v_res_A = _mm512_mul_ps(v_pow_term, gaussian_Q_approx_sadhwani_1T_vec(_mm512_sub_ps(v_b, v_a)));
+        __m512 v_res_B = _mm512_sub_ps(v_one, _mm512_mul_ps(v_pow_term, gaussian_Q_approx_sadhwani_1T_vec(_mm512_sub_ps(v_a, v_b))));
+
+        __mmask16 mask_gt = _mm512_mask_cmp_ps_mask(tail_mask, v_b, v_a, _CMP_GT_OS);
+        __m512 v_final_res = _mm512_mask_blend_ps(mask_gt, v_res_B, v_res_A);
+
+        _mm512_mask_storeu_ps(&result[i], tail_mask, v_final_res);
+    }
+}
+
+*/
+
 #if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
@@ -264,6 +345,29 @@ const __m256 C0147  = _mm256_set1_ps(0.147f);
 const __m256 C0525  = _mm256_mul_ps(_mm_set1_ps(-0.525f),xx);
 const __m256 term   = _mm256_mul_ps(C0147,mm256_exp_ps(C0525));
 return _mm256_fmadd_ps(C0208,mm256_exp_ps(C0971),term);
+}
+
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m256d 
+gaussian_Q_approx_loskot_2T_4xf64(const __m256 x) 
+{
+const __m256d xx     = _mm256_mul_pd(x,x);
+const __m256d C0208  = _mm256_set1_pd(0.208);
+const __m256d C0971  = _mm256_mul_pd(_mm256_set1_ps(-0.971),xx);
+const __m256d C0147  = _mm256_set1_pd(0.147);
+const __m256d C0525  = _mm256_mul_pd(_mm_set1_pd(-0.525),xx);
+const __m256d term   = _mm256_mul_pd(C0147,mm256_exp_pd(C0525));
+return _mm256_fmadd_pd(C0208,mm256_exp_pd(C0971),term);
 }
 
 }
