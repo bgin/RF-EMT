@@ -784,6 +784,29 @@ return (_mm256_fmadd_pd(C0125,_mm256_exp_pd(negxx),
                            _mm256_mul_pd(C025,_mm256_exp_pd(C05))));
 }
 
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m512
+gaussian_Q_approx_sadhwani_2T_16xf32(const __m512 x)
+{
+const __m512 xx    = _mm512_mul_ps(x,x);
+const __m512 C0125 = _mm512_set1_ps(0.125f);
+const __m512 C025  = _mm512_set1_ps(0.25f);
+const __m512 negxx = _mm512_sub_ps(_mm512_setzero_ps(),xx);
+const __m512 C05   = _mm512_mul_ps(_mm512_set1_ps(-0.5f),xx);
+return (_mm512_fmadd_ps(C0125,_mm512_exp_ps(negxx),
+                           _mm512_mul_ps(C025,_mm512_exp_ps(C05))));
+}
+
 }
 
 }
