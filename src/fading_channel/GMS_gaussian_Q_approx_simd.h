@@ -1025,6 +1025,33 @@ const __m128 right_term= _mm_rcp_ps(_mm_fmadd_ps(C0661,x,sqrt_term));
 return (_mm_mul_ps(exp_val,right_term));
 }
 
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128d 
+gaussian_Q_approx_borjesson_2xf64(const __m128d x)
+{
+const __m128d C0339     = _mm_set1_pd(0.339);
+const __m128d xx        = _mm_mul_pd(x,x);
+const __m128d C5510     = _mm_set1_pd(5.510);
+const __m128d C1        = _mm_mul_pd(_mm_set1_pd(-0.5),xx);
+const __m128d C0661     = _mm_set1_pd(0.661);
+const __m128d inv2PI    = _mm_set1_pd(0.3989422804014326779399460599344);
+const __m128d exp_val   = _mm_mul_pd(inv2PI,simd_fast_exp_approx_2xf64(C1));
+const __m128d one       = _mm_set1_pd(1.0);
+const __m128d sqrt_term = _mm_mul_pd(C0339,_mm_sqrt_pd(_mm_mul_pd(xx,C5510)));
+const __m128d right_term= _mm_rcp14_pd(_mm_fmadd_pd(C0661,x,sqrt_term));
+return (_mm_mul_pd(exp_val,right_term));
+}
+
 }
 
 }
