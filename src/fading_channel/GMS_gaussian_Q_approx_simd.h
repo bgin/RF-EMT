@@ -1052,6 +1052,60 @@ const __m128d right_term= _mm_rcp14_pd(_mm_fmadd_pd(C0661,x,sqrt_term));
 return (_mm_mul_pd(exp_val,right_term));
 }
 
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=AVX2
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx2")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m256
+gaussian_Q_approx_borjesson_8xf32(const __m256 x)
+{
+const __m256 C0339     = _mm256_set1_ps(0.339f);
+const __m256 xx        = _mm256_mul_ps(x,x);
+const __m256 C5510     = _mm256_set1_ps(5.510f);
+const __m256 C1        = _mm256_mul_ps(_mm256_set1_ps(-0.5f),xx);
+const __m256 C0661     = _mm256_set1_ps(0.661f);
+const __m256 inv2PI    = _mm256_set1_ps(0.3989422804014326779399460599344f);
+const __m256 exp_val   = _mm256_mul_ps(inv2PI,_mm256_exp_ps(C1));
+const __m256 one       = _mm256_set1_ps(1.0f);
+const __m256 sqrt_term = _mm256_mul_ps(C0339,_mm256_sqrt_ps(_mm256_mul_ps(xx,C5510)));
+const __m256 right_term= _mm256_rcp_ps(_mm256_fmadd_ps(C0661,x,sqrt_term));
+return (_mm256_mul_ps(exp_val,right_term));
+}
+
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=AVX2
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx2")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m256d
+gaussian_Q_approx_borjesson_4xf64(const __m256d x)
+{
+const __m256d C0339     = _mm256_set1_pd(0.339);
+const __m256d xx        = _mm256_mul_pd(x,x);
+const __m256d C5510     = _mm256_set1_pd(5.510);
+const __m256d C1        = _mm256_mul_pd(_mm256_set1_pd(-0.5),xx);
+const __m256d C0661     = _mm256_set1_pd(0.661);
+const __m256d inv2PI    = _mm256_set1_pd(0.3989422804014326779399460599344);
+const __m256d exp_val   = _mm256_mul_pd(inv2PI,_mm256_exp_pd(C1));
+const __m256d one       = _mm256_set1_pd(1.0f);
+const __m256d sqrt_term = _mm256_mul_pd(C0339,_mm256_sqrt_pd(_mm256_mul_pd(xx,C5510)));
+const __m256d right_term= _mm256_rcp14_pd(_mm256_fmadd_pd(C0661,x,sqrt_term));
+return (_mm256_mul_pd(exp_val,right_term));
+}
+
 }
 
 }
