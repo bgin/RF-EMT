@@ -886,7 +886,33 @@ return (_mm_fmadd_pd(C1,simd_fast_exp_approx_2xf64(C3),
                                                 _mm_mul_pd(C2,simd_fast_exp_approx_2xf64(C5))))));
 }
 
-
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=AVX2
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx2")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m256
+gaussian_Q_approx_sadhwani_4T_8xf32(const __m256 x)
+{
+const __m256 xx  = _mm256_mul_ps(x,x);
+const __m256 C1  = _mm256_set1_ps(0.0625f);
+const __m256 C2  = _mm256_set1_ps(0.125f);
+const __m256 negxx = _mm256_sub_ps(_mm256_setzero_ps(),xx);
+const __m256 C3  = _mm256_mul_ps(_mm256_set1_ps(-0.5f),xx);
+const __m256 C4  = _mm256_mul_ps(_mm256_set1_ps(-0.33333333333333333333333f),xx);
+const __m256 C5  = _mm256_mul_ps(_mm256_set1_ps(-0.058823529411764705882352941f),xx);
+const __m256 tenxx = _mm256_mul_ps(_mm256_set1_ps(10.0f),xx);
+return (_mm256_fmadd_ps(C1,_mm256_exp_ps(C3),
+                    _mm256_fmadd_ps(C2,_mm256_exp_ps(negxx),
+                                 _mm256_fmadd_ps(C2,_mm256_exp_ps(C4),
+                                                _mm256_mul_ps(C2,_mm256_exp_ps(C5))))));
+}
 
 }
 
