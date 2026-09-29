@@ -830,6 +830,34 @@ return (_mm512_fmadd_pd(C0125,_mm512_exp_pd(negxx),
                            _mm512_mul_pd(C025,_mm512_exp_pd(C05))));
 }
 
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128 
+gaussian_Q_approx_sadhwani_4T_4xf32(const __m128 x)
+{
+const __m128 xx  = _mm_mul_ps(x,x);
+const __m128 C1  = _mm_set1_ps(0.0625f);
+const __m128 C2  = _mm_set1_ps(0.125f);
+const __m128 negxx = _mm_sub_ps(_mm_setzero_ps(),xx);
+const __m128 C3  = _mm_mul_ps(_mm_set1_ps(-0.5f),xx);
+const __m128 C4  = _mm_mul_ps(_mm_set1_ps(-0.33333333333333333333333f),xx);
+const __m128 C5  = _mm_mul_ps(_mm_set1_ps(-0.058823529411764705882352941f),xx);
+const __m128 tenxx = _mm_mul_ps(_mm_set1_ps(10.0f),xx);
+return (_mm_fmadd_ps(C1,simd_fast_exp_approx_4xf32(C3),
+                    _mm_fmadd_ps(C2,simd_fast_exp_approx_4xf32(negxx),
+                                 _mm_fmadd_ps(C2,simd_fast_exp_approx_4xf32(C4),
+                                                _mm_mul_ps(C2,simd_fast_exp_approx_4xf32(C5))))));
+}
+
 }
 
 }
