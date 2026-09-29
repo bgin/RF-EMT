@@ -1106,6 +1106,33 @@ const __m256d right_term= _mm256_rcp14_pd(_mm256_fmadd_pd(C0661,x,sqrt_term));
 return (_mm256_mul_pd(exp_val,right_term));
 }
 
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m512
+gaussian_Q_approx_borjesson_16xf32(const __m512 x)
+{
+const __m512 C0339     = _mm512_set1_ps(0.339f);
+const __m512 xx        = _mm512_mul_ps(x,x);
+const __m512 C5510     = _mm512_set1_ps(5.510f);
+const __m512 C1        = _mm512_mul_ps(_mm512_set1_ps(-0.5f),xx);
+const __m512 C0661     = _mm512_set1_ps(0.661f);
+const __m512 inv2PI    = _mm512_set1_ps(0.3989422804014326779399460599344f);
+const __m512 exp_val   = _mm512_mul_ps(inv2PI,_mm512_exp_ps(C1));
+const __m512 one       = _mm512_set1_ps(1.0f);
+const __m512 sqrt_term = _mm512_mul_ps(C0339,_mm512_sqrt_ps(_mm512_mul_ps(xx,C5510)));
+const __m512 right_term= _mm512_rcp_ps(_mm512_fmadd_ps(C0661,x,sqrt_term));
+return (_mm512_mul_ps(exp_val,right_term));
+}
+
 }
 
 }
