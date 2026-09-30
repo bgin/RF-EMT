@@ -1168,10 +1168,10 @@ return (_mm512_mul_pd(exp_val,right_term));
 #if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
-#pragma intel optimization_parameter target_arch=skylake-avx512
+#pragma intel optimization_parameter target_arch=SSE
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
-#pragma GCC target("avx512")
+#pragma GCC target("sse")
 #endif
 #endif 
 __ATTR_ALWAYS_INLINE__
@@ -1329,10 +1329,10 @@ return (_mm_mul_ps(inv2n,sum));
 #if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
-#pragma intel optimization_parameter target_arch=skylake-avx512
+#pragma intel optimization_parameter target_arch=SSE
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
-#pragma GCC target("avx512")
+#pragma GCC target("sse")
 #endif
 #endif 
 __ATTR_ALWAYS_INLINE__
@@ -1490,10 +1490,10 @@ return (_mm_mul_pd(inv2n,sum));
 #if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
-#pragma intel optimization_parameter target_arch=skylake-avx512
+#pragma intel optimization_parameter target_arch=AVX2
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
-#pragma GCC target("avx512")
+#pragma GCC target("avx2")
 #endif
 #endif 
 __ATTR_ALWAYS_INLINE__
@@ -1651,10 +1651,10 @@ return (_mm256_mul_ps(inv2n,sum));
 #if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
-#pragma intel optimization_parameter target_arch=skylake-avx512
+#pragma intel optimization_parameter target_arch=AVX2
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
-#pragma GCC target("avx512")
+#pragma GCC target("avx2")
 #endif
 #endif 
 __ATTR_ALWAYS_INLINE__
