@@ -274,6 +274,29 @@ COMMON_BODY_FUNC_BLOCK_8XF64(gaussian_Q_approx_chiani_8xf64(b_sub_a),gaussian_Q_
 return (_mm512_mask_blend_pd(is_b_gt_a,br_a_gt_b,br_b_gt_a));
 }
 
+#if (MARCUM_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=SSE
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128 
+marcum_Q_approx_loskot_2T_4xf32(const __m128 mu,const __m128 a,
+                                const __m128 b)
+{
+#if (MARCUM_Q_APPROX_SIMD_HANDLE_ARGS_A_B_EQUALITY) == 1
+const __mmask8 is_a_eq_b = _mm_cmp_ps_mask(a,b,_CMP_EQ_OQ);
+if(__builtin_expect(0xFF==is_a_eq_b,0)) { return (_mm_set1_ps(-1.0));}
+#endif 
+COMMON_BODY_FUNC_BLOCK_4XF32(gaussian_Q_approx_loskot_2T_4xf32(b_sub_a),gaussian_Q_approx_Loskot_2T_4xf32(a_sub_b))
+return (_mm_mask_blend_ps(is_b_gt_a,br_a_gt_b,br_b_gt_a));
+}
+
 
 
 }
