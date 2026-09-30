@@ -56,6 +56,51 @@ namespace gms
 namespace math
 {
 
+
+//__m128 
+//marcum_Q_approx_chiani_4xf32(const __m128 mu,const __m128 a,
+//                             const __m128 b)
+//{
+//#if (MARCUM_Q_APPROX_SIMD_HANDLE_ARGS_A_B_EQUALITY) == 1
+//const __mmask8 is_a_eq_b = _mm_cmp_ps_mask(a,b,_CMP_EQ_OQ);
+//if(__builtin_expect(0xFF==is_a_eq_b,0)) { return (_mm_set1_ps(-1.0));}
+//#endif
+/*
+const __m128   one      = _mm_set1_ps(1.0f);
+const __m128   mu_half  = _mm_sub_ps(mu,_mm_set1_ps(0.5f));
+const __mmask8 is_b_gt_a= _mm_cmp_ps_mask(b,a,_CMP_EQ_OQ);
+const __m128   pow_term = _mm_pow_ps(_mm_div_ps(b,a),mu_half);
+const __m128   b_sub_a  = _mm_sub_ps(b,a);
+const __m128   br_b_gt_a= _mm_mul_ps(pow_term,gaussian_Q_approx_chiani_4xf32(b_sub_a));
+const __m128   a_sub_b  = _mm_sub_ps(a,b);
+const __m128   br_a_gt_b= _mm_sub_ps(one,_mm_mul_ps(pow_term,gaussian_Q_approx_chiani_4xf32(a_sub_b)));
+*/
+
+//COMMON_BODY_FUNC_BLOCK_4XF32(gaussian_Q_approx_chiani_4xf32(b_sub_a),gaussian_Q_approx_chiani_4xf32(a_sub_b))
+//return (_mm_mask_blend_ps(is_b_gt_a,br_a_gt_b,br_b_gt_a));
+//}
+
+#define COMMON_BODY_FUNC_BLOCK_4XF32(name1,name2)\
+    const __m128   one      = _mm_set1_ps(1.0f);\
+    const __m128   mu_half  = _mm_sub_ps(mu,_mm_set1_ps(0.5f));\
+    const __mmask8 is_b_gt_a= _mm_cmp_ps_mask(b,a,_CMP_EQ_OQ);\
+    const __m128   pow_term = _mm_pow_ps(_mm_div_ps(b,a),mu_half);\
+    const __m128   b_sub_a  = _mm_sub_ps(b,a);\
+    const __m128   br_b_gt_a= _mm_mul_ps(pow_term,name1);\
+    const __m128   a_sub_b  = _mm_sub_ps(a,b);\
+    const __m128   br_a_gt_b= _mm_sub_ps(one,_mm_mul_ps(pow_term,name2));
+
+#define COMMON_BODY_FUNC_BLOCK_2XF64(name1,name2)\
+    const __m128d   one      = _mm_set1_pd(1.0);\
+    const __m128d   mu_half  = _mm_sub_pd(mu,_mm_set1_pd(0.5));\
+    const __mmask8  is_b_gt_a= _mm_cmp_pd_mask(b,a,_CMP_EQ_OQ);
+    const __m128d   pow_term = _mm_pow_pd(_mm_div_pd(b,a),mu_half);\
+    const __m128d   b_sub_a  = _mm_sub_pd(b,a);\
+    const __m128d   br_b_gt_a= _mm_mul_pd(pow_term,name1);\
+    const __m128d   a_sub_b  = _mm_sub_pd(a,b);\
+    const __m128d   br_a_gt_b= _mm_sub_pd(one,_mm_mul_ps(pow_term,name2));
+    
+
 #if (MARCUM_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
@@ -75,14 +120,7 @@ marcum_Q_approx_chiani_4xf32(const __m128 mu,const __m128 a,
 const __mmask8 is_a_eq_b = _mm_cmp_ps_mask(a,b,_CMP_EQ_OQ);
 if(__builtin_expect(0xFF==is_a_eq_b,0)) { return (_mm_set1_ps(-1.0));}
 #endif 
-const __m128   one      = _mm_set1_ps(1.0f);
-const __m128   mu_half  = _mm_sub_ps(mu,_mm_set1_ps(0.5f));
-const __mmask8 is_b_gt_a= _mm_cmp_ps_mask(b,a,_CMP_EQ_OQ);
-const __m128   pow_term = _mm_pow_ps(_mm_div_ps(b,a),mu_half);
-const __m128   b_sub_a  = _mm_sub_ps(b,a);
-const __m128   br_b_gt_a= _mm_mul_ps(pow_term,gaussian_Q_approx_chiani_4xf32(b_sub_a));
-const __m128   a_sub_b  = _mm_sub_ps(a,b);
-const __m128   br_a_gt_b= _mm_sub_ps(one,_mm_mul_ps(pow_term,gaussian_Q_approx_chiani_4xf32(a_sub_b)));
+COMMON_BODY_FUNC_BLOCK_4XF32(gaussian_Q_approx_chiani_4xf32(b_sub_a),gaussian_Q_approx_chiani_4xf32(a_sub_b))
 return (_mm_mask_blend_ps(is_b_gt_a,br_a_gt_b,br_b_gt_a));
 }
 
@@ -105,16 +143,11 @@ marcum_Q_approx_chiani_2xf64(const __m128d mu,const __m128d a,
 const __mmask8 is_a_eq_b = _mm_cmp_pd_mask(a,b,_CMP_EQ_OQ);
 if(__builtin_expect(0xFF==is_a_eq_b,0)) { return (_mm_set1_pd(-1.0));}
 #endif 
-const __m128d   one      = _mm_set1_pd(1.0);
-const __m128d   mu_half  = _mm_sub_pd(mu,_mm_set1_pd(0.5));
-const __mmask8  is_b_gt_a= _mm_cmp_pd_mask(b,a,_CMP_EQ_OQ);
-const __m128d   pow_term = _mm_pow_pd(_mm_div_pd(b,a),mu_half);
-const __m128d   b_sub_a  = _mm_sub_pd(b,a);
-const __m128d   br_b_gt_a= _mm_mul_pd(pow_term,gaussian_Q_approx_chiani_2xf64(b_sub_a));
-const __m128d   a_sub_b  = _mm_sub_pd(a,b);
-const __m128d   br_a_gt_b= _mm_sub_pd(one,_mm_mul_ps(pow_term,gaussian_Q_approx_chiani_2xf64(a_sub_b)));
+COMMON_BODY_FUNC_BLOCK_2XF64(gaussian_Q_approx_chiani_2xf64(b_sub_a),gaussian_Q_approx_chiani_2xf64(a_sub_b))
 return (_mm_mask_blend_pd(is_b_gt_a,br_a_gt_b,br_b_gt_a));
 }
+
+
 
 }
 
