@@ -99,7 +99,46 @@ const __m128   br_a_gt_b= _mm_sub_ps(one,_mm_mul_ps(pow_term,gaussian_Q_approx_c
     const __m128d   br_b_gt_a= _mm_mul_pd(pow_term,name1);\
     const __m128d   a_sub_b  = _mm_sub_pd(a,b);\
     const __m128d   br_a_gt_b= _mm_sub_pd(one,_mm_mul_ps(pow_term,name2));
-    
+
+#define COMMON_BODY_FUNC_BLOCK_8XF32(name1,name2)
+    const __m256   one      = _mm256_set1_ps(1.0f);\
+    const __m256   mu_half  = _mm256_sub_ps(mu,_mm256_set1_ps(0.5f));\
+    const __mmask8 is_b_gt_a= _mm256_cmp_ps_mask(b,a,_CMP_EQ_OQ);\
+    const __m256   pow_term = _mm256_pow_ps(_mm256_div_ps(b,a),mu_half);\
+    const __m256   b_sub_a  = _mm256_sub_ps(b,a);\
+    const __m256   br_b_gt_a= _mm256_mul_ps(pow_term,name1);\
+    const __m256   a_sub_b  = _mm256_sub_ps(a,b);\
+    const __m256   br_a_gt_b= _mm256_sub_ps(one,_mm256_mul_ps(pow_term,name2));
+
+#define COMMON_BODY_FUNC_BLOCK_4XF64(name1,name2)\
+    const __m256d   one      = _mm256_set1_pd(1.0);\
+    const __m256d   mu_half  = _mm256_sub_pd(mu,_mm256_set1_pd(0.5));\
+    const __mmask8  is_b_gt_a= _mm256_cmp_pd_mask(b,a,_CMP_EQ_OQ);\
+    const __m256d   pow_term = _mm256_pow_pd(_mm256_div_pd(b,a),mu_half);\
+    const __m256d   b_sub_a  = _mm256_sub_pd(b,a);\
+    const __m256d   br_b_gt_a= _mm256_mul_pd(pow_term,name1);\
+    const __m256d   a_sub_b  = _mm256_sub_pd(a,b);\
+    const __m256d   br_a_gt_b= _mm256_sub_pd(one,_mm256_mul_pd(pow_term,name2));
+
+#define COMMON_BODY_FUNC_BLOCK_16XF32(name1,name2)\
+    const __m512   one      = _mm512_set1_ps(1.0f);\
+    const __m512   mu_half  = _mm512_sub_ps(mu,_mm512_set1_ps(0.5f));\
+    const __mmask16 is_b_gt_a= _mm512_cmp_ps_mask(b,a,_CMP_EQ_OQ);\
+    const __m512   pow_term = _mm512_pow_ps(_mm512_div_ps(b,a),mu_half);\
+    const __m512   b_sub_a  = _mm512_sub_ps(b,a);\
+    const __m512   br_b_gt_a= _mm512_mul_ps(pow_term,name1);\
+    const __m512   a_sub_b  = _mm512_sub_ps(a,b);\
+    const __m512   br_a_gt_b= _mm512_sub_ps(one,_mm512_mul_ps(pow_term,name2)); 
+
+#define COMMON_BODY_FUNC_BLOCK_8XF64(name1,name2)\
+    const __m512d   one      = _mm512_set1_pd(1.0);\
+    const __m512d   mu_half  = _mm512_sub_pd(mu,_mm512_set1_pd(0.5));\
+    const __mmask8 is_b_gt_a= _mm512_cmp_pd_mask(b,a,_CMP_EQ_OQ);\
+    const __m512d   pow_term = _mm512_pow_pd(_mm512_div_pd(b,a),mu_half);\
+    const __m512d   b_sub_a  = _mm512_sub_pd(b,a);\
+    const __m512d   br_b_gt_a= _mm512_mul_pd(pow_term,name1);\
+    const __m512d   a_sub_b  = _mm512_sub_pd(a,b);\
+    const __m512d   br_a_gt_b= _mm512_sub_pd(one,_mm512_mul_pd(pow_term,name2));
 
 #if (MARCUM_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
@@ -146,6 +185,29 @@ if(__builtin_expect(0xFF==is_a_eq_b,0)) { return (_mm_set1_pd(-1.0));}
 COMMON_BODY_FUNC_BLOCK_2XF64(gaussian_Q_approx_chiani_2xf64(b_sub_a),gaussian_Q_approx_chiani_2xf64(a_sub_b))
 return (_mm_mask_blend_pd(is_b_gt_a,br_a_gt_b,br_b_gt_a));
 }
+
+#if (MARCUM_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=AVX2
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx2")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m256 marcum_Q_approx_chiani_8xf32(const __m256 mu,const __m256 a,
+                                    const __m256 b)
+{
+#if (MARCUM_Q_APPROX_SIMD_HANDLE_ARGS_A_B_EQUALITY) == 1
+const __mmask8 is_a_eq_b = _mm256_cmp_ps_mask(a,b,_CMP_EQ_OQ);
+if(__builtin_expect(0xFF==is_a_eq_b,0)) { return (_mm256_set1_ps(-1.0));}
+#endif
+COMMON_BODY_FUNC_BLOCK_8XF32(gaussian_Q_approx_chiani_8xf32(b_sub_a),gaussian_Q_approx_chiani_8xf32(a_sub_b))
+return (_mm256_mask_blend_ps(is_b_gt_a,br_a_gt_b,br_b_gt_a));
+}
+
 
 
 
