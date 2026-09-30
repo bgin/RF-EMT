@@ -24,6 +24,7 @@
 #include "GMS_config.h"
 #include "GMS_fast_simd_funcs_approx.h"
 
+
 namespace file_info 
 {
 
@@ -572,7 +573,7 @@ constexpr const float theta_lut[128] =
    const float xx    = x*x;
    const float C1    = 0.5f;
    float gauss_Q_sum = 0.0f;
-   for(std::int32_t j = 1;j <= n; ++j)  
+   for(std::int32_t j = 0;j < n; ++j)  
    {
       const float theta_lut_val = theta_lut[j];
       const float exp_arg       = -theta_lut_val*xx*C1;
@@ -732,6 +733,57 @@ constexpr const double theta_lut[128] =
    }
    return (inv2n*gauss_Q_sum);
 }
+
+
+#if !defined(GAUSSIAN_Q_APPROX_USE_GAUSSIAN_LEGENDRE_APPROXIMATION)
+#define GAUSSIAN_Q_APPROX_USE_GAUSSIAN_LEGENDRE_APPROXIMATION 0
+
+#if (GAUSSIAN_Q_APPROX_USE_GAUSSIAN_LEGENDRE_APPROXIMATION) == 1
+#include "GMS_gauss_legendre.h"
+
+__ATTR_ALWAYS_INLINE__ 
+static inline 
+double integrand_gauss_Q(const double x)
+{
+    const double exp_arg = 0.5*(x*x);
+    const double exp_val = expapprox_d(-exp_arg);
+    return (0.3989422804014326779399460599344*exp_val);
+}
+
+double integrand_gauss_Q_iface(const double x,void * user_data)
+{
+    return (integrand_gauss_Q(x));
+}
+
+double compute_integrand_gauss_Q(std::int32_t n,double a,double b)                         
+{
+    return (gauss_legendre(n,integrand_gauss_Q_iface,NULL,a,b));
+}
+
+bool compute_gauss_Q_functional(const std::int32_t * __restrict pn,
+                                const double * __restrict__ pa,
+                                const double * __restrict__ pb,
+                                double * __restrict__ pfunctional,
+                                const std::int32_t n_pts)
+{
+    if(__builtin_expect(n_pts<3,0) || __builtin_expect(p_n<1,0)) { return (false);}
+
+    const std::int32_t * __restrict__ ptr_pn = pn;
+    const double       * __restrict__ ptr_pa = pa;
+    const double       * __restrict__ ptr_pb = pb;
+    double             * __restrict__ ptr_pfunctional = pfunctional;
+    for(std::int32_t i = 0; i<n_pts; ++i) 
+    {
+        const std::int32_t n_val = ptr_pn[i];
+        const double       a_val = ptr_pa[i];
+        const double       b_val = ptr_pb[i];
+        const double       gauss_Q_val = gauss_legendre(n_val,integrand_gauss_Q_iface,NULL,a_val,b_val);
+        p_functional[i]          = gauss_Q_val;
+    } 
+    return (true);
+}
+
+#endif 
 
 } //math
 
