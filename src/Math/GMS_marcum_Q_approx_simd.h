@@ -230,6 +230,29 @@ COMMON_BODY_FUNC_BLOCK_4XF64(gaussian_Q_approx_chiani_4xf64(b_sub_a),gaussian_Q_
 return (_mm256_mask_blend_pd(is_b_gt_a,br_a_gt_b,br_b_gt_a));
 }
 
+#if (MARCUM_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m512 marcum_Q_approx_chiani_16xf32(const __m512 mu,const __m512 a,
+                                    const __m512 b)
+{
+#if (MARCUM_Q_APPROX_SIMD_HANDLE_ARGS_A_B_EQUALITY) == 1
+const __mmask16 is_a_eq_b = _mm512_cmp_ps_mask(a,b,_CMP_EQ_OQ);
+if(__builtin_expect(0xFFFF==is_a_eq_b,0)) { return (_mm512_set1_ps(-1.0));}
+#endif
+COMMON_BODY_FUNC_BLOCK_16XF32(gaussian_Q_approx_chiani_16xf32(b_sub_a),gaussian_Q_approx_chiani_16xf32(a_sub_b))
+return (_mm512_mask_blend_ps(is_b_gt_a,br_a_gt_b,br_b_gt_a));
+}
+
+
 
 }
 
