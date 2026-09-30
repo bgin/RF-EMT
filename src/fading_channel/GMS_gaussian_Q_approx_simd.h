@@ -47,6 +47,10 @@ namespace file_info
 #define GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE 0
 #endif
 
+#if !defined(GAUSSIAN_Q_APPROX_SIMD_RECIPROCAL_BY_DIVISION)
+#define GAUSSIAN_Q_APPROX_SIMD_RECIPROCAL_BY_DIVISION 1
+#endif 
+
 namespace gms 
 {
 
@@ -1048,7 +1052,11 @@ const __m128d inv2PI    = _mm_set1_pd(0.3989422804014326779399460599344);
 const __m128d exp_val   = _mm_mul_pd(inv2PI,simd_fast_exp_approx_2xf64(C1));
 const __m128d one       = _mm_set1_pd(1.0);
 const __m128d sqrt_term = _mm_mul_pd(C0339,_mm_sqrt_pd(_mm_mul_pd(xx,C5510)));
+#if (GAUSSIAN_Q_APPROX_SIMD_RECIPROCAL_BY_DIVISION) == 1
+const __m128d right_term= _mm_div_pd(one,_mm_fmadd_pd(C0661,x,sqrt_term));
+#else 
 const __m128d right_term= _mm_rcp14_pd(_mm_fmadd_pd(C0661,x,sqrt_term));
+#endif 
 return (_mm_mul_pd(exp_val,right_term));
 }
 
@@ -1102,7 +1110,11 @@ const __m256d inv2PI    = _mm256_set1_pd(0.3989422804014326779399460599344);
 const __m256d exp_val   = _mm256_mul_pd(inv2PI,_mm256_exp_pd(C1));
 const __m256d one       = _mm256_set1_pd(1.0f);
 const __m256d sqrt_term = _mm256_mul_pd(C0339,_mm256_sqrt_pd(_mm256_mul_pd(xx,C5510)));
+#if (GAUSSIAN_Q_APPROX_SIMD_RECIPROCAL_BY_DIVISION) == 1
+const __m256d right_term= _mm256_div_pd(one,_mm256_fmadd_pd(C0661,x,sqrt_term));
+#else 
 const __m256d right_term= _mm256_rcp14_pd(_mm256_fmadd_pd(C0661,x,sqrt_term));
+#endif 
 return (_mm256_mul_pd(exp_val,right_term));
 }
 
@@ -1156,7 +1168,11 @@ const __m512d inv2PI    = _mm512_set1_pd(0.3989422804014326779399460599344f);
 const __m512d exp_val   = _mm512_mul_pd(inv2PI,_mm512_exp_pd(C1));
 const __m512d one       = _mm512_set1_pd(1.0f);
 const __m512d sqrt_term = _mm512_mul_pd(C0339,_mm512_sqrt_pd(_mm512_mul_pd(xx,C5510)));
+#if (GAUSSIAN_Q_APPROX_SIMD_RECIPROCAL_BY_DIVISION) == 1
+const __m512d right_term= _mm512_div_pd(one,_mm512_fmadd_pd(C0661,x,sqrt_term));
+#else 
 const __m512d right_term= _mm512_rcp14_pd(_mm512_fmadd_pd(C0661,x,sqrt_term));
+#endif 
 return (_mm512_mul_pd(exp_val,right_term));
 }
 
@@ -1473,7 +1489,12 @@ _mm_set1_pd(1.00094182975856194),
 _mm_set1_pd(1.00033892253539203),
 _mm_set1_pd(1.00003765049793447)
 };
+#if (GAUSSIAN_Q_APPROX_SIMD_RECIPROCAL_BY_DIVISION) == 1
+const __m128d one   = _mm_set1_pd(1.0);
+const __m128d inv2n = _mm_div_pd(one,_mm_set1_pd(static_cast<double>(n+n)));
+#else 
 const __m128d inv2n = _mm_rcp14_pd(_mm_set1_pd(static_cast<double>(n+n)));
+#endif 
 const __m128d xx    = _mm_mul_pd(x,x);
 const __m128d C1    = _mm_set1_pd(-0.5f);
 __m128d sum = _mm_setzero_pd();
@@ -1795,7 +1816,12 @@ _mm256_set1_pd(1.00094182975856194),
 _mm256_set1_pd(1.00033892253539203),
 _mm256_set1_pd(1.00003765049793447)
 };
+#if (GAUSSIAN_Q_APPROX_SIMD_RECIPROCAL_BY_DIVISION) == 1
+const __m128d one   = _mm_set1_pd(1.0);
+const __m256d inv2n = _mm256_div_pd(one,_mm256_set1_pd(static_cast<float>(n+n)));
+#else 
 const __m256d inv2n = _mm256_rcp14_pd(_mm256_set1_pd(static_cast<float>(n+n)));
+#endif 
 const __m256d xx    = _mm256_mul_pd(x,x);
 const __m256d C1    = _mm256_set1_pd(-0.5f);
 __m256d sum = _mm256_setzero_pd();
@@ -1807,6 +1833,167 @@ for(std::int32_t j = 0; j<n; ++j)
     sum             = _mm256_add_pd(sum,exp_val); 
 }
 return (_mm256_mul_pd(inv2n,sum));
+}
+
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m512
+gaussian_Q_approx_sadhwani_summed_16xf32(const __m512 x,const std::int32_t n) 
+{
+if (__builtin_expect(n>128,0)) {return (_mm512_set1_ps(-1.0));}
+__ATTR_ALIGN__(64) 
+const __m512 theta_lut[128] = 
+{
+_mm512_set1_ps(26561.07370058031301596),
+_mm512_set1_ps(2951.52672978394593883),
+_mm512_set1_ps(1062.76301068144402961),
+_mm512_set1_ps(542.38938216885594557),
+_mm512_set1_ps(328.24391161267163852),
+_mm512_set1_ps(219.84388820771997075),
+_mm512_set1_ps(157.49790211713116150),
+_mm512_set1_ps(118.38163379128440056),
+_mm512_set1_ps(92.23973597198599350),
+_mm512_set1_ps(73.90969946516314337),
+_mm512_set1_ps(60.56287935539454281),
+_mm512_set1_ps(50.54400438065793111),
+_mm512_set1_ps(42.83209252697486136),
+_mm512_set1_ps(36.76965720093080847),
+_mm512_set1_ps(31.91778586717441257),
+_mm512_set1_ps(27.97440695989148551),
+_mm512_set1_ps(24.72611246534243534),
+_mm512_set1_ps(22.01866773467314076),
+_mm512_set1_ps(19.73836125017757581),
+_mm512_set1_ps(17.79986866518916599),
+_mm512_set1_ps(16.13815476591664932),
+_mm512_set1_ps(14.70294783067476274),
+_mm512_set1_ps(13.45489318988675542),
+_mm512_set1_ps(12.36282713537543643),
+_mm512_set1_ps(11.40181318331400817),
+_mm512_set1_ps(10.55170643021994792),
+_mm512_set1_ps(9.79608972017488178),
+_mm512_set1_ps(9.12147551075540264),
+_mm512_set1_ps(8.51670021771579755),
+_mm512_set1_ps(7.97245976035782089),
+_mm512_set1_ps(7.48094990150482975),
+_mm512_set1_ps(7.03558520545476096),
+_mm512_set1_ps(6.63077757000577961),
+_mm512_set1_ps(6.26176032547270278),
+_mm512_set1_ps(5.92444749260821357),
+_mm512_set1_ps(5.61532039144371531),
+_mm512_set1_ps(5.33133569098266236),
+_mm512_set1_ps(5.06985038851206493),
+_mm512_set1_ps(4.82856024770480818),
+_mm512_set1_ps(4.60544900516174227),
+_mm512_set1_ps(4.39874624527744107),
+_mm512_set1_ps(4.20689229309963242),
+_mm512_set1_ps(4.02850882009587341),
+_mm512_set1_ps(3.86237412456220319),
+_mm512_set1_ps(3.70740225596646766),
+_mm512_set1_ps(3.56262531497762280),
+_mm512_set1_ps(3.42717838884132009),
+_mm512_set1_ps(3.30028668303544404),
+_mm512_set1_ps(3.18125449075313638),
+_mm512_set1_ps(3.06945570625878084),
+_mm512_set1_ps(2.96432564001850762),
+_mm512_set1_ps(2.86535393539436001),
+_mm512_set1_ps(2.77207842067833932),
+_mm512_set1_ps(2.68407975793799203),
+_mm512_set1_ps(2.60097677280667572),
+_mm512_set1_ps(2.52242236796785813),
+_mm512_set1_ps(2.44809993843393503),
+_mm512_set1_ps(2.37772021942528200),
+_mm512_set1_ps(2.31101850820766996),
+_mm512_set1_ps(2.24775221004035153),
+_mm512_set1_ps(2.18769866574001037),
+_mm512_set1_ps(2.13065322453304118),
+_mm512_set1_ps(2.07642753105719757),
+_mm512_set1_ps(2.02484799975171637),
+_mm512_set1_ps(1.97575445357971491),
+_mm512_set1_ps(1.92899890717015055),
+_mm512_set1_ps(1.88444447714107866),
+_mm512_set1_ps(1.84196440464714883),
+_mm512_set1_ps(1.80144117714498853),
+_mm512_set1_ps(1.76276573804219461),
+_mm512_set1_ps(1.72583677433227445),
+_mm512_set1_ps(1.69056007355504945),
+_mm512_set1_ps(1.65684794248971023),
+_mm512_set1_ps(1.62461868091121531),
+_mm512_set1_ps(1.59379610454104137),
+_mm512_set1_ps(1.56430911201842116),
+_mm512_set1_ps(1.53609129132299893),
+_mm512_set1_ps(1.50908056160717741),
+_mm512_set1_ps(1.48321884685699712),
+_mm512_set1_ps(1.45845177820343341),
+_mm512_set1_ps(1.43472842205929152),
+_mm512_set1_ps(1.41200103156710211),
+_mm512_set1_ps(1.39022481911630291),
+_mm512_set1_ps(1.36935774792838338),
+_mm512_set1_ps(1.34936034092082524),
+_mm512_set1_ps(1.33019550524813823),
+_mm512_set1_ps(1.31182837108428330),
+_mm512_set1_ps(1.29422614335786368),
+_mm512_set1_ps(1.27735796528209100),
+_mm512_set1_ps(1.26119479263764811),
+_mm512_set1_ps(1.24570927786994146),
+_mm512_set1_ps(1.23087566315441310),
+_mm512_set1_ps(1.21666968166584666),
+_mm512_set1_ps(1.20306846636115816),
+_mm512_set1_ps(1.19005046565099137),
+_mm512_set1_ps(1.17759536539444132),
+_mm512_set1_ps(1.16568401670416888),
+_mm512_set1_ps(1.15429836909675965),
+_mm512_set1_ps(1.14342140856596108),
+_mm512_set1_ps(1.13303710019499548),
+_mm512_set1_ps(1.12313033495892256),
+_mm512_set1_ps(1.11368688039941000),
+_mm512_set1_ps(1.10469333488267329),
+_mm512_set1_ps(1.09613708517704822),
+_mm512_set1_ps(1.08800626710994641),
+_mm512_set1_ps(1.08028972908511101),
+_mm512_set1_ps(1.07297699826029014),
+_mm512_set1_ps(1.06605824920296688),
+_mm512_set1_ps(1.05952427485770095),
+_mm512_set1_ps(1.05336645967322906),
+_mm512_set1_ps(1.04757675475074774),
+_mm512_set1_ps(1.04214765488702521),
+_mm512_set1_ps(1.03707217739714941),
+_mm512_set1_ps(1.03234384261201928),
+_mm512_set1_ps(1.02795665595514785),
+_mm512_set1_ps(1.02390509151210085),
+_mm512_set1_ps(1.02018407701397673),
+_mm512_set1_ps(1.01678898016385832),
+_mm512_set1_ps(1.01371559624214091),
+_mm512_set1_ps(1.01096013693317843),
+_mm512_set1_ps(1.00851922032179320),
+_mm512_set1_ps(1.00638986201394287),
+_mm512_set1_ps(1.00456946734126218),
+_mm512_set1_ps(1.00305582461434328),
+_mm512_set1_ps(1.00184709939451322),
+_mm512_set1_ps(1.00094182975856194),
+_mm512_set1_ps(1.00033892253539203),
+_mm512_set1_ps(1.00003765049793447)
+};
+const __m512 inv2n = _mm512_rcp_ps(_mm512_set1_ps(static_cast<float>(n+n)));
+const __m512 xx    = _mm512_mul_ps(x,x);
+const __m512 C1    = _mm512_set1_ps(-0.5f);
+__m512 sum = _mm512_setzero_ps();
+for(std::int32_t j = 0; j<n; ++j)  
+{
+    __m512 xmm0    = theta_lut[j];
+    __m512 exp_arg = _mm512_mul_ps(C1,_mm512_mul_ps(xx,xmm0));
+    __m512 exp_val = _mm512_exp_ps(exp_arg);
+    sum            = _mm512_add_ps(sum,exp_val); 
+}
+return (_mm512_mul_ps(inv2n,sum));
 }
 
 
