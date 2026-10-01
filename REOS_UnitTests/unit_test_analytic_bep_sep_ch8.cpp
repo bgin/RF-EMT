@@ -467,7 +467,7 @@ void unit_test_MSK_param_b2_8_65(const T lo1,const T hi1,
     return (ret_state);
  }
 
-#define DOUBLE_FUNC_BODY_BLOCK(name1,name2,name3,name4,name5,name6,name7,name8)\
+#define DOUBLE_FUNC_BODY_BLOCK(name1,name2,name3,name4,name5,name6,name7,name8,name9)\
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!\n",__func__);\
     const double sep_mam_1 = (name1);\
     if(is_number_subnormal<double>(sep_mam_1))\
@@ -525,9 +525,16 @@ void unit_test_MSK_param_b2_8_65(const T lo1,const T hi1,
     }\
     printf_ret = print_double("sep_mam_8",sep_mam_8,0);\
     printf_ret = std::printf("===========================================================\n");\
+    const double sep_mam_9 = (name9);\
+    if(is_number_subnormal<double>(sep_mam_9))\
+    {\
+        printf_ret = std::printf("[UNIT-TEST]: detected subnormal in: %s, of value=%.17f\n",__func__,sep_mam_9);\
+    }\
+    printf_ret = print_double("sep_mam_9",sep_mam_9,0);\
+    printf_ret = std::printf("===========================================================\n");\
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n\n",__func__);
 
-#define FLOAT_FUNC_BODY_BLOCK(name1,name2,name3,name4,name5,name6,name7,name8)\
+#define FLOAT_FUNC_BODY_BLOCK(name1,name2,name3,name4,name5,name6,name7,name8,name9)\
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- STARTED!!\n",__func__);\
     const float sep_mam_1 = (name1);\
     if(is_number_subnormal<float>(sep_mam_1))\
@@ -585,6 +592,13 @@ void unit_test_MSK_param_b2_8_65(const T lo1,const T hi1,
     }\
     printf_ret = print_float("sep_mam_8",sep_mam_8,0);\
     printf_ret = std::printf("===========================================================\n");\
+    const float sep_mam_9 = (name9);\
+    if(is_number_subnormal<float>(sep_mam_9))\
+    {\
+        printf_ret = std::printf("[UNIT-TEST]: detected subnormal in: %s, of value=%.7f\n",__func__,sep_mam_9);\
+    }\
+    printf_ret = print_float("sep_mam_9",sep_mam_9,0);\
+    printf_ret = std::printf("===========================================================\n");\
     printf_ret = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED!!\n\n",__func__);
 
 __attribute__((aligned(32)))
@@ -603,7 +617,8 @@ void unit_test_analytic_SEP_MAM_8_1(const double M,const std::int32_t n)
                            gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_2T>(rv_Ac,Ts,M,rv_N0,n),
                            gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T>(rv_Ac,Ts,M,rv_N0,n),
                            gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson>(rv_Ac,Ts,M,rv_N0,n),
-                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed>(rv_Ac,Ts,M,rv_N0,n))
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_karagiannidis_lioumpas>(rv_Ac,Ts,M,rv_N0,n))
                            
 }
 
@@ -614,8 +629,8 @@ void unit_test_analytic_SEP_MAM_8_1(const float M,const std::int32_t n)
 {
     constexpr double Ts = 0.000001f;
     [[maybe_unused]] std::int32_t printf_ret{};
-    const float rv_Ac = g_rv_Ac_arg.operator()(g_rv_Ac_arg_gen);
-    const float rv_N0 = g_rv_N0_arg.operator()(g_rv_N0_arg_gen);
+    const float rv_Ac = g_rv_Ac_arg_f.operator()(g_rv_Ac_arg_gen_f);
+    const float rv_N0 = g_rv_N0_arg_f.operator()(g_rv_N0_arg_gen_f);
     FLOAT_FUNC_BODY_BLOCK(gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_chiani>(rv_Ac,Ts,M,rv_N0,n),
                            gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_2T>(rv_Ac,Ts,M,rv_N0,n),
                            gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_3T>(rv_Ac,Ts,M,rv_N0,n),
@@ -623,7 +638,8 @@ void unit_test_analytic_SEP_MAM_8_1(const float M,const std::int32_t n)
                            gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_2T>(rv_Ac,Ts,M,rv_N0,n),
                            gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T>(rv_Ac,Ts,M,rv_N0,n),
                            gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson>(rv_Ac,Ts,M,rv_N0,n),
-                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed>(rv_Ac,Ts,M,rv_N0,n))
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_karagiannidis_lioumpas>(rv_Ac,Ts,M,rv_N0,n))
 
 }
 
@@ -636,14 +652,15 @@ void unit_test_analytic_SEP_MAM_8_3(const double M,const std::int32_t n)
     [[maybe_unused]] std::int32_t printf_ret{};
     const double rv_Ac = g_rv_Ac_arg.operator()(g_rv_Ac_arg_gen);
     const double rv_N0 = g_rv_N0_arg.operator()(g_rv_N0_arg_gen);
-    DOUBLE_FUNC_BODY_BLOCK(gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_chiani>(rv_Ac,Ts,M,rv_N0,n),
-                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_2T>(rv_Ac,Ts,M,rv_N0,n),
-                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_3T>(rv_Ac,Ts,M,rv_N0,n),
-                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_1T>(rv_Ac,Ts,M,rv_N0,n),
-                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_2T>(rv_Ac,Ts,M,rv_N0,n),
-                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T>(rv_Ac,Ts,M,rv_N0,n),
-                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson>(rv_Ac,Ts,M,rv_N0,n),
-                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed>(rv_Ac,Ts,M,rv_N0,n))
+    DOUBLE_FUNC_BODY_BLOCK(gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_chiani>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_2T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_3T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_1T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_2T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_karagiannidis_lioumpas>(rv_Ac,Ts,M,rv_N0,n))
                            
 }
 
@@ -652,20 +669,65 @@ void unit_test_analytic_SEP_MAM_8_3(const float,const std::int32_t);
  
 void unit_test_analytic_SEP_MAM_8_3(const float M,const std::int32_t n)      
 {
-    constexpr double Ts = 0.000001f;
+    constexpr float Ts = 0.000001f;
     [[maybe_unused]] std::int32_t printf_ret{};
-    const float rv_Ac = g_rv_Ac_arg.operator()(g_rv_Ac_arg_gen);
-    const float rv_N0 = g_rv_N0_arg.operator()(g_rv_N0_arg_gen);
-    FLOAT_FUNC_BODY_BLOCK(gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_chiani>(rv_Ac,Ts,M,rv_N0,n),
-                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_2T>(rv_Ac,Ts,M,rv_N0,n),
-                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_3T>(rv_Ac,Ts,M,rv_N0,n),
-                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_1T>(rv_Ac,Ts,M,rv_N0,n),
-                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_2T>(rv_Ac,Ts,M,rv_N0,n),
-                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T>(rv_Ac,Ts,M,rv_N0,n),
-                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson>(rv_Ac,Ts,M,rv_N0,n),
-                           gms::fading_channel::analytic_SEP_MAM_8_1<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed>(rv_Ac,Ts,M,rv_N0,n))
+    const float rv_Ac = g_rv_Ac_arg_f.operator()(g_rv_Ac_arg_gen_f);
+    const float rv_N0 = g_rv_N0_arg_f.operator()(g_rv_N0_arg_gen_f);
+    FLOAT_FUNC_BODY_BLOCK(gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_chiani>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_2T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_3T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_1T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_2T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_SEP_MAM_8_3<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_karagiannidis_lioumpas>(rv_Ac,Ts,M,rv_N0,n))
 
 }
+
+
+__attribute__((aligned(32)))
+void unit_test_analytic_BEP_MAM2_8_4(const double,const std::int32_t);
+ 
+void unit_test_analytic_BEP_MAM2_8_4(const double M,const std::int32_t n)      
+{
+    constexpr double Ts = 0.000001;
+    [[maybe_unused]] std::int32_t printf_ret{};
+    const double rv_Ac = g_rv_Ac_arg.operator()(g_rv_Ac_arg_gen);
+    const double rv_N0 = g_rv_N0_arg.operator()(g_rv_N0_arg_gen);
+    DOUBLE_FUNC_BODY_BLOCK(gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_chiani>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_2T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_3T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_1T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_2T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_karagiannidis_lioumpas>(rv_Ac,Ts,M,rv_N0,n))
+
+}
+
+__attribute__((aligned(32)))
+void unit_test_analytic_BEP_MAM2_8_4(const float,const std::int32_t);
+ 
+void unit_test_analytic_BEP_MAM2_8_4(const float M,const std::int32_t n)      
+{
+    constexpr float Ts = 0.000001f;
+    [[maybe_unused]] std::int32_t printf_ret{};
+    const float rv_Ac = g_rv_Ac_arg_f.operator()(g_rv_Ac_arg_gen_f);
+    const float rv_N0 = g_rv_N0_arg_f.operator()(g_rv_N0_arg_gen_f);
+    FLOAT_FUNC_BODY_BLOCK(gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_chiani>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_2T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_loskot_3T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_1T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_2T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_4T>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_borjesson>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_sadhwani_summed>(rv_Ac,Ts,M,rv_N0,n),
+                           gms::fading_channel::analytic_BEP_MAM2_8_4<gms::fading_channel::Gaussian_Q_approxmations_t::Gaussian_Q_approx_karagiannidis_lioumpas>(rv_Ac,Ts,M,rv_N0,n))
+
+}
+
 
 int main()
 {
@@ -700,5 +762,8 @@ int main()
    (void)unit_test_analytic_SEP_MAM_8_1(32.0f,128);
    (void)unit_test_analytic_SEP_MAM_8_3(32.0,128);
    (void)unit_test_analytic_SEP_MAM_8_3(32.0f,128);
+   (void)unit_test_analytic_BEP_MAM2_8_4(32.0,128);
+   (void)unit_test_analytic_BEP_MAM2_8_4(32.0f,128);
+
    return (0);
 }
