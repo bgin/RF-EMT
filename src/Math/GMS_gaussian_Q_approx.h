@@ -740,6 +740,7 @@ __ATTR_ALWAYS_INLINE__
 static inline
 double gaussian_Q_approx_karagiannidis_lioumpas(const double x)
 {
+    if(__builtin_expect(0.0==x,0)) {return (std::numeric_limits<double>::quiet_NaN());}
     constexpr double a       = 1.98;
     constexpr double b       = 1.135;
     constexpr double sqrt2PI = 2.506628274631000502415765284811; 
