@@ -2251,6 +2251,34 @@ const __m256 exp_val2= _mm256_exp_ps(_mm256_sub_ps(_mm256_setzero_ps(),xx));
 return (_mm256_div_ps(_mm256_mul_ps(exp_val1,exp_val2),den));
 }
 
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=avx2
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx2")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m256d
+gaussian_Q_approx_karagiannidis_lioumpas_4xf64(const __m256d x)
+{
+if(__builtin_expect(_mm256_cmp_pd_mask(x,_mm256_setzero_pd(),_CMP_EQ_OQ),0))
+{
+   return _mm256_set1_pd(std::numeric_limits<double>::quiet_NaN());
+}
+const __m256d a       = _mm256_mul_pd(x,_mm256_set1_pd(-1.98));
+const __m256d xx      = _mm256_mul_pd(x,x);
+const __m256d sqrt2PI = _mm256_set1_pd(2.506628274631000502415765284811);
+const __m256d halfxx  = _mm256_mul_pd(_mm256_set1_pd(0.5),xx);
+const __m256d den     = _mm256_mul_pd(_mm256_set1_pd(1.135,_mm256_mul_pd(x,sqrt2PI)));
+const __m256d exp_val1= _mm256_mul_pd(_mm256_set1_pd(1.0),_mm256_exp_pd(_mm256_mul_pd(a,x)));
+const __m256d exp_val2= _mm256_exp_pd(_mm256_sub_pd(_mm256_setzero_pd(),xx));
+return (_mm256_div_pd(_mm256_mul_pd(exp_val1,exp_val2),den));
+}
+
 }
 }
 #endif /*__GMS_GAUSSIAN_Q_APPROX_SIMD_H__*/
