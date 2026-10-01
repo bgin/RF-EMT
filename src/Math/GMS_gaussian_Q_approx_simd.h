@@ -2279,6 +2279,62 @@ const __m256d exp_val2= _mm256_exp_pd(_mm256_sub_pd(_mm256_setzero_pd(),xx));
 return (_mm256_div_pd(_mm256_mul_pd(exp_val1,exp_val2),den));
 }
 
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m512
+gaussian_Q_approx_karagiannidis_lioumpas_16xf32(const __m512 x)
+{
+if(__builtin_expect(_mm512_cmp_ps_mask(x,_mm512_setzero_ps(),_CMP_EQ_OQ),0))
+{
+   return _mm512_set1_ps(std::numeric_limits<float>::quiet_NaN());
+}
+const __m512 a       = _mm512_mul_ps(x,_mm512_set1_ps(-1.98f));
+const __m512 xx      = _mm512_mul_ps(x,x);
+const __m512 sqrt2PI = _mm512_set1_ps(2.506628274631000502415765284811f);
+const __m512 halfxx  = _mm512_mul_ps(_mm512_set1_ps(0.5f),xx);
+const __m512 den     = _mm512_mul_ps(_mm512_set1_ps(1.135f,_mm512_mul_ps(x,sqrt2PI)));
+const __m512 exp_val1= _mm512_mul_ps(_mm512_set1_ps(1.0),_mm512_exp_ps(_mm512_mul_ps(a,x)));
+const __m512 exp_val2= _mm512_exp_ps(_mm512_sub_ps(_mm512_setzero_ps(),xx));
+return (_mm512_div_ps(_mm512_mul_ps(exp_val1,exp_val2),den));
+}
+
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=skylake-avx512
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx512")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m512d
+gaussian_Q_approx_karagiannidis_lioumpas_8xf64(const __m512d x)
+{
+if(__builtin_expect(_mm512_cmp_pd_mask(x,_mm512_setzero_pd(),_CMP_EQ_OQ),0))
+{
+   return _mm512_set1_pd(std::numeric_limits<double>::quiet_NaN());
+}
+const __m512d a       = _mm512_mul_pd(x,_mm512_set1_pd(-1.98));
+const __m512d xx      = _mm512_mul_pd(x,x);
+const __m512d sqrt2PI = _mm512_set1_pd(2.506628274631000502415765284811);
+const __m512d halfxx  = _mm512_mul_pd(_mm512_set1_pd(0.5),xx);
+const __m512d den     = _mm512_mul_pd(_mm512_set1_pd(1.135,_mm512_mul_pd(x,sqrt2PI)));
+const __m512d exp_val1= _mm512_mul_pd(_mm512_set1_pd(1.0),_mm512_exp_pd(_mm512_mul_pd(a,x)));
+const __m512d exp_val2= _mm512_exp_pd(_mm512_sub_pd(_mm512_setzero_pd(),xx));
+return (_mm512_div_pd(_mm512_mul_pd(exp_val1,exp_val2),den));
+}
+
 }
 }
 #endif /*__GMS_GAUSSIAN_Q_APPROX_SIMD_H__*/
