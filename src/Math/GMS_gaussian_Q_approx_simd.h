@@ -2211,7 +2211,7 @@ gaussian_Q_approx_karagiannidis_lioumpas_2xf64(const __m128d x)
 {
 if(__builtin_expect(_mm_cmp_pd_mask(x,_mm_setzero_pd(),_CMP_EQ_OQ),0))
 {
-   return (_mm_set1_pd(std::numeric_limits<double>::quiet_NaN());)
+   return _mm_set1_pd(std::numeric_limits<double>::quiet_NaN());
 }
 const __m128d a       = _mm_mul_pd(x,_mm_set1_pd(-1.98));
 const __m128d xx      = _mm_mul_pd(x,x);
@@ -2221,6 +2221,34 @@ const __m128d den     = _mm_mul_pd(_mm_set1_pd(1.135,_mm_mul_pd(x,sqrt2PI)));
 const __m128d exp_val1= _mm_mul_pd(_mm_set1_pd(1.0),simd_fast_exp_approx_2xf64(_mm_mul_pd(a,x)));
 const __m128d exp_val2= simd_fast_exp_approx_2xf64(_mm_sub_pd(_mm_setzero_pd(),xx));
 return (_mm_div_pd(_mm_mul_pd(exp_val1,exp_val2),den));
+}
+
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=avx2
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("avx2")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m256
+gaussian_Q_approx_karagiannidis_lioumpas_8xf32(const __m256 x)
+{
+if(__builtin_expect(_mm256_cmp_ps_mask(x,_mm256_setzero_ps(),_CMP_EQ_OQ),0))
+{
+   return _mm256_set1_ps(std::numeric_limits<float>::quiet_NaN());
+}
+const __m256 a       = _mm256_mul_ps(x,_mm256_set1_ps(-1.98f));
+const __m256 xx      = _mm256_mul_ps(x,x);
+const __m256 sqrt2PI = _mm256_set1_ps(2.506628274631000502415765284811f);
+const __m256 halfxx  = _mm256_mul_ps(_mm256_set1_ps(0.5f),xx);
+const __m256 den     = _mm256_mul_ps(_mm256_set1_ps(1.135f,_mm256_mul_ps(x,sqrt2PI)));
+const __m256 exp_val1= _mm256_mul_ps(_mm256_set1_ps(1.0),_mm256_exp_ps(_mm256_mul_ps(a,x)));
+const __m256 exp_val2= _mm256_exp_ps(_mm256_sub_ps(_mm256_setzero_ps(),xx));
+return (_mm256_div_ps(_mm256_mul_ps(exp_val1,exp_val2),den));
 }
 
 }
