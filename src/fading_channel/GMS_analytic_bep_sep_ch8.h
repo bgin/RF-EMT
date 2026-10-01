@@ -37,9 +37,10 @@ namespace file_info
      static const unsigned int GMS_ANALYTIC_BEP_SEP_CH8_FULLVER =
        1000U*GMS_ANALYTIC_BEP_SEP_CH8_MAJOR+100U*GMS_ANALYTIC_BEP_SEP_CH8_MINOR+
        10U*GMS_ANALYTIC_BEP_SEP_CH8_MICRO;
-     static const char GMS_ANALYTIC_BEP_SEP_CH8_CREATION_DATE[] = "18-09-2026 06:19AM +00200 (FRI 18 AUG 2026 GMT+2)";
+     static const char GMS_ANALYTIC_BEP_SEP_CH8_CREATION_DATE[] = "18-09-2026 06:19AM +00200 (FRI 18 SEP 2026 GMT+2)";
      static const char GMS_ANALYTIC_BEP_SEP_CH8_BUILD_DATE[]    = __DATE__; 
      static const char GMS_ANALYTIC_BEP_SEP_CH8_BUILD_TIME[]    = __TIME__;
+     static const char GMS_ANALYTIC_BEP_SEP_CH8_AUTHOR[]        = "Programmer: Bernard Gingold, beniekg@gmail.com";
      static const char GMS_ANALYTIC_BEP_SEP_CH8_SYNOPSIS[]      = "Analytic Formulae of the Bit and Symbol Error Probabilities based on the approximated Gaussian-Q function.\
 	                                                          Based on the chapter 8 of M.K Simon, M.S. Alouini: Digital Communication over Fading Channels 1st ed\
 															  ISBN-13 978-0471317791";
