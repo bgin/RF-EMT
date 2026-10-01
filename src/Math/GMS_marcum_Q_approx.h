@@ -376,7 +376,22 @@ float marcum_Q_approx_sadhwani_summed(const float mu,const float a, const float 
     } 
 }
 
-
+/*Using Karagiannidis-Loumpas approximation*/
+__ATTR_ALWAYS_INLINE__
+static inline
+float marcum_Q_approx_karagiannidis_lioumpas(const float mu,const float a, 
+                                             const float b)
+{
+    const float pow_term = std::pow(b/a,mu-0.5f);
+    if(b>a)  
+    {
+       return (pow_term*gaussian_Q_approx_karagiannidis_lioumpas(b-a));
+    }
+    else if(a>b)
+    {
+       return (1.0f-pow_term*gaussian_Q_approx_karagiannidis_lioumpas(a-b));    
+    }
+}
 
 }
 
