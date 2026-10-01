@@ -2167,8 +2167,62 @@ for(std::int32_t j = 0; j<n; ++j)
 return (_mm512_mul_pd(inv2n,sum));
 }
 
-
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128 
+gaussian_Q_approx_karagiannidis_lioumpas_4xf32(const __m128 x)
+{
+if(__builtin_expect(_mm_cmp_ps_mask(x,_mm_setzero_ps(),_CMP_EQ_OQ),0))
+{
+   return (_mm_set1_ps(std::numeric_limits<float>::quiet_NaN());)
+}
+const __m128 a       = _mm_mul_ps(x,_mm_set1_ps(-1.98f));
+const __m128 xx      = _mm_mul_ps(x,x);
+const __m128 sqrt2PI = _mm_set1_ps(2.506628274631000502415765284811f);
+const __m128 halfxx  = _mm_mul_ps(_mm_set1_ps(0.5f),xx);
+const __m128 den     = _mm_mul_ps(_mm_set1_ps(1.135f,_mm_mul_ps(x,sqrt2PI)));
+const __m128 exp_val1= _mm_mul_ps(_mm_set1_ps(1.0),simd_fast_exp_approx_4xf32(_mm_mul_ps(a,x)));
+const __m128 exp_val2= simd_fast_exp_approx_4xf32(_mm_sub_ps(_mm_setzero_ps(),xx));
+return (_mm_div_ps(_mm_mul_ps(exp_val1,exp_val2),den));
 }
 
+#if (GAUSSIAN_Q_APPROX_SIMD_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__ATTR_ALWAYS_INLINE__
+static inline
+__m128d 
+gaussian_Q_approx_karagiannidis_lioumpas_2xf64(const __m128d x)
+{
+if(__builtin_expect(_mm_cmp_pd_mask(x,_mm_setzero_pd(),_CMP_EQ_OQ),0))
+{
+   return (_mm_set1_pd(std::numeric_limits<double>::quiet_NaN());)
+}
+const __m128d a       = _mm_mul_pd(x,_mm_set1_pd(-1.98));
+const __m128d xx      = _mm_mul_pd(x,x);
+const __m128d sqrt2PI = _mm_set1_pd(2.506628274631000502415765284811);
+const __m128d halfxx  = _mm_mul_pd(_mm_set1_pd(0.5),xx);
+const __m128d den     = _mm_mul_pd(_mm_set1_pd(1.135,_mm_mul_pd(x,sqrt2PI)));
+const __m128d exp_val1= _mm_mul_pd(_mm_set1_pd(1.0),simd_fast_exp_approx_2xf64(_mm_mul_pd(a,x)));
+const __m128d exp_val2= simd_fast_exp_approx_2xf64(_mm_sub_pd(_mm_setzero_pd(),xx));
+return (_mm_div_pd(_mm_mul_pd(exp_val1,exp_val2),den));
+}
+
+}
 }
 #endif /*__GMS_GAUSSIAN_Q_APPROX_SIMD_H__*/
