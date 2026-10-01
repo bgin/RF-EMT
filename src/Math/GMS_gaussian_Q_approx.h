@@ -43,7 +43,9 @@ namespace file_info
 
 }
 
-
+#if !defined(GAUSSIAN_Q_APPROX_USE_GAUSSIAN_LEGENDRE_APPROXIMATION)
+#define GAUSSIAN_Q_APPROX_USE_GAUSSIAN_LEGENDRE_APPROXIMATION 0
+#endif
 
 namespace gms 
 {
@@ -734,9 +736,22 @@ constexpr const double theta_lut[128] =
    return (inv2n*gauss_Q_sum);
 }
 
+__ATTR_ALWAYS_INLINE__
+static inline
+double gaussian_Q_approx_karagiannidis_lioumpas(const double x)
+{
+    constexpr double a       = 1.98;
+    constexpr double b       = 1.135;
+    constexpr double sqrt2PI = 2.506628274631000502415765284811; 
+    const double     xx      = 0.5*(x*x);
+    const double exp_val2    = 1.0-expapprox_d(-a*x);
+    const double     den     = b*x*sqrt2PI;
+    const double exp_val1    = expapprox_d(-xx);
+    return ((exp_val2*exp_val1)/den);
+}
 
-#if !defined(GAUSSIAN_Q_APPROX_USE_GAUSSIAN_LEGENDRE_APPROXIMATION)
-#define GAUSSIAN_Q_APPROX_USE_GAUSSIAN_LEGENDRE_APPROXIMATION 0
+
+ 
 
 #if (GAUSSIAN_Q_APPROX_USE_GAUSSIAN_LEGENDRE_APPROXIMATION) == 1
 #include "GMS_gauss_legendre.h"
