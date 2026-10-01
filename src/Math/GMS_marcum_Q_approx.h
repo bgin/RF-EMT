@@ -61,6 +61,7 @@ __ATTR_ALWAYS_INLINE__
 static inline
 double marcum_Q_approx_chiani(const double mu,const double a, const double b)
 {
+   
     const double pow_term = std::pow(b/a,mu-0.5);
     if(b>a)
     {  
@@ -202,6 +203,23 @@ double marcum_Q_approx_sadhwani_summed(const double mu,const double a, const dou
     else if(a>b)
     {
        return (1.0-pow_term*gaussian_Q_approx_sadhwani_summed(a-b,n));    
+    }
+}
+
+/*Using Karagiannidis-Loumpas approximation*/
+__ATTR_ALWAYS_INLINE__
+static inline
+double marcum_Q_approx_karagiannidis_lioumpas(const double mu,const double a, 
+                                             const double b)
+{
+    const double pow_term = std::pow(b/a,mu-0.5);
+    if(b>a)  
+    {
+       return (pow_term*gaussian_Q_approx_karagiannidis_lioumpas(b-a));
+    }
+    else if(a>b)
+    {
+       return (1.0-pow_term*gaussian_Q_approx_karagiannidis_lioumpas(a-b));    
     }
 }
 
@@ -357,6 +375,8 @@ float marcum_Q_approx_sadhwani_summed(const float mu,const float a, const float 
        return (1.0-pow_term*gaussian_Q_approx_sadhwani_summed(a-b,n));   
     } 
 }
+
+
 
 }
 
