@@ -751,6 +751,20 @@ double gaussian_Q_approx_karagiannidis_lioumpas(const double x)
     return ((exp_val2*exp_val1)/den);
 }
 
+__ATTR_ALWAYS_INLINE__
+static inline
+float gaussian_Q_approx_karagiannidis_lioumpas(const float x)
+{
+    if(__builtin_expect(0.0f==x,0)) {return (std::numeric_limits<float>::quiet_NaN());}
+    constexpr float a        = 1.98f;
+    constexpr float b        = 1.135f;
+    constexpr float sqrt2PI = 2.506628274631000502415765284811f; 
+    const float     xx      = 0.5f*(x*x);
+    const float exp_val2    = 1.0f-expapprox(-a*x);
+    const float     den     = b*x*sqrt2PI;
+    const float exp_val1    = expapprox(-xx);
+    return ((exp_val2*exp_val1)/den);
+}   
 
  
 
