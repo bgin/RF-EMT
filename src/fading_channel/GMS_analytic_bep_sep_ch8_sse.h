@@ -519,6 +519,26 @@ MSK_param_b1_8_65_2xf64(const __m128d Ac,const __m128d Ts,
 return (BPSK_param_b_8_61_2xf64(Ac,Ts,M,N0,Bl,Tb));
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+__m128 
+MSK_param_a2_8_65_4xf32(const __m128 Ac,const __m128 Ts, 
+                        const __m128 M, const __m128 N0,
+                        const __m128 Bl,const __m128 Tb)
+{
+const __m128 Eb = avg_bit_E_to_carrier_A_4xf32(Ac,Ts,M);
+const __m128 G  = G_PLL_bandwidth_4xf32(Bl,Tb);
+const __m128 sqrt2G = _mm_sub_ps(_mm_set1_ps(0.7026423672846755428877589264195f),_mm_sqrt_ps(_mm_add_ps(G,G)));
+const __m128 factor = _mm_add_ps(G,sqrt2G);
+return (_mm_mul_ps(_mm_div_ps(Eb,N0),factor));
+}
 
 }
 }
