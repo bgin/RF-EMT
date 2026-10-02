@@ -369,11 +369,33 @@ return (BPSK_param_a_8_61_4xf32(Ac,Ts,M,N0,Bl,Tb));
 #endif 
 __m128d
 OQPSK_param_b1_8_61_2xf64(const __m128d Ac,const __m128d Ts, 
-                         const __m128d M, const __m128d N0,
-                         const __m128d Bl,const __m128d Tb)
+                          const __m128d M, const __m128d N0,
+                          const __m128d Bl,const __m128d Tb)
 {
 return (BPSK_param_a_8_61_2xf64(Ac,Ts,M,N0,Bl,Tb));
 }
+
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__m128
+OQPSK_param_a2_8_64_4xf32(const __m128 Ac,const __m128 Ts, 
+                        const __m128 M, const __m128 N0,
+                        const __m128 Bl,const __m128 Tb)
+{
+const __m128 Eb = avg_bit_E_to_carrier_A_4xf32(Ac,Ts,M);
+const __m128 G  = G_PLL_bandwidth_4xf32(Bl,Tb);
+const __m128 sqrt2G = _mm_sub_ps(_mm_set1_ps(1.0),_mm_sqrt_ps(_mm_add_ps(G,H)));
+const __m128 factor = _mm_add_ps(G,sqrt2G);
+return (_mm_mul_ps(_mm_div_ps(Eb,N0),factor));
+}
+
 
 
 
