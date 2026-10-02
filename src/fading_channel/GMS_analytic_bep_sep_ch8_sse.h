@@ -351,11 +351,28 @@ return (_mm_sub_pd(ratio,_mm_mul_pd(sqrtG,sqrtG)));
 #endif
 #endif 
 __m128
-OQPSK_param_b_8_61_4xf32(const __m128 Ac,const __m128 Ts, 
+OQPSK_param_a1_8_61_4xf32(const __m128 Ac,const __m128 Ts, 
                         const __m128 M, const __m128 N0,
                         const __m128 Bl,const __m128 Tb)
 {
 return (BPSK_param_a_8_61_4xf32(Ac,Ts,M,N0,Bl,Tb));
+}
+
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif 
+__m128d
+OQPSK_param_b1_8_61_2xf64(const __m128d Ac,const __m128d Ts, 
+                         const __m128d M, const __m128d N0,
+                         const __m128d Bl,const __m128d Tb)
+{
+return (BPSK_param_a_8_61_2xf64(Ac,Ts,M,N0,Bl,Tb));
 }
 
 
