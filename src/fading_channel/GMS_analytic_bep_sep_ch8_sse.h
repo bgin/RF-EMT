@@ -204,6 +204,46 @@ const __m128d  exp_val      = gms::math::simd_fast_exp_approx_2xf64(_mm_mul_pd(r
 return (_mm_div_pd(exp_val,_mm_mul_pd(posPI,bessi0)));
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+__m128
+G_PLL_bandwidth_4xf32(const __m128 Bl,const __m128 Tb)
+{
+return (_mm_rcp_ps(_mm_mul_ps(Bl,Tb)));
+}
+
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+template<bool use_div_as_reciprocal>
+__m128d 
+G_PLL_bandwidth_2xf64(const __m128d Bl,const __m128d Tb)
+{
+if constexpr (use_div_as_reciprocal)
+{
+return (_mm_div_pd(_mm_set1_pd(1.0),_mm_mul_pd(Bl,Tb)));
+}
+else
+{ 
+return (_mm_rcp14_pd(_mm_mul_pd(Bl,Tb)));
+}
+}
+
+
+
 }
 
 }
