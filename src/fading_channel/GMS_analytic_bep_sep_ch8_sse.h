@@ -24,6 +24,7 @@
 #include "GMS_config.h"
 #include "GMS_gaussian_Q_approx_simd.h"
 #include "GMS_marcum_Q_approx_simd.h"
+#include "GMS_bessel_i0_sse.h"
 
 
 
@@ -151,6 +152,31 @@ const __m128d log2M = _mm_mul_pd(_mm_set1_pd(6.0),_mm_log2_pd(M));
 return (_mm_mul_pd(Eg,_mm_div_pd(num,log2M))); 
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+__m128d 
+tikhonov_phase_err_pdf_2xf64(const __m128d rho_eq,__m128d phi_c)
+{
+const __m128d negPI        = _mm_set1_pd(-3.1415926535897932384626433832795);
+const __m128d posPI        = _mm_set1_ps(+3.1415926535897932384626433832795);
+const __m128d bessi0       = _mm_mask_blend_ps(_mm_cmp_ps_mask(rho_eq,_mm_set1_ps(15.0),_CMP_GE_OQ),
+                                               gms::math::bessel_i0_le15_sse_pd(rho_eq),
+                                               gms::math::bessel_i0_ge15_sse_pd(rho_eq));
+const __mmask8 phic_le_pi  = _mm_cmp_pd_mask(phi_c,posPI,_CMP_LE_OQ);
+const __m128d cosarg       = _mm_add_pd(phi_c,phi_c);
+const __mmask8 phic_gt_pi  = _mm_cmp_pd_mask(phi_c,negPI,_CMP_GE_OQ);
+const __mmask8 mask_pi     = _kand_mask8(phic_le_pi,phic_gt_pi);
+const __m128d  cos2phic    = _mm_mask_blend_pd(mask_pi,_mm_cos_pd(cosarg),gms::math::simd_fast_cos_approx_2xf64(cosarg));
+const __m128d exp_val      = gms::math::simd_fast_exp_approx_2xf64(_mm_mul_ps(rho_eq,cos2phic));
+ 
+}
 
 }
 
