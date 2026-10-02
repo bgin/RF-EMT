@@ -161,21 +161,47 @@ return (_mm_mul_pd(Eg,_mm_div_pd(num,log2M)));
 #pragma GCC target("sse")
 #endif
 #endif
+__m128 
+tikhonov_phase_err_pdf_4xf32(const __m128 rho_eq,const __m128 phi_c)
+{
+const __m128 negPI         = _mm_set1_ps(-3.1415926535897932384626433832795f);
+const float * __restrict__ p_phi_c = reinterpret_cast<const float * __restrict__>(&phi_c);
+const __m128 posPI         = _mm_set1_ps(+3.1415926535897932384626433832795);
+const __m128  bessi0       = _mm_setr_ps(std::cyl_bessel_i(0,p_phi_c[0],std::cyl_bessel_i(0,p_phi_c[1]),
+                                         std::cyl_bessel_i(0,p_phi_c[2]),std::cyl_bessel_i(0,p_phi_c[3])));
+const __mmask8 phic_le_pi   = _mm_cmp_ps_mask(phi_c,posPI,_CMP_LE_OQ);
+const __m128  cosarg        = _mm_add_ps(phi_c,phi_c);
+const __mmask8 phic_gt_pi   = _mm_cmp_ps_mask(phi_c,negPI,_CMP_GE_OQ);
+const __mmask8 mask_pi      = _kand_mask8(phic_le_pi,phic_gt_pi);
+const __m128  cos2phic      = _mm_mask_blend_ps(mask_pi,_mm_cos_ps(cosarg),gms::math::simd_fast_cos_approx_4xf32(cosarg));
+const __m128  exp_val       = gms::math::simd_fast_exp_approx_4xf32(_mm_mul_ps(rho_eq,cos2phic));
+return (_mm_div_ps(exp_val,_mm_mul_ps(posPI,bessi0)));
+}
+
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
 __m128d 
 tikhonov_phase_err_pdf_2xf64(const __m128d rho_eq,__m128d phi_c)
 {
 const __m128d negPI        = _mm_set1_pd(-3.1415926535897932384626433832795);
-const __m128d posPI        = _mm_set1_ps(+3.1415926535897932384626433832795);
-const __m128d bessi0       = _mm_mask_blend_ps(_mm_cmp_ps_mask(rho_eq,_mm_set1_ps(15.0),_CMP_GE_OQ),
+const __m128d posPI        = _mm_set1_pd(+3.1415926535897932384626433832795);
+const __m128d bessi0       = _mm_mask_blend_pd(_mm_cmp_pd_mask(rho_eq,_mm_set1_pd(15.0),_CMP_GE_OQ),
                                                gms::math::bessel_i0_le15_sse_pd(rho_eq),
                                                gms::math::bessel_i0_ge15_sse_pd(rho_eq));
-const __mmask8 phic_le_pi  = _mm_cmp_pd_mask(phi_c,posPI,_CMP_LE_OQ);
-const __m128d cosarg       = _mm_add_pd(phi_c,phi_c);
-const __mmask8 phic_gt_pi  = _mm_cmp_pd_mask(phi_c,negPI,_CMP_GE_OQ);
-const __mmask8 mask_pi     = _kand_mask8(phic_le_pi,phic_gt_pi);
-const __m128d  cos2phic    = _mm_mask_blend_pd(mask_pi,_mm_cos_pd(cosarg),gms::math::simd_fast_cos_approx_2xf64(cosarg));
-const __m128d exp_val      = gms::math::simd_fast_exp_approx_2xf64(_mm_mul_ps(rho_eq,cos2phic));
- 
+const __mmask8 phic_le_pi   = _mm_cmp_pd_mask(phi_c,posPI,_CMP_LE_OQ);
+const __m128d  cosarg       = _mm_add_pd(phi_c,phi_c);
+const __mmask8 phic_gt_pi   = _mm_cmp_pd_mask(phi_c,negPI,_CMP_GE_OQ);
+const __mmask8 mask_pi      = _kand_mask8(phic_le_pi,phic_gt_pi);
+const __m128d  cos2phic     = _mm_mask_blend_pd(mask_pi,_mm_cos_pd(cosarg),gms::math::simd_fast_cos_approx_2xf64(cosarg));
+const __m128d  exp_val      = gms::math::simd_fast_exp_approx_2xf64(_mm_mul_pd(rho_eq,cos2phic));
+return (_mm_div_pd(exp_val,_mm_mul_pd(posPI,bessi0)));
 }
 
 }
