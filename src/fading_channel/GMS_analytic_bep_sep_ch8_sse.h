@@ -278,6 +278,68 @@ const __m128 sqrtG = _mm_sub_ps(_mm_sqrt_ps(G),_mm_set1_ps(1.0));
 return (_mm_sub_ps(ratio,_mm_mul_ps(sqrtG,sqrtG)));
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+__m128d 
+BPSK_param_a_8_61_2xf64(const __m128d Ac,const __m128d Ts, 
+                        const __m128d M, const __m128d N0,
+                        const __m128d Bl,const __m128d Tb)
+{
+const __m128d Eb = avg_bit_E_to_carrier_A_2xf64(Ac,Ts,M);
+const __m128d G  = G_PLL_bandwidth_2xf64_v2(Bl,Tb);
+const __m128d ratio = _mm_div_pd(Eb,_mm_add_pd(N0,N0));
+const __m128d sqrtG = _mm_sub_pd(_mm_sqrt_pd(G),_mm_set1_pd(1.0));
+return (_mm_sub_pd(ratio,_mm_mul_pd(sqrtG,sqrtG)));
+}
+
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+__m128 
+BPSK_param_b_8_61_4xf32(const __m128 Ac,const __m128 Ts, 
+                        const __m128 M, const __m128 N0,
+                        const __m128 Bl,const __m128 Tb)
+{
+const __m128 Eb = avg_bit_E_to_carrier_A_4xf32(Ac,Ts,M);
+const __m128 G  = G_PLL_bandwidth_4xf32(Bl,Tb);
+const __m128 ratio = _mm_div_ps(Eb,_mm_add_ps(N0,N0));
+const __m128 sqrtG = _mm_add_ps(_mm_sqrt_ps(G),_mm_set1_ps(1.0));
+return (_mm_sub_ps(ratio,_mm_mul_ps(sqrtG,sqrtG)));
+}
+
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+__m128d 
+BPSK_param_b_8_61_2xf64(const __m128d Ac,const __m128d Ts, 
+                        const __m128d M, const __m128d N0,
+                        const __m128d Bl,const __m128d Tb)
+{
+const __m128d Eb = avg_bit_E_to_carrier_A_2xf64(Ac,Ts,M);
+const __m128d G  = G_PLL_bandwidth_2xf64_v2(Bl,Tb);
+const __m128d ratio = _mm_div_pd(Eb,_mm_add_pd(N0,N0));
+const __m128d sqrtG = _mm_add_pd(_mm_sqrt_pd(G),_mm_set1_pd(1.0));
+return (_mm_sub_pd(ratio,_mm_mul_pd(sqrtG,sqrtG)));
+}
 
 }
 }
