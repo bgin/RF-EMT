@@ -242,10 +242,22 @@ return (_mm_rcp14_pd(_mm_mul_pd(Bl,Tb)));
 }
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+__m128d 
+G_PLL_bandwidth_2xf64_v2(const __m128d Bl,const __m128d Tb)
+{
+return (_mm_div_pd(_mm_set1_pd(1.0),_mm_mul_pd(Bl,Tb)));
+}
 
 
 }
-
 }
-
 #endif /*__GMS_ANALYTIC_BEP_SEP_CH8_SSE_H__*/
