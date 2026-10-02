@@ -113,6 +113,26 @@ const __m128d lead_fac = _mm_mul_pd(AA,Ts);
 return (_mm_mul_pd(lead_fac,MM_ratio)); 
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+__m128 
+avg_bit_E_to_carrier_A_4xf32(const __m128 Ac,const __m128 Ts, 
+                             const __m128 M)
+{
+const __m128 num   = _mm_fmsub_ps(M,M,_mm_set1_ps(1.0));
+const __m128 Eg    = _mm_mul_ps(_mm_mul_ps(Ac,Ac,),Ts);
+const __m128 log2M = _mm_mul_ps(_mm_set1_ps(6.0),_mm_log2_ps(M));
+return (_mm_mul_ps(Eg,_mm_div_ps(num,log2M))); 
+}
+
+
 }
 
 }
