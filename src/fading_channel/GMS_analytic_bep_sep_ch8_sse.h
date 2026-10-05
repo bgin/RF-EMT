@@ -1077,47 +1077,47 @@ __m128 ratio = _mm_div_ps(Es3,_mm_mul_ps(N0,M_m_1));
 __m128 Q_func_arg = _mm_sqrt_ps(ratio);
     if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_chiani)
     {
-        Q_func_val = gms::math::gaussian_Q_approx_chiani_2xf64(Q_func_arg);
+        Q_func_val = gms::math::gaussian_Q_approx_chiani_4xf32(Q_func_arg);
         ANALYTIC_SEP_QAM_8_10_4XF32_COMMON_BLOCK
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_loskot_2T)
     {
-        Q_func_val = gms::math::gaussian_Q_approx_loskot_2T_2xf64(Q_func_arg);
+        Q_func_val = gms::math::gaussian_Q_approx_loskot_2T_4xf32(Q_func_arg);
         ANALYTIC_SEP_QAM_8_10_4XF32_COMMON_BLOCK
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_loskot_3T)
     {
-        Q_func_val = gms::math::gaussian_Q_approx_loskot_3T_2xf64(Q_func_arg);
+        Q_func_val = gms::math::gaussian_Q_approx_loskot_3T_4xf32(Q_func_arg);
         ANALYTIC_SEP_QAM_8_10_4XF32_COMMON_BLOCK
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_1T)
     {
-        Q_func_val = gms::math::gaussian_Q_approx_sadhwani_1T_2xf64(Q_func_arg);
+        Q_func_val = gms::math::gaussian_Q_approx_sadhwani_1T_4xf32(Q_func_arg);
         ANALYTIC_SEP_QAM_8_10_4XF32_COMMON_BLOCK
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_2T)
     {
-        Q_func_val = gms::math::gaussian_Q_approx_sadhwani_2T_2xf64(Q_func_arg);
+        Q_func_val = gms::math::gaussian_Q_approx_sadhwani_2T_4xf32(Q_func_arg);
         ANALYTIC_SEP_QAM_8_10_4XF32_COMMON_BLOCK
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_4T)
     {
-        Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T_2xf64(Q_func_arg);
+        Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T_4xf32(Q_func_arg);
         ANALYTIC_SEP_QAM_8_10_4XF32_COMMON_BLOCK
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_borjesson)
     {
-        Q_func_val = gms::math::gaussian_Q_approx_borjesson_2xf64(Q_func_arg);
+        Q_func_val = gms::math::gaussian_Q_approx_borjesson_24xf32(Q_func_arg);
         ANALYTIC_SEP_QAM_8_10_4XF32_COMMON_BLOCK
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_summed)
     {
-        Q_func_val = gms::math::gaussian_Q_approx_sadhwani_summed_2xf64(Q_func_arg,n);
+        Q_func_val = gms::math::gaussian_Q_approx_sadhwani_summed_4xf32(Q_func_arg,n);
         ANALYTIC_SEP_QAM_8_10_4XF32_COMMON_BLOCK
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_karagiannidis_lioumpas)
     {
-        Q_func_val = gms::math::gaussian_Q_approx_karagiannidis_lioumpas_2xf64(Q_func_arg);
+        Q_func_val = gms::math::gaussian_Q_approx_karagiannidis_lioumpas_4xf32(Q_func_arg);
         ANALYTIC_SEP_QAM_8_10_4XF32_COMMON_BLOCK
     }
     return (result);
