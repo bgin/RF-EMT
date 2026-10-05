@@ -1626,7 +1626,31 @@ else
 }
 }
 
-
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+template<Gaussian_Q_approximations_sse_t Q_func_approx>
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128 analytic_BEP_MPSK2_8_18_4xf32(const __m128 Ac,const __m128 Ts,
+                                     const __m128 M, const __m128 N0,
+                                     const std::int32_t n)  
+{
+__m128 result;
+__m128 Q_func_val;
+__m128 Eb   = avg_bit_E_to_carrier_A_4xf32(Ac,Ts,M);
+__m128 ratio= _mm_div_ps(_mm_add_ps(Eb,Eb),N0);
+__m128 Q_func_arg = _mm_sqrt_ps(ratio);
+    COMMON_IF_CONSTEXPR_FUNC_4XF32_BLOCK_SINGLE_LINE
+result = Q_func_val;
+return (result);
+}
 
 }
 }
