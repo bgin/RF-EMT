@@ -1341,7 +1341,146 @@ __m128d Q_func_arg = _mm_sqrt_pd(sqrt_arg);
     return (result);
 }
 
+#include "GMS_analytic_bep_sep_ch8.h"
 
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+template<Gaussian_Q_approximations_sse_t Q_func_approx>
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128 analytic_BEP_QAM_AWGN_8_14_4xf32(const __m128 Ac,const __m128 Ts, 
+                                        const __m128 M, const __m128 N0,
+                                        const std::int32_t n)  
+{
+__m128 result;
+__m128 Q_func_val  = _mm_setzero_ps(); 
+__m128 one         = _mm_set1_ps(1.0f);
+__m128 Eb          = avg_bit_E_to_carrier_A_4xf32(Ac,Ts,M);
+__m128 log2M       = _mm_log2_ps(M);
+__m128 invlog2M    = _mm_rcp_ps(log2M);
+__m128 sqrtM       = _mm_sqrt_ps(M); 
+__m128 sqrtM_sub1  = _mm_sub_ps(sqrtM,one);
+__m128i itmp       = _mm_cvtps_epi32(_mm_mul_ps(sqrtM,_mm_set1_ps(0.5f)));
+std::int32_t up_lim= _mm_extract_epi32(itmp,0);
+if(__builtin_expect(0==up_lim,0)) { return _mm_set1_ps(std::numeric_limits<float>::quiet_NaN());}
+__m128 left_term   = _mm_mul_ps(_mm_set1_ps(4.0f),_mm_div_ps(sqrtM_sub1,sqrtM));
+__m128 num         = _mm_mul_ps(_mm_set1_ps(3.0),_mm_mul_ps(Eb,log2M));
+__m128 den         = _mm_mul_ps(N0,sqrtM_sub1);
+__m128 Q_func_arg  = _mm_sqrt_ps(_mm_div_ps(num,den));
+std::int32_t rem   = up_lim%4;
+if(0==rem)
+{
+    __ATTR_ALIGN__(16) float lut_idx[16] = 
+    {
+         1.0f,2.0f,3.0f,4.0f,
+         5.0f,6.0f,7.0f,8.0f,
+         9.0f,10.0f,11.0f,12.0f,
+         13.0f,14.0f,15.0f,16.0f
+    };
+    if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_chiani)
+    {
+        for(std::int32_t i = 1; i<=ROUND_TO_FOUR(up_lim,3); i+= 4)
+        {
+            __m128 indices = _mm_load_ps(&lut_idx[i]);
+            __m128 mul_fac = _mm_sub_ps(_mm_add_ps(indices,indices),one);
+            __m128 arg     = _mm_mul_ps(mul_fac,Q_func_arg);
+            Q_func_val     = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_chiani_4xf32(arg));
+        }
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_loskot_2T)
+    {
+        for(std::int32_t i = 1; i<=ROUND_TO_FOUR(up_lim,3); i+= 4)
+        {
+            __m128 indices = _mm_load_ps(&lut_idx[i]);
+            __m128 mul_fac = _mm_sub_ps(_mm_add_ps(indices,indices),one);
+            __m128 arg     = _mm_mul_ps(mul_fac,Q_func_arg);
+            Q_func_val     = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_loskot_2T_4xf32(arg));
+        }
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_loskot_3T)
+    {
+        for(std::int32_t i = 1; i<=ROUND_TO_FOUR(up_lim,3); i+= 4)
+        {
+            __m128 indices = _mm_load_ps(&lut_idx[i]);
+            __m128 mul_fac = _mm_sub_ps(_mm_add_ps(indices,indices),one);
+            __m128 arg     = _mm_mul_ps(mul_fac,Q_func_arg);
+            Q_func_val     = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_loskot_3T_4xf32(arg));
+        }
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_1T)
+    {
+        for(std::int32_t i = 1; i<=ROUND_TO_FOUR(up_lim,3); i+= 4)
+        {
+            __m128 indices = _mm_load_ps(&lut_idx[i]);
+            __m128 mul_fac = _mm_sub_ps(_mm_add_ps(indices,indices),one);
+            __m128 arg     = _mm_mul_ps(mul_fac,Q_func_arg);
+            Q_func_val     = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_sadhwani_1T_4xf32(arg));
+        }
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_2T)
+    {
+        for(std::int32_t i = 1; i<=ROUND_TO_FOUR(up_lim,3); i+= 4)
+        {
+            __m128 indices = _mm_load_ps(&lut_idx[i]);
+            __m128 mul_fac = _mm_sub_ps(_mm_add_ps(indices,indices),one);
+            __m128 arg     = _mm_mul_ps(mul_fac,Q_func_arg);
+            Q_func_val     = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_sadhwani_2T_4xf32(arg));
+        }
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_4T)
+    {
+        for(std::int32_t i = 1; i<=ROUND_TO_FOUR(up_lim,3); i+= 4)
+        {
+            __m128 indices = _mm_load_ps(&lut_idx[i]);
+            __m128 mul_fac = _mm_sub_ps(_mm_add_ps(indices,indices),one);
+            __m128 arg     = _mm_mul_ps(mul_fac,Q_func_arg);
+            Q_func_val     = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_sadhwani_4T_4xf32(arg));
+        }
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_borjesson)
+    {
+        for(std::int32_t i = 1; i<=ROUND_TO_FOUR(up_lim,3); i+= 4)
+        {
+            __m128 indices = _mm_load_ps(&lut_idx[i]);
+            __m128 mul_fac = _mm_sub_ps(_mm_add_ps(indices,indices),one);
+            __m128 arg     = _mm_mul_ps(mul_fac,Q_func_arg);
+            Q_func_val     = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_borjesson_4xf32(arg));
+        }
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_summed)
+    {
+        for(std::int32_t i = 1; i<=ROUND_TO_FOUR(up_lim,3); i+= 4)
+        {
+            __m128 indices = _mm_load_ps(&lut_idx[i]);
+            __m128 mul_fac = _mm_sub_ps(_mm_add_ps(indices,indices),one);
+            __m128 arg     = _mm_mul_ps(mul_fac,Q_func_arg);
+            Q_func_val     = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_sadhwani_summed_4xf32(arg,n));
+        }
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_karagiannidis_lioumpas)
+    {
+        for(std::int32_t i = 1; i<=ROUND_TO_FOUR(up_lim,3); i+= 4)
+        {
+            __m128 indices = _mm_load_ps(&lut_idx[i]);
+            __m128 mul_fac = _mm_sub_ps(_mm_add_ps(indices,indices),one);
+            __m128 arg     = _mm_mul_ps(mul_fac,Q_func_arg);
+            Q_func_val     = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_karagiannidis_lioumpas_4xf32(arg));
+        }
+    }
+}
+else
+{
+    result = _mm_set1_ps(std::numeric_limits<float>::quiet_NaN());
+    return (result);
+}
+}
 
 }
 }
