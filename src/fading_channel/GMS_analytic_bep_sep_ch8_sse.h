@@ -1900,6 +1900,68 @@ __m128 sin_val    = gms::math::simd_fast_sin_approx_4xf32(pi_div_M);
     return (result);
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+template<Gaussian_Q_approximations_sse_t Q_func_approx>
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128d analytic_SEP_MPSK_coherent_8_25_2xf64(const __m128d Ac,const __m128d Ts,
+                                             const __m128d M,const __m128d N0,
+                                             const std::int32_t n) 
+{
+__m128d result;
+__m128d Q_func_val;
+__m128d Es       = avg_symbol_E_to_carrier_A_2xf64(Ac,Ts,M);
+__m128d pi_div_M = _mm_div_pd(_mm_set1_pd(3.1415926535897932384626433832795),M);
+__m128d snr      = _mm_div_pd(_mm_add_pd(Es,Es),N0);
+__m128d Q_func_arg = _mm_sqrt_pd(snr);
+__m128d sin_val    = gms::math::simd_fast_sin_approx_2xf64(pi_div_M);
+    if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_chiani)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_chiani_2xf64(_mm_mul_pd(Q_func_arg,sin_val));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_loskot_2T)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_loskot_2T_2xf64(_mm_mul_pd(Q_func_arg,sin_val));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_loskot_3T)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_loskot_3T_2xf64(_mm_mul_pd(Q_func_arg,sin_val));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_1T)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_sadhwani_1T_2xf64(_mm_mul_pd(Q_func_arg,sin_val));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_2T)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_sadhwani_2T_2xf64(_mm_mul_pd(Q_func_arg,sin_val));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_4T)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_sadhwani_4T_2xf64(_mm_mul_pd(Q_func_arg,sin_val));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_borjesson)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_borjesson_2xf64(_mm_mul_pd(Q_func_arg,sin_val));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_summed)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_sadhwani_summed_2xf64(_mm_mul_pd(Q_func_arg,sin_val),n);
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_karagiannidis_lioumpas)
+    {
+        Q_func_val = gms::math::gaussian_Q_approx_karagiannidis_lioumpas_2xf64(_mm_mul_pd(Q_func_arg,sin_val));
+    }
+    result = _mm_add_pd(Q_func_val,Q_func_val);
+    return (result);
+}
 
 }
 }
