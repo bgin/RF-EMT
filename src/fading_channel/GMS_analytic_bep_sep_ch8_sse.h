@@ -1474,6 +1474,8 @@ if(0==rem)
             Q_func_val     = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_karagiannidis_lioumpas_4xf32(arg));
         }
     }
+    result = _mm_mul_ps(left_term,_mm_mul_ps(invlog2M,Q_func_arg));
+    return (result);
 }
 else
 {
