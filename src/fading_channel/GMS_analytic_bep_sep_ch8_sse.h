@@ -1361,6 +1361,267 @@ const static __m128d sin_arg_lut_simd[max_M256] = {
 
 #endif 
 
+__ATTR_ALIGN__(16)
+__attribute__((section(."rodata")))
+const static __m128 sin_arg_lut_simd_f32[max_M256] = {
+    _mm_set1_ps(3.1415926535897931), // k = 0
+    _mm_set1_ps(9.4247779607693793), // k = 1
+    _mm_set1_ps(15.7079632679489656), // k = 2
+    _mm_set1_ps(21.9911485751285518), // k = 3
+    _mm_set1_ps(28.2743338823081380), // k = 4
+    _mm_set1_ps(34.5575191894877207), // k = 5
+    _mm_set1_ps(40.8407044966673141), // k = 6
+    _mm_set1_ps(47.1238898038468932), // k = 7
+    _mm_set1_ps(53.4070751110264865), // k = 8
+    _mm_set1_ps(59.6902604182060657), // k = 9
+    _mm_set1_ps(65.9734457253856590), // k = 10
+    _mm_set1_ps(72.2566310325652381), // k = 11
+    _mm_set1_ps(78.5398163397448315), // k = 12
+    _mm_set1_ps(84.8230016469244106), // k = 13
+    _mm_set1_ps(91.1061869541040039), // k = 14
+    _mm_set1_ps(97.3893722612835830), // k = 15
+    _mm_set1_ps(103.6725575684631764), // k = 16
+    _mm_set1_ps(109.9557428756427555), // k = 17
+    _mm_set1_ps(116.2389281828223488), // k = 18
+    _mm_set1_ps(122.5221134900019280), // k = 19
+    _mm_set1_ps(128.8052987971815071), // k = 20
+    _mm_set1_ps(135.0884841043611004), // k = 21
+    _mm_set1_ps(141.3716694115406938), // k = 22
+    _mm_set1_ps(147.6548547187202871), // k = 23
+    _mm_set1_ps(153.9380400258998520), // k = 24
+    _mm_set1_ps(160.2212253330794454), // k = 25
+    _mm_set1_ps(166.5044106402590387), // k = 26
+    _mm_set1_ps(172.7875959474386320), // k = 27
+    _mm_set1_ps(179.0707812546181970), // k = 28
+    _mm_set1_ps(185.3539665617977903), // k = 29
+    _mm_set1_ps(191.6371518689773836), // k = 30
+    _mm_set1_ps(197.9203371761569770), // k = 31
+    _mm_set1_ps(204.2035224833365419), // k = 32
+    _mm_set1_ps(210.4867077905161352), // k = 33
+    _mm_set1_ps(216.7698930976957286), // k = 34
+    _mm_set1_ps(223.0530784048753219), // k = 35
+    _mm_set1_ps(229.3362637120548868), // k = 36
+    _mm_set1_ps(235.6194490192344801), // k = 37
+    _mm_set1_ps(241.9026343264140735), // k = 38
+    _mm_set1_ps(248.1858196335936668), // k = 39
+    _mm_set1_ps(254.4690049407732317), // k = 40
+    _mm_set1_ps(260.7521902479528535), // k = 41
+    _mm_set1_ps(267.0353755551324184), // k = 42
+    _mm_set1_ps(273.3185608623119833), // k = 43
+    _mm_set1_ps(279.6017461694916051), // k = 44
+    _mm_set1_ps(285.8849314766711700), // k = 45
+    _mm_set1_ps(292.1681167838507349), // k = 46
+    _mm_set1_ps(298.4513020910303567), // k = 47
+    _mm_set1_ps(304.7344873982099216), // k = 48
+    _mm_set1_ps(311.0176727053895434), // k = 49
+    _mm_set1_ps(317.3008580125691083), // k = 50
+    _mm_set1_ps(323.5840433197486732), // k = 51
+    _mm_set1_ps(329.8672286269282949), // k = 52
+    _mm_set1_ps(336.1504139341078599), // k = 53
+    _mm_set1_ps(342.4335992412874248), // k = 54
+    _mm_set1_ps(348.7167845484670465), // k = 55
+    _mm_set1_ps(354.9999698556466114), // k = 56
+    _mm_set1_ps(361.2831551628262332), // k = 57
+    _mm_set1_ps(367.5663404700057981), // k = 58
+    _mm_set1_ps(373.8495257771853630), // k = 59
+    _mm_set1_ps(380.1327110843649848), // k = 60
+    _mm_set1_ps(386.4158963915445497), // k = 61
+    _mm_set1_ps(392.6990816987241146), // k = 62
+    _mm_set1_ps(398.9822670059037364), // k = 63
+    _mm_set1_ps(405.2654523130833013), // k = 64
+    _mm_set1_ps(411.5486376202629231), // k = 65
+    _mm_set1_ps(417.8318229274424880), // k = 66
+    _mm_set1_ps(424.1150082346220529), // k = 67
+    _mm_set1_ps(430.3981935418016747), // k = 68
+    _mm_set1_ps(436.6813788489812396), // k = 69
+    _mm_set1_ps(442.9645641561608045), // k = 70
+    _mm_set1_ps(449.2477494633404262), // k = 71
+    _mm_set1_ps(455.5309347705199912), // k = 72
+    _mm_set1_ps(461.8141200776996129), // k = 73
+    _mm_set1_ps(468.0973053848791778), // k = 74
+    _mm_set1_ps(474.3804906920587428), // k = 75
+    _mm_set1_ps(480.6636759992383645), // k = 76
+    _mm_set1_ps(486.9468613064179294), // k = 77
+    _mm_set1_ps(493.2300466135974943), // k = 78
+    _mm_set1_ps(499.5132319207771161), // k = 79
+    _mm_set1_ps(505.7964172279566810), // k = 80
+    _mm_set1_ps(512.0796025351362459), // k = 81
+    _mm_set1_ps(518.3627878423158108), // k = 82
+    _mm_set1_ps(524.6459731494954895), // k = 83
+    _mm_set1_ps(530.9291584566750544), // k = 84
+    _mm_set1_ps(537.2123437638546193), // k = 85
+    _mm_set1_ps(543.4955290710341842), // k = 86
+    _mm_set1_ps(549.7787143782137491), // k = 87
+    _mm_set1_ps(556.0618996853934277), // k = 88
+    _mm_set1_ps(562.3450849925729926), // k = 89
+    _mm_set1_ps(568.6282702997525575), // k = 90
+    _mm_set1_ps(574.9114556069321225), // k = 91
+    _mm_set1_ps(581.1946409141116874), // k = 92
+    _mm_set1_ps(587.4778262212913660), // k = 93
+    _mm_set1_ps(593.7610115284709309), // k = 94
+    _mm_set1_ps(600.0441968356504958), // k = 95
+    _mm_set1_ps(606.3273821428300607), // k = 96
+    _mm_set1_ps(612.6105674500096256), // k = 97
+    _mm_set1_ps(618.8937527571891906), // k = 98
+    _mm_set1_ps(625.1769380643688692), // k = 99
+    _mm_set1_ps(631.4601233715484341), // k = 100
+    _mm_set1_ps(637.7433086787279990), // k = 101
+    _mm_set1_ps(644.0264939859075639), // k = 102
+    _mm_set1_ps(650.3096792930871288), // k = 103
+    _mm_set1_ps(656.5928646002668074), // k = 104
+    _mm_set1_ps(662.8760499074463723), // k = 105
+    _mm_set1_ps(669.1592352146259373), // k = 106
+    _mm_set1_ps(675.4424205218055022), // k = 107
+    _mm_set1_ps(681.7256058289850671), // k = 108
+    _mm_set1_ps(688.0087911361647457), // k = 109
+    _mm_set1_ps(694.2919764433443106), // k = 110
+    _mm_set1_ps(700.5751617505238755), // k = 111
+    _mm_set1_ps(706.8583470577034404), // k = 112
+    _mm_set1_ps(713.1415323648830054), // k = 113
+    _mm_set1_ps(719.4247176720625703), // k = 114
+    _mm_set1_ps(725.7079029792422489), // k = 115
+    _mm_set1_ps(731.9910882864218138), // k = 116
+    _mm_set1_ps(738.2742735936013787), // k = 117
+    _mm_set1_ps(744.5574589007809436), // k = 118
+    _mm_set1_ps(750.8406442079605085), // k = 119
+    _mm_set1_ps(757.1238295151401871), // k = 120
+    _mm_set1_ps(763.4070148223197521), // k = 121
+    _mm_set1_ps(769.6902001294993170), // k = 122
+    _mm_set1_ps(775.9733854366788819), // k = 123
+    _mm_set1_ps(782.2565707438584468), // k = 124
+    _mm_set1_ps(788.5397560510381254), // k = 125
+    _mm_set1_ps(794.8229413582176903), // k = 126
+    _mm_set1_ps(801.1061266653972552), // k = 127
+    _mm_set1_ps(807.3893119725768202), // k = 128
+    _mm_set1_ps(813.6724972797563851), // k = 129
+    _mm_set1_ps(819.9556825869359500), // k = 130
+    _mm_set1_ps(826.2388678941156286), // k = 131
+    _mm_set1_ps(832.5220532012951935), // k = 132
+    _mm_set1_ps(838.8052385084747584), // k = 133
+    _mm_set1_ps(845.0884238156543233), // k = 134
+    _mm_set1_ps(851.3716091228338883), // k = 135
+    _mm_set1_ps(857.6547944300135669), // k = 136
+    _mm_set1_ps(863.9379797371931318), // k = 137
+    _mm_set1_ps(870.2211650443726967), // k = 138
+    _mm_set1_ps(876.5043503515522616), // k = 139
+    _mm_set1_ps(882.7875356587318265), // k = 140
+    _mm_set1_ps(889.0707209659115051), // k = 141
+    _mm_set1_ps(895.3539062730910700), // k = 142
+    _mm_set1_ps(901.6370915802706349), // k = 143
+    _mm_set1_ps(907.9202768874501999), // k = 144
+    _mm_set1_ps(914.2034621946297648), // k = 145
+    _mm_set1_ps(920.4866475018093297), // k = 146
+    _mm_set1_ps(926.7698328089890083), // k = 147
+    _mm_set1_ps(933.0530181161685732), // k = 148
+    _mm_set1_ps(939.3362034233481381), // k = 149
+    _mm_set1_ps(945.6193887305277030), // k = 150
+    _mm_set1_ps(951.9025740377072680), // k = 151
+    _mm_set1_ps(958.1857593448869466), // k = 152
+    _mm_set1_ps(964.4689446520665115), // k = 153
+    _mm_set1_ps(970.7521299592460764), // k = 154
+    _mm_set1_ps(977.0353152664256413), // k = 155
+    _mm_set1_ps(983.3185005736052062), // k = 156
+    _mm_set1_ps(989.6016858807848848), // k = 157
+    _mm_set1_ps(995.8848711879644497), // k = 158
+    _mm_set1_ps(1002.1680564951440147), // k = 159
+    _mm_set1_ps(1008.4512418023235796), // k = 160
+    _mm_set1_ps(1014.7344271095031445), // k = 161
+    _mm_set1_ps(1021.0176124166827094), // k = 162
+    _mm_set1_ps(1027.3007977238623880), // k = 163
+    _mm_set1_ps(1033.5839830310419529), // k = 164
+    _mm_set1_ps(1039.8671683382215178), // k = 165
+    _mm_set1_ps(1046.1503536454010828), // k = 166
+    _mm_set1_ps(1052.4335389525806477), // k = 167
+    _mm_set1_ps(1058.7167242597602126), // k = 168
+    _mm_set1_ps(1064.9999095669397775), // k = 169
+    _mm_set1_ps(1071.2830948741193424), // k = 170
+    _mm_set1_ps(1077.5662801812991347), // k = 171
+    _mm_set1_ps(1083.8494654884786996), // k = 172
+    _mm_set1_ps(1090.1326507956582645), // k = 173
+    _mm_set1_ps(1096.4158361028378295), // k = 174
+    _mm_set1_ps(1102.6990214100173944), // k = 175
+    _mm_set1_ps(1108.9822067171969593), // k = 176
+    _mm_set1_ps(1115.2653920243765242), // k = 177
+    _mm_set1_ps(1121.5485773315560891), // k = 178
+    _mm_set1_ps(1127.8317626387356540), // k = 179
+    _mm_set1_ps(1134.1149479459152190), // k = 180
+    _mm_set1_ps(1140.3981332530950112), // k = 181
+    _mm_set1_ps(1146.6813185602745762), // k = 182
+    _mm_set1_ps(1152.9645038674541411), // k = 183
+    _mm_set1_ps(1159.2476891746337060), // k = 184
+    _mm_set1_ps(1165.5308744818132709), // k = 185
+    _mm_set1_ps(1171.8140597889928358), // k = 186
+    _mm_set1_ps(1178.0972450961724007), // k = 187
+    _mm_set1_ps(1184.3804304033519657), // k = 188
+    _mm_set1_ps(1190.6636157105315306), // k = 189
+    _mm_set1_ps(1196.9468010177110955), // k = 190
+    _mm_set1_ps(1203.2299863248906604), // k = 191
+    _mm_set1_ps(1209.5131716320704527), // k = 192
+    _mm_set1_ps(1215.7963569392500176), // k = 193
+    _mm_set1_ps(1222.0795422464295825), // k = 194
+    _mm_set1_ps(1228.3627275536091474), // k = 195
+    _mm_set1_ps(1234.6459128607887124), // k = 196
+    _mm_set1_ps(1240.9290981679682773), // k = 197
+    _mm_set1_ps(1247.2122834751478422), // k = 198
+    _mm_set1_ps(1253.4954687823274071), // k = 199
+    _mm_set1_ps(1259.7786540895069720), // k = 200
+    _mm_set1_ps(1266.0618393966865369), // k = 201
+    _mm_set1_ps(1272.3450247038661018), // k = 202
+    _mm_set1_ps(1278.6282100110458941), // k = 203
+    _mm_set1_ps(1284.9113953182254591), // k = 204
+    _mm_set1_ps(1291.1945806254050240), // k = 205
+    _mm_set1_ps(1297.4777659325845889), // k = 206
+    _mm_set1_ps(1303.7609512397641538), // k = 207
+    _mm_set1_ps(1310.0441365469437187), // k = 208
+    _mm_set1_ps(1316.3273218541232836), // k = 209
+    _mm_set1_ps(1322.6105071613028485), // k = 210
+    _mm_set1_ps(1328.8936924684824135), // k = 211
+    _mm_set1_ps(1335.1768777756619784), // k = 212
+    _mm_set1_ps(1341.4600630828417707), // k = 213
+    _mm_set1_ps(1347.7432483900213356), // k = 214
+    _mm_set1_ps(1354.0264336972009005), // k = 215
+    _mm_set1_ps(1360.3096190043804654), // k = 216
+    _mm_set1_ps(1366.5928043115600303), // k = 217
+    _mm_set1_ps(1372.8759896187395952), // k = 218
+    _mm_set1_ps(1379.1591749259191602), // k = 219
+    _mm_set1_ps(1385.4423602330987251), // k = 220
+    _mm_set1_ps(1391.7255455402782900), // k = 221
+    _mm_set1_ps(1398.0087308474578549), // k = 222
+    _mm_set1_ps(1404.2919161546374198), // k = 223
+    _mm_set1_ps(1410.5751014618172121), // k = 224
+    _mm_set1_ps(1416.8582867689967770), // k = 225
+    _mm_set1_ps(1423.1414720761763419), // k = 226
+    _mm_set1_ps(1429.4246573833559069), // k = 227
+    _mm_set1_ps(1435.7078426905354718), // k = 228
+    _mm_set1_ps(1441.9910279977150367), // k = 229
+    _mm_set1_ps(1448.2742133048946016), // k = 230
+    _mm_set1_ps(1454.5573986120741665), // k = 231
+    _mm_set1_ps(1460.8405839192537314), // k = 232
+    _mm_set1_ps(1467.1237692264332964), // k = 233
+    _mm_set1_ps(1473.4069545336128613), // k = 234
+    _mm_set1_ps(1479.6901398407926536), // k = 235
+    _mm_set1_ps(1485.9733251479722185), // k = 236
+    _mm_set1_ps(1492.2565104551517834), // k = 237
+    _mm_set1_ps(1498.5396957623313483), // k = 238
+    _mm_set1_ps(1504.8228810695109132), // k = 239
+    _mm_set1_ps(1511.1060663766904781), // k = 240
+    _mm_set1_ps(1517.3892516838700431), // k = 241
+    _mm_set1_ps(1523.6724369910496080), // k = 242
+    _mm_set1_ps(1529.9556222982291729), // k = 243
+    _mm_set1_ps(1536.2388076054087378), // k = 244
+    _mm_set1_ps(1542.5219929125885301), // k = 245
+    _mm_set1_ps(1548.8051782197680950), // k = 246
+    _mm_set1_ps(1555.0883635269476599), // k = 247
+    _mm_set1_ps(1561.3715488341272248), // k = 248
+    _mm_set1_ps(1567.6547341413067898), // k = 249
+    _mm_set1_ps(1573.9379194484863547), // k = 250
+    _mm_set1_ps(1580.2211047556659196), // k = 251
+    _mm_set1_ps(1586.5042900628454845), // k = 252
+    _mm_set1_ps(1592.7874753700250494), // k = 253
+    _mm_set1_ps(1599.0706606772046143), // k = 254
+    _mm_set1_ps(1605.3538459843841792) // k = 255
+};
+
 
 enum class Gaussian_Q_approximations_sse_t : std::int32_t 
 {
@@ -3407,14 +3668,14 @@ __m128d analytic_BEP_MPSK_AWGN_8_31_2xf64(const __m128d Ac,const __m128d Ts,
                                           const __m128d M,const __m128d N0,
                                           const std::int32_t n)
 {
-if(__builtin_expect(M>1024.0,0)) {return (_mm_set1_ps(-1.0));}
+if(__builtin_expect(M>1024.0,0)) {return (_mm_set1_pd(-1.0));}
 __m128d result;
 __m128d Q_func_val = _mm_setzero_pd();
 __m128d one        = _mm_set1_pd(1.0);
 __m128d Eb         = avg_bit_E_to_carrier_A_2xf64(Ac,Ts,M);
-__m128d two        = _mm_set1_ps(2.0);
+__m128d two        = _mm_set1_pd(2.0);
 __m128d invM       = _mm_div_pd(one,M);
-__m128d log2M      = _mm_log2_ps(M);
+__m128d log2M      = _mm_log2_pd(M);
 __m128i itmp       = _mm_cvtpd_epi32(_mm_max_pd(_mm_mul_pd(M,_mm_set1_pd(0.25),one)));
 std::int32_t up_lim= _mm_extract_epi32(itmp,0);
 __m128d left_term  = _mm_div_pd(two,_mm_max_pd(log2M,two));
@@ -3614,7 +3875,138 @@ else
 }
 }
 
-
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+template<Gaussian_Q_approximations_sse_t Q_func_approx>
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128 analytic_BEP_MPSK_AWGN_8_31_4xf32( const __m128 Ac,const __m128 Ts,
+                                          const __m128 M,const __m128 N0,
+                                          const std::int32_t n)
+{
+if(__builtin_expect(M>1024.0f,0)) {return (_mm_set1_ps(-1.0f));}
+__m128 result;
+__m128 Q_func_val = _mm_setzero_ps();
+__m128 one        = _mm_set1_ps(1.0f);
+__m128 Eb         = avg_bit_E_to_carrier_A_4xf32(Ac,Ts,M);
+__m128 two        = _mm_set1_ps(2.0f);
+__m128 invM       = _mm_div_ps(one,M);
+__m128 log2M      = _mm_log2_ps(M);
+__m128i itmp       = _mm_cvtps_epi32(_mm_max_ps(_mm_mul_ps(M,_mm_set1_ps(0.25f),one)));
+std::int32_t up_lim= _mm_extract_epi32(itmp,0);
+__m128 left_term  = _mm_div_ps(two,_mm_max_ps(log2M,two));
+__m128 dtmp       = _mm_mul_ps(_mm_add_ps(Eb,Eb),log2M);
+__m128 num        = _mm_div_ps(dtmp,N0);
+__m128 Q_func_arg = _mm_sqrt_ps(num);
+const std::int32_t rem = up_lim%4;
+if(__builtin_expect(rem==0,0))
+{
+    if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_chiani)
+    {
+        for(std::int32_t i = 0; i < up_lim; ++i)
+        {
+            __m128 lut_val = sin_arg_lut_simd_f32[i];
+            __m128 sin_arg = _mm_mul_ps(lut_val,invM);
+            __m128 sin_val = gms::math::_mm_ceph_sinf_ps(sin_arg);
+            Q_func_val = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_chiani_4xf32(_mm_mul_ps(Q_func_arg,sin_val)));
+        }
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_loskot_2T)
+    {
+        for(std::int32_t i = 0; i < up_lim; ++i)
+        {
+            __m128 lut_val = sin_arg_lut_simd_f32[i];
+            __m128 sin_arg = _mm_mul_ps(lut_val,invM);
+            __m128 sin_val = gms::math::_mm_ceph_sinf_ps(sin_arg);
+            Q_func_val = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_loskot_2T_4xf32(_mm_mul_ps(Q_func_arg,sin_val)));
+        }
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_loskot_3T)
+    {
+        for(std::int32_t i = 0; i < up_lim; ++i)
+        {
+            __m128 lut_val = sin_arg_lut_simd_f32[i];
+            __m128 sin_arg = _mm_mul_ps(lut_val,invM);
+            __m128 sin_val = gms::math::_mm_ceph_sinf_ps(sin_arg);
+            Q_func_val = _mm_add_pd(Q_func_val,gms::math::gaussian_Q_approx_loskot_3T_4xf32(_mm_mul_ps(Q_func_arg,sin_val)));
+        }
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_1T)
+    {
+        for(std::int32_t i = 0; i < up_lim; ++i)
+        {
+            __m128 lut_val = sin_arg_lut_simd_f32[i];
+            __m128 sin_arg = _mm_mul_ps(lut_val,invM);
+            __m128 sin_val = gms::math::_mm_ceph_sinf_ps(sin_arg);
+            Q_func_val = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_sadhwani_1T_4xf32(_mm_mul_ps(Q_func_arg,sin_val)));
+        }
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_2T)
+    {
+        for(std::int32_t i = 0; i < up_lim; ++i)
+        {
+            __m128 lut_val = sin_arg_lut_simd_f32[i];
+            __m128 sin_arg = _mm_mul_ps(lut_val,invM);
+            __m128 sin_val = gms::math::_mm_ceph_sinf_ps(sin_arg);
+            Q_func_val = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_sadhwani_2T_4xf32(_mm_mul_ps(Q_func_arg,sin_val)));
+        }
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_4T)
+    {
+        for(std::int32_t i = 0; i < up_lim; ++i)
+        {
+            __m128 lut_val = sin_arg_lut_simd_f32[i];
+            __m128 sin_arg = _mm_mul_ps(lut_val,invM);
+            __m128 sin_val = gms::math::_mm_ceph_sinf_ps(sin_arg);
+            Q_func_val = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_sadhwani_4T_4xf32(_mm_mul_ps(Q_func_arg,sin_val)));
+        }
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_borjesson)
+    {
+        for(std::int32_t i = 0; i < up_lim; ++i)
+        {
+            __m128 lut_val = sin_arg_lut_simd_f32[i];
+            __m128 sin_arg = _mm_mul_ps(lut_val,invM);
+            __m128 sin_val = gms::math::_mm_ceph_sinf_ps(sin_arg);
+            Q_func_val = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_borjesson_4xf32(_mm_mul_ps(Q_func_arg,sin_val)));
+        }
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_summed)
+    {
+        for(std::int32_t i = 0; i < up_lim; ++i)
+        {
+            __m128 lut_val = sin_arg_lut_simd_f32[i];
+            __m128 sin_arg = _mm_mul_ps(lut_val,invM);
+            __m128 sin_val = gms::math::_mm_ceph_sinf_ps(sin_arg);
+            Q_func_val = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_sadhwani_summed_4xf32(_mm_mul_ps(Q_func_arg,sin_val),n));
+        }
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_karagiannidis_lioumpas)
+    {
+        for(std::int32_t i = 0; i < up_lim; ++i)
+        {
+            __m128 lut_val = sin_arg_lut_simd_f32[i];
+            __m128 sin_arg = _mm_mul_ps(lut_val,invM);
+            __m128 sin_val = gms::math::_mm_ceph_sinf_ps(sin_arg);
+            Q_func_val = _mm_add_ps(Q_func_val,gms::math::gaussian_Q_approx_karagiannidis_lioumpas_4xf32(_mm_mul_ps(Q_func_arg,sin_val)));
+        }
+    }
+    result = _mm_mul_ps(left_term,Q_func_val);
+    return (result);
+}
+else 
+{
+    result = _mm_set1_ps(-1.0f);
+    return (result);
+}
+}
 
 
 }
