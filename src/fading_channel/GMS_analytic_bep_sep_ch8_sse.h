@@ -3604,12 +3604,17 @@ if(__builtin_expect(rem==0,0))
         }
 #endif 
     }
+    result = _mm_mul_pd(left_term,Q_func_val);
+    return (result);
 }
 else 
 {
-    return (_mm_set1_pd(-1.0));
+    result = _mm_set1_pd(-1.0);
+    return (result);
 }
 }
+
+
 
 
 }
