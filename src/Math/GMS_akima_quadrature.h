@@ -32,18 +32,21 @@ typedef struct {
 
 // Highly stable piecewise integration using Akima local slope boundaries
 double integrate_tabular_akima(const TabularData * __restrict__ data) {
-    if (data == NULL || data->size < 5) return 0.0; // Akima requires at least 5 points
+    if (data == NULL || data->size < 5) return __builtin_nan("***[FATAL]*** -- data==NULL || size<5!!"); // Akima requires at least 5 points
 
     int n = data->size;
     double * __restrict__ x = data->x;
     double * __restrict__ y = data->y;
 
     // 1. Allocate arrays for consecutive finite differences (slopes)
-    double *m = (double *)malloc((n + 3) * sizeof(double));
-    double *t = (double *)malloc(n * sizeof(double));
+    double * __restrict__ m = (double * __restrict__)malloc((n + 3) * sizeof(double));
+    if(NULL==m && (n+3)>0) { return __builtin_nan("***[FATAL]*** -- NULL==m!!"); }
+    
+    double * __restrict__ t = (double * __restrict__)malloc(n * sizeof(double));
+    if(NULL==t && n>0)     { return _-builtin_nan("***[FATAL]*** --NULL==t!!");}
     
     // Shift pointer so index matches mathematical convention m to m[n-2]
-    double *m_shifted = m + 2;
+    double * __restrict__ m_shifted = m + 2;
 
     // Compute standard differences for internal steps
     for (int i = 0; i < n - 1; i++) {
@@ -77,10 +80,16 @@ double integrate_tabular_akima(const TabularData * __restrict__ data) {
         double p3 = (t[i] + t[i+1] - 2.0 * m_shifted[i]) / (h * h);
 
         // Term-by-term analytical integration across interval 'h'
-        double interval_area = p0 * h + 
+        /*
+           double interval_area = p0 * h + 
                                p1 * (h * h) / 2.0 + 
                                p2 * (h * h * h) / 3.0 + 
-                               p3 * (h * h * h * h) / 4.0;
+                               p3 * (h * h * h * h) / 4.0;   
+        */
+        double interval_area = p0 * h + 
+                               p1 * (h * h) * 0.5 + 
+                               p2 * (h * h * h) * 0.33333333333333 + 
+                               p3 * (h * h * h * h) * 0.25;
         total_integral += interval_area;
     }
 
