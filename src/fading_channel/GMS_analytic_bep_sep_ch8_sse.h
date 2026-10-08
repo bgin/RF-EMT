@@ -4180,6 +4180,27 @@ __m128d tmp2;
     return (result);
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+template<Gaussian_Q_approximations_sse_t Q_func_approx>
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128 analytic_BEP_FSK2_noncoh_8_68(const __m128 Ac,const __m128 Ts,
+                                     const __m128 M,const __m128 N0)
+{
+__m128 Eb = avg_bit_E_to_carrier_A_4xf32(Ac,Ts,M);
+__m128 half = _mm_set1_ps(0.5f);
+__m128 snr= _mm_div_ps(Eb,_mm_add_ps(N0,N0));
+return _mm_mul_ps(half,gms::math::simd_fast_exp_approx_4xf32(_mm_sub_ps(_mm_setzero_ps(),snr)));
+}
+
 
 }
 }
