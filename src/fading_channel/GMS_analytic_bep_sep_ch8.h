@@ -493,7 +493,7 @@ float analytic_SEP_MAM_8_1(const float Ac,const float Ts,
                            const std::int32_t n) 
 {   
     float result{};
-    float Q_func_val = -1.0f;
+    float Q_func_val;
     const float M_ratio = (M-1.0f)/M;
     const float left_term = M_ratio+M_ratio;
     const float num = 2.0f*(Ac*Ac)*Ts;
@@ -1192,7 +1192,7 @@ double analytic_BEP_QAM_AWGN_8_14(const double Ac,const double Ts,
                                   const std::int32_t n)
 {
     double result;
-    double Q_func_val;
+    double Q_func_val = 0.0f;
     const double Eb       = avg_bit_E_to_carrier_A<double>(Ac,Ts,M);
     const double log2M    = std::log2<double>(M);
 #if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
@@ -1849,7 +1849,7 @@ double analytic_BEP_MPSK_AWGN_8_31(const double Ac,const double Ts,
 {   
     if(__builtin_expect(M>1024.0,0)) { return (-1.0);}
     constexpr std::int32_t max_M = 256;
-constexpr const double sin_arg_lut[m_Max] = 
+constexpr const double sin_arg_lut[max_M] = 
 {
 3.1415926535897931159979634685442,
 9.4247779607693793479938904056326,
@@ -2109,7 +2109,7 @@ constexpr const double sin_arg_lut[m_Max] =
 1605.3538459843841792462626472115517
 };
     double result;
-    double Q_func_val;
+    double Q_func_val = 0.0;
     const double Eb              = avg_bit_E_to_carrier_A<double>(Ac,Ts,M);
     const double log2M           = std::log2<double>(M); 
     const std::int32_t upper_lim = static_cast<std::int32_t>(std::max<double>(M*0.25,1.0));
@@ -2128,9 +2128,9 @@ constexpr const double sin_arg_lut[m_Max] =
        {
            const double lut_val = sin_arg_lut[i];
 #if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
-           const double sin_val = gms::math::cephes_d::sin(sin_val*invM);
+           const double sin_val = gms::math::cephes_d::sin(lut_val*invM);
 #else 
-           const double sin_val = std::sin(sin_val*invM);
+           const double sin_val = std::sin(lut_val*invM);
 #endif 
            Q_func_val  += gms::math::gaussian_Q_approx_chiani(Q_func_arg*sin_val);
        }
@@ -2141,7 +2141,7 @@ constexpr const double sin_arg_lut[m_Max] =
        {
 const double lut_val = sin_arg_lut[i];
 #if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
-           const double sin_val = gms::math::cephes_d::sin(sin_val*invM);
+           const double sin_val = gms::math::cephes_d::sin(lut_val*invM);
 #else 
            const double sin_val = std::sin(sin_val*invM);
 #endif 
@@ -2152,9 +2152,9 @@ const double lut_val = sin_arg_lut[i];
     {
         for(std::int32_t i=1; i<=upper_lim; ++i) 
        {
-const double lut_val = sin_arg_lut[i];
+            const double lut_val = sin_arg_lut[i];
 #if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
-           const double sin_val = gms::math::cephes_d::sin(sin_val*invM);
+           const double sin_val = gms::math::cephes_d::sin(lut_val*invM);
 #else 
            const double sin_val = std::sin(sin_val*invM);
 #endif 
@@ -2165,9 +2165,9 @@ const double lut_val = sin_arg_lut[i];
     {
         for(std::int32_t i=1; i<=upper_lim; ++i) 
        {
-const double lut_val = sin_arg_lut[i];
+            const double lut_val = sin_arg_lut[i];
 #if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
-           const double sin_val = gms::math::cephes_d::sin(sin_val*invM);
+           const double sin_val = gms::math::cephes_d::sin(lut_val*invM);
 #else 
            const double sin_val = std::sin(sin_val*invM);
 #endif 
@@ -2178,9 +2178,9 @@ const double lut_val = sin_arg_lut[i];
     {
        for(std::int32_t i=1; i<=upper_lim; ++i) 
        {
-const double lut_val = sin_arg_lut[i];
+           const double lut_val = sin_arg_lut[i];
 #if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
-           const double sin_val = gms::math::cephes_d::sin(sin_val*invM);
+           const double sin_val = gms::math::cephes_d::sin(lut_val*invM);
 #else 
            const double sin_val = std::sin(sin_val*invM);
 #endif 
@@ -2191,9 +2191,9 @@ const double lut_val = sin_arg_lut[i];
     {
         for(std::int32_t i=1; i<=upper_lim; ++i) 
         { 
-const double lut_val = sin_arg_lut[i];
+            const double lut_val = sin_arg_lut[i];
 #if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
-           const double sin_val = gms::math::cephes_d::sin(sin_val*invM);
+           const double sin_val = gms::math::cephes_d::sin(lut_val*invM);
 #else 
            const double sin_val = std::sin(sin_val*invM);
 #endif 
@@ -2204,9 +2204,9 @@ const double lut_val = sin_arg_lut[i];
     {
         for(std::int32_t i=1; i<=upper_lim; ++i) 
         { 
-const double lut_val = sin_arg_lut[i];
+            const double lut_val = sin_arg_lut[i];
 #if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
-           const double sin_val = gms::math::cephes_d::sin(sin_val*invM);
+           const double sin_val = gms::math::cephes_d::sin(lut_val*invM);
 #else 
            const double sin_val = std::sin(sin_val*invM);
 #endif 
@@ -2219,7 +2219,7 @@ const double lut_val = sin_arg_lut[i];
         { 
 const double lut_val = sin_arg_lut[i];
 #if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
-           const double sin_val = gms::math::cephes_d::sin(sin_val*invM);
+           const double sin_val = gms::math::cephes_d::sin(lut_val*invM);
 #else 
            const double sin_val = std::sin(sin_val*invM);
 #endif 
@@ -2232,7 +2232,7 @@ const double lut_val = sin_arg_lut[i];
         { 
 const double lut_val = sin_arg_lut[i];
 #if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
-           const double sin_val = gms::math::cephes_d::sin(sin_val*invM);
+           const double sin_val = gms::math::cephes_d::sin(lut_val*invM);
 #else 
            const double sin_val = std::sin(sin_val*invM);
 #endif 
@@ -2535,7 +2535,7 @@ constexpr const float sin_arg_lut[max_M] =
        for(std::int32_t i=1; i<=upper_lim; ++i) 
        {
            const float lut_val = sin_arg_lut[i];
-           const float sin_val = std::sin(sin_val*invM);
+           const float sin_val = std::sin(lut_val*invM);
            Q_func_val  += gms::math::gaussian_Q_approx_chiani(Q_func_arg*sin_val);
        }
     }
@@ -2544,7 +2544,7 @@ constexpr const float sin_arg_lut[max_M] =
        for(std::int32_t i=1; i<=upper_lim; ++i) 
        {
            const float lut_val = sin_arg_lut[i];
-           const float sin_val = std::sin(sin_val*invM); 
+           const float sin_val = std::sin(lut_val*invM); 
            Q_func_val += gms::math::gaussian_Q_approx_loskot_2T(Q_func_arg*sin_val);
        }
     }
@@ -2553,7 +2553,7 @@ constexpr const float sin_arg_lut[max_M] =
         for(std::int32_t i=1; i<=upper_lim; ++i) 
        {
             const float lut_val = sin_arg_lut[i];
-            const float sin_val = std::sin(sin_val*invM);
+            const float sin_val = std::sin(lut_val*invM);
             Q_func_val += gms::math::gaussian_Q_approx_loskot_3T(Q_func_arg*sin_val);
        }
     }
@@ -2562,7 +2562,7 @@ constexpr const float sin_arg_lut[max_M] =
         for(std::int32_t i=1; i<=upper_lim; ++i) 
        {
             const float lut_val = sin_arg_lut[i];
-            const float sin_val = std::sin(sin_val*invM);
+            const float sin_val = std::sin(lut_val*invM);
             Q_func_val += gms::math::gaussian_Q_approx_sadhwani_1T(Q_func_arg*sin_val);
        }
     }
@@ -2571,7 +2571,7 @@ constexpr const float sin_arg_lut[max_M] =
        for(std::int32_t i=1; i<=upper_lim; ++i) 
        {
             const float lut_val = sin_arg_lut[i];
-            const float sin_val = std::sin(sin_val*invM);
+            const float sin_val = std::sin(lut_val*invM);
             Q_func_val += gms::math::gaussian_Q_approx_sadhwani_2T(Q_func_arg*sin_val);
        }
     }
@@ -2580,7 +2580,7 @@ constexpr const float sin_arg_lut[max_M] =
         for(std::int32_t i=1; i<=upper_lim; ++i) 
         { 
             const float lut_val = sin_arg_lut[i];
-            const float sin_val = std::sin(sin_val*invM); 
+            const float sin_val = std::sin(lut_val*invM); 
             Q_func_val += gms::math::gaussian_Q_approx_sadhwani_4T(Q_func_arg*sin_val);
         }
     }
@@ -2589,7 +2589,7 @@ constexpr const float sin_arg_lut[max_M] =
         for(std::int32_t i=1; i<=upper_lim; ++i) 
         { 
             const float lut_val = sin_arg_lut[i];
-            const float sin_val = std::sin(sin_val*invM); 
+            const float sin_val = std::sin(lut_val*invM); 
             Q_func_val += gms::math::gaussian_Q_approx_borjesson(Q_func_arg*sin_val);
         }
     }
@@ -2598,7 +2598,7 @@ constexpr const float sin_arg_lut[max_M] =
         for(std::int32_t i=1; i<=upper_lim; ++i) 
         { 
             const float lut_val = sin_arg_lut[i];
-            const float sin_val = std::sin(sin_val*invM); 
+            const float sin_val = std::sin(lut_val*invM); 
             Q_func_val += gms::math::gaussian_Q_approx_sadhwani_summed(Q_func_arg*sin_val,n);
         }
     }
@@ -2607,7 +2607,7 @@ constexpr const float sin_arg_lut[max_M] =
         for(std::int32_t i=1; i<=upper_lim; ++i) 
         { 
             const float lut_val = sin_arg_lut[i];
-            const float sin_val = std::sin(sin_val*invM); 
+            const float sin_val = std::sin(lut_val*invM); 
             Q_func_val += gms::math::gaussian_Q_approx_karagiannidis_lioumpas(Q_func_arg*sin_val);
         }
     }
