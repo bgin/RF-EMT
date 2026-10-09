@@ -4307,6 +4307,93 @@ __m128 b_sqrt = _mm_sqrt_ps(b);
     return (result);
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+template<Gaussian_Q_approximations_sse_t Q_func_approx>
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128d analytic_BEP_BPSK_8_60_2xf64(const __m128d Ac,const __m128d Ts,
+                                    const __m128d M,const __m128d N0,
+                                    const __m128d Bl,const __m128d Tb,
+                                    const __m128d mu,const std::int32_t n)  
+{
+__m128d result;
+__m128d Q1_func_val;
+__m128d tmp1;
+__m128d tmp2;
+__m128d a = BPSK_param_a_8_61_2xf64(Ac,Ts,M,N0,Bl,Tb);
+__m128d one = _mm_set1_pd(1.0);
+__m128d a_sqrt = _mm_sqrt_pd(a);
+__m128d half   = _mm_set1_pd(0.5);
+__m128d b = BPSK_param_b_8_61_2xf64(Ac,Ts,M,N0,Bl,Tb);
+__m128d b_sqrt = _mm_sqrt_pd(b);
+     if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_chiani)
+    {
+        tmp1  = _mm_sub_pd(one,gms::math::marcum_Q_approx_chiani_2xf64(mu,b_sqrt,a_sqrt));
+        tmp2  = gms::math::marcum_Q_approx_chiani_2xf64(mu,a_sqrt,b_sqrt);
+        Q1_func_val        = _mm_mul_pd(half,_mm_add_pd(tmp1,tmp2));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_loskot_2T)
+    {
+        tmp1  = _mm_sub_pd(one,gms::math::marcum_Q_approx_loskot_2T_2xf64(mu,b_sqrt,a_sqrt));
+        tmp2  = gms::math::marcum_Q_approx_loskot_2T_2xf64(mu,a_sqrt,b_sqrt);
+        Q1_func_val        = _mm_mul_pd(half,_mm_add_pd(tmp1,tmp2));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_loskot_3T)
+    {
+        tmp1  = _mm_sub_pd(one,gms::math::marcum_Q_approx_loskot_3T_2xf64(mu,b_sqrt,a_sqrt));
+        tmp2  = gms::math::marcum_Q_approx_loskot_3T_2xf64(mu,a_sqrt,b_sqrt);
+        Q1_func_val        = _mm_mul_pd(half,_mm_add_pd(tmp1,tmp2));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_1T)
+    {
+        tmp1  = _mm_sub_pd(one,gms::math::marcum_Q_approx_sadhwani_1T_2xf64(mu,b_sqrt,a_sqrt));
+        tmp2  = gms::math::marcum_Q_approx_sadhwani_1T_2xf64(mu,a_sqrt,b_sqrt);
+        Q1_func_val        = _mm_mul_pd(half,_mm_add_pd(tmp1,tmp2));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_2T)
+    {
+        tmp1  = _mm_sub_pd(one,gms::math::marcum_Q_approx_sadhwani_2T_2xf64(mu,b_sqrt,a_sqrt));
+        tmp2  = gms::math::marcum_Q_approx_sadhwani_2T_2xf64(mu,a_sqrt,b_sqrt);
+        Q1_func_val        = _mm_mul_pd(half,_mm_add_pd(tmp1,tmp2));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_4T)
+    {
+        tmp1  = _mm_sub_pd(one,gms::math::marcum_Q_approx_sadhwani_4T_2xf64(mu,b_sqrt,a_sqrt));
+        tmp2  = gms::math::marcum_Q_approx_sadhwani_4T_2xf64(mu,a_sqrt,b_sqrt);
+        Q1_func_val        = _mm_mul_pd(half,_mm_add_pd(tmp1,tmp2));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_borjesson)
+    {
+        tmp1  = _mm_sub_pd(one,gms::math::marcum_Q_approx_borjesson_2xf64(mu,b_sqrt,a_sqrt));
+        tmp2  = gms::math::marcum_Q_approx_borjesson_2xf64(mu,a_sqrt,b_sqrt);
+        Q1_func_val        = _mm_mul_pd(half,_mm_add_pd(tmp1,tmp2));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_summed)
+    {
+        tmp1  = _mm_sub_ps(one,gms::math::marcum_Q_approx_sadhwani_summed_2xf64(mu,b_sqrt,a_sqrt,n));
+        tmp2  = gms::math::marcum_Q_approx_sadhwani_summed_2xf64(mu,a_sqrt,b_sqrt,n);
+        Q1_func_val        = _mm_mul_pd(half,_mm_add_pd(tmp1,tmp2));
+    }
+     else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_karagiannidis_lioumpas)
+    {
+        tmp1  = _mm_sub_pd(one,gms::math::marcum_Q_approx_karagiannidis_lioumpas_2xf64(mu,b_sqrt,a_sqrt));
+        tmp2  = gms::math::marcum_Q_approx_karagiannidis_lioumpas_2xf64(mu,a_sqrt,b_sqrt);
+        Q1_func_val        = _mm_mul_pd(half,_mm_add_pd(tmp1,tmp2));
+    }
+    result = Q1_func_val;
+    return (result);
+}
+
+
+
 
 }
 }
