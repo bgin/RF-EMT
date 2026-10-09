@@ -4378,7 +4378,7 @@ __m128d b_sqrt = _mm_sqrt_pd(b);
     }
     else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_summed)
     {
-        tmp1  = _mm_sub_ps(one,gms::math::marcum_Q_approx_sadhwani_summed_2xf64(mu,b_sqrt,a_sqrt,n));
+        tmp1  = _mm_sub_pd(one,gms::math::marcum_Q_approx_sadhwani_summed_2xf64(mu,b_sqrt,a_sqrt,n));
         tmp2  = gms::math::marcum_Q_approx_sadhwani_summed_2xf64(mu,a_sqrt,b_sqrt,n);
         Q1_func_val        = _mm_mul_pd(half,_mm_add_pd(tmp1,tmp2));
     }
@@ -4392,7 +4392,144 @@ __m128d b_sqrt = _mm_sqrt_pd(b);
     return (result);
 }
 
-
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+template<Gaussian_Q_approximations_sse_t Q_func_approx>
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128 analytic_avg_BEP_QPSK_MSK_8_63_4xf32(const __m128 Ac,const __m128 Ts,
+                                            const __m128 M,const __m128 N0,
+                                            const __m128 Bl,const __m128 Tb,
+                                            const __m128 mu,const std::int32_t n)
+{
+const __mmask8 mu_neq_1 = _mm_cmp_ps_mask(mu,_mm_set1_ps(1.0f),_CMP_NEQ_OQ);
+if(__builtin_expect(mu_neq_1!=(__mmask8)0x0,0)) { return _mm_set1_ps(-1.0);}
+__m128 result;
+__m128 Q1_func_val;
+__m128 tmp1;
+__m128 tmp2;
+__m128 tmp3;
+__m128 tmp4;
+__m128 left;
+__m128 right;
+__m128 one      = _mm_set1_ps(1.0f);
+__m128 a1q      = BPSK_param_a_8_61_4xf32(Ac,Ts,M,N0,Bl,Tb);
+__m128 a1q_sqrt = _mm_sqrt_ps(a1q);
+__m128 b1q      = BPSK_param_b_8_61_4xf32(Ac,Ts,M,N0,Bl,Tb);
+__m128 b1q_sqrt = _mm_sqrt_ps(b1q);
+__m128 a2q      = OQPSK_param_a2_8_64_4xf32(Ac,Ts,M,N0,Bl,Tb);
+__m128 quarter  = _mm_set1_ps(0.25f);
+__m128 a2q_sqrt = _mm_sqrt_ps(a2q);
+__m128 b2q      = OQPSK_param_b2_8_64_4xf32(Ac,Ts,M,N0,Bl,Tb);
+__m128 b2q_sqrt = _mm_sqrt_ps(b2q);
+__m128 a1m      = MSK_param_a1_8_65_4xf32(Ac,Ts,M,N0,Bl,Tb);
+__m128 a1m_sqrt = _mm_sqrt_ps(a1m);
+__m128 b1m      = MSK_param_b1_8_65_4xf32(Ac,Ts,M,N0,Bl,Tb);
+__m128 b1m_sqrt = _mm_sqrt_ps(b1m);
+__m128 a2m      = MSK_param_a2_8_65_4xf32(Ac,Ts,M,N0,Bl,Tb);
+__m128 a2m_sqrt = _mm_sqrt_ps(a2m);
+__m128 b2m      = MSK_param_b2_8_65_4xf32(Ac,Ts,M,N0,Bl,Tb);
+__m128 b2m_sqrt = _mm_sqrt_ps(b2m);
+    if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_chiani)
+    {
+        tmp1 = _mm_sub_ps(one,gms::math::marcum_Q_approx_chiani_4xf32(mu,b1q_sqrt,a1q_sqrt));
+        tmp2 = gms::math::marcum_Q_approx_chiani_4xf32(mu,a1m_sqrt,b1m_sqrt);
+        tmp3 = _mm_sub_ps(one,gms::math::marcum_Q_approx_chiani_4xf32(mu,b2q_sqrt,a2q_sqrt));
+        tmp4 = gms::math::marcum_Q_approx_chiani_4xf32(mu,a2m_sqrt,b2m_sqrt);
+        left = _mm_mul_ps(quarter,_mm_add_ps(tmp1,tmp2));
+        right= _mm_mul_ps(quarter,_mm_add_ps(tmp3,tmp4));
+        Q1_func_val       = _mm_add_ps(left,right);
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_loskot_2T)
+    {
+        tmp1 = _mm_sub_ps(one,gms::math::marcum_Q_approx_loskot_2T_4xf32(mu,b1q_sqrt,a1q_sqrt));
+        tmp2 = gms::math::marcum_Q_approx_loskot_2T_4xf32(mu,a1m_sqrt,b1m_sqrt);
+        tmp3 = _mm_sub_ps(one,gms::math::marcum_Q_approx_loskot_2T_4xf32(mu,b2q_sqrt,a2q_sqrt));
+        tmp4 = gms::math::marcum_Q_approx_loskot_2T_4xf32(mu,a2m_sqrt,b2m_sqrt);
+        left = _mm_mul_ps(quarter,_mm_add_ps(tmp1,tmp2));
+        right= _mm_mul_ps(quarter,_mm_add_ps(tmp3,tmp4));
+        Q1_func_val       = _mm_add_ps(left,right);
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_loskot_3T)
+    {
+        tmp1 = _mm_sub_ps(one,gms::math::marcum_Q_approx_loskot_3T_4xf32(mu,b1q_sqrt,a1q_sqrt));
+        tmp2 = gms::math::marcum_Q_approx_loskot_3T_4xf32(mu,a1m_sqrt,b1m_sqrt);
+        tmp3 = _mm_sub_ps(one,gms::math::marcum_Q_approx_loskot_3T_4xf32(mu,b2q_sqrt,a2q_sqrt));
+        tmp4 = gms::math::marcum_Q_approx_loskot_3T_4xf32(mu,a2m_sqrt,b2m_sqrt);
+        left = _mm_mul_ps(quarter,_mm_add_ps(tmp1,tmp2));
+        right= _mm_mul_ps(quarter,_mm_add_ps(tmp3,tmp4));
+        Q1_func_val       = _mm_add_ps(left,right);
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_1T)
+    {
+        tmp1 = _mm_sub_ps(one,gms::math::marcum_Q_approx_sadhwani_1T_4xf32(mu,b1q_sqrt,a1q_sqrt));
+        tmp2 = gms::math::marcum_Q_approx_sadhwani_1T_4xf32(mu,a1m_sqrt,b1m_sqrt);
+        tmp3 = _mm_sub_ps(one,gms::math::marcum_Q_approx_sadhwani_1T_4xf32(mu,b2q_sqrt,a2q_sqrt));
+        tmp4 = gms::math::marcum_Q_approx_sadhwani_1T_4xf32(mu,a2m_sqrt,b2m_sqrt);
+        left = _mm_mul_ps(quarter,_mm_add_ps(tmp1,tmp2));
+        right= _mm_mul_ps(quarter,_mm_add_ps(tmp3,tmp4));
+        Q1_func_val       = _mm_add_ps(left,right);
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_2T)
+    {
+        tmp1 = _mm_sub_ps(one,gms::math::marcum_Q_approx_sadhwani_2T_4xf32(mu,b1q_sqrt,a1q_sqrt));
+        tmp2 = gms::math::marcum_Q_approx_sadhwani_2T_4xf32(mu,a1m_sqrt,b1m_sqrt);
+        tmp3 = _mm_sub_ps(one,gms::math::marcum_Q_approx_sadhwani_2T_4xf32(mu,b2q_sqrt,a2q_sqrt));
+        tmp4 = gms::math::marcum_Q_approx_sadhwani_2T_4xf32(mu,a2m_sqrt,b2m_sqrt);
+        left = _mm_mul_ps(quarter,_mm_add_ps(tmp1,tmp2));
+        right= _mm_mul_ps(quarter,_mm_add_ps(tmp3,tmp4));
+        Q1_func_val       = _mm_add_ps(left,right);
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_4T)
+    {
+        tmp1 = _mm_sub_ps(one,gms::math::marcum_Q_approx_sadhwani_4T_4xf32(mu,b1q_sqrt,a1q_sqrt));
+        tmp2 = gms::math::marcum_Q_approx_sadhwani_4T_4xf32(mu,a1m_sqrt,b1m_sqrt);
+        tmp3 = _mm_sub_ps(one,gms::math::marcum_Q_approx_sadhwani_4T_4xf32(mu,b2q_sqrt,a2q_sqrt));
+        tmp4 = gms::math::marcum_Q_approx_sadhwani_4T_4xf32(mu,a2m_sqrt,b2m_sqrt);
+        left = _mm_mul_ps(quarter,_mm_add_ps(tmp1,tmp2));
+        right= _mm_mul_ps(quarter,_mm_add_ps(tmp3,tmp4));
+        Q1_func_val       = _mm_add_ps(left,right);
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_borjesson)
+    {
+        tmp1 = _mm_sub_ps(one,gms::math::marcum_Q_approx_borjesson_4xf32(mu,b1q_sqrt,a1q_sqrt));
+        tmp2 = gms::math::marcum_Q_approx_borjesson_4xf32(mu,a1m_sqrt,b1m_sqrt);
+        tmp3 = _mm_sub_ps(one,gms::math::marcum_Q_approx_borjesson_4xf32(mu,b2q_sqrt,a2q_sqrt));
+        tmp4 = gms::math::marcum_Q_approx_borjesson_4xf32(mu,a2m_sqrt,b2m_sqrt);
+        left = _mm_mul_ps(quarter,_mm_add_ps(tmp1,tmp2));
+        right= _mm_mul_ps(quarter,_mm_add_ps(tmp3,tmp4));
+        Q1_func_val       = _mm_add_ps(left,right);
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_summed)
+    {
+        tmp1 = _mm_sub_ps(one,gms::math::marcum_Q_approx_sadhwani_summed_4xf32(mu,b1q_sqrt,a1q_sqrt,n));
+        tmp2 = gms::math::marcum_Q_approx_sadhwani_summed_4xf32(mu,a1m_sqrt,b1m_sqrt,n);
+        tmp3 = _mm_sub_ps(one,gms::math::marcum_Q_approx_sadhwani_summed_4xf32(mu,b2q_sqrt,a2q_sqrt,n));
+        tmp4 = gms::math::marcum_Q_approx_sadhwani_summed_4xf32(mu,a2m_sqrt,b2m_sqrt,n);
+        left = _mm_mul_ps(quarter,_mm_add_ps(tmp1,tmp2));
+        right= _mm_mul_ps(quarter,_mm_add_ps(tmp3,tmp4));
+        Q1_func_val       = _mm_add_ps(left,right);
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_karagiannidis_lioumpas)
+    {
+        tmp1 = _mm_sub_ps(one,gms::math::marcum_Q_approx_karagiannidis_lioumpas_4xf32(mu,b1q_sqrt,a1q_sqrt));
+        tmp2 = gms::math::marcum_Q_approx_karagiannidis_lioumpas_4xf32(mu,a1m_sqrt,b1m_sqrt);
+        tmp3 = _mm_sub_ps(one,gms::math::marcum_Q_approx_karagiannidis_lioumpas_4xf32(mu,b2q_sqrt,a2q_sqrt));
+        tmp4 = gms::math::marcum_Q_approx_karagiannidis_lioumpas_4xf32(mu,a2m_sqrt,b2m_sqrt);
+        left = _mm_mul_ps(quarter,_mm_add_ps(tmp1,tmp2));
+        right= _mm_mul_ps(quarter,_mm_add_ps(tmp3,tmp4));
+        Q1_func_val       = _mm_add_ps(left,right);
+    }
+    result = Q1_func_val;
+    return (result);
+}
 
 
 }
