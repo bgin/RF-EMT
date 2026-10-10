@@ -35,6 +35,34 @@ This project provides a high-fidelity simulation framework for Radar,Telecommuni
 - **Current Status:**  
   The project contains hundreds of SIMD kernels and a comprehensive set of analytical and simulation tools for radar and Telecom system analysis and modeling.
 
+# RF-EMT Fading Channel Directory File List
+
+This markdown file provides an structured overview of the source and header files located within the `src/fading_channel` directory of the **RF-EMT** repository.
+
+| File Name | Extension | Category | Brief Technical Context |
+| :--- | :---: | :---: | :--- |
+| `GMS_analytic_bep_sep_ch8.h` | `.h` | Header | Analytic Bit Error Probability (BEP) and Symbol Error Probability (SEP) formulations for Chapter 8 context. |
+| `GMS_analytic_bep_sep_ch8_sse.h` | `.h` | Header | SSE-optimized implementations of analytic BEP and SEP for Chapter 8. |
+| `GMS_analytic_sep_bep_ch8_array1d_f32.h` | `.h` | Header | 1D float32 array configurations for Chapter 8 analytic SEP/BEP models. |
+| `GMS_analytic_sep_bep_ch8_array1d_f64.h` | `.h` | Header | 1D float64 (double) array configurations for Chapter 8 analytic SEP/BEP models. |
+| `GMS_channel_snr_pdf_mgf.h` | `.h` | Header | Channel Signal-to-Noise Ratio (SNR) Probability Density Function (PDF) and Moment Generating Function (MGF) computations. |
+| `GMS_compute_functionals_ch4.h` | `.h` | Header | Header definitions for computing functional math/statistical structures mapped to Chapter 4. |
+| `GMS_compute_functionals_ch4.cpp` | `.cpp` | Source | Implementation source for computing mathematical functionals associated with Chapter 4 models. |
+| `GMS_compute_functionals_ch5.h` | `.h` | Header | Header definitions for computing functional math/statistical structures mapped to Chapter 5. |
+| `GMS_compute_functionals_ch5.cpp` | `.cpp` | Source | Implementation source for computing mathematical functionals associated with Chapter 5 models. |
+| `GMS_fading_spectrum.h` | `.h` | Header | Definitions and analytical parameters modeling specialized fading channel spectrum behaviors. |
+| `GMS_functionals_ch4_sse.h` | `.h` | Header | Header declaration for SIMD/SSE parallelized implementations of Chapter 4 functionals. |
+| `GMS_functionals_ch4_sse.cpp` | `.cpp` | Source | SSE vectorized implementation codebase for Chapter 4 mathematical functionals. |
+| `GMS_integrands_func_ch4.h` | `.h` | Header | Integrand function declarations utilizing specific numerical methods for Chapter 4. |
+| `GMS_integrands_func_ch4.cpp` | `.cpp` | Source | Implementation of mathematical integrand functions for numerical integration in Chapter 4 models. |
+| `GMS_integrands_func_ch4_sse.h` | `.h` | Header | SSE optimized vector parallel versions of the Chapter 4 numerical integrand functions. |
+| `GMS_integrands_func_ch5.h` | `.h` | Header | Integrand function declarations utilizing specific numerical methods for Chapter 5. |
+| `GMS_integrands_func_ch5.cpp` | `.cpp` | Source | Implementation of mathematical integrand functions for numerical integration in Chapter 5 models. |
+| `GMS_integrands_func_ch8.h` | `.h` | Header | Integrand function declarations utilizing specific numerical methods for Chapter 8. |
+| `GMS_integrands_helpers.h` | `.h` | Header | Definitions of auxiliary utility routines and wrapper helpers assisting integrand solvers. |
+| `GMS_integrands_helpers.cpp` | `.cpp` | Source | Core logic implementations for auxiliary helpers supporting mathematical integration. |
+
+
 ## Usage
 
 This software is intended as a backend computational library for advanced simulation and modeling applications. It can be integrated into larger software environments or connected to graphical user interfaces for visualization and analysis.
