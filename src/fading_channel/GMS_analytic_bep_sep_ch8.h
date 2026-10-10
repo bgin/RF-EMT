@@ -2933,7 +2933,7 @@ double analytic_BEP_FSK2_noncoh_8_68(const double Ac,const double Ts,
                                      const double M,const double N0)
 {
     const double Eb = avg_bit_E_to_carrier_A<double>(Ac,Ts,M);
-    const double exp_arg = Eb/(N0+N+);
+    const double exp_arg = Eb/(N0+N0);
     return (0.5*gms::math::expapprox_d(-exp_arg));
 }
 
@@ -2953,7 +2953,7 @@ float analytic_BEP_FSK2_noncoh_8_68(const float Ac,const float Ts,
                                      const float M,const float N0)
 {
     const float Eb = avg_bit_E_to_carrier_A<float>(Ac,Ts,M);
-    const float exp_arg = Eb/(N0+N+);
+    const float exp_arg = Eb/(N0+N0);
     return (0.5f*gms::math::expapprox(-exp_arg));
 }
 
@@ -3616,7 +3616,6 @@ double analytic_BEP_MPSK_pair_err_prob_8_80(const double * __restrict__ betak,
     const double lead_fac = Es/(N0+N0);
     const double snr      = Es/N0;
     const double rho_snr  = rhoc/snr;
-    const double invNs    = 1.0/d_Ns;
     const double term1    = = __builtin_fma(cosphic*rho_snr,invNs,1.0);
     std::complex<double> delta_sum(0.0,0.0);
     for(std::int32_t i = 0; i<Ns; ++i) 
