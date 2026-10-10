@@ -1,6 +1,6 @@
 
 #ifndef __GMS_SSEC4F32_H__
-#define __GMS_SSEC4F32_H__
+#define __GMS_SSEC4F32_H__ 310320201538
 
 namespace file_info {
 
@@ -25,167 +25,155 @@ namespace gms {
 
           namespace math {
 
+    
+	struct  SSEc4f32 
+	{
 
-	             struct SSEc4f32 {
+        __m128 m_re;
+		__m128 m_im;
+	
+	       __ATTR_ALWAYS_INLINE__
+		   SSEc4f32() 
+		   {
+               m_re = _mm_setzero_ps();
+			   m_im = _mm_setzero_ps();
+		   }
 
-                        __m128 m_re;
-			__m128 m_im;
-
-			__ATTR_HOT__
-			__ATTR_ALIGN__(16)
-		        SSEc4f32() {
-                            m_re = _mm_setzero_ps();
-			    m_im = _mm_setzero_ps();
-			}
-
-			__ATTR_HOT__
-			__ATTR_ALIGN__(16)
-			__ATTR_VECTORCALL__
-			SSEc4f32(const float * __restrict __ATTR_ALIGN__(16) re,
-			         const float * __restrict __ATTR_ALIGN__(16) im) {
+		    __ATTR_ALWAYS_INLINE__
+		    SSEc4f32(const float * __restrict  re,
+			    const float * __restrict  im) 
+		   {
 #if defined __GNUC__ && !defined __INTEL_COMPILER
-                                 re = (const float*)__builtin_assume_aligned(re,16);
+                 re = (const float*)__builtin_assume_aligned(re,16);
 				 im = (const float*)__builtin_assume_aligned(im,16);
 #elif defined __ICC || defined __INTEL_COMPILER
-                                 __assume_aligned(re,16);
-				 __assume_aligned(im,16);
+                __assume_aligned(re,16);
+				__assume_aligned(im,16);
 #endif
-                                 m_re = _mm_load_ps(&re[0]);
-				 m_im = _mm_load_ps(&im[0]);
+                m_re = _mm_load_ps(&re[0]);
+				m_im = _mm_load_ps(&im[0]);
 			}
 
-		      __ATTR_HOT__
-		      __ATTR_ALIGN__(16)
-		      SSEc4f32(const float re,
-		               const float im) {
-                           m_re = _mm_set1_ps(re);
+		    __ATTR_ALWAYS_INLINE__
+		    SSEc4f32(const float re,
+		         const float im) 
+		    {
+               m_re = _mm_set1_ps(re);
 			   m_im = _mm_set1_ps(im);
 		    }
 
-		      __ATTR_HOT__
-		      __ATTR_ALIGN__(16)
-		      SSEc4f32(const std::complex<float> c) {
-                           m_re = _mm_set1_ps(c.real());
-			   m_im = _mm_set1_ps(c.imag());
+		    __ATTR_ALWAYS_INLINE__
+		    SSEc4f32(const std::complex<float> c) 
+			  {
+                m_re = _mm_set1_ps(c.real());
+			    m_im = _mm_set1_ps(c.imag());
 		    }
 
-		      __ATTR_HOT__
-		      __ATTR_ALIGN__(16)
-		      SSEc4f32(const float re) {
-                           m_re = _mm_set1_ps(re);
+		    __ATTR_ALWAYS_INLINE__
+		    SSEc4f32(const float re) {
+               m_re = _mm_set1_ps(re);
 			   m_im = _mm_setzero_ps();
 		    }
 
-		      __ATTR_HOT__
-		      __ATTR_ALIGN__(16)
+		    __ATTR_ALWAYS_INLINE__
 		      SSEc4f32(const float re) {
-                           m_re = _mm_set1_ps(re);
+                m_re = _mm_set1_ps(re);
 			   m_im = _mm_setzero_ps();
 		    }
 
-		    __ATTR_HOT__
-		    __ATTR_ALIGN__(16)
-		    __ATTR_VECTORCALL__
-		    SSEc4f32(    const float re0,
-		                 const float re1,
-				 const float re2,
-				 const float re3)
-			                        {
-                          m_re = _mm_setr_ps(re3,re2,re1,re0);
+		   
+		    __ATTR_ALWAYS_INLINE__
+		    SSEc4f32(const float re0,
+		             const float re1,
+				     const float re2,
+				     const float re3)
+			{
+              m_re = _mm_setr_ps(re3,re2,re1,re0);
 			  m_im = _mm_setzero_ps();
 		   }
 
-		   __ATTR_HOT__
-		   __ATTR_ALIGN__(16)
-		   __ATTR_VECTORCALL__
+		   __ATTR_ALWAYS_INLINE__
 		   SSEc4f32( const float re0,
-		                 const float re1,
-				 const float re2,
-				 const float re3,
+		             const float re1,
+				     const float re2,
+				     const float re3,
 			         const float im0,
-				 const float im1,
-				 const float im2,
-				 const float im3)
-			                            {
-                              m_re = _mm_setr_ps(re3,re2,re1,re0);
-			      m_im = _mm_setr_ps(im3,im2,im1,im0);
+				     const float im1,
+				     const float im2,
+				     const float im3)
+		  {
+                m_re = _mm_setr_ps(re3,re2,re1,re0);
+			    m_im = _mm_setr_ps(im3,im2,im1,im0);
           
 		  }
 
-		    __ATTR_HOT__
-		    __ATTR_ALIGN__(16)
-		    __ATTR_VECTORCALL__
+		    __ATTR_ALWAYS_INLINE__
 		    SSEc4f32(const __m128 re,
-		             const __m128 im) {
-                          m_re = re;
-			  m_im = im;
-                  }
+		             const __m128 im) 
+			{
+                m_re = re;
+			    m_im = im;
+            }
 
-		  __ATTR_HOT__
-		  __ATTR_ALIGN__(16)
-		  __ATTR_VECTORCALL__
-		  SSEc4f32(const SSEc4f32 x) {
-                          m_re = x.m_re;
-                          m_im = x.m_im;
+		  __ATTR_ALWAYS_INLINE__
+		  SSEc4f32(const SSEc4f32 x) 
+		  {
+                m_re = x.m_re;
+                m_im = x.m_im;
 		  }
 
-		  __ATTR_HOT__
-		  __ATTR_ALIGN__(16)
-		  __ATTR_VECTORCALL__
+		  __ATTR_ALWAYS_INLINE__
 		  SSEc4f32 &
-		  load_a(const float * __restrict __ATTR_ALIGN__(16) re,
-		         const float * __restrict __ATTR_ALIGN__(16) im) {
+		  load_a(const float * __restrict  re,
+		         const float * __restrict  im) 
+		  {
 #if defined __GNUC__ && !defined __INTEL_COMPILER
-                         re = (const float*)__builtin_assume_aligned(re,16);
+             re = (const float*)__builtin_assume_aligned(re,16);
 			 im = (const float*)__builtin_assume_aligned(im,16);
 #elif defined __ICC || defined __INTEL_COMPILER
-                         __assume_aligned(re,16);
+            __assume_aligned(re,16);
 			 __assume_aligned(im,16);
 #endif
-                       m_re = _mm_load_ps(&re[0]);
+               m_re = _mm_load_ps(&re[0]);
 		       m_im = _mm_load_ps(&im[0]);
 		       return (*this);
-		 }
+		   }
 
-		 __ATTR_HOT__
-		 __ATTR_ALIGN__(16)
-		 __ATTR_VECTORCALL__
+		 __ATTR_ALWAYS_INLINE__
 		 SSEc4f32 &
 		 load_u(const float * __restrict re,
 		        const float * __restrict im) {
-                      m_re = _mm_loadu_ps(&re[0]);
-                      m_im = _mm_loadu_ps(&im[0]);
-                      return (*this);
+                m_re = _mm_loadu_ps(&re[0]);
+                m_im = _mm_loadu_ps(&im[0]);
+                return (*this);
 		 }
 
-		 __ATTR_HOT__
-		 __ATTR_ALIGN__(16)
-		 __ATTR_VECTORCALL__
-		 void store_a(float * __restrict __ATTR_ALIGN__(16) re,
-		              float * __restrict __ATTR_ALIGN__(16) im) {
+		 __ATTR_ALWAYS_INLINE__
+		 void store_a(float * __restrict  re,
+		              float * __restrict  im) {
 #if defined __GNUC__ && !defined __INTEL_COMPILER
-                         re = (float*)__builtin_assume_aligned(re,16);
+             re = (float*)__builtin_assume_aligned(re,16);
 			 im = (float*)__builtin_assume_aligned(im,16);
 #elif defined __ICC || defined __INTEL_COMPILER
-                         __assume_aligned(re,16);
+             __assume_aligned(re,16);
 			 __assume_aligned(im,16);
 #endif
-                          _mm_store_ps(&re[0],m_re);
-                          _mm_store_ps(&im[0],m_im);
+            _mm_store_ps(&re[0],m_re);
+            _mm_store_ps(&im[0],m_im);
 		}
 
-		__ATTR_HOT__
-		__ATTR_ALIGN__(16)
-		__ATTR_VECTORCALL__
+		
+		
+		
 		void store_u(float * __restrict re,
 		             float * __restrict im) {
                       _mm_store_ps(&re[0],m_re);
                       _mm_store_ps(&im[0],m_im);
 	        }
 
-	      __ATTR_HOT__
-	      __ATTR_ALIGN__(16)
-	      __ATTR_VECTORCALL__
+	      
+	      
+	      
 	      void stream_nt(float * __restrict re,
 	                     float * __restrict im) {
                      _mm_stream_ps(&re[0],m_re);
@@ -193,16 +181,17 @@ namespace gms {
                     _mm_sfence();
 	        }
 
-	     __ATTR_COLD__
-	     __ATTR_ALIGN__(32)
-	     float extract_1xf32(const int32_t pos) {
-                     __attribute__((aligned(16))) float mem[8] = {};
+	     
+	     
+	     float extract_1xf32(const int32_t pos) 
+		 {
+            __attribute__((aligned(16))) float mem[8] = {};
                      store_a(&mem[0],&mem[4]);
                       return (mem[pos & 0x7]);
-                }
+         }
 
-	     __ATTR_COLD__
-	     __ATTR_ALIGN__(32)
+	     
+	     
 	     std::pair<float,float>
 	     extract_2xf32(const int32_t posx,
 	                   const int32_t posy) {
@@ -212,8 +201,8 @@ namespace gms {
                      return (std::make_pair(re_mem[posx & 0x3],im_mem[posy  & 0x3]));
                 }
 
-            __ATTR_COLD__
-	    __ATTR_ALIGN__(32)
+            
+	    
 	    SSEc4f32 &
 	    insert_1xf32(const int32_t pos,
 	                 const float value) {
@@ -225,8 +214,8 @@ namespace gms {
                    return (*this);
 	        }
 
-	    __ATTR_COLD__
-	    __ATTR_ALIGN__(32)
+	    
+	    
 	    SSEc4f32 &
 	    insert_2xf32(const int32_t re_idx
 	                 const int32_t im_idx
@@ -242,10 +231,10 @@ namespace gms {
                  return (*this);
 	       }
 
-	    __ATTR_COLD__
-            __ATTR_ALIGN__(16)
-	    __ATTR_VECTORCALL__
-	    void concatenate_a(float * __restrict __ATTR_ALIGN__(16) out) {
+	    
+            
+	    
+	    void concatenate_a(float * __restrict  out) {
 #if defined __GNUC__ && !defined __INTEL_COMPILER
                   out = (float*)__builtin_assume_aligned(out,16);
 #elif defined __ICC || defined __INTEL_COMPILER
@@ -254,17 +243,16 @@ namespace gms {
                   store_a(&out[0],&out[4]);
 	       }
 
-            __ATTR_COLD__
-	    __ATTR_ALIGN__(16)
-	    __ATTR_VECTORCALL__
+            
+	
 	    void concatenate_u(float * __restrict out) {
                   store_u(&out[0],&out[4]);
 	      }
 	      
 #if defined __AVX512F__
 
-            __ATTR_COLD__
-	    __ATTR_ALIGN__(16)
+            
+	    
 	    SSEc4f32 &
 	    partial_loadu(const float * __restrict re,
 	                  const int32_t n_re,
@@ -275,8 +263,8 @@ namespace gms {
                    return (*this);
 	      }
 
-	    __ATTR_COLD__
-	    __ATTR_ALIGN__(16)
+	    
+	   
 	    SSEc4f32 &
 	    partial_loada(const float * __restrict re,
 	                  const int32_t n_re,
@@ -294,8 +282,8 @@ namespace gms {
                     return (*this);
 	      }
 
-	      __ATTR_COLD__
-	      __ATTR_ALIGN__(16)
+	      
+	      
 	      void partial_storeu(float * __restrict re,
                                        const int32_t n_re,
 				       float * __restrict im,
@@ -304,9 +292,9 @@ namespace gms {
                  _mm_mask_storeu_ps(&im[0],__mmask8((1 << m_im)-1),m_im);
               }
 
-	      __ATTR_COLD__
-	      __ATTR_ALIGN__(16)
-	      __ATTR_VECTORCALL__
+	      
+	      
+	      
 	      SSEc4f32 &
 	             expand(const SSEc4f32 x,
                             const __mmask8 mask) {
@@ -315,9 +303,9 @@ namespace gms {
                      return (*this);
               }
 
-	      __ATTR_COLD__
-	      __ATTR_ALIGN__(16)
-	      __ATTR_VECTORCALL__
+	      
+	     
+	      
 	      SSEc4f32 &
 	            expand_loadu(const SSEc4f32 x,
                                  const __mmask8 mask,
@@ -328,8 +316,8 @@ namespace gms {
                      return (*this);
                }
 
-	       __ATTR_COLD__
-	       __ATTR_ALIGN__(16)
+	       
+	       
 	       SSEc4f32 & permute(const __mmask8 mask,
                                       const int32_t imm) {
                     m_re = _mm_mask_permute_ps(m_re,mask,m_im,imm);
@@ -337,9 +325,9 @@ namespace gms {
                     return (*this);
                }
 #endif
-	       __ATTR_HOT__
-	       __ATTR_ALIGN__(16)
-	       __ATTR_VECTORCALL__
+	       
+	      
+	       
 	       SSEc4f32 &
 	              operator=(const SSEc4f32 x) {
                         if(this == &x) return (*this);
@@ -350,13 +338,13 @@ namespace gms {
 
 		 
 		     
-	     } __ATTR_ALIGN__(64);
+	     }__ATTR_ALIGN__(16);
 
 
 
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(16)
-	     __ATTR_VECTORCALL__
+	     
+	     
+	     
 	     static inline
 	     SSEc4f32 conj(SSEc4f32 x) {
 	          auto tmp = ~x;
@@ -364,8 +352,8 @@ namespace gms {
 	     }
 
 	     __ATTR__HOT__
-	     __ATTR_ALIGN__(32)
-	     __ATTR_VECTORCALL__
+	     
+	     
 	     static inline
 	     SSEc4f32 polar(const __m128 rho,
 	                    const __m128 theta) {
@@ -376,17 +364,17 @@ namespace gms {
                    return (SSEc4f32{re_part,im_part});
 	     }
 
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(16)
-	     __ATTR_VECTORCALL__
+	     
+	     
+	     
 	     static inline
 	     __m128 carg(const SSEc4f32 x) {
                   return (_mm_atan2_ps(x.m_re,x.m_im));
 	     }
 
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(32)
-	     __ATTR_VECTORCALL__
+	     
+	     
+	     
 	     static inline
 	     SSEc4f32 csin(const SSEc4f32 x) {
                     const __m128 re_part =
@@ -398,9 +386,9 @@ namespace gms {
                     return (SSEc4f32{re_part,im_part});
 	     }
 
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(32)
-	     __ATTR_VECTORCALL__
+	     
+	     
+	     
 	     static inline
 	     SSEc4f32 csinh(const SSEc4f32 x) {
                     const __m128 re_part =
@@ -412,9 +400,9 @@ namespace gms {
                     return (SSEc4f32{re_part,im_part});
 	     }
 
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(32)
-	     __ATTR_VECTORCALL__
+	     
+	     
+	     
 	     static inline
 	     SSEc4f32 ccos(const SSEc4f32 x) {
                     const __m128 re_part =
@@ -426,9 +414,9 @@ namespace gms {
                     return (SSEc4f32{re_part,im_part});
 	     }
 
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(32)
-	     __ATTR_VECTORCALL__
+	     
+	     
+	     
 	     static inline
 	     SSEc4f32 ccosh(const SSEc4f32 x) {
                     const __m128 re_part =
@@ -440,9 +428,9 @@ namespace gms {
                     return (SSEc4f32{re_part,im_part});
 	     }
 
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(32)
-	     __ATTR_VECTORCALL__
+	     
+	     
+	     
 	     static inline
 	     SSEc4f32 cexp(const SSEc4f32 x) {
                     const __m128 re_part =
@@ -454,9 +442,9 @@ namespace gms {
                     return (SSEc4f32{re_part,im_part});
 	     }
 
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(32)
-	     __ATTR_VECTORCALL__
+	     
+	     
+	     
 	     static inline
 	     __m128 cabs(const SSEc4f32 x) {
                     const __m128 re_part =
@@ -466,9 +454,9 @@ namespace gms {
                     return (_mm_sqrt_ps(_mm_add_ps(re_part,im_part)));
              }
 
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(32)
-	     __ATTR_VECTORCALL__
+	     
+	     
+	     
 	     static inline
 	     SSEc4f32 cpow(const SSEc4f32 x,
                                const float n) {
@@ -487,9 +475,9 @@ namespace gms {
                                      _mm_mul_ps(pow_term,_mm_sin_ps(trig_arg))}));
              }
 
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(32)
-	     __ATTR_VECTORCALL__
+	     
+	     
+	     
 	     static inline
 	     SSEc4f32 clog(const SSEc4f32 x) {
                      const __m128 t1  = cabs(x);
@@ -498,9 +486,9 @@ namespace gms {
                      return (SSEc4f32{re_part,t2});
 	     }
 
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(32)
-	     __ATTR_VECTORCALL__
+	     
+	     
+	     
 	     static inline
 	     SSEc4f32 csqrt(const SSEc4f32 x) {
                        const __m128 t = cabs(x);
@@ -514,26 +502,26 @@ namespace gms {
                                         _mm_sqrt_ps(im_part)});
 	     }
 
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(32)
-	     __ATTR_VECTORCALL__
+	     
+	     
+	     
 	     static inline
 	     SSEc4f32 ctan(const SSEc4f32 x) {
                        return (ctan(x)/csin(x));
 	     }
 
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(32)
-	     __ATTR_VECTORCALL__
+	     
+	     
+	     
              static inline
 	     SSEc4f32
              ctanh(const SSEc4f32 x) {
                         return (csinh(x)/ccosh(x));
              }
 #if defined __AVX512F__
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(16)
-	     __ATTR_VECTORCALL__
+	     
+	     
+	     
              static inline
 	     SSEc4f32
              select(const SSEc4f32 x,
@@ -544,9 +532,9 @@ namespace gms {
               }
 #endif
 
-              __ATTR_HOT__
-              __ATTR_ALIGN__(16)
-              __ATTR_VECTORCALL__
+              
+              
+              
               static inline
 	      __m128 abs_real(const __m128 x) {
 
@@ -554,13 +542,8 @@ namespace gms {
 			 return (_mm_and_pd(x,mask));
 	       }
 
-#if defined __AVX512F__
-
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(32)
-	     __ATTR_VECTORCALL__
              static inline
-	     SSEc4f32
+	         SSEc4f32
              cdiv_smith(const SSEc4f32 x,
                         const SSEc4f32 y) {
                     __m128 ratio,denom,re_part,im_part;
@@ -592,49 +575,11 @@ namespace gms {
 	                return (SSEc4f32{re_part,im_part});
                       }
                }
-#else
-                  __ATTR_HOT__
-	          __ATTR_ALIGN__(32)
-	          __ATTR_VECTORCALL__
-                  static inline
-		  SSEc4f32 cdiv_smith(const SSEc4f32 x,
-				      const SSEc4f32 y) {
 
-                     __m128 ratio,denom,re_part,im_part;
-		     __m128 mgte;
-		     //
-		     mgte = _mm_setzero_ps();
-		     mgte = _mm_cmp_ps(abs_real(y.m_re),
-				       abs_real(y.m_im),
-				       _CMP_GE_OQ);
-		     ratio = _mm256_setzero_ps();
-		     denom = _mm256_setzero_ps();
-		     if(_mm256_testz_ps(mgte,mgte)) {
-                            ratio = _mm256_div_ps(y.m_im,y.m_re);
-	                    denom = _mm256_add_ps(y.m_re,
-	                                  _mm256_mul_ps(ratio,y.m_im));
-	                    re_part = _mm256_div_ps(_mm256_add_ps(x.m_re,
-	                                  _mm256_mul_ps(x.m_im,ratio)),denom);
-	                    im_part = _mm256_div_ps(_mm256_sub_ps(x.m_im,
-	                                  _mm256_mul_ps(x.m_re,ratio)),denom);
-	                    return (AVXc8f32{re_part,im_part});
-		       } else {
-                            ratio   = _mm256_div_ps(y.m_re,y.m_im);
-	                    denom   = _mm256_add_ps(y.m_im,_mm256_mul_ps(ratio,y.m_re));
-	                    re_part = _mm256_div_ps(_mm256_add_ps(
-	                                           _mm256_mul_ps(x.m_re,ratio)),denom);
-	                    im_part = _mm256_div_ps(_mm256_sub_ps(
-	                                           _mm256_mul_ps(x.m_im,ratio)),denom);
-	                    return (AVXc8f32{re_part,im_part});
-				  }
-						    
-		       }
-
-#endif
-
-	      __ATTR_HOT__
-	      __ATTR_ALIGN__(16)
-	      __ATTR_VECTORCALL__
+                  
+	      
+	      
+	      
               static inline
 	      SSEc4f32
               operator+(const SSEc4f32 x,
@@ -643,9 +588,9 @@ namespace gms {
                                        _mm_add_ps(x.m_im,x.m_im)});
                }
 
-	       __ATTR_HOT__
-	       __ATTR_ALIGN__(16)
-	       __ATTR_VECTORCALL__
+	       
+	      
+	       
 	       static inline
 	       SSEc4f32
 	       operator+(const SSEc4f32 x,
@@ -654,9 +599,9 @@ namespace gms {
 		                       _mm_add_ps(x.m_im,_mm_set1_ps(y.imag()))});
 	       }
 
-	       __ATTR_HOT__
-	       __ATTR_ALIGN__(16)
-	       __ATTR_VECTORCALL__
+	       
+	       
+	       
 	       static inline
 	       SSEc4f32
 	       operator+(const std::complex<float> x,
@@ -665,9 +610,9 @@ namespace gms {
 		                        _mm_add_ps(_mm_set1_ps(x.imag()),y.m_im)});
 		}
 
-	      __ATTR_HOT__
-	      __ATTR_ALIGN__(16)
-	      __ATTR_VECTORCALL__
+	      
+	      
+	      
               static inline SSEc4f32
               operator+(const SSEc4f32 x,
                         const __m128 v) {
@@ -675,36 +620,36 @@ namespace gms {
                                               x.m_im});
                }
 
-              __ATTR_HOT__
-	      __ATTR_ALIGN__(16)
-	      __ATTR_VECTORCALL__
+              
+	      
+	      
               static inline SSEc4f32
               operator+(const __m128 v,
                         const SSEc4f32 x) {
                    return (SSEc4f32{_mm_add_ps(v,x.m_re),x.m_im});
                }
 
-              __ATTR_HOT__
-	      __ATTR_ALIGN__(16)
-	      __ATTR_VECTORCALL__
+              
+	      
+	      
               static inline SSEc4f32
               operator+(const SSEc4f32 x,
                         const float s) {
                    return (x + SSEc4f32{s});
                }
 
-              __ATTR_HOT__
-	      __ATTR_ALIGN__(16)
-	      __ATTR_VECTORCALL__
+              
+	      
+	      
               static inline SSEc4f32
               operator+(const float s,
                        const SSEc4f32 x) {
                    return (SSEc4f32{s} + x);
                }
 
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(16)
-	     __ATTR_VECTORCALL__
+	     
+	     
+	     
              static inline SSEc4f32
              operator+=(SSEc4f32 x,
                         const SSEc4f32 y) {
@@ -712,9 +657,9 @@ namespace gms {
                   return (x)
               }
 
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(16)
-	     __ATTR_VECTORCALL__
+	     
+	    
+	     
 	     static inline SSEc4f32
 	     operator+=(SSEc4f32 x,
 	                const std::complex<float> y) {
@@ -722,9 +667,9 @@ namespace gms {
 		 return (x);
 	     }
 
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(16)
-	     __ATTR_VECTORCALL__
+	     
+	     
+	     
 	     static inline SSEc4f32
 	     operator+=(const std::complex<float> x,
 	                SSEc4f32 y) {
@@ -732,9 +677,9 @@ namespace gms {
 		 return (y);
 	     }
 
-             __ATTR_HOT__
-	     __ATTR_ALIGN__(16)
-	     __ATTR_VECTORCALL__
+             
+	     
+	     
              static inline SSEc4f32
              operator+=(SSEc4f32 x,
                         const __m128 v) {
@@ -742,9 +687,9 @@ namespace gms {
                  return (x);
               }
 
-             __ATTR_HOT__
-	     __ATTR_ALIGN__(16)
-	     __ATTR_VECTORCALL__
+             
+	     
+	     
              static inline SSEc4f32
              operator+=(const __m128 v,
                         SSEc4f32 x) {
@@ -752,9 +697,9 @@ namespace gms {
                 return (x);
               }
 
-             __ATTR_HOT__
-	     __ATTR_ALIGN__(16)
-	     __ATTR_VECTORCALL__
+             
+	     
+	     
              static inline SSEc4f32
              operator+=(SSEc4f32 x,
                         const float s) {
@@ -762,9 +707,9 @@ namespace gms {
                   return (x)
               }
 
-             __ATTR_HOT__
-	     __ATTR_ALIGN__(16)
-	     __ATTR_VECTORCALL__
+             
+	     
+	     
              static inline SSEc4f32
              operator+=(const float s,
                         SSEc4f32 x) {
@@ -772,9 +717,9 @@ namespace gms {
                 return (x);
               }
 
-	     __ATTR_HOT__
-	     __ATTR_ALIGN__(16)
-	     __ATTR_VECTORCALL__
+	     
+	     
+	     
              static inline SSEc4f32
              operator-(const SSEc4f32 x,
                      const SSEc4f32 y) {
@@ -782,9 +727,9 @@ namespace gms {
                                       _mm_sub_ps(x.m_im,y.m_im)});
               }
 
-	    __ATTR_HOT__
-	    __ATTR_ALIGN__(16)
-	    __ATTR_VECTORCALL__
+	    
+	    
+	    
 	    static inline SSEc4f32
 	    operator-(const SSEc4f32 x,
 	              const std::complex<float> y) {
@@ -792,9 +737,9 @@ namespace gms {
 		                     _mm_sub_ps(x.m_im,_mm_set1_ps(y.imag()))});
 	    }
 
-	    __ATTR_HOT__
-	    __ATTR_ALIGN__
-	    __ATTR_VECTORCALL__
+	    
+	    
+	    
 	    static inline SSEc4f32
 	    operator-(const std::complex<float> x,
 	              const SSEc4f32 y) {
@@ -803,45 +748,45 @@ namespace gms {
 	    }
 	    
 
-            __ATTR_HOT__
-	    __ATTR_ALIGN__(16)
-	    __ATTR_VECTORCALL__
+            
+	    
+	    
             static inline SSEc4f32
             operator-(const SSEc4f32 x,
                       const __m128 v) {
                 return (SSEc4f32{_mm_sub_ps(x.m_re,v),x.m_im});
              }
 
-            __ATTR_HOT__
-	    __ATTR_ALIGN__(16)
-	    __ATTR_VECTORCALL__
+            
+	    
+	    
             static inline SSEc4f32
             operator-(const __m128 v,
                      const SSEc4f32 x) {
                   return (SSEc4f32{_mm_sub_ps(v,x.m_re),x.m_im});
              }
 
-            __ATTR_HOT__
-	    __ATTR_ALIGN__(16)
-	    __ATTR_VECTORCALL__
+            
+	    
+	    
             static inline SSEc4f32
             operator-(const SSEc4f32 x,
                      const float s) {
                  return (x - SSEc4f32{s});
              }
 
-	    __ATTR_HOT__
-	    __ATTR_ALIGN__(16)
-	    __ATTR_VECTORCALL__
+	    
+	    
+	    
             static inline SSEc4f32
             operator-(const float s,
                      const SSEc4f32 x) {
                   return (SSEc4f32{s} - x);
               }
 
-	    __ATTR_HOT__
-	    __ATTR_ALIGN__(16)
-	    __ATTR_VECTORCALL__
+	    
+	    
+	    
 	    static inline SSEc4f32
 	    operator-=(SSEc4f32 x,
 	               const SSEc4f32 y) {
@@ -849,9 +794,9 @@ namespace gms {
 		return (x);
 	     }
 
-	   __ATTR_HOT__
-	   __ATTR_ALIGN__(16)
-	   __ATTR_VECTORCALL__
+	   
+	   
+	   
 	   static inline SSEc4f32
 	   operator-=(SSEc4f32 x,
 	              const std::complex<float> y) {
@@ -859,9 +804,9 @@ namespace gms {
 		return (x);
 	    }
 
-	   __ATTR_HOT__
-	   __ATTR_ALIGN__(16)
-	   __ATTR_VECTORCALL__
+	   
+	   
+	   
 	   static inline SSEc4f32
 	   operator-=(const std::complex<float> x,
 	              SSEc4f32 y) {
@@ -869,9 +814,9 @@ namespace gms {
 	       return (y);
 	    }
 
-	   __ATTR_HOT__
-	   __ATTR_ALIGN__(16)
-	   __ATTR_VECTORCALL__
+	   
+	   
+	   
 	   static inline SSEc4f32
 	   operator-=(SSEc4f32 x,
 	              const __m128 y) {
@@ -879,9 +824,9 @@ namespace gms {
 	      return (x);
 	   }
 
-	  __ATTR_HOT__
-	  __ATTR_ALIGN__(16)
-	  __ATTR_VECTORCALL__
+	  
+	  
+	  
 	  static inline SSEc4f32
 	  operator-=(const __m128 x,
 	             SSEc4f32 y) {
@@ -889,9 +834,9 @@ namespace gms {
 	      return (y);
 	  }
 
-	 __ATTR_HOT__
-	 __ATTR_ALIGN__(16)
-	 __ATTR_VECTORCALL__
+	 
+	 
+	 
 	 static inline SSEc4f32
 	 operator-=(SSEc4f32 x,
 	            const float s) {
@@ -899,9 +844,9 @@ namespace gms {
 	    return (x);
 	 }
 
-	 __ATTR_HOT__
-	 __ATTR_ALIGN__(16)
-	 __ATTR_VECTORCALL__
+	 
+	 
+	 
 	 static inline SSEc4f32
 	 operator-=(const float s,
 	            SSEc4f32 x) {
@@ -909,9 +854,9 @@ namespace gms {
 	    return (x);
 	 }
 
-	__ATTR_HOT__
-	__ATTR_ALIGN__(16)
-	__ATTR_VECTORCALL__
+	
+	
+	
         static inline SSEc4f32
         operator*(const SSEc4f32 x,
                   const SSEc4f32 y) {
@@ -923,9 +868,9 @@ namespace gms {
                                    _mm_sub_ps(xmm2,xmm3)});
            }
 
-	 __ATTR_HOT__
-	 __ATTR_ALIGN__(16)
-	 __ATTR_VECTORCALL__
+	 
+	 
+	 
 	 static inline SSEc4f32
 	 operator*(const SSEc4f32 x,
 	           const std::complex<float> y) {
@@ -939,9 +884,9 @@ namespace gms {
                                  _mm_sub_ps(zmm2,zmm3)});
 	 }
 
-        __ATTR_HOT__
-	__ATTR_ALIGN__(16)
-	__ATTR_VECTORCALL__
+        
+	
+	
         static inline SSEc4f32
         operator*(const SSEc4f32 x,
                      const __m128 v) {
@@ -949,9 +894,9 @@ namespace gms {
                                   _mm_mul_ps(x.m_im,v)});
           }
 
-       __ATTR_HOT__
-       __ATTR_ALIGN__(16)
-       __ATTR_VECTORCALL__
+       
+       
+       
        static inline SSEc4f32
        operator*(const __m128 v,
                  const SSEc4f32 x) {
@@ -960,9 +905,9 @@ namespace gms {
           }
 
 
-       __ATTR_HOT__
-       __ATTR_ALIGN__(16)
-       __ATTR_VECTORCALL__
+       
+       
+       
        static inline SSEc4f32
        operator*(const SSEc4f32 x,
                  const float s) {
@@ -971,9 +916,9 @@ namespace gms {
                                   _mm_mul_ps(x.m_im,zmm0)});
           }
 
-       __ATTR_HOT__
-       __ATTR_ALIGN__(16)
-       __ATTR_VECTORCALL__
+       
+       
+       
        static inline SSEc4f32
        operator*=(SSEc4f32 x,
                   const SSEc4f32 y) {
@@ -981,9 +926,9 @@ namespace gms {
               return (x);
          }
 
-       __ATTR_HOT__
-       __ATTR_ALIGN__(16)
-       __ATTR_VECTORCALL__
+       
+       
+       
        static inline SSEc4f32
        operator*=(SSEc4f32 x,
                   const __m128 v) {
@@ -991,9 +936,9 @@ namespace gms {
             return (x);
           }
 
-       __ATTR_HOT__
-       __ATTR_ALIGN__(16)
-       __ATTR_VECTORCALL__
+       
+       
+       
        static inline SSEc4f32
        operator*=(const __m128 v,
                    SSEc4f32 x) {
@@ -1001,9 +946,9 @@ namespace gms {
               return (x);
           }
 
-        __ATTR_HOT__
-	__ATTR_ALIGN__(16)
-	__ATTR_VECTORCALL__
+        
+	
+	
         static inline SSEc4f32
         operator*=(SSEc4f32 x,
                    const float s) {
@@ -1011,9 +956,9 @@ namespace gms {
              return (x);
           }
 
-        __ATTR_HOT__
-	__ATTR_ALIGN__(16)
-	__ATTR_VECTORCALL__
+        
+	
+	
          static inline SSEc4f32
          operator*=(const float s,
                     SSEc4f32 x) {
@@ -1021,9 +966,9 @@ namespace gms {
              return (x);
           }
 
-	__ATTR_HOT__
-	__ATTR_ALIGN__(32)
-	__ATTR_VECTORCALL__
+	
+	
+	
         static inline SSEc4f32
         operator/(const SSEc4f32 x,
                   const SSEc4f32 y) {
@@ -1043,9 +988,9 @@ namespace gms {
 #endif
            }
 
-	 __ATTR_HOT__
-	 __ATTR_ALIGN__(32)
-	 __ATTR_VECTORCALL__
+	 
+	 
+	 
 	 static inline SSEc4f32
 	 operator/(const SSEc4f32 x,
 	           const std::complex<float> y) {
@@ -1065,9 +1010,9 @@ namespace gms {
 	  }
 
 
-	  	  __ATTR_HOT__
-	  __ATTR_ALIGN__(32)
-	  __ATTR_VECTORCALL__
+	  	  
+	  
+	  
 	  static inline SSEc4f32
 	  operator/(const std::complex<float> x,
 	            const SSEc4f32 y) {
@@ -1086,9 +1031,9 @@ namespace gms {
                                   _mm_div_ps(im_part,den)});
 	  }
 
-	  __ATTR_HOT__
-	  __ATTR_ALIGN__(16)
-	  __ATTR_VECTORCALL__
+	  
+	  
+	  
           static inline SSEc4f32
           operator/(const SSEc4f32 x,
                      const __m128 v) {
@@ -1096,9 +1041,9 @@ namespace gms {
                                     _mm_div_ps(x.m_im,v)});
            }
 
-         __ATTR_HOT__
-	 __ATTR_ALIGN__(16)
-	 __ATTR_VECTORCALL__
+         
+	 
+	 
          static inline SSEc4f32
          operator/(const __m128 v,
                    const SSEc4f32 x) {
@@ -1106,9 +1051,9 @@ namespace gms {
                                      _mm_div_ps(v,x.m_im)});
            }
 
-         __ATTR_HOT__
-	 __ATTR_ALIGN__(16)
-	 __ATTR_VECTORCALL__
+         
+	 
+	 
         static inline SSEc4f32
         operator/(const SSEc4f32 x,
                      const float s) {
@@ -1117,9 +1062,9 @@ namespace gms {
                                     _mm_div_ps(x.m_im,zmm0)});
            }
 
-         __ATTR_HOT__
-	 __ATTR_ALIGN__(16)
-	 __ATTR_VECTORCALL__
+         
+	 
+	 
         static inline SSEc4f32
         operator/(const float s,
                   const SSEc4f32 x) {
@@ -1128,9 +1073,9 @@ namespace gms {
                                     _mm_div_ps(zmm0,x.m_im)});
            }
 
-	__ATTR_HOT__
-	__ATTR_ALIGN__(16)
-	__ATTR_VECTORCALL__
+	
+	
+	
         static inline SSEc4f32
         operator/=(SSEc4f32 x,
                    const SSEc4f32 y) {
@@ -1138,9 +1083,9 @@ namespace gms {
               return (x);
           }
 
-	__ATTR_HOT__
-	__ATTR_ALIGN__(16)
-	__ATTR_VECTORCALL__
+	
+	
+	
 	static inline AVX512c16f32
 	operator/=(AVX512c16f32 x,
 	           const std::complex<float> y) {
@@ -1148,9 +1093,9 @@ namespace gms {
 	      return (x);
 	 }
 
-	 __ATTR_HOT__
-	 __ATTR_ALIGN__(16)
-	 __ATTR_VECTORCALL__
+	 
+	 
+	 
 	 static inline SSEc4f32
 	 operator/=(const std::complex<float> x,
 	            SSEc4f32 y) {
@@ -1158,9 +1103,9 @@ namespace gms {
                return (y);
 	 }
 
-        __ATTR_HOT__
-	__ATTR_ALIGN__(16)
-	__ATTR_VECTORCALL__
+        
+	
+	
         static inline SSEc4f32
         operator/=(SSEc4f32 x,
                       const __m128 v) {
@@ -1168,9 +1113,9 @@ namespace gms {
               return (x);
           }
 
-         __ATTR_HOT__
-	 __ATTR_ALIGN__(16)
-	 __ATTR_VECTORCALL__
+         
+	 
+	 
          static inline SSEc4f32
          operator/=(const __m128 v,
                     SSEc4f32 x) {
@@ -1178,9 +1123,9 @@ namespace gms {
              return (x);
           }
 
-         __ATTR_HOT__
-	 __ATTR_ALIGN__(16)
-	 __ATTR_VECTORCALL__
+         
+	 
+	 
          static inline SSEc4f32
          operator/=(SSEc4f32 x,
                     const float s) {
@@ -1188,9 +1133,9 @@ namespace gms {
               return (x);
           }
 
-	 __ATTR_HOT__
-	 __ATTR_ALIGN__(16)
-	 __ATTR_VECTORCALL__
+	 
+	 
+	 
          static inline SSEc4f32
          operator/=(const float s,
                     SSEc4f32 x) {
@@ -1198,9 +1143,9 @@ namespace gms {
               return (x);
           }
 
-          __ATTR_HOT__
-	  __ATTR_ALIGN__(16)
-	  __ATTR_VECTORCALL__
+          
+	  
+	  
           static inline SSEc4f32
           operator~(SSEc4f32 x) {
                 x.m_re = _mm_sub_ps(_mm_setzero_ps(),x.m_re);
@@ -1210,9 +1155,9 @@ namespace gms {
 #if defined __AVX512F__
 
 
-	 __ATTR_HOT__
-	 __ATTR_ALIGN__(16)
-	 __ATTR_VECTORCALL__
+	 
+	 
+	 
 	 static inline std::pair<__mmask8,__mmask8>
          operator==(const SSEc4f32 x,
                     const SSEc4f32 y) {
@@ -1223,9 +1168,9 @@ namespace gms {
                return (std::make_pair(m1,m2));
            }
 
-	 __ATTR_HOT__
-	 __ATTR_ALIGN__(16)
-	 __ATTR_VECTORCALL__
+	 
+	 
+	 
 	 static inline std::pair<__mmask8,__mmask8>
          operator==(const SSEc4f32 x,
                     const std::complex<float> c) {
@@ -1236,9 +1181,9 @@ namespace gms {
                return (std::make_pair(m1,m2));
            }
 
-         __ATTR_HOT__
-	 __ATTR_ALIGN__(16)
-	 __ATTR_VECTORCALL__
+         
+	 
+	 
 	 static inline std::pair<__mmask8,__mmask8>
          operator==(const std::complex<float> c,
                     const SSEc4f32 x) {
@@ -1249,9 +1194,9 @@ namespace gms {
               return (std::make_pair(m1,m2));
            }
 
-          __ATTR_HOT__
-	  __ATTR_ALIGN__(16)
-	  __ATTR_VECTORCALL__
+          
+	  
+	  
 	  static inline std::pair<__mmask8,__mmask8>
           operator!=( const SSEc4f32 x,
                       const SSEc4f32 y) {
@@ -1262,9 +1207,9 @@ namespace gms {
              return (std::make_pair(m1,m2));
            }
 
-          __ATTR_HOT__
-	  __ATTR_ALIGN__(16)
-	  __ATTR_VECTORCALL__
+          
+	  
+	  
 	  static inline std::pair<__mmask8,__mmask8>
           operator!=(const SSEc4f32 x,
                       const std::complex<float> c) {
@@ -1275,9 +1220,9 @@ namespace gms {
              return (std::make_pair(m1,m2));
             }
 
-           __ATTR_HOT__
-	   __ATTR_ALIGN__(16)
-	   __ATTR_VECTORCALL__
+           
+	   
+	   
 	   static inline std::pair<__mmask8,__mmask8>
            operator!=(const std::complex<float> c,
                       const SSEc4f32 x) {
@@ -1288,9 +1233,9 @@ namespace gms {
                 return (std::make_pair(m1,m2));
              }
 
-           __ATTR_HOT__
-	   __ATTR_ALIGN__(16)
-	   __ATTR_VECTORCALL__
+           
+	   
+	   
 	   static inline std::pair<__mmask8,__mmask8>
            operator>(const SSEc4f32 x,
                       const SSEc4f32 y) {
@@ -1301,9 +1246,9 @@ namespace gms {
                return (std::make_pair(m1,m2));
              }
 
-          __ATTR_HOT__
-	  __ATTR_ALIGN__(16)
-	  __ATTR_VECTORCALL__
+          
+	  
+	  
 	  static inline std::pair<__mmask8,__mmask8>
           operator>(const SSEc4f32 x,
                       const std::complex<float> c) {
@@ -1314,9 +1259,9 @@ namespace gms {
               return (std::make_pair(m1,m2));
              }
 
-           __ATTR_HOT__
-	   __ATTR_ALIGN__(16)
-	   __ATTR_VECTORCALL__
+           
+	   
+	   
 	   static inline std::pair<__mmask8,__mmask8>
            operator>(const std::complex<float> c,
                       const SSEc4f32 x) {
@@ -1327,9 +1272,9 @@ namespace gms {
               return (std::make_pair(m1,m2));
              }
 
-          __ATTR_HOT__
-	  __ATTR_ALIGN__(16)
-	  __ATTR_VECTORCALL__
+          
+	  
+	  
 	  static inline std::pair<__mmask8,__mmask8>
           operator<(const SSEc4f32 x,
                       const SSEc4f32 y) {
@@ -1340,9 +1285,9 @@ namespace gms {
               return (std::make_pair(m1,m2));
              }
 
-          __ATTR_HOT__
-	  __ATTR_ALIGN__(16)
-	  __ATTR_VECTORCALL__
+          
+	  
+	  
 	    static inline std::pair<__mmask8,__mmask8>
           operator<(const AVX512c16f32 x,
                       const std::complex<float> c) {
@@ -1353,9 +1298,9 @@ namespace gms {
                return (std::make_pair(m1,m2));
               }
 
-          __ATTR_HOT__
-	  __ATTR_ALIGN__(16)
-	  __ATTR_VECTORCALL__
+          
+	  
+	  
 	    static inline std::pair<__mmask8,__mmask8>
           operator<(const std::complex<float> c,
                     const SSEc4f32 x) {
@@ -1366,9 +1311,9 @@ namespace gms {
                return (std::make_pair(m1,m2));
                }
 
-          __ATTR_HOT__
-	  __ATTR_ALIGN__(16)
-	  __ATTR_VECTORCALL__
+          
+	  
+	  
 	  static inline std::pair<__mmask8,__mmask8>
           operator>=(const SSEc4f32 x,
                       const SSEc4f32 y) {
@@ -1379,9 +1324,9 @@ namespace gms {
                 return (std::make_pair(m1,m2));
               }
 
-        __ATTR_HOT__
-	__ATTR_ALIGN__(16)
-	__ATTR_VECTORCALL__
+        
+	
+	
 	static inline std::pair<__mmask8,__mmask8>
         operator>=(const SSEc4f32 x,
                    const std::complex<float> c) {
@@ -1392,9 +1337,9 @@ namespace gms {
              return (std::make_pair(m1,m2));
           }
 
-       __ATTR_HOT__
-       __ATTR_ALIGN__(16)
-       __ATTR_VECTORCALL__
+       
+       
+       
        static inline std::pair<__mmask8,__mmask8>
        operator>=(const std::complex<float> c,
                    const SSEc4f32 x) {
@@ -1405,9 +1350,9 @@ namespace gms {
             return (std::make_pair(m1,m2));
         }
 
-        __ATTR_HOT__
-	__ATTR_ALIGN__(16)
-	__ATTR_VECTORCALL__
+        
+	
+	
 	static inline std::pair<__mmask8,__mmask8>
         operator<=(const SSEc4f32 x,
                    const SSEc4f32 y) {
@@ -1418,9 +1363,9 @@ namespace gms {
               return (std::make_pair(m1,m2));
           }
 
-         __ATTR_HOT__
-	 __ATTR_ALIGN__(16)
-	 __ATTR_VECTORCALL__
+         
+	 
+	 
 	 static inline std::pair<__mmask8,__mmask8>
          operator<=(const SSEc4f32 x,
                     const std::complex<float> c) {
@@ -1431,9 +1376,9 @@ namespace gms {
               return (std::make_pair(m1,m2));
          }
 
-        __ATTR_HOT__
-	__ATTR_ALIGN__(16)
-	__ATTR_VECTORCALL__
+        
+	
+	
 	static inline std::pair<__mmask8,__mmask8>
         operator<=(const std::complex<float> c,
                       const SSEc4f32 x) {
@@ -1447,9 +1392,9 @@ namespace gms {
 
 #else
 
-	  __ATTR_HOT__
-	  __ATTR_ALIGN__(16)
-	  __ATTR_VECTORCALL__
+	  
+	  
+	  
           static inline
 	  std::pair<int32_t,int32_t>
 	  operator==(const SSEc4f32 x,
@@ -1466,9 +1411,9 @@ namespace gms {
 				     _mm_testz_ps(eqim,eqim)));
  	     }
 	  
-           __ATTR_HOT__
-	   __ATTR_ALIGN__(16)
-	   __ATTR_VECTORCALL__
+           
+	   
+	   
            static inline
 	   std::pair<int32_t,int32_t>
 	   operator==(const SSEc4f32 x,
@@ -1487,9 +1432,9 @@ namespace gms {
 					 _mm_testz_ps(eqim,eqim))); 
 	       }
 	   
-           __ATTR_HOT__
-	   __ATTR_ALIGN__(16)
-	   __ATTR_VECTORCALL__
+           
+	   
+	   
            static inline
 	   std::pair<int32_t,int32_t>
 	   operator==(const std::complex<float> x,
@@ -1508,9 +1453,9 @@ namespace gms {
 					 _mm_testz_ps(eqim,eqim))); 
 		}
 	   
-            __ATTR_HOT__
-	    __ATTR_ALIGN__(16)
-	    __ATTR_VECTORCALL__
+            
+	    
+	    
             static inline
 	    std::pair<int32_t,int32_t>
 	    operator!=(const SSEc4f32 x,
@@ -1527,9 +1472,9 @@ namespace gms {
 					  _mm_testz_ps(eqim,eqim)));
  		}
 	    
-             __ATTR_HOT__
-	     __ATTR_ALIGN__(16)
-	     __ATTR_VECTORCALL__
+             
+	     
+	     
              static inline
 	     std::pair<int32_t,int32_t>
 	     operator!=(const SSEc4f32 x,
@@ -1548,9 +1493,9 @@ namespace gms {
 					    _mm_testz_ps(eqim,eqim))); 
 		 }
 	     
-               __ATTR_HOT__
-	       __ATTR_ALIGN__(16)
-	       __ATTR_VECTORCALL__
+               
+	       
+	       
                static inline
 	       std::pair<int32_t,int32_t>
 	       operator!=(const std::complex<float> x,
@@ -1569,9 +1514,9 @@ namespace gms {
 					    _mm_testz_ps(eqim,eqim))); 
 		  }
 	       
-               __ATTR_HOT__
-	       __ATTR_ALIGN__(16)
-	       __ATTR_VECTORCALL__
+               
+	       
+	       
                static inline
 	       std::pair<int32_t,int32_t>
 	       operator>(const SSEc4f32 x,
@@ -1588,9 +1533,9 @@ namespace gms {
 					     _mm_testz_ps(eqim,eqim)));
  		   }
 	       
-                 __ATTR_HOT__
-		 __ATTR_ALIGN__(16)
-		 __ATTR_VECTORCALL__
+                 
+		 
+		 
                  static inline
 		 std::pair<int32_t,int32_t>
 		 operator>(const SSEc4f32 x,
@@ -1609,9 +1554,9 @@ namespace gms {
 					       _mm_testz_ps(eqim,eqim))); 
 		    }
 		 
-                   __ATTR_HOT__
-		   __ATTR_ALIGN__(16)
-		   __ATTR_VECTORCALL__
+                   
+		   
+		   
                    static inline
 		   std::pair<int32_t,int32_t>
 		   operator>(const std::complex<float> x,
@@ -1630,9 +1575,9 @@ namespace gms {
 						  _mm_testz_ps(eqim,eqim))); 
 		     }
 		   
-                   __ATTR_HOT__
-		   __ATTR_ALIGN__(16)
-		  __ATTR_VECTORCALL__
+                   
+		   
+		  
                   static inline
 		  std::pair<int32_t,int32_t>
 		  operator<(const SSEc4f32 x,
@@ -1649,9 +1594,9 @@ namespace gms {
 					      _mm_testz_ps(eqim,eqim)));
  		      }
 		   
-                   __ATTR_HOT__
-		   __ATTR_ALIGN__(16)
-		   __ATTR_VECTORCALL__
+                   
+		   
+		   
                    static inline
 		   std::pair<int32_t,int32_t>
 		   operator<(const SSEc4f32 x,
@@ -1670,9 +1615,9 @@ namespace gms {
 					    _mm_testz_ps(eqim,eqim))); 
 		      }
 		   
-                   __ATTR_HOT__
-		   __ATTR_ALIGN__(16)
-		   __ATTR_VECTORCALL__
+                   
+		   
+		   
                    static inline
 		   std::pair<int32_t,int32_t>
 		   operator<(const std::complex<float> x,
@@ -1691,9 +1636,9 @@ namespace gms {
 						  _mm_testz_ps(eqim,eqim))); 
 			}
 		   
-                   __ATTR_HOT__
-		   __ATTR_ALIGN__(16)
-		   __ATTR_VECTORCALL__
+                   
+		   
+		   
                    static inline
 		   std::pair<int32_t,int32_t>
 		  operator>=(const SSEc4f32 x,
@@ -1710,9 +1655,9 @@ namespace gms {
 						_mm_testz_ps(eqim,eqim)));
  			 }
 		   
-                     __ATTR_HOT__
-		     __ATTR_ALIGN__(16)
-		     __ATTR_VECTORCALL__
+                     
+		     
+		     
                      static inline
 		     std::pair<int32_t,int32_t>
 		     operator>=(const SSEc4f32 x,
@@ -1732,9 +1677,9 @@ namespace gms {
 
 		     }
 		     
-                   __ATTR_HOT__
-		   __ATTR_ALIGN__(16)
-		   __ATTR_VECTORCALL__
+                   
+		   
+		   
                    static inline
 		   std::pair<int32_t,int32_t>
 		   operator>=(const std::complex<float> x,
@@ -1753,9 +1698,9 @@ namespace gms {
 						 _mm_testz_ps(eqim,eqim))); 
 		      }
 		   
-                  __ATTR_HOT__
-		  __ATTR_ALIGN__(16)
-		  __ATTR_VECTORCALL__
+                  
+		  
+		  
                   static inline
 		  std::pair<int32_t,int32_t>
 		  operator<=(const SSEc4f32 x,
@@ -1772,9 +1717,9 @@ namespace gms {
 						 _mm_testz_ps(eqim,eqim)));
  		       }
 		  
-                     __ATTR_HOT__
-		     __ATTR_ALIGN__(16)
-		     __ATTR_VECTORCALL__
+                     
+		     
+		     
                      static inline
 		     std::pair<int32_t,int32_t>
 		     operator<=(const SSEc4f32 x,
@@ -1793,9 +1738,9 @@ namespace gms {
 						   _mm_testz_ps(eqim,eqim))); 
 			  }
  
-                  __ATTR_HOT__
-		  __ATTR_ALIGN__(16)
-		  __ATTR_VECTORCALL__
+                  
+		  
+		  
                   static inline
 		  std::pair<int32_t,int32_t>
 		  operator<=(const std::complex<float> x,
@@ -1820,9 +1765,5 @@ namespace gms {
 
 
 }
-
-
-
-
 
 #endif /*__GMS_SSEC4F32_H__*/
