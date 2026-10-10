@@ -114,6 +114,23 @@ This document provides a structured table of the source and header files found w
 | **GMS_triangle_waveform** | .cpp, .h | Synthesizes standard mathematical triangular carrier waves. |
 | **GMS_white_gauss_noise** | .cpp, .h, .inl | Generates Additive White Gaussian Noise (AWGN) to emulate realistic, degraded communication channels. |
 
+# RF-EMT Kernels Directory Description
+
+The **[bgin/RF-EMT](https://github.com/bgin/RF-EMT)** repository's `src/kernels` directory contains low-level, high-performance math infrastructure optimized for modern Intel/AMD processor architectures using **SIMD vectorization (SSE, AVX, AVX2, AVX512)**.
+
+| **File Grouping / Component** | **SIMD Register / Instruction Target** | **Functional Description** |
+|---|---|---|
+| **`BLAS-kernels`** | Directory | Subfolder containing standalone Basic Linear Algebra Subprograms (BLAS) implementations. |
+| **`GMS_LUT_cdf_pdf_*`** | SSE / AVX / AVX512 | Lookup table (LUT) processing utilities designed to quickly compute mathematical Probability Density (PDF) and Cumulative Distribution (CDF) functions. |
+| **`GMS_add_*` & `GMS_add_product_*`** | XMM (SSE) / YMM (AVX) / ZMM (AVX512) | Vectorized addition and combined multiply-add operators optimized for processing 4-lane up to 16-lane batches of single-precision floating numbers (`r4`). |
+| **`GMS_avx*_transposition_*`** | AVX2 / AVX512 | Low-level matrix transposition methods dealing directly with standard block layout variants such as `8x8` and `16x16`. |
+| **`GMS_avx*_memcpy` & `GMS_avx*_memset`** | AVX / AVX512 | Specialized memory duplication and configuration routines, notably utilizing uncached (streaming) operations to avoid filling up the CPU cache lines. |
+| **`GMS_bdref_*`** | SSE / AVX / AVX512 | Bidirectional reflectance calculation components processing vector arrays across multiple target execution flags. |
+| **`GMS_bessel_*` & `GMS_butcher_*`** | SSE / AVX / AVX512 | Core mathematical algorithms for computing Bessel functions (`i0`) and managing ODE numeric integration via Butcher step parameters. |
+| **`GMS_c*_*_zmm16r4`** | AVX512 (ZMM registers) | A comprehensive library handling **complex number vector math** including absolute value (`cabs`), addition (`cadd`), trigonometric forms (`ccos`, `ccosh`), logarithms (`clog`), divisions, and comparisons mapped onto 16-channel floats. |
+| **`GMS_cgemv_t.*`** | C / Complex Vector | Custom structured Matrix-Vector multiplication backend (`cgemv`) written specifically for complex data tracks. |
+| **`GMS_complex_common_*`** | YMM (AVX/AVX2) | Unified header structures storing macro-level layout logic for mapping complex pairs across standard AVX memory lanes. |
+
 ## Usage
 
 This software is intended as a backend computational library for advanced simulation and modeling applications. It can be integrated into larger software environments or connected to graphical user interfaces for visualization and analysis.
