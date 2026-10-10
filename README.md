@@ -46,9 +46,9 @@ This markdown file provides an structured overview of the source and header file
 | `GMS_analytic_sep_bep_ch8_array1d_f32.h` | `.h` | Header | 1D float32 array configurations for Chapter 8 analytic SEP/BEP models. |
 | `GMS_analytic_sep_bep_ch8_array1d_f64.h` | `.h` | Header | 1D float64 (double) array configurations for Chapter 8 analytic SEP/BEP models. |
 | `GMS_channel_snr_pdf_mgf.h` | `.h` | Header | Channel Signal-to-Noise Ratio (SNR) Probability Density Function (PDF) and Moment Generating Function (MGF) computations. |
-| `GMS_compute_functionals_ch4.h` | `.h` | Header | Header definitions for computing functional math/statistical structures mapped to Chapter 4. |
+| `GMS_compute_functionals_ch4.h` | `.h` | Header | Header definitions for computing functional math/statistical structures associated with Chapter 4. |
 | `GMS_compute_functionals_ch4.cpp` | `.cpp` | Source | Implementation source for computing mathematical functionals associated with Chapter 4 models. |
-| `GMS_compute_functionals_ch5.h` | `.h` | Header | Header definitions for computing functional math/statistical structures mapped to Chapter 5. |
+| `GMS_compute_functionals_ch5.h` | `.h` | Header | Header definitions for computing functional math/statistical structures associated with Chapter 5. |
 | `GMS_compute_functionals_ch5.cpp` | `.cpp` | Source | Implementation source for computing mathematical functionals associated with Chapter 5 models. |
 | `GMS_fading_spectrum.h` | `.h` | Header | Definitions and analytical parameters modeling specialized fading channel spectrum behaviors. |
 | `GMS_functionals_ch4_sse.h` | `.h` | Header | Header declaration for SIMD/SSE parallelized implementations of Chapter 4 functionals. |
@@ -83,7 +83,7 @@ This document provides a structured table of the source and header files found w
 | **GMS_am_bb_cosine_sequence** | .cpp, .h | Generates real-valued cosine sequences for traditional Amplitude Modulation. |
 | **GMS_am_bb_cosine_signal** | .cpp, .h | Synthesizes real-valued baseband cosine signals for AM transmission. |
 | **GMS_am_bb_cosine_signal_fp16** | .cpp, .h | Optimized half-precision (FP16) variant for real-valued baseband cosine AM signals. |
-| **GMS_am_bb_sine_sequence** | .cpp, .h | Generates real-valued sine sequences for baseband AM frameworks. |
+| **GMS_am_bb_sine_sequence** | .cpp, .h | Generates real-valued sine sequences for baseband AM signals. |
 | **GMS_am_bb_sine_signal** | .cpp, .h | Synthesizes real-valued baseband sine signals for AM architectures. |
 | **GMS_am_bb_sine_signal_fp16** | .cpp, .h | Optimized half-precision (FP16) version of the real-valued baseband sine AM signal. |
 | **GMS_am_bb_square_signal** | .cpp, .h | Generates real-valued square waveforms mapped as baseband AM envelopes. |
