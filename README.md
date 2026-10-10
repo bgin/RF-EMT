@@ -62,6 +62,57 @@ This markdown file provides an structured overview of the source and header file
 | `GMS_integrands_helpers.h` | `.h` | Header | Definitions of auxiliary utility routines and wrapper helpers assisting integrand solvers. |
 | `GMS_integrands_helpers.cpp` | `.cpp` | Source | Core logic implementations for auxiliary helpers supporting mathematical integration. |
 
+# RF-EMT Modulation Module Files
+
+This document provides a structured table of the source and header files found within the `src/modulation` directory of the [RF-EMT Repository](https://github.com/bgin/RF-EMT/tree/master/src/modulation), along with brief descriptions of their intended functionality in digital signal processing (DSP) and radio frequency (RF) emulation.
+
+| File Name | Extension | Description |
+| :--- | :--- | :--- |
+| **GMS_IQ_random_bitstream** | .cpp, .h | Generates randomized digital bitstreams mapped to In-phase and Quadrature (I/Q) components. |
+| **GMS_am_bb_cmplx_cos_sequence** | .cpp, .h | Generates a complex baseband cosine sequence for Amplitude Modulation (AM). |
+| **GMS_am_bb_cmplx_cos_signal** | .cpp, .h | Processes or synthesizes a continuous complex baseband cosine AM signal. |
+| **GMS_am_bb_cmplx_cos_signal_fp16** | .cpp, .h | Optimized half-precision (FP16) variant for processing complex baseband cosine AM signals. |
+| **GMS_am_bb_cmplx_cosinc_sequence** | .cpp, .h | Generates a complex baseband cosine-integral or joint cosine-sinc modulation sequence. |
+| **GMS_am_bb_cmplx_cosinc_signal** | .cpp, .h | Synthesizes a complex baseband cosine-sinc AM signal. |
+| **GMS_am_bb_cmplx_sinc_sequence** | .cpp, .h | Generates complex baseband sinc sequences, often utilized for ideal pulse filtering. |
+| **GMS_am_bb_cmplx_sinc_signal** | .cpp, .h | Synthesizes complex baseband sinc signals for bandwidth-limited AM processing. |
+| **GMS_am_bb_cmplx_sine_signal** | .cpp, .h | Generates and processes standard complex baseband sine waves for AM systems. |
+| **GMS_am_bb_cmplx_sine_signal_fp16** | .cpp, .h | Optimized half-precision (FP16) variant for complex baseband sine AM signal processing. |
+| **GMS_am_bb_cmplx_trapez_signal** | .cpp, .h | Synthesizes complex baseband signals shaped with a trapezoidal amplitude envelope. |
+| **GMS_am_bb_cmplx_trapez_signal_fp16** | .cpp, .h | Optimized half-precision (FP16) version of the complex baseband trapezoidal AM signal. |
+| **GMS_am_bb_cosine_sequence** | .cpp, .h | Generates real-valued cosine sequences for traditional Amplitude Modulation. |
+| **GMS_am_bb_cosine_signal** | .cpp, .h | Synthesizes real-valued baseband cosine signals for AM transmission. |
+| **GMS_am_bb_cosine_signal_fp16** | .cpp, .h | Optimized half-precision (FP16) variant for real-valued baseband cosine AM signals. |
+| **GMS_am_bb_sine_sequence** | .cpp, .h | Generates real-valued sine sequences for baseband AM frameworks. |
+| **GMS_am_bb_sine_signal** | .cpp, .h | Synthesizes real-valued baseband sine signals for AM architectures. |
+| **GMS_am_bb_sine_signal_fp16** | .cpp, .h | Optimized half-precision (FP16) version of the real-valued baseband sine AM signal. |
+| **GMS_am_bb_square_signal** | .cpp, .h | Generates real-valued square waveforms mapped as baseband AM envelopes. |
+| **GMS_am_bb_square_signal_fp16** | .cpp, .h | Optimized half-precision (FP16) variant for real-valued square baseband AM signals. |
+| **GMS_am_bb_trapez_signal** | .cpp, .h | Generates real-valued trapezoidal baseband waveforms for AM pulse shaping. |
+| **GMS_am_bb_trapez_signal_fp16** | .cpp, .h | Optimized half-precision (FP16) variant for real-valued trapezoidal baseband AM signals. |
+| **GMS_bit_reverse_simd** | .h | Multi-lane SIMD-accelerated bit reversal kernel, critical for fast FFT calculations. |
+| **GMS_cmplx_trapezw_env** | .cpp, .h | Implements complex trapezoidal windowing/enveloping functions for signal framing. |
+| **GMS_cpfsk_signal** | .cpp, .h | Synthesizes Continuous Phase Frequency Shift Keying (CPFSK) digital signals. |
+| **GMS_cpm_pulse_shapers** | .cpp, .h | Implements pulse shaping filters (e.g., Gaussian, raised cosine) for Continuous Phase Modulation. |
+| **GMS_dsp_simd_fix_float_kernels** | .h | SIMD-optimized math routines for converting between fixed-point and floating-point data streams. |
+| **GMS_iq_rectw_bitstream_vsequence** | .cpp, .h | Handles vectorized sequences of rectangular-windowed I/Q digital streams. |
+| **GMS_iq_rectwave_bitstream** | .cpp, .h | Maps raw input digital bitstreams into rectangular-pulsed I/Q waveform matrices. |
+| **GMS_pm_bb_cmplx_cos_signal** | .cpp, .h | Synthesizes complex baseband cosine signals engineered for Phase Modulation (PM). |
+| **GMS_pm_bb_cmplx_cosinc_signal** | .cpp, .h | Generates complex baseband joint cosine-integral/sinc phase-modulated signals. |
+| **GMS_pm_bb_cmplx_sinc_signal** | .cpp, .h | Synthesizes phase-modulated complex baseband signals using sinc envelopes. |
+| **GMS_pm_bb_cmplx_sine_signal** | .cpp, .h | Generates complex baseband sine waves optimized for Phase Modulation mapping. |
+| **GMS_pm_bb_cmplx_trapez_signal** | .cpp, .h | Synthesizes complex baseband Phase Modulation signals with a trapezoidal profile. |
+| **GMS_pm_bb_cmplx_trapez_signal_fp16** | .cpp, .h | Optimized half-precision (FP16) variant for complex baseband trapezoidal PM signals. |
+| **GMS_rectangular_waveform** | .cpp, .h | Generates standard rectangular periodic waveforms and basic pulse functions. |
+| **GMS_rectangular_waveform_fp16** | .cpp, .h | Optimized half-precision (FP16) engine for generating rectangular waveforms. |
+| **GMS_sawtooth_waveform** | .cpp, .h | Synthesizes mathematical sawtooth waves for modulation carrier or testing profiles. |
+| **GMS_sinusoidal_fsk** | .cpp, .h | Implements pure sinusoidal multi-tone Frequency Shift Keying (FSK) modulation. |
+| **GMS_sinusoidal_weighted_oqpsk** | .cpp, .h | Synthesizes Offset Quadrature Phase Shift Keying (OQPSK) featuring sinusoidal pulse weighting. |
+| **GMS_square_waveform** | .cpp, .h | Basic utility for building pure mathematical square wave carrier blocks. |
+| **GMS_trapezoid_waveform** | .cpp, .h | Generates continuous mathematical trapezoidal waveforms. |
+| **GMS_trapezoid_waveform_fp16** | .cpp, .h | Optimized half-precision (FP16) implementation of the standard trapezoidal wave generator. |
+| **GMS_triangle_waveform** | .cpp, .h | Synthesizes standard mathematical triangular carrier waves. |
+| **GMS_white_gauss_noise** | .cpp, .h, .inl | Generates Additive White Gaussian Noise (AWGN) to emulate realistic, degraded communication channels. |
 
 ## Usage
 
