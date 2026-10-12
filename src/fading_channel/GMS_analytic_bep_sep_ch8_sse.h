@@ -5277,6 +5277,32 @@ __m128 left_term= _mm_mul_ps(_mm_set1_ps(1.03f),_mm_sqrt_ps(cos_ratio));
 return _mm_mul_ps(left_term,gms::math::simd_fast_exp_approx_4xf32(_mm_sub_ps(_mm_setzero_ps(),exp_arg)));
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+template<Gaussian_Q_approximations_sse_t Q_func_approx>
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128d analytic_BEP_DPSK_chernoff_bound_8_9_2xf64(const __m128d Ac,const __m128d Ts,
+                                                  const __m128d M,const __m128d N0)
+{
+__m128d one      = _mm_set1_pd(1.0);
+__m128d Pi_div_M = _mm_div_pd(_mm_set1_pd(3.1415926535897932384626433832795),M);
+__m128d Es       = avg_symbol_E_to_carrier_A_2xf64(Ac,Ts,M);
+__m128d snr      = _mm_div_pd(_mm_add_pd(Es,Es),N0);
+__m128d cosPiM   = _mm_cos_pd(Pi_div_M);
+__m128d exp_arg  = _mm_sqrt_pd(_mm_mul_pd(snr,_mm_sub_pd(one,cosPiM)));
+__m128d cos_ratio= _mm_div_pd(_mm_add_pd(one,cosPiM),_mm_add_pd(cosPiM,cosPiM));
+__m128d left_term= _mm_mul_pd(_mm_set1_pd(1.03),_mm_sqrt_pd(cos_ratio));
+return _mm_mul_pd(left_term,gms::math::simd_fast_exp_approx_2xf64(_mm_sub_pd(_mm_setzero_pd(),exp_arg)));
+}
+
 
 
 }
