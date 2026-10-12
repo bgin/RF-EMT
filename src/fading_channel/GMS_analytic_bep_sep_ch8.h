@@ -3608,6 +3608,7 @@ double analytic_BEP_MPSK_pair_err_prob_8_80(const double * __restrict__ betak,
     constexpr const std::complex<double> j(0.0,1.0);
     const double d_Ns = static_cast<double>(Ns);
     const double Es   = avg_symbol_E_to_carrier_A<double>(Ac,Ts,M);
+    const double invNs= 1.0/d_Ns;
 #if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
     const double cosphic = gms::math::cephes_d::cos(phic);
 #else 
@@ -3843,7 +3844,7 @@ double analytic_BEP_DPSK_up_bound_8_95(const double Ac,const double Ts,
     const double snr      = (Es+Es)/N0;
 #if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
     const double cosPIM   = gms::math::cephes_d::cos(PI_div_M);
-    const double Q_func_arg = gms::math::cephes_d::sqrt(snr*(1-cosPIM));
+    const double Q_func_arg = gms::math::cephes_d::sqrt(snr*(1.0-cosPIM));
 #else 
     const double cosPIM   = std::cos(PI_div_M);
     const double Q_func_arg = std::sqrt(snr*(1-cosPIM));
