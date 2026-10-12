@@ -5131,8 +5131,8 @@ __m128d a_sqrt    = _mm_sqrt_pd(a);
 template<Gaussian_Q_approximations_sse_t Q_func_approx>
 __ATTR_ALWAYS_INLINE__
 static inline 
-__m128 analytic_BEP_DPSK_up_bound_8_95_4xf32(const __m128d Ac,const __m128d Ts,
-                                             const __m128d M,const __m128d N0,
+__m128 analytic_BEP_DPSK_up_bound_8_95_4xf32(const __m128 Ac,const __m128 Ts,
+                                             const __m128 M,const __m128 N0,
                                              const std::int32_t n)
 {
 __m128 result;
@@ -5184,6 +5184,73 @@ __m128 left_term  = _mm_mul_ps(_mm_set1_ps(2.06f,_mm_sqrt_ps(cos_ratio)));
     result = Q_func_val;
     return (result);
 }
+
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+template<Gaussian_Q_approximations_sse_t Q_func_approx>
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128d analytic_BEP_DPSK_up_bound_8_95_2xf64(const __m128d Ac,const __m128d Ts,
+                                             const __m128d M,const __m128d N0,
+                                             const std::int32_t n)
+{
+__m128d result;
+__m128d Q_func_val;
+__m128d PI_div_M   = _mm_div_pd(_mm_set1_pd(3.1415926535897932384626433832795),M);
+__m128d one        = _mm_set1_pd(1.0);
+__m128d Es         = avg_symbol_E_to_carrier_A_2xf64(Ac,Ts,M);
+__m128d snr        = _mm_div_pd(_mm_add_pd(Es,Es),N0);
+__m128d cosPiM     = gms::math::_mm_cos_pd(PI_div_M);
+__m128d Q_func_arg = _mm_sqrt_pd(_mm_mul_pd(snr,_mm_sub_pd(one,cosPiM)));
+__m128d cos_ratio  = _mm_div_pd(_mm_add_pd(one,cosPiM),_mm_add_pd(cosPiM,cosPiM));
+__m128d left_term  = _mm_mul_pd(_mm_set1_pd(2.06,_mm_sqrt_pd(cos_ratio))); 
+    if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_chiani)
+    {
+       Q_func_val  = _mm_mul_pd(left_term,gms::math::gaussian_Q_approx_chiani_2xf64(Q_func_arg));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_loskot_2T)
+    {
+        Q_func_val = _mm_mul_pd(left_term,gms::math::gaussian_Q_approx_loskot_2T_2xf64(Q_func_arg));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_loskot_3T)
+    {
+        Q_func_val = _mm_mul_pd(left_term,gms::math::gaussian_Q_approx_loskot_3T_2xf64(Q_func_arg));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_1T)
+    {
+        Q_func_val = _mm_mul_pd(left_term,gms::math::gaussian_Q_approx_sadhwani_1T_2xf64(Q_func_arg));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_2T)
+    {
+        Q_func_val = _mm_mul_pd(left_term,gms::math::gaussian_Q_approx_sadhwani_2T_2xf64(Q_func_arg));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_4T)
+    {
+        Q_func_val = _mm_mul_pd(left_term,gms::math::gaussian_Q_approx_sadhwani_4T_2xf64(Q_func_arg));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_borjesson)
+    {
+        Q_func_val = _mm_mul_pd(left_term,gms::math::gaussian_Q_approx_borjesson_2xf64(Q_func_arg));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_summed)
+    {
+        Q_func_val = _mm_mul_pd(left_term,gms::math::gaussian_Q_approx_sadhwani_summed_2xf64(Q_func_arg,n));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_karagiannidis_lioumpas)
+    {
+        Q_func_val = _mm_mul_pd(left_term,gms::math::gaussian_Q_approx_karagiannidis_lioumpas_2xf64(Q_func_arg));
+    }
+    result = Q_func_val;
+    return (result);
+}
+
 
 
 }
