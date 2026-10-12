@@ -4897,7 +4897,6 @@ __m128 nu;
 __m128 abs_delta;
 __m128 a;
 __m128 b;
-std::int32_t i,j;
 __m128 d_Ns    = _mm_set1_ps(static_cast<float>(Ns));
 __m128 Es      = avg_symbol_E_to_carrier_A_4xf32(Ac,Tc,M);
 __m128 cosphic = gms::math::_mm_ceph_cosf_ps(phic);
@@ -4906,7 +4905,7 @@ __m128 snr2    = _mm_div_ps(Es,N0);
 __m128 rho_snr2= _mm_div_ps(rhoc,snr2);
 __m128 term1   = _mm_fmadd_ps(_mm_mul_ps(cosphic,rho_snr2),_mm_rcp_ps(d_Ns),one);
 std::complex<float>  delta_sum = 0.0f;
-const std::complex<float> csj(0.0f,1.0f);
+const std::complex<float> j(0.0f,1.0f);
 for(std::int32_t i = 0; i<Ns; ++i) 
 {
     const float bk     = betak[i];
@@ -4984,6 +4983,141 @@ __m128 a_sqrt    = _mm_sqrt_ps(a);
     return (result);
 }
 
+struct alignas(64) bep_mpsk_8_80_arg_holder_f64_t 
+{
+    __m128d               Ac;
+    __m128d               Ts;
+    __m128d               M;
+    __m128d               N0;
+    __m128d               rhoc;
+    __m128d               phic;
+    __m128d               mu;
+    double * __restrict__ betak;
+    double * __restrict__ betak_hat;
+    std::int32_t         Ns;
+    std::int32_t         n;
+};
+
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+template<Gaussian_Q_approximations_sse_t Q_func_approx>
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128d 
+analytic_BEP_MPSK_pair_err_prob_8_80_2xf64(const bep_mpsk_8_80_arg_holder_f64_t * __restrict__ p_arg_holder)
+{
+if(__builtin_expect(nullptr==p_arg_holder,0)) { return (_mm_set1_ps(-1.0));}
+const __m128d               Ac       = p_arg_holder->Ac;
+const __m128d               Ts       = p_arg_holder->Ts;
+const __m128d               M        = p_arg_holder->M;
+const __m128d               N0       = p_arg_holder->N0;
+const __m128d               rhoc     = p_arg_holder->rhoc;
+const __m128d               phic     = p_arg_holder->phic;
+const __m128d               mu       = p_arg_holder->mu;
+const double * __restrict__ betak     = p_arg_holder->betak;
+const double * __restrict__ betak_hat = p_arg_holder->betak_hat;
+std::int32_t               Ns       = p_arg_holder->Ns;
+const std::int32_t         n        = p_arg_holder->n;
+__m128d one = _mm_set1_pd(1.0);
+__m128d half= _mm_set1_pd(0.5);
+__m128d  Q1_func_val;
+__m128d result;
+__m128d nu;
+__m128d abs_delta;
+__m128d a;
+__m128d b;
+__m128d d_Ns    = _mm_set1_pd(static_cast<double>(Ns));
+__m128d Es      = avg_symbol_E_to_carrier_A_2xf64(Ac,Tc,M);
+__m128d cosphic = gms::math::_mm_cos_pd(phic);
+__m128d snr1    = _mm_div_pd(Es,_mm_add_pd(N0,N0));
+__m128d snr2    = _mm_div_pd(Es,N0);
+__m128d rho_snr2= _mm_div_pd(rhoc,snr2);
+__m128d term1   = _mm_fmadd_pd(_mm_mul_pd(cosphic,rho_snr2),_mm_rcp14_pd(d_Ns),one);
+std::complex<double>  delta_sum = 0.0;
+const std::complex<double> j(0.0,1.0);
+for(std::int32_t i = 0; i<Ns; ++i) 
+{
+    const double bk     = betak[i];
+    const double bk_hat = betak_hat[i];
+    const double bkdiff = bk-bk_hat;
+    const std::complex<double> cexp_arg = j*bkdiff; 
+    delta_sum += std::exp(cexp_arg);
+}
+abs_delta        = _mm_set1_pd(std::abs(delta_sum));
+__m128d rho_snrp2 = _mm_mul_pd(rho_snr2,rho_snr2);
+nu               = _mm_set1_pd(std::arg(delta_sum));
+__m128d cosnu     = gms::math::_mm_cos_pd(nu);
+__m128d cosnuph   = gms::math::_mm_cos_pd(_mm_add_pd(nu,phic));
+__m128d diff_sqr  = _mm_fmsub_pd(d_Ns,d_Ns,_mm_mul_pd(abs_delta,abs_delta));
+__m128d tmp1      = _mm_fmadd_pd(diff_sqr,d_Ns,d_Ns);
+__m128d tmp2      = _mm_sub_pd(d_Ns,abs_delta);
+__m128d ratio1    = _mm_mul_pd(_mm_div_pd(cosnu,tmp1),tmp2);
+__m128d term2     = _mm_fmadd_pd(rho_snrp2,ratio1,term1); 
+__m128d tmp3      = _mm_mul_pd(snr1,term2);// orig: tmp1
+__m128d sdiff_sqr = _mm_sqrt_pd(diff_sqr);
+__m128d num       = _mm_fmsub_pd(d_Ns,cosphic,_mm_mul_pd(abs_delta,cosnuph));
+__m128d ratio2    = _mm_div_pd(num,sdiff_sqr);
+__m128d term3     = _mm_fmadd_pd(sdiff_sqr,ratio2,rho_snr2);
+__m128d tmp4      = _mm_mul_pd(snr2,term3);// orig: tmp2
+b                = _mm_add_pd(tmp3,tmp4);
+__m128d b_sqrt    = _mm_sqrt_pd(b); 
+a                = _mm_sub_pd(tmp3,tmp4);
+__m128d a_sqrt    = _mm_sqrt_pd(a);
+    if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_chiani)
+    {
+        Q1_func_val = _mm_mul_pd(half,_mm_add_pd(_mm_sub_pd(one,gms::math::marcum_Q_approx_chiani_2xf64(mu,b_sqrt,a_sqrt)),
+                                                                gms::math::marcum_Q_approx_chiani_2xf64(mu,a_sqrt,b_sqrt)));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_loskot_2T)
+    {
+        Q1_func_val = _mm_mul_pd(half,_mm_add_pd(_mm_sub_pd(one,gms::math::marcum_Q_approx_loskot_2T_2xf64(mu,b_sqrt,a_sqrt)),
+                                                                gms::math::marcum_Q_approx_loskot_2T_2xf64(mu,a_sqrt,b_sqrt)));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_loskot_3T)
+    {
+        Q1_func_val = _mm_mul_pd(half,_mm_add_pd(_mm_sub_pd(one,gms::math::marcum_Q_approx_loskot_3T_2xf64(mu,b_sqrt,a_sqrt)),
+                                                                gms::math::marcum_Q_approx_loskot_3T_2xf64(mu,a_sqrt,b_sqrt)));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_1T)
+    {
+        Q1_func_val = _mm_mul_pd(half,_mm_add_pd(_mm_sub_pd(one,gms::math::marcum_Q_approx_sadhwani_1T_2xf64(mu,b_sqrt,a_sqrt)),
+                                                                gms::math::marcum_Q_approx_sadhwani_1T_2xf64(mu,a_sqrt,b_sqrt)));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_2T)
+    {
+        Q1_func_val = _mm_mul_pd(half,_mm_add_pd(_mm_sub_pd(one,gms::math::marcum_Q_approx_sadhwani_2T_2xf64(mu,b_sqrt,a_sqrt)),
+                                                                gms::math::marcum_Q_approx_sadhwani_2T_2xf64(mu,a_sqrt,b_sqrt)));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_4T)
+    {
+        Q1_func_val = _mm_mul_pd(half,_mm_add_pd(_mm_sub_pd(one,gms::math::marcum_Q_approx_sadhwani_4T_2xf64(mu,b_sqrt,a_sqrt)),
+                                                                gms::math::marcum_Q_approx_sadhwani_4T_2xf64(mu,a_sqrt,b_sqrt)));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_borjesson)
+    {
+        Q1_func_val = _mm_mul_pd(half,_mm_add_pd(_mm_sub_pd(one,gms::math::marcum_Q_approx_borjesson_2xf64(mu,b_sqrt,a_sqrt)),
+                                                                gms::math::marcum_Q_approx_borjesson_2xf64(mu,a_sqrt,b_sqrt)));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_sadhwani_summed)
+    {
+        Q1_func_val = _mm_mul_pd(half,_mm_add_pd(_mm_sub_pd(one,gms::math::marcum_Q_approx_sadhwani_summed_2xf64(mu,b_sqrt,a_sqrt,n)),
+                                                                gms::math::marcum_Q_approx_sadhwani_summed_2xf64(mu,a_sqrt,b_sqrt,n)));
+    }
+    else if constexpr(Q_func_approx==Gaussian_Q_approximations_sse_t::Gaussian_Q_approx_karagiannidis_lioumpas)
+    {
+        Q1_func_val = _mm_mul_pd(half,_mm_add_pd(_mm_sub_pd(one,gms::math::marcum_Q_approx_karagiannidis_lioumpas_2xf64(mu,b_sqrt,a_sqrt)),
+                                                                gms::math::marcum_Q_approx_karagiannidis_lioumpas_2xf64(mu,a_sqrt,b_sqrt)));
+    }
+    result = Q1_func_val;
+    return (result);
+}
 
 
 }
