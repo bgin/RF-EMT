@@ -5303,7 +5303,32 @@ __m128d left_term= _mm_mul_pd(_mm_set1_pd(1.03),_mm_sqrt_pd(cos_ratio));
 return _mm_mul_pd(left_term,gms::math::simd_fast_exp_approx_2xf64(_mm_sub_pd(_mm_setzero_pd(),exp_arg)));
 }
 
-
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+template<Gaussian_Q_approximations_sse_t Q_func_approx>
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128 analytic_SEP_QAM4_8_107_4xf32(const __m128 gamma)
+{
+__m128 one           = _mm_set1_ps(1.0f);
+__m128 quarter       = _mm_set1_ps(0.25f);
+__m128 one_add_gamma = _mm_add_ps(one,gamma); 
+__m128 sqrt_arg1     = _mm_div_ps(gamma,one_add_gamma);
+__m128 sqrt_val1     = _mm_sqrt_ps(sqrt_arg1);
+__m128 sqrt_arg2     = _mm_div_ps(one_add_gamma,gamma);
+__m128 sqrt_val2     = _mm_sqrt_ps(sqrt_arg2);
+__m128 term1         = _mm_sub_ps(one,sqrt_val1);
+__m128 atan_val      = _mm_mul_ps(_mm_set1_ps(1.2732395447351626861510701069801f),sqrt_val2);
+__m128 term2         = _mm_mul_ps(quarter,_mm_mul_ps(term1,atan_val));
+return (_mm_sub_ps(term1,term2));
+}
 
 }
 }
