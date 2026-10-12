@@ -3979,7 +3979,7 @@ double analytic_BEP_DPSK_chernoff_bound_8_96(const double Ac,const double Ts,
     const double snr      = (Es+Es)/N0;
 #if (ANALYTIC_BEP_SEP_CH8_CEPHES_DOUBLE) == 1
     const double cosPIM   = gms::math::cephes_d::cos(PI_div_M);
-    const double exp_func_arg = gms::math::cephes_d::sqrt(snr*(1-cosPIM));
+    const double exp_func_arg = gms::math::cephes_d::sqrt(snr*(1.0-cosPIM));
 #else 
     const double cosPIM   = std::cos(PI_div_M);
     const double exp_func_arg = std::sqrt(snr*(1-cosPIM));
