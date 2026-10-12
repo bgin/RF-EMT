@@ -32,19 +32,20 @@ namespace gms {
 
 namespace math {
 
-struct SSEc4f32 {
+struct sse_cvec4_t 
+{
 
   __m128 m_re;
   __m128 m_im;
 
   __ATTR_ALWAYS_INLINE__
-  SSEc4f32() {
+  sse_cvec4_t() {
     m_re = _mm_setzero_ps();
     m_im = _mm_setzero_ps();
   }
 
   __ATTR_ALWAYS_INLINE__
-  SSEc4f32(const float *__restrict re, const float *__restrict im) {
+  sse_cvec4_t(const float *__restrict re, const float *__restrict im) {
 #if defined __GNUC__ && !defined __INTEL_COMPILER
     re = (const float *)__builtin_assume_aligned(re, 16);
     im = (const float *)__builtin_assume_aligned(im, 16);
@@ -57,50 +58,50 @@ struct SSEc4f32 {
   }
 
   __ATTR_ALWAYS_INLINE__
-  SSEc4f32(const float re, const float im) {
+  sse_cvec4_t(const float re, const float im) {
     m_re = _mm_set1_ps(re);
     m_im = _mm_set1_ps(im);
   }
 
   __ATTR_ALWAYS_INLINE__
-  SSEc4f32(const std::complex<float> c) {
+  sse_cvec4_t(const std::complex<float> c) {
     m_re = _mm_set1_ps(c.real());
     m_im = _mm_set1_ps(c.imag());
   }
 
   __ATTR_ALWAYS_INLINE__
-  SSEc4f32(const float re) {
+  sse_cvec4_t(const float re) {
     m_re = _mm_set1_ps(re);
     m_im = _mm_setzero_ps();
   }
 
   __ATTR_ALWAYS_INLINE__
-  SSEc4f32(const float re0, const float re1, const float re2, const float re3) {
+  sse_cvec4_t(const float re0, const float re1, const float re2, const float re3) {
     m_re = _mm_setr_ps(re3, re2, re1, re0);
     m_im = _mm_setzero_ps();
   }
 
   __ATTR_ALWAYS_INLINE__
-  SSEc4f32(const float re0, const float re1, const float re2, const float re3,
+  sse_cvec4_t(const float re0, const float re1, const float re2, const float re3,
            const float im0, const float im1, const float im2, const float im3) {
     m_re = _mm_setr_ps(re3, re2, re1, re0);
     m_im = _mm_setr_ps(im3, im2, im1, im0);
   }
 
   __ATTR_ALWAYS_INLINE__
-  SSEc4f32(const __m128 re, const __m128 im) {
+  sse_cvec4_t(const __m128 re, const __m128 im) {
     m_re = re;
     m_im = im;
   }
 
   __ATTR_ALWAYS_INLINE__
-  SSEc4f32(const SSEc4f32 &x) {
+  sse_cvec4_t(const sse_cvec4_t &x) {
     m_re = x.m_re;
     m_im = x.m_im;
   }
 
   __ATTR_ALWAYS_INLINE__
-  SSEc4f32 &load_a(const float *__restrict re, const float *__restrict im) {
+  sse_cvec4_t &load_a(const float *__restrict re, const float *__restrict im) {
 #if defined __GNUC__ && !defined __INTEL_COMPILER
     re = (const float *)__builtin_assume_aligned(re, 16);
     im = (const float *)__builtin_assume_aligned(im, 16);
@@ -114,7 +115,7 @@ struct SSEc4f32 {
   }
 
   __ATTR_ALWAYS_INLINE__
-  SSEc4f32 &load_u(const float *__restrict re, const float *__restrict im) {
+  sse_cvec4_t &load_u(const float *__restrict re, const float *__restrict im) {
     m_re = _mm_loadu_ps(&re[0]);
     m_im = _mm_loadu_ps(&im[0]);
     return (*this);
@@ -158,7 +159,7 @@ struct SSEc4f32 {
     return (std::make_pair(re_mem[posx & 0x3], im_mem[posy & 0x3]));
   }
 
-  SSEc4f32 &insert_1xf32(const int32_t pos, const int32_t idx,
+  sse_cvec4_t &insert_1xf32(const int32_t pos, const int32_t idx,
                          const float value) {
     __attribute__((aligned(16))) float mem[8] = {};
 
@@ -168,7 +169,7 @@ struct SSEc4f32 {
     return (*this);
   }
 
-  SSEc4f32 &insert_2xf32(const int32_t re_idx, const int32_t im_idx,
+  sse_cvec4_t &insert_2xf32(const int32_t re_idx, const int32_t im_idx,
                          const float re, const float im) {
     __attribute__((aligned(16))) float mem_re[4] = {};
     __attribute__((aligned(16))) float mem_im[4] = {};
@@ -193,14 +194,14 @@ struct SSEc4f32 {
 
 #if defined __AVX512F__
 
-  SSEc4f32 &partial_loadu(const float *__restrict re, const int32_t n_re,
+  sse_cvec4_t &partial_loadu(const float *__restrict re, const int32_t n_re,
                           const float *__restrict im, const int32_t n_im) {
     m_re = _mm_maskz_loadu_ps(__mmask8((1 << n_re) - 1), re);
     m_im = _mm_maskz_loadu_ps(__mmask8((1 << n_im) - 1), im);
     return (*this);
   }
 
-  SSEc4f32 &partial_loada(const float *__restrict re, const int32_t n_re,
+  sse_cvec4_t &partial_loada(const float *__restrict re, const int32_t n_re,
                           const float *__restrict im, const int32_t n_im) {
 #if defined __GNUC__ && !defined __INTEL_COMPILER
     re = (const float *)__builtin_assume_aligned(re, 16);
@@ -220,13 +221,13 @@ struct SSEc4f32 {
     _mm_mask_storeu_ps(&im[0], __mmask8((1 << m_im) - 1), m_im);
   }
 
-  SSEc4f32 &expand(const SSEc4f32 x, const __mmask8 mask) {
+  sse_cvec4_t &expand(const sse_cvec4_t x, const __mmask8 mask) {
     m_re = _mm_maskz_expand_ps(mask, x.m_re);
     m_im = _mm_maskz_expand_ps(mask.x.m_im);
     return (*this);
   }
 
-  SSEc4f32 &expand_loadu(const SSEc4f32 x, const __mmask8 mask,
+  sse_cvec4_t &expand_loadu(const sse_cvec4_t x, const __mmask8 mask,
                          const float *__restrict re,
                          const float *__restrict im) {
     m_re = _mm_mask_expandloadu_ps(x.m_re, mask, &re[0]);
@@ -234,14 +235,14 @@ struct SSEc4f32 {
     return (*this);
   }
 
-  SSEc4f32 &permute(const __mmask8 mask, const int32_t imm) {
+  sse_cvec4_t &permute(const __mmask8 mask, const int32_t imm) {
     m_re = _mm_mask_permute_ps(m_re, mask, m_im, imm);
     m_im = _mm_mask_permute_ps(m_im, mask, m_re, imm);
     return (*this);
   }
 #endif
 
-  SSEc4f32 &operator=(const SSEc4f32 x) {
+  sse_cvec4_t &operator=(const sse_cvec4_t x) {
     if (this == &x)
       return (*this);
     m_re = x.m_re;
@@ -253,59 +254,59 @@ struct SSEc4f32 {
 
 /*
              static inline
-             SSEc4f32 conj(SSEc4f32 x) {
+             sse_cvec4_t conj(sse_cvec4_t x) {
                   auto tmp = ~x;
-                  return (SSEc4f32{x.m_re,tmp.m_im});
+                  return (sse_cvec4_t{x.m_re,tmp.m_im});
              }
 */
 
-static inline SSEc4f32 polar(const __m128 rho, const __m128 theta) {
+static inline sse_cvec4_t polar(const __m128 rho, const __m128 theta) {
   const __m128 re_part = _mm_mul_ps(rho, _mm_cos_ps(theta));
   const __m128 im_part = _mm_mul_ps(rho, _mm_sin_ps(theta));
-  return (SSEc4f32{re_part, im_part});
+  return (sse_cvec4_t{re_part, im_part});
 }
 
-static inline __m128 carg(const SSEc4f32 x) {
+static inline __m128 carg(const sse_cvec4_t x) {
   return (_mm_atan2_ps(x.m_re, x.m_im));
 }
 
-static inline SSEc4f32 csin(const SSEc4f32 x) {
+static inline sse_cvec4_t csin(const sse_cvec4_t x) {
   const __m128 re_part = _mm_mul_ps(_mm_sin_ps(x.m_re), _mm_cosh_ps(x.m_im));
   const __m128 im_part = _mm_mul_ps(_mm_cos_ps(x.m_re), _mm_sinh_ps(x.m_im));
-  return (SSEc4f32{re_part, im_part});
+  return (sse_cvec4_t{re_part, im_part});
 }
 
-static inline SSEc4f32 csinh(const SSEc4f32 x) {
+static inline sse_cvec4_t csinh(const sse_cvec4_t x) {
   const __m128 re_part = _mm_mul_ps(_mm_sinh_ps(x.m_re), _mm_cos_ps(x.m_im));
   const __m128 im_part = _mm_mul_ps(_mm_cosh_ps(x.m_re), _mm_sin_ps(x.m_im));
-  return (SSEc4f32{re_part, im_part});
+  return (sse_cvec4_t{re_part, im_part});
 }
 
-static inline SSEc4f32 ccos(const SSEc4f32 x) {
+static inline sse_cvec4_t ccos(const sse_cvec4_t x) {
   const __m128 re_part = _mm_mul_ps(_mm_cos_ps(x.m_re), _mm_cosh_ps(x.m_im));
   const __m128 im_part = _mm_mul_ps(_mm_sin_ps(x.m_re), _mm_sinh_ps(x.m_im));
-  return (SSEc4f32{re_part, im_part});
+  return (sse_cvec4_t{re_part, im_part});
 }
 
-static inline SSEc4f32 ccosh(const SSEc4f32 x) {
+static inline sse_cvec4_t ccosh(const sse_cvec4_t x) {
   const __m128 re_part = _mm_mul_ps(_mm_cosh_ps(x.m_re), _mm_cos_ps(x.m_im));
   const __m128 im_part = _mm_mul_ps(_mm_sinh_ps(x.m_re), _mm_sin_ps(x.m_im));
-  return (SSEc4f32{re_part, im_part});
+  return (sse_cvec4_t{re_part, im_part});
 }
 
-static inline SSEc4f32 cexp(const SSEc4f32 x) {
+static inline sse_cvec4_t cexp(const sse_cvec4_t x) {
   const __m128 re_part = _mm_mul_ps(_mm_exp_ps(x.m_re), _mm_cos_ps(x.m_im));
   const __m128 im_part = _mm_mul_ps(_mm_exp_ps(x.m_re), _mm_sin_ps(x.m_im));
-  return (SSEc4f32{re_part, im_part});
+  return (sse_cvec4_t{re_part, im_part});
 }
 
-static inline __m128 cabs(const SSEc4f32 x) {
+static inline __m128 cabs(const sse_cvec4_t x) {
   const __m128 re_part = _mm_mul_ps(x.m_re, x.m_re);
   const __m128 im_part = _mm_mul_ps(x.m_im, x.m_im);
   return (_mm_sqrt_ps(_mm_add_ps(re_part, im_part)));
 }
 
-static inline SSEc4f32 cpow(const SSEc4f32 x, const float n) {
+static inline sse_cvec4_t cpow(const sse_cvec4_t x, const float n) {
   const __m128 re_part = _mm_mul_ps(x.m_re, x.m_re);
   const __m128 im_part = _mm_mul_ps(x.m_im, x.m_im);
   const __m128 r = _mm_sqrt_ps(_mm_add_ps(re_part, im_part));
@@ -313,29 +314,29 @@ static inline SSEc4f32 cpow(const SSEc4f32 x, const float n) {
   const __m128 vn = _mm_set1_ps(n);
   const __m128 pow_term = _mm_pow_ps(r, vn);
   const __m128 trig_arg = _mm_mul_ps(vn, theta);
-  return (SSEc4f32{_mm_mul_ps(pow_term, _mm_cos_ps(trig_arg)),
+  return (sse_cvec4_t{_mm_mul_ps(pow_term, _mm_cos_ps(trig_arg)),
                    _mm_mul_ps(pow_term, _mm_sin_ps(trig_arg))});
 }
 
-static inline SSEc4f32 clog(const SSEc4f32 x) {
+static inline sse_cvec4_t clog(const sse_cvec4_t x) {
   const __m128 t1 = cabs(x);
   const __m128 t2 = carg(x);
   const __m128 re_part = _mm_log_ps(t1);
-  return (SSEc4f32{re_part, t2});
+  return (sse_cvec4_t{re_part, t2});
 }
 
-static inline SSEc4f32 csqrt(const SSEc4f32 x) {
+static inline sse_cvec4_t csqrt(const sse_cvec4_t x) {
   const __m128 t = cabs(x);
   const __m128 re_part = _mm_mul_ps(_mm_set1_ps(0.5f), _mm_add_ps(t, x.m_re));
   const __m128 im_part = _mm_mul_ps(_mm_set1_ps(0.5f), _mm_sub_ps(t, x.m_re));
-  return (SSEc4f32{_mm_sqrt_ps(re_part), _mm_sqrt_ps(im_part)});
+  return (sse_cvec4_t{_mm_sqrt_ps(re_part), _mm_sqrt_ps(im_part)});
 }
 
 #if defined __AVX512F__
 
-static inline SSEc4f32 select(const SSEc4f32 x, const SSEc4f32 y,
+static inline sse_cvec4_t select(const sse_cvec4_t x, const sse_cvec4_t y,
                               __mmask8 mask) {
-  return (SSEc4f32{_mm_mask_blend_ps(mask, x.m_re, y.m_re),
+  return (sse_cvec4_t{_mm_mask_blend_ps(mask, x.m_re, y.m_re),
                    _mm_mask_blend_ps(mask, x.m_im, y.m_im)});
 }
 #endif
@@ -345,7 +346,7 @@ static inline __m128 abs_real(const __m128 x) {
   return (_mm_and_ps(x, mask));
 }
 
-static inline SSEc4f32 cdiv_smith(const SSEc4f32 x, const SSEc4f32 y) {
+static inline sse_cvec4_t cdiv_smith(const sse_cvec4_t x, const sse_cvec4_t y) {
   __m128 ratio, denom, re_part, im_part;
   constexpr __mmask8 all_ones = 0xFF;
   re_part = _mm_setzero_ps();
@@ -359,159 +360,159 @@ static inline SSEc4f32 cdiv_smith(const SSEc4f32 x, const SSEc4f32 y) {
     denom = _mm_add_ps(y.m_re, _mm_mul_ps(ratio, y.m_im));
     re_part = _mm_div_ps(_mm_add_ps(x.m_re, _mm_mul_ps(x.m_im, ratio)), denom);
     im_part = _mm_div_ps(_mm_sub_ps(x.m_im, _mm_mul_ps(x.m_re, ratio)), denom);
-    return (SSEc4f32{re_part, im_part});
+    return (sse_cvec4_t{re_part, im_part});
   } else {
     ratio = _mm_div_ps(y.m_re, y.m_im);
     denom = _mm_add_ps(y.m_im, _mm_mul_ps(ratio, y.m_re));
     re_part = _mm_div_ps(_mm_add_ps(x.m_re, _mm_mul_ps(x.m_re, ratio)), denom);
     im_part = _mm_div_ps(_mm_sub_ps(x.m_im, _mm_mul_ps(x.m_im, ratio)), denom);
-    return (SSEc4f32{re_part, im_part});
+    return (sse_cvec4_t{re_part, im_part});
   }
 }
 
-static inline SSEc4f32 operator+(const SSEc4f32 x, const SSEc4f32 y) {
-  return (SSEc4f32{_mm_add_ps(x.m_re, y.m_re), _mm_add_ps(x.m_im, x.m_im)});
+static inline sse_cvec4_t operator+(const sse_cvec4_t x, const sse_cvec4_t y) {
+  return (sse_cvec4_t{_mm_add_ps(x.m_re, y.m_re), _mm_add_ps(x.m_im, x.m_im)});
 }
 
-static inline SSEc4f32 operator+(const SSEc4f32 x,
+static inline sse_cvec4_t operator+(const sse_cvec4_t x,
                                  const std::complex<float> y) {
-  return (SSEc4f32{_mm_add_ps(x.m_re, _mm_set1_ps(y.real())),
+  return (sse_cvec4_t{_mm_add_ps(x.m_re, _mm_set1_ps(y.real())),
                    _mm_add_ps(x.m_im, _mm_set1_ps(y.imag()))});
 }
 
-static inline SSEc4f32 operator+(const std::complex<float> x,
-                                 const SSEc4f32 y) {
-  return (SSEc4f32{_mm_add_ps(_mm_set1_ps(x.real()), y.m_re),
+static inline sse_cvec4_t operator+(const std::complex<float> x,
+                                 const sse_cvec4_t y) {
+  return (sse_cvec4_t{_mm_add_ps(_mm_set1_ps(x.real()), y.m_re),
                    _mm_add_ps(_mm_set1_ps(x.imag()), y.m_im)});
 }
 
-static inline SSEc4f32 operator+(const SSEc4f32 x, const __m128 v) {
-  return (SSEc4f32{_mm_add_ps(x.m_re, v), x.m_im});
+static inline sse_cvec4_t operator+(const sse_cvec4_t x, const __m128 v) {
+  return (sse_cvec4_t{_mm_add_ps(x.m_re, v), x.m_im});
 }
 
-static inline SSEc4f32 operator+(const __m128 v, const SSEc4f32 x) {
-  return (SSEc4f32{_mm_add_ps(v, x.m_re), x.m_im});
+static inline sse_cvec4_t operator+(const __m128 v, const sse_cvec4_t x) {
+  return (sse_cvec4_t{_mm_add_ps(v, x.m_re), x.m_im});
 }
 
-static inline SSEc4f32 operator+(const SSEc4f32 x, const float s) {
-  return (x + SSEc4f32{s});
+static inline sse_cvec4_t operator+(const sse_cvec4_t x, const float s) {
+  return (x + sse_cvec4_t{s});
 }
 
-static inline SSEc4f32 operator+(const float s, const SSEc4f32 x) {
-  return (SSEc4f32{s} + x);
+static inline sse_cvec4_t operator+(const float s, const sse_cvec4_t x) {
+  return (sse_cvec4_t{s} + x);
 }
 
-static inline SSEc4f32 operator+=(SSEc4f32 x, const SSEc4f32 y) {
+static inline sse_cvec4_t operator+=(sse_cvec4_t x, const sse_cvec4_t y) {
   x = x + y;
   return (x);
 }
 
-static inline SSEc4f32 operator+=(SSEc4f32 x, const std::complex<float> y) {
+static inline sse_cvec4_t operator+=(sse_cvec4_t x, const std::complex<float> y) {
   x = x + y;
   return (x);
 }
 
-static inline SSEc4f32 operator+=(const std::complex<float> x, SSEc4f32 y) {
+static inline sse_cvec4_t operator+=(const std::complex<float> x, sse_cvec4_t y) {
   y = y + x;
   return (y);
 }
 
-static inline SSEc4f32 operator+=(SSEc4f32 x, const __m128 v) {
+static inline sse_cvec4_t operator+=(sse_cvec4_t x, const __m128 v) {
   x = x + v;
   return (x);
 }
 
-static inline SSEc4f32 operator+=(const __m128 v, SSEc4f32 x) {
+static inline sse_cvec4_t operator+=(const __m128 v, sse_cvec4_t x) {
   x = v + x;
   return (x);
 }
 
-static inline SSEc4f32 operator+=(SSEc4f32 x, const float s) {
-  x = x + SSEc4f32{s};
+static inline sse_cvec4_t operator+=(sse_cvec4_t x, const float s) {
+  x = x + sse_cvec4_t{s};
   return (x);
 }
 
-static inline SSEc4f32 operator+=(const float s, SSEc4f32 x) {
-  x = SSEc4f32{s} + x;
+static inline sse_cvec4_t operator+=(const float s, sse_cvec4_t x) {
+  x = sse_cvec4_t{s} + x;
   return (x);
 }
 
-static inline SSEc4f32 operator-(const SSEc4f32 x, const SSEc4f32 y) {
-  return (SSEc4f32{_mm_sub_ps(x.m_re, y.m_re), _mm_sub_ps(x.m_im, y.m_im)});
+static inline sse_cvec4_t operator-(const sse_cvec4_t x, const sse_cvec4_t y) {
+  return (sse_cvec4_t{_mm_sub_ps(x.m_re, y.m_re), _mm_sub_ps(x.m_im, y.m_im)});
 }
 
-static inline SSEc4f32 operator-(const SSEc4f32 x,
+static inline sse_cvec4_t operator-(const sse_cvec4_t x,
                                  const std::complex<float> y) {
-  return (SSEc4f32{_mm_sub_ps(x.m_re, _mm_set1_ps(y.real())),
+  return (sse_cvec4_t{_mm_sub_ps(x.m_re, _mm_set1_ps(y.real())),
                    _mm_sub_ps(x.m_im, _mm_set1_ps(y.imag()))});
 }
 
-static inline SSEc4f32 operator-(const std::complex<float> x,
-                                 const SSEc4f32 y) {
-  return (SSEc4f32{_mm_sub_ps(_mm_set1_ps(x.real()), y.m_re),
+static inline sse_cvec4_t operator-(const std::complex<float> x,
+                                 const sse_cvec4_t y) {
+  return (sse_cvec4_t{_mm_sub_ps(_mm_set1_ps(x.real()), y.m_re),
                    _mm_sub_ps(_mm_set1_ps(x.imag()), y.m_im)});
 }
 
-static inline SSEc4f32 operator-(const SSEc4f32 x, const __m128 v) {
-  return (SSEc4f32{_mm_sub_ps(x.m_re, v), x.m_im});
+static inline sse_cvec4_t operator-(const sse_cvec4_t x, const __m128 v) {
+  return (sse_cvec4_t{_mm_sub_ps(x.m_re, v), x.m_im});
 }
 
-static inline SSEc4f32 operator-(const __m128 v, const SSEc4f32 x) {
-  return (SSEc4f32{_mm_sub_ps(v, x.m_re), x.m_im});
+static inline sse_cvec4_t operator-(const __m128 v, const sse_cvec4_t x) {
+  return (sse_cvec4_t{_mm_sub_ps(v, x.m_re), x.m_im});
 }
 
-static inline SSEc4f32 operator-(const SSEc4f32 x, const float s) {
-  return (x - SSEc4f32{s});
+static inline sse_cvec4_t operator-(const sse_cvec4_t x, const float s) {
+  return (x - sse_cvec4_t{s});
 }
 
-static inline SSEc4f32 operator-(const float s, const SSEc4f32 x) {
-  return (SSEc4f32{s} - x);
+static inline sse_cvec4_t operator-(const float s, const sse_cvec4_t x) {
+  return (sse_cvec4_t{s} - x);
 }
 
-static inline SSEc4f32 operator-=(SSEc4f32 x, const SSEc4f32 y) {
+static inline sse_cvec4_t operator-=(sse_cvec4_t x, const sse_cvec4_t y) {
   x = x - y;
   return (x);
 }
 
-static inline SSEc4f32 operator-=(SSEc4f32 x, const std::complex<float> y) {
+static inline sse_cvec4_t operator-=(sse_cvec4_t x, const std::complex<float> y) {
   x = x - y;
   return (x);
 }
 
-static inline SSEc4f32 operator-=(const std::complex<float> x, SSEc4f32 y) {
+static inline sse_cvec4_t operator-=(const std::complex<float> x, sse_cvec4_t y) {
   y = x - y;
   return (y);
 }
 
-static inline SSEc4f32 operator-=(SSEc4f32 x, const __m128 y) {
+static inline sse_cvec4_t operator-=(sse_cvec4_t x, const __m128 y) {
   x = x - y;
   return (x);
 }
 
-static inline SSEc4f32 operator-=(const __m128 x, SSEc4f32 y) {
+static inline sse_cvec4_t operator-=(const __m128 x, sse_cvec4_t y) {
   y = x - y;
   return (y);
 }
 
-static inline SSEc4f32 operator-=(SSEc4f32 x, const float s) {
-  x = x - SSEc4f32{s};
+static inline sse_cvec4_t operator-=(sse_cvec4_t x, const float s) {
+  x = x - sse_cvec4_t{s};
   return (x);
 }
 
-static inline SSEc4f32 operator-=(const float s, SSEc4f32 x) {
-  x = SSEc4f32{s} - x;
+static inline sse_cvec4_t operator-=(const float s, sse_cvec4_t x) {
+  x = sse_cvec4_t{s} - x;
   return (x);
 }
 
-static inline SSEc4f32 operator*(const SSEc4f32 x, const SSEc4f32 y) {
+static inline sse_cvec4_t operator*(const sse_cvec4_t x, const sse_cvec4_t y) {
   const __m128 xmm0 = _mm_mul_ps(x.m_re, y.m_re);
   const __m128 xmm1 = _mm_mul_ps(x.m_im, y.m_im);
   const __m128 xmm2 = _mm_mul_ps(x.m_im, y.m_re);
   const __m128 xmm3 = _mm_mul_ps(x.m_re, y.m_im);
-  return (SSEc4f32{_mm_add_ps(xmm0, xmm1), _mm_sub_ps(xmm2, xmm3)});
+  return (sse_cvec4_t{_mm_add_ps(xmm0, xmm1), _mm_sub_ps(xmm2, xmm3)});
 }
 
-static inline SSEc4f32 operator*(const SSEc4f32 x,
+static inline sse_cvec4_t operator*(const sse_cvec4_t x,
                                  const std::complex<float> y) {
   const __m128 y_re = _mm_set1_ps(y.real());
   const __m128 y_im = _mm_set1_ps(y.imag());
@@ -519,48 +520,48 @@ static inline SSEc4f32 operator*(const SSEc4f32 x,
   const __m128 zmm1 = _mm_mul_ps(x.m_im, y_im);
   const __m128 zmm2 = _mm_mul_ps(x.m_im, y_re);
   const __m128 zmm3 = _mm_mul_ps(x.m_re, y_im);
-  return (SSEc4f32{_mm_add_ps(zmm0, zmm1), _mm_sub_ps(zmm2, zmm3)});
+  return (sse_cvec4_t{_mm_add_ps(zmm0, zmm1), _mm_sub_ps(zmm2, zmm3)});
 }
 
-static inline SSEc4f32 operator*(const SSEc4f32 x, const __m128 v) {
-  return (SSEc4f32{_mm_mul_ps(x.m_re, v), _mm_mul_ps(x.m_im, v)});
+static inline sse_cvec4_t operator*(const sse_cvec4_t x, const __m128 v) {
+  return (sse_cvec4_t{_mm_mul_ps(x.m_re, v), _mm_mul_ps(x.m_im, v)});
 }
 
-static inline SSEc4f32 operator*(const __m128 v, const SSEc4f32 x) {
-  return (SSEc4f32{_mm_mul_ps(v, x.m_re), _mm_mul_ps(v, x.m_im)});
+static inline sse_cvec4_t operator*(const __m128 v, const sse_cvec4_t x) {
+  return (sse_cvec4_t{_mm_mul_ps(v, x.m_re), _mm_mul_ps(v, x.m_im)});
 }
 
-static inline SSEc4f32 operator*(const SSEc4f32 x, const float s) {
+static inline sse_cvec4_t operator*(const sse_cvec4_t x, const float s) {
   const __m128 zmm0 = _mm_set1_ps(s);
-  return (SSEc4f32{_mm_mul_ps(x.m_re, zmm0), _mm_mul_ps(x.m_im, zmm0)});
+  return (sse_cvec4_t{_mm_mul_ps(x.m_re, zmm0), _mm_mul_ps(x.m_im, zmm0)});
 }
 
-static inline SSEc4f32 operator*=(SSEc4f32 x, const SSEc4f32 y) {
+static inline sse_cvec4_t operator*=(sse_cvec4_t x, const sse_cvec4_t y) {
   x = x * y;
   return (x);
 }
 
-static inline SSEc4f32 operator*=(SSEc4f32 x, const __m128 v) {
+static inline sse_cvec4_t operator*=(sse_cvec4_t x, const __m128 v) {
   x = x * v;
   return (x);
 }
 
-static inline SSEc4f32 operator*=(const __m128 v, SSEc4f32 x) {
+static inline sse_cvec4_t operator*=(const __m128 v, sse_cvec4_t x) {
   x = v * x;
   return (x);
 }
 
-static inline SSEc4f32 operator*=(SSEc4f32 x, const float s) {
+static inline sse_cvec4_t operator*=(sse_cvec4_t x, const float s) {
   x = x * s;
   return (x);
 }
 
-static inline SSEc4f32 operator*=(const float s, SSEc4f32 x) {
+static inline sse_cvec4_t operator*=(const float s, sse_cvec4_t x) {
   x = s * x;
   return (x);
 }
 
-static inline SSEc4f32 operator/(const SSEc4f32 x, const SSEc4f32 y) {
+static inline sse_cvec4_t operator/(const sse_cvec4_t x, const sse_cvec4_t y) {
 #if defined USE_SAFE_COMPLEX_DIVISION && (USE_SAFE_COMPLEX_DIVISION) == 1
   return (cdiv_smith(x, y));
 #else
@@ -572,11 +573,11 @@ static inline SSEc4f32 operator/(const SSEc4f32 x, const SSEc4f32 y) {
       _mm_add_ps(_mm_mul_ps(y.m_re, y.m_re), _mm_mul_ps(y.m_im, y.m_im));
   const __m128 re_part = _mm_add_ps(zmm0, zmm1);
   const __m128 im_part = _mm_sub_ps(zmm2, zmm3);
-  return (SSEc4f32{_mm_div_ps(re_part, den), _mm_div_ps(im_part, den)});
+  return (sse_cvec4_t{_mm_div_ps(re_part, den), _mm_div_ps(im_part, den)});
 #endif
 }
 
-static inline SSEc4f32 operator/(const SSEc4f32 x,
+static inline sse_cvec4_t operator/(const sse_cvec4_t x,
                                  const std::complex<float> y) {
 
   const __m128 y_re = _mm_set1_ps(y.real());
@@ -588,11 +589,11 @@ static inline SSEc4f32 operator/(const SSEc4f32 x,
   const __m128 den = _mm_add_ps(_mm_mul_ps(y_re, y_re), _mm_mul_ps(y_im, y_im));
   const __m128 re_part = _mm_add_ps(zmm0, zmm1);
   const __m128 im_part = _mm_sub_ps(zmm2, zmm3);
-  return (SSEc4f32{_mm_div_ps(re_part, den), _mm_div_ps(im_part, den)});
+  return (sse_cvec4_t{_mm_div_ps(re_part, den), _mm_div_ps(im_part, den)});
 }
 
-static inline SSEc4f32 operator/(const std::complex<float> x,
-                                 const SSEc4f32 y) {
+static inline sse_cvec4_t operator/(const std::complex<float> x,
+                                 const sse_cvec4_t y) {
 
   const __m128 x_re = _mm_set1_ps(x.real());
   const __m128 x_im = _mm_set1_ps(x.imag());
@@ -604,77 +605,77 @@ static inline SSEc4f32 operator/(const std::complex<float> x,
       _mm_add_ps(_mm_mul_ps(y.m_re, y.m_re), _mm_mul_ps(y.m_im, y.m_im));
   const __m128 re_part = _mm_add_ps(zmm0, zmm1);
   const __m128 im_part = _mm_sub_ps(zmm2, zmm3);
-  return (SSEc4f32{_mm_div_ps(re_part, den), _mm_div_ps(im_part, den)});
+  return (sse_cvec4_t{_mm_div_ps(re_part, den), _mm_div_ps(im_part, den)});
 }
 
-static inline SSEc4f32 operator/(const SSEc4f32 x, const __m128 v) {
-  return (SSEc4f32{_mm_div_ps(x.m_re, v), _mm_div_ps(x.m_im, v)});
+static inline sse_cvec4_t operator/(const sse_cvec4_t x, const __m128 v) {
+  return (sse_cvec4_t{_mm_div_ps(x.m_re, v), _mm_div_ps(x.m_im, v)});
 }
 
-static inline SSEc4f32 operator/(const __m128 v, const SSEc4f32 x) {
-  return (SSEc4f32{_mm_div_ps(v, x.m_re), _mm_div_ps(v, x.m_im)});
+static inline sse_cvec4_t operator/(const __m128 v, const sse_cvec4_t x) {
+  return (sse_cvec4_t{_mm_div_ps(v, x.m_re), _mm_div_ps(v, x.m_im)});
 }
 
-static inline SSEc4f32 operator/(const SSEc4f32 x, const float s) {
+static inline sse_cvec4_t operator/(const sse_cvec4_t x, const float s) {
   const __m128 zmm0 = _mm_set1_ps(s);
-  return (SSEc4f32{_mm_div_ps(x.m_re, zmm0), _mm_div_ps(x.m_im, zmm0)});
+  return (sse_cvec4_t{_mm_div_ps(x.m_re, zmm0), _mm_div_ps(x.m_im, zmm0)});
 }
 
-static inline SSEc4f32 operator/(const float s, const SSEc4f32 x) {
+static inline sse_cvec4_t operator/(const float s, const sse_cvec4_t x) {
   const __m128 zmm0 = _mm_set1_ps(s);
-  return (SSEc4f32{_mm_div_ps(zmm0, x.m_re), _mm_div_ps(zmm0, x.m_im)});
+  return (sse_cvec4_t{_mm_div_ps(zmm0, x.m_re), _mm_div_ps(zmm0, x.m_im)});
 }
 
-static inline SSEc4f32 operator/=(SSEc4f32 x, const SSEc4f32 y) {
+static inline sse_cvec4_t operator/=(sse_cvec4_t x, const sse_cvec4_t y) {
   x = x / y;
   return (x);
 }
 
-static inline SSEc4f32 operator/=(const std::complex<float> x, SSEc4f32 y) {
+static inline sse_cvec4_t operator/=(const std::complex<float> x, sse_cvec4_t y) {
   y = x / y;
   return (y);
 }
 
-static inline SSEc4f32 operator/=(SSEc4f32 x, const __m128 v) {
+static inline sse_cvec4_t operator/=(sse_cvec4_t x, const __m128 v) {
   x = x / v;
   return (x);
 }
 
-static inline SSEc4f32 operator/=(const __m128 v, SSEc4f32 x) {
+static inline sse_cvec4_t operator/=(const __m128 v, sse_cvec4_t x) {
   x = v / x;
   return (x);
 }
 
-static inline SSEc4f32 operator/=(SSEc4f32 x, const float s) {
+static inline sse_cvec4_t operator/=(sse_cvec4_t x, const float s) {
   x = x / s;
   return (x);
 }
 
-static inline SSEc4f32 operator/=(const float s, SSEc4f32 x) {
+static inline sse_cvec4_t operator/=(const float s, sse_cvec4_t x) {
   x = s / x;
   return (x);
 }
 
-static inline SSEc4f32 operator~(SSEc4f32 x) {
+static inline sse_cvec4_t operator~(sse_cvec4_t x) {
   x.m_re = _mm_sub_ps(_mm_setzero_ps(), x.m_re);
   return (x);
 }
 
-static inline SSEc4f32 ctan(const SSEc4f32 x) { return (ctan(x) / csin(x)); }
+static inline sse_cvec4_t ctan(const sse_cvec4_t x) { return (ctan(x) / csin(x)); }
 
-static inline SSEc4f32 ctanh(const SSEc4f32 x) { return (csinh(x) / ccosh(x)); }
+static inline sse_cvec4_t ctanh(const sse_cvec4_t x) { return (csinh(x) / ccosh(x)); }
 
 #if defined __AVX512F__
 
-static inline std::pair<__mmask8, __mmask8> operator==(const SSEc4f32 x,
-                                                       const SSEc4f32 y) {
+static inline std::pair<__mmask8, __mmask8> operator==(const sse_cvec4_t x,
+                                                       const sse_cvec4_t y) {
   const __mmask8 m1 = _mm_cmp_ps_mask(x.m_re, y.m_re, _CMP_EQ_OQ);
   const __mmask8 m2 = _mm_cmp_ps_mask(x.m_im, y.m_im, _CMP_EQ_OQ);
   return (std::make_pair(m1, m2));
 }
 
 static inline std::pair<__mmask8, __mmask8>
-operator==(const SSEc4f32 x, const std::complex<float> c) {
+operator==(const sse_cvec4_t x, const std::complex<float> c) {
   const __mmask8 m1 =
       _mm_cmp_ps_mask(x.m_re, _mm_set1_ps(c.real()), _CMP_EQ_OQ);
   const __mmask8 m2 =
@@ -683,7 +684,7 @@ operator==(const SSEc4f32 x, const std::complex<float> c) {
 }
 
 static inline std::pair<__mmask8, __mmask8>
-operator==(const std::complex<float> c, const SSEc4f32 x) {
+operator==(const std::complex<float> c, const sse_cvec4_t x) {
   const __mmask8 m1 =
       _mm_cmp_ps_mask(_mm_set1_ps(c.real()), x.m_re, _CMP_EQ_OQ);
   const __mmask8 m2 =
@@ -691,15 +692,15 @@ operator==(const std::complex<float> c, const SSEc4f32 x) {
   return (std::make_pair(m1, m2));
 }
 
-static inline std::pair<__mmask8, __mmask8> operator!=(const SSEc4f32 x,
-                                                       const SSEc4f32 y) {
+static inline std::pair<__mmask8, __mmask8> operator!=(const sse_cvec4_t x,
+                                                       const sse_cvec4_t y) {
   const __mmask8 m1 = _mm_cmp_ps_mask(x.m_re, y.m_re, _CMP_NEQ_OQ);
   const __mmask8 m2 = _mm_cmp_ps_mask(x.m_im, y.m_im, _CMP_NEQ_OQ);
   return (std::make_pair(m1, m2));
 }
 
 static inline std::pair<__mmask8, __mmask8>
-operator!=(const SSEc4f32 x, const std::complex<float> c) {
+operator!=(const sse_cvec4_t x, const std::complex<float> c) {
   const __mmask8 m1 =
       _mm_cmp_ps_mask(x.m_re, _mm_set1_ps(c.real()), _CMP_NEQ_OQ);
   const __mmask8 m2 =
@@ -708,7 +709,7 @@ operator!=(const SSEc4f32 x, const std::complex<float> c) {
 }
 
 static inline std::pair<__mmask8, __mmask8>
-operator!=(const std::complex<float> c, const SSEc4f32 x) {
+operator!=(const std::complex<float> c, const sse_cvec4_t x) {
   const __mmask8 m1 =
       _mm_cmp_ps_mask(_mm_set1_ps(c.real()), x.m_re, _CMP_NEQ_OQ);
   const __mmask8 m2 =
@@ -716,15 +717,15 @@ operator!=(const std::complex<float> c, const SSEc4f32 x) {
   return (std::make_pair(m1, m2));
 }
 
-static inline std::pair<__mmask8, __mmask8> operator>(const SSEc4f32 x,
-                                                      const SSEc4f32 y) {
+static inline std::pair<__mmask8, __mmask8> operator>(const sse_cvec4_t x,
+                                                      const sse_cvec4_t y) {
   const __mmask8 m1 = _mm_cmp_ps_mask(x.m_re, y.m_re, _CMP_GT_OQ);
   const __mmask8 m2 = _mm_cmp_ps_mask(x.m_im, y.m_im, _CMP_GT_OQ);
   return (std::make_pair(m1, m2));
 }
 
 static inline std::pair<__mmask8, __mmask8>
-operator>(const SSEc4f32 x, const std::complex<float> c) {
+operator>(const sse_cvec4_t x, const std::complex<float> c) {
   const __mmask8 m1 =
       _mm_cmp_ps_mask(x.m_re, _mm_set1_ps(c.real()), _CMP_GT_OQ);
   const __mmask8 m2 =
@@ -733,7 +734,7 @@ operator>(const SSEc4f32 x, const std::complex<float> c) {
 }
 
 static inline std::pair<__mmask8, __mmask8>
-operator>(const std::complex<float> c, const SSEc4f32 x) {
+operator>(const std::complex<float> c, const sse_cvec4_t x) {
   const __mmask8 m1 =
       _mm_cmp_ps_mask(_mm_set1_ps(c.real()), x.m_re, _CMP_GT_OQ);
   const __mmask8 m2 =
@@ -741,8 +742,8 @@ operator>(const std::complex<float> c, const SSEc4f32 x) {
   return (std::make_pair(m1, m2));
 }
 
-static inline std::pair<__mmask8, __mmask8> operator<(const SSEc4f32 x,
-                                                      const SSEc4f32 y) {
+static inline std::pair<__mmask8, __mmask8> operator<(const sse_cvec4_t x,
+                                                      const sse_cvec4_t y) {
   const __mmask8 m1 = _mm_cmp_ps_mask(x.m_re, y.m_re, _CMP_LT_OQ);
   const __mmask8 m2 = _mm_cmp_ps_mask(x.m_im, y.m_im, _CMP_LT_OQ);
   return (std::make_pair(m1, m2));
@@ -758,7 +759,7 @@ operator<(const AVX512c16f32 x, const std::complex<float> c) {
 }
 
 static inline std::pair<__mmask8, __mmask8>
-operator<(const std::complex<float> c, const SSEc4f32 x) {
+operator<(const std::complex<float> c, const sse_cvec4_t x) {
   const __mmask8 m1 =
       _mm_cmp_ps_mask(_mm_set1_ps(c.real()), x.m_re, _CMP_LT_OQ);
   const __mmask8 m2 =
@@ -766,15 +767,15 @@ operator<(const std::complex<float> c, const SSEc4f32 x) {
   return (std::make_pair(m1, m2));
 }
 
-static inline std::pair<__mmask8, __mmask8> operator>=(const SSEc4f32 x,
-                                                       const SSEc4f32 y) {
+static inline std::pair<__mmask8, __mmask8> operator>=(const sse_cvec4_t x,
+                                                       const sse_cvec4_t y) {
   const __mmask8 m1 = _mm_cmp_ps_mask(x.m_re, y.m_re, _CMP_GE_OQ);
   const __mmask8 m2 = _mm_cmp_ps_mask(x.m_im, y.m_im, _CMP_GE_OQ);
   return (std::make_pair(m1, m2));
 }
 
 static inline std::pair<__mmask8, __mmask8>
-operator>=(const SSEc4f32 x, const std::complex<float> c) {
+operator>=(const sse_cvec4_t x, const std::complex<float> c) {
   const __mmask8 m1 =
       _mm_cmp_ps_mask(x.m_re, _mm_set1_ps(c.real()), _CMP_GE_OQ);
   const __mmask8 m2 =
@@ -783,7 +784,7 @@ operator>=(const SSEc4f32 x, const std::complex<float> c) {
 }
 
 static inline std::pair<__mmask8, __mmask8>
-operator>=(const std::complex<float> c, const SSEc4f32 x) {
+operator>=(const std::complex<float> c, const sse_cvec4_t x) {
   const __mmask8 m1 =
       _mm_cmp_ps_mask(_mm_set1_ps(c.real()), x.m_re, _CMP_GE_OQ);
   const __mmask8 m2 =
@@ -791,15 +792,15 @@ operator>=(const std::complex<float> c, const SSEc4f32 x) {
   return (std::make_pair(m1, m2));
 }
 
-static inline std::pair<__mmask8, __mmask8> operator<=(const SSEc4f32 x,
-                                                       const SSEc4f32 y) {
+static inline std::pair<__mmask8, __mmask8> operator<=(const sse_cvec4_t x,
+                                                       const sse_cvec4_t y) {
   const __mmask8 m1 = _mm_cmp_ps_mask(x.m_re, y.m_re, _CMP_LE_OQ);
   const __mmask8 m2 = _mm_cmp_ps_mask(x.m_im, y.m_im, _CMP_LE_OQ);
   return (std::make_pair(m1, m2));
 }
 
 static inline std::pair<__mmask8, __mmask8>
-operator<=(const SSEc4f32 x, const std::complex<float> c) {
+operator<=(const sse_cvec4_t x, const std::complex<float> c) {
   const __mmask8 m1 =
       _mm_cmp_ps_mask(x.m_re, _mm_set1_ps(c.real()), _CMP_LE_OQ);
   const __mmask16 m2 =
@@ -808,7 +809,7 @@ operator<=(const SSEc4f32 x, const std::complex<float> c) {
 }
 
 static inline std::pair<__mmask8, __mmask8>
-operator<=(const std::complex<float> c, const SSEc4f32 x) {
+operator<=(const std::complex<float> c, const sse_cvec4_t x) {
   const __mmask8 m1 =
       _mm_cmp_ps_mask(_mm_set1_ps(c.real()), x.m_re, _CMP_LE_OQ);
   const __mmask8 m2 =
@@ -818,8 +819,8 @@ operator<=(const std::complex<float> c, const SSEc4f32 x) {
 
 #else
 
-static inline std::pair<int32_t, int32_t> operator==(const SSEc4f32 x,
-                                                     const SSEc4f32 y) {
+static inline std::pair<int32_t, int32_t> operator==(const sse_cvec4_t x,
+                                                     const sse_cvec4_t y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
@@ -830,7 +831,7 @@ static inline std::pair<int32_t, int32_t> operator==(const SSEc4f32 x,
 }
 
 static inline std::pair<int32_t, int32_t>
-operator==(const SSEc4f32 x, const std::complex<float> y) {
+operator==(const sse_cvec4_t x, const std::complex<float> y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
@@ -841,7 +842,7 @@ operator==(const SSEc4f32 x, const std::complex<float> y) {
 }
 
 static inline std::pair<int32_t, int32_t>
-operator==(const std::complex<float> x, const SSEc4f32 y) {
+operator==(const std::complex<float> x, const sse_cvec4_t y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
@@ -851,8 +852,8 @@ operator==(const std::complex<float> x, const SSEc4f32 y) {
   return (std::make_pair(_mm_testz_ps(eqre, eqre), _mm_testz_ps(eqim, eqim)));
 }
 
-static inline std::pair<int32_t, int32_t> operator!=(const SSEc4f32 x,
-                                                     const SSEc4f32 y) {
+static inline std::pair<int32_t, int32_t> operator!=(const sse_cvec4_t x,
+                                                     const sse_cvec4_t y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
@@ -863,7 +864,7 @@ static inline std::pair<int32_t, int32_t> operator!=(const SSEc4f32 x,
 }
 
 static inline std::pair<int32_t, int32_t>
-operator!=(const SSEc4f32 x, const std::complex<float> y) {
+operator!=(const sse_cvec4_t x, const std::complex<float> y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
@@ -874,7 +875,7 @@ operator!=(const SSEc4f32 x, const std::complex<float> y) {
 }
 
 static inline std::pair<int32_t, int32_t>
-operator!=(const std::complex<float> x, const SSEc4f32 y) {
+operator!=(const std::complex<float> x, const sse_cvec4_t y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
@@ -884,8 +885,8 @@ operator!=(const std::complex<float> x, const SSEc4f32 y) {
   return (std::make_pair(_mm_testz_ps(eqre, eqre), _mm_testz_ps(eqim, eqim)));
 }
 
-static inline std::pair<int32_t, int32_t> operator>(const SSEc4f32 x,
-                                                    const SSEc4f32 y) {
+static inline std::pair<int32_t, int32_t> operator>(const sse_cvec4_t x,
+                                                    const sse_cvec4_t y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
@@ -896,7 +897,7 @@ static inline std::pair<int32_t, int32_t> operator>(const SSEc4f32 x,
 }
 
 static inline std::pair<int32_t, int32_t>
-operator>(const SSEc4f32 x, const std::complex<float> y) {
+operator>(const sse_cvec4_t x, const std::complex<float> y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
@@ -907,7 +908,7 @@ operator>(const SSEc4f32 x, const std::complex<float> y) {
 }
 
 static inline std::pair<int32_t, int32_t> operator>(const std::complex<float> x,
-                                                    const SSEc4f32 y) {
+                                                    const sse_cvec4_t y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
@@ -917,8 +918,8 @@ static inline std::pair<int32_t, int32_t> operator>(const std::complex<float> x,
   return (std::make_pair(_mm_testz_ps(eqre, eqre), _mm_testz_ps(eqim, eqim)));
 }
 
-static inline std::pair<int32_t, int32_t> operator<(const SSEc4f32 x,
-                                                    const SSEc4f32 y) {
+static inline std::pair<int32_t, int32_t> operator<(const sse_cvec4_t x,
+                                                    const sse_cvec4_t y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
@@ -929,7 +930,7 @@ static inline std::pair<int32_t, int32_t> operator<(const SSEc4f32 x,
 }
 
 static inline std::pair<int32_t, int32_t>
-operator<(const SSEc4f32 x, const std::complex<float> y) {
+operator<(const sse_cvec4_t x, const std::complex<float> y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
@@ -940,7 +941,7 @@ operator<(const SSEc4f32 x, const std::complex<float> y) {
 }
 
 static inline std::pair<int32_t, int32_t> operator<(const std::complex<float> x,
-                                                    const SSEc4f32 y) {
+                                                    const sse_cvec4_t y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
@@ -950,8 +951,8 @@ static inline std::pair<int32_t, int32_t> operator<(const std::complex<float> x,
   return (std::make_pair(_mm_testz_ps(eqre, eqre), _mm_testz_ps(eqim, eqim)));
 }
 
-static inline std::pair<int32_t, int32_t> operator>=(const SSEc4f32 x,
-                                                     const SSEc4f32 y) {
+static inline std::pair<int32_t, int32_t> operator>=(const sse_cvec4_t x,
+                                                     const sse_cvec4_t y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
@@ -962,7 +963,7 @@ static inline std::pair<int32_t, int32_t> operator>=(const SSEc4f32 x,
 }
 
 static inline std::pair<int32_t, int32_t>
-operator>=(const SSEc4f32 x, const std::complex<float> y) {
+operator>=(const sse_cvec4_t x, const std::complex<float> y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
@@ -973,7 +974,7 @@ operator>=(const SSEc4f32 x, const std::complex<float> y) {
 }
 
 static inline std::pair<int32_t, int32_t>
-operator>=(const std::complex<float> x, const SSEc4f32 y) {
+operator>=(const std::complex<float> x, const sse_cvec4_t y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
@@ -983,8 +984,8 @@ operator>=(const std::complex<float> x, const SSEc4f32 y) {
   return (std::make_pair(_mm_testz_ps(eqre, eqre), _mm_testz_ps(eqim, eqim)));
 }
 
-static inline std::pair<int32_t, int32_t> operator<=(const SSEc4f32 x,
-                                                     const SSEc4f32 y) {
+static inline std::pair<int32_t, int32_t> operator<=(const sse_cvec4_t x,
+                                                     const sse_cvec4_t y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
@@ -995,7 +996,7 @@ static inline std::pair<int32_t, int32_t> operator<=(const SSEc4f32 x,
 }
 
 static inline std::pair<int32_t, int32_t>
-operator<=(const SSEc4f32 x, const std::complex<float> y) {
+operator<=(const sse_cvec4_t x, const std::complex<float> y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
@@ -1006,7 +1007,7 @@ operator<=(const SSEc4f32 x, const std::complex<float> y) {
 }
 
 static inline std::pair<int32_t, int32_t>
-operator<=(const std::complex<float> x, const SSEc4f32 y) {
+operator<=(const std::complex<float> x, const sse_cvec4_t y) {
 
   __m128 eqre, eqim;
   eqre = _mm_setzero_ps();
