@@ -21,7 +21,9 @@
 
 #include <cstdint>
 #include <immintrin.h>
+#include <cmath>
 #include "GMS_config.h"
+#include "GMS_fast_simd_funcs_approx.h"
 
 namespace file_info 
 {
@@ -161,6 +163,40 @@ compile_time_execute(const double * __restrict__ Ac,
     }
 }
 };
+
+template<std::size_t Index, std::size_t BatchSize>
+struct Tikhonov_phase_err_pdf_4xf33_t
+{
+static inline void 
+compile_time_execute(const float * __restrict__ rho_eq,
+                     const float * __restrict__ phi_c,
+                     float       * __restric__ result) 
+{
+    if constexpr(Index < BatchSize)
+    {
+        constexpr std::size_t idx = Index*4ull;
+        __m128 vrho_eq = _mm_loadu_ps(rho_eq+idx);
+        __m128 vphi_c  = _mm_loadu_ps(phi_c+idx);
+        __m128 negPI   = _mm_set1_ps(-3.1415926535897932384626433832795f);
+        const float * __restrict__ p_phi_c = reinterpret_cast<const float * __restrict__>(&vphi_c);
+        __m128 posPI   = _mm_set1_ps(+3.1415926535897932384626433832795);
+        __m128 bessi0  = _mm_setr_ps(std::cyl_bessel_i(0,p_phi_c[0],std::cyl_bessel_i(0,p_phi_c[1]),
+                                     std::cyl_bessel_i(0,p_phi_c[2]),std::cyl_bessel_i(0,p_phi_c[3])));
+        __mmask8 phic_le_pi    = _mm_cmp_ps_mask(vphi_c,posPI,_CMP_LE_OQ);
+        __m128  cosarg         = _mm_add_ps(vphi_c,vphi_c);
+        __mmask8 phic_gt_pi    = _mm_cmp_ps_mask(vphi_c,negPI,_CMP_GE_OQ);
+        __mmask8 mask_pi       = _kand_mask8(phic_le_pi,phic_gt_pi);
+        __m128  cos2phic       = _mm_mask_blend_ps(mask_pi,_mm_cos_ps(cosarg),gms::math::simd_fast_cos_approx_4xf32(cosarg));
+        __m128  exp_val        = gms::math::simd_fast_exp_approx_4xf32(_mm_mul_ps(vrho_eq,cos2phic));
+        __m128 vres            = _mm_div_ps(exp_val,_mm_mul_ps(posPI,bessi0));
+        _mm_storeu_ps(result+idx,vres);
+
+        Tikhonov_phase_err_pdf_4xf33_t<Index+1ull,BatchSize>::compile_time_execute(rho_eq,phi_c,result);
+    }
+}
+};
+
+
 
 }
 
