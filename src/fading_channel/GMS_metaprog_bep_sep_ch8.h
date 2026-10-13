@@ -78,6 +78,36 @@ compile_time_execute(const float * __restrict__ Ac,
 
 };
 
+template<std::size_t Index, std::size_t BatchSize>
+struct Avg_symbol_E_to_carrier_A_2xf64_t
+{
+static inline void 
+compile_time_execute(const double * __restrict__ Ac,
+                     const double * __restrict__ Ts,
+                     const double * __restrict__ M,
+                     float       * __restrict__ result)
+{
+    if constexpr(Index < BatchSize)
+    {
+        constexpr std::size_t idx = Index*2ull;
+        __m128d vAc   = _mm_loadu_pd(Ac+idx);
+        __m128d vTs   = _mm_loadu_pd(Ts+idx);
+        __m128d vM    = _mm_loadu_pd(M+idx);
+        __m128d third = _mm_set1_pd(0.333333333333333333333);
+        __m128d AA    = _mm_mul_pd(vAc,vAc);
+        __m128d one   = _mm_set1_pd(1.0);
+        __m128d MM    = _mm_mul_pd(vM,vM);
+        __m128d MM_rat= _mm_sub_pd(_mm_mul_pd(MM,one),third);
+        __m128d factor= _mm_mul_pd(AA,vTs); 
+        __m128d vres  = _mm_mul_pd(factor,MM_rat);
+        _mm_storeu_pd(result+idx,vres);
+
+        Avg_symbol_E_to_carrier_A_2xf64_t<Index+1ull,BatchSize>::compile_time_execute(Ac,Ts,M,result);
+    }
+}
+
+};
+
 }
 
 }
