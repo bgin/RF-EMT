@@ -24,6 +24,7 @@
 #include <cmath>
 #include "GMS_config.h"
 #include "GMS_fast_simd_funcs_approx.h"
+#include "GMS_bessel_i0_sse.h"
 
 namespace file_info 
 {
@@ -165,7 +166,7 @@ compile_time_execute(const double * __restrict__ Ac,
 };
 
 template<std::size_t Index, std::size_t BatchSize>
-struct Tikhonov_phase_err_pdf_4xf33_t
+struct Tikhonov_phase_err_pdf_4xf32_t
 {
 static inline void 
 compile_time_execute(const float * __restrict__ rho_eq,
@@ -191,11 +192,42 @@ compile_time_execute(const float * __restrict__ rho_eq,
         __m128 vres            = _mm_div_ps(exp_val,_mm_mul_ps(posPI,bessi0));
         _mm_storeu_ps(result+idx,vres);
 
-        Tikhonov_phase_err_pdf_4xf33_t<Index+1ull,BatchSize>::compile_time_execute(rho_eq,phi_c,result);
+        Tikhonov_phase_err_pdf_4xf32_t<Index+1ull,BatchSize>::compile_time_execute(rho_eq,phi_c,result);
     }
 }
 };
 
+template<std::size_t Index, std::size_t BatchSize>
+struct Tikhonov_phase_err_pdf_2xf64_t
+{
+static inline void 
+compile_time_execute(const double * __restrict__ rho_eq,
+                     const double * __restrict__ phi_c,
+                     double       * __restric__ result)
+{
+    if constexpr(Index <BatchSize)
+    {
+        constexpr std::size_t idx = Index*2ull;
+        __m128 vrho_eq = _mm_loadu_pd(rho_eq+idx);
+        __m128 vphi_c  = _mm_loadu_pd(phi_c+idx);
+        __m128d negPI        = _mm_set1_pd(-3.1415926535897932384626433832795);
+        __m128d posPI        = _mm_set1_pd(+3.1415926535897932384626433832795);
+        __m128d bessi0       = _mm_mask_blend_pd(_mm_cmp_pd_mask(vrho_eq,_mm_set1_pd(15.0),_CMP_GE_OQ),
+                                               gms::math::bessel_i0_le15_sse_pd(vrho_eq),
+                                               gms::math::bessel_i0_ge15_sse_pd(vrho_eq));
+        __mmask8 phic_le_pi   = _mm_cmp_pd_mask(vphi_c,posPI,_CMP_LE_OQ);
+        __m128d  cosarg       = _mm_add_pd(vphi_c,vphi_c);
+        __mmask8 phic_gt_pi   = _mm_cmp_pd_mask(vphi_c,negPI,_CMP_GE_OQ);
+        __mmask8 mask_pi      = _kand_mask8(phic_le_pi,phic_gt_pi);
+        __m128d  cos2phic     = _mm_mask_blend_pd(mask_pi,_mm_cos_pd(cosarg),gms::math::simd_fast_cos_approx_2xf64(cosarg));
+        __m128d  exp_val      = gms::math::simd_fast_exp_approx_2xf64(_mm_mul_pd(vrho_eq,cos2phic));
+        __m128d  vres         = _mm_div_pd(exp_val,_mm_mul_pd(posPI,bessi0));
+        _mm_storeu_pd(result+idx,vres);
+
+        Tikhonov_phase_err_pdf_2xf64_t<Index+1ull,BatchSize>::compile_time_execute(rho_eq,phi_c,result);
+    }
+}
+};
 
 
 }
