@@ -5391,6 +5391,40 @@ __m128 atan_val = _mm_mul_ps(halfPi,_mm_atan_ps(_mm_mul_ps(sqrt_val,cot_val)));
 return (_mm_mul_ps(term1,_mm_mul_ps(term4,atan_val)));
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+template<Gaussian_Q_approximations_sse_t Q_func_approx>
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128d analytic_SEP_MPSK_rayleigh_chan_8_112_2xf64(const __m128d gamma,
+                                                    const __m128d M)
+{
+__m128d Pi       = _mm_set1_pd(3.1415926535897932384626433832795);
+__m128d Pi_div_M = _mm_div_pd(Pi,M);
+__m128d sin_tmp  = _mm_sin_pd(Pi_div_M);
+__m128d halfPi   = _mm_set1_pd(1.5707963267948966192313216916398);
+__m128d one      = _mm_set1_pd(1.0);
+__m128d g_psk    = _mm_mul_pd(sin_tmp,sin_tmp);
+__m128d M_sub_1  = _mm_sub_pd(M,one);
+__m128d term1    = _mm_div_pd(M_sub_1,M);
+__m128d gpskgamm = _mm_mul_pd(g_psk,gamma);
+__m128d term2    = _mm_div_pd(gpskgamm,_mm_div_pd(one,gpskgamm));
+__m128d sqrt_val = _mm_sqrt_pd(term2);
+__m128d tmp      = _mm_mul_pd(M_sub_1,Pi);
+__m128d term3    = _mm_div_pd(M,term3);
+__m128d cot_val  = _mm_tan_pd(_mm_mul_pd(halfPi,Pi_div_M));
+__m128d term4    = _mm_sub_pd(one,_mm_mul_pd(sqrt_val,term3));
+__m128d atan_val = _mm_mul_pd(halfPi,_mm_atan_pd(_mm_mul_pd(sqrt_val,cot_val)));
+return (_mm_mul_pd(term1,_mm_mul_pd(term4,atan_val)));
+}
+
 }
 }
 #endif /*__GMS_ANALYTIC_BEP_SEP_CH8_SSE_H__*/
