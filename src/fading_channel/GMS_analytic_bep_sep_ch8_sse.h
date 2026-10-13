@@ -5357,7 +5357,39 @@ __m128d term2         = _mm_mul_pd(quarter,_mm_mul_pd(term1,atan_val));
 return (_mm_sub_pd(term1,term2));
 }
 
-
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+template<Gaussian_Q_approximations_sse_t Q_func_approx>
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128 analytic_SEP_MPSK_rayleigh_chan_8_112_4xf32(const __m128 gamma,
+                                                   const __m128 M)
+{
+__m128 Pi       = _mm_set1_ps(3.1415926535897932384626433832795f);
+__m128 Pi_div_M = _mm_div_ps(Pi,M);
+__m128 sin_tmp  = gms::math::_mm_ceph_sinf_ps(Pi_div_M);
+__m128 halfPi   = _mm_set1_ps(1.5707963267948966192313216916398f);
+__m128 one      = _mm_set1_ps(1.0f);
+__m128 g_psk    = _mm_mul_ps(sin_tmp,sin_tmp);
+__m128 M_sub_1  = _mm_sub_ps(M,one);
+__m128 term1    = _mm_div_ps(M_sub_1,M);
+__m128 gpskgamm = _mm_mul_ps(g_psk,gamma);
+__m128 term2    = _mm_div_ps(gpskgamm,_mm_div_ps(one,gpskgamm));
+__m128 sqrt_val = _mm_sqrt_ps(term2);
+__m128 tmp      = _mm_mul_ps(M_sub_1,Pi);
+__m128 term3    = _mm_div_ps(M,term3);
+__m128 cot_val  = _mm_tan_ps(_mm_mul_ps(halfPi,Pi_div_M));
+__m128 term4    = _mm_sub_ps(one,_mm_mul_ps(sqrt_val,term3));
+__m128 atan_val = _mm_mul_ps(halfPi,_mm_atan_ps(_mm_mul_ps(sqrt_val,cot_val)));
+return (_mm_mul_ps(term1,_mm_mul_ps(term4,atan_val)));
+}
 
 }
 }
