@@ -5439,6 +5439,26 @@ __m128 m_Q_sqr   = _mm_mul_ps(m_Q,m_Q);
 return (_mm_div_ps(_mm_add_ps(m_I_sqr,m_Q_sqr),_mm_add_ps(sigma_sqr,sigma_sqr))); 
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128d riccian_factor_8_144_2xf64(const __m128d m_I,const __m128d m_Q,
+                                  const __m128d sigma)
+{
+__m128d m_I_sqr   = _mm_mul_pd(m_I,m_I);
+__m128d sigma_sqr = _mm_mul_pd(sigma,sigma);
+__m128d m_Q_sqr   = _mm_mul_pd(m_Q,m_Q);
+return (_mm_div_pd(_mm_add_pd(m_I_sqr,m_Q_sqr),_mm_add_pd(sigma_sqr,sigma_sqr))); 
+}
+
 }
 }
 #endif /*__GMS_ANALYTIC_BEP_SEP_CH8_SSE_H__*/
