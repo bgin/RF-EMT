@@ -5260,7 +5260,6 @@ __m128d left_term  = _mm_mul_pd(_mm_set1_pd(2.06,_mm_sqrt_pd(cos_ratio)));
 #pragma GCC target("sse")
 #endif
 #endif
-template<Gaussian_Q_approximations_sse_t Q_func_approx>
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m128 analytic_BEP_DPSK_chernoff_bound_8_9_4xf32(const __m128 Ac,const __m128 Ts,
@@ -5286,7 +5285,6 @@ return _mm_mul_ps(left_term,gms::math::simd_fast_exp_approx_4xf32(_mm_sub_ps(_mm
 #pragma GCC target("sse")
 #endif
 #endif
-template<Gaussian_Q_approximations_sse_t Q_func_approx>
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m128d analytic_BEP_DPSK_chernoff_bound_8_9_2xf64(const __m128d Ac,const __m128d Ts,
@@ -5312,7 +5310,6 @@ return _mm_mul_pd(left_term,gms::math::simd_fast_exp_approx_2xf64(_mm_sub_pd(_mm
 #pragma GCC target("sse")
 #endif
 #endif
-template<Gaussian_Q_approximations_sse_t Q_func_approx>
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m128 analytic_SEP_QAM4_8_107_4xf32(const __m128 gamma)
@@ -5339,7 +5336,6 @@ return (_mm_sub_ps(term1,term2));
 #pragma GCC target("sse")
 #endif
 #endif
-template<Gaussian_Q_approximations_sse_t Q_func_approx>
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m128d analytic_SEP_QAM4_8_107_2xf64(const __m128d gamma)
@@ -5366,7 +5362,6 @@ return (_mm_sub_pd(term1,term2));
 #pragma GCC target("sse")
 #endif
 #endif
-template<Gaussian_Q_approximations_sse_t Q_func_approx>
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m128 analytic_SEP_MPSK_rayleigh_chan_8_112_4xf32(const __m128 gamma,
@@ -5400,7 +5395,6 @@ return (_mm_mul_ps(term1,_mm_mul_ps(term4,atan_val)));
 #pragma GCC target("sse")
 #endif
 #endif
-template<Gaussian_Q_approximations_sse_t Q_func_approx>
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m128d analytic_SEP_MPSK_rayleigh_chan_8_112_2xf64(const __m128d gamma,
@@ -5423,6 +5417,26 @@ __m128d cot_val  = _mm_tan_pd(_mm_mul_pd(halfPi,Pi_div_M));
 __m128d term4    = _mm_sub_pd(one,_mm_mul_pd(sqrt_val,term3));
 __m128d atan_val = _mm_mul_pd(halfPi,_mm_atan_pd(_mm_mul_pd(sqrt_val,cot_val)));
 return (_mm_mul_pd(term1,_mm_mul_pd(term4,atan_val)));
+}
+
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128 riccian_factor_8_144_4xf32(const __m128 m_I,const __m128 m_Q,
+                                  const __m128 sigma)
+{
+__m128 m_I_sqr   = _mm_mul_ps(m_I,m_I);
+__m128 sigma_sqr = _mm_mul_ps(sigma,sigma);
+__m128 m_Q_sqr   = _mm_mul_ps(m_Q,m_Q);
+return (_mm_div_ps(_mm_add_ps(m_I_sqr,m_Q_sqr),_mm_add_ps(sigma_sqr,sigma_sqr))); 
 }
 
 }
