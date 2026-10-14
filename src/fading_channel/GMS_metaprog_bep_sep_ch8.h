@@ -1144,6 +1144,56 @@ compile_time_execute(const float * __restrict__ gamma,
 };
 
 
+template<std::size_t Index,std::size_t BatchSize,
+         std::int32_t copy_pointers_to_stack>
+struct Analytic_SEP_QAM4_8_107_2xf64_t
+{
+static inline void 
+compile_time_execute(const double * __restrict__ gamma,
+                     double *       __restrict__ result)
+{
+    if constexpr(Index < BatchSize)
+    {
+        constexpr std::size_t idx = Index+2ull;
+        if constexpr(copy_pointers_to_stack==1)
+        {
+            const double * __restrict__ pgamma  = gamma;
+            double       * __restrict__ presult = result;
+            __m128d vgamma = _mm_loadu_pd(pgamma+idx);
+        }
+        else if constexpr(copy_pointers_to_stack==2)
+        {
+            __m128d vgamma = _mm_loadu_pd(gamma+idx);
+        }
+        __m128d one           = _mm_set1_pd(1.0);
+        __m128d quarter       = _mm_set1_pd(0.25);
+        __m128d one_add_gamma = _mm_add_pd(one,vgamma); 
+        __m128d sqrt_arg1     = _mm_div_pd(vgamma,one_add_gamma);
+        __m128d sqrt_val1     = _mm_sqrt_pd(sqrt_arg1);
+        __m128d sqrt_arg2     = _mm_div_pd(one_add_gamma,vgamma);
+        __m128d sqrt_val2     = _mm_sqrt_pd(sqrt_arg2);
+        __m128d term1         = _mm_sub_pd(one,sqrt_val1);
+        __m128d atan_val      = _mm_mul_pd(_mm_set1_pd(1.2732395447351626861510701069801),sqrt_val2);
+        __m128d term2         = _mm_mul_pd(quarter,_mm_mul_pd(term1,atan_val));
+        __m128d vres          = _mm_sub_pd(term1,term2);
+
+        if constexpr(copy_pointers_to_stack==1)
+        {
+            _mm_storeu_pd(presult+idx,vres);
+            Analytic_SEP_QAM4_8_107_2xf64_t<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(gamma,presult);
+        }
+        else if constexpr(copy_pointers_to_stack==2)
+        {
+            _mm_storeu_ps(result+idx,vres);
+            Analytic_SEP_QAM4_8_107_2xf64_t<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(gamma,result);
+        }
+    }
+}
+
+};
+
+
+
 
 }
 
