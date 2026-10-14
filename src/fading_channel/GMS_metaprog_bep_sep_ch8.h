@@ -428,6 +428,68 @@ compile_time_execute(const float * __restrict__ Ac,
 
 };
 
+template<std::size_t Index,std::size_t BatchSize,
+         std::int32_t copy_pointers_to_stack>
+struct BPSK_Param_a_8_61_2xf64_t
+{
+static inline void
+compile_time_execute(const double * __restrict__ Ac,
+                     const double * __restrict__ Ts,
+                     const double * __restrict__ M,
+                     const double * __restrict__ N0,
+                     const double * __restrict__ Bl,
+                     const double * __restrict__ Tb,
+                     double       * __restrict__ result)
+{
+    if constexpr(Index < BatchSize)
+    {
+        constexpr std::size_t idx = Index*2ull;
+        if constexpr(copy_pointers_to_stack==1)
+        {
+            const double * __restrict__ pAc = Ac;
+            const double * __restrict__ pTs = Ts;
+            const double * __restrict__ pM  = M;
+            const double * __restrict__ pN0 = N0;
+            const double * __restrict__ pBl = Bl;
+            const double * __restrict__ pTb = Tb;
+            double       * __restrict__ presult = result;
+            __m128d vAc   = _mm_loadu_pd(pAc+idx);
+            __m128d vTs   = _mm_loadu_pd(pTs+idx);
+            __m128d vM    = _mm_loadu_pd(pM+idx);
+            __m128d vN0   = _mm_loadu_pd(pN0+idx);
+            __m128d vBl   = _mm_loadu_pd(pBl+idx);
+            __m128d vTb   = _mm_loadu_pd(pTb+idx);
+        }
+        else if constexpr(copy_pointers_to_stack==2)
+        {
+            __m128d vAc   = _mm_loadu_pd(Ac+idx);
+            __m128d vTs   = _mm_loadu_pd(Ts+idx);
+            __m128d vM    = _mm_loadu_pd(M+idx);
+            __m128d vN0   = _mm_loadu_pd(N0+idx);
+            __m128d vBl   = _mm_loadu_pd(Bl+idx);
+            __m128d vTb   = _mm_loadu_pd(Tb+idx);
+        }
+        __m128d Eb    = avg_bit_E_to_carrier_A_2xf64(vAc,vTs,vM);
+        __m128d ratio = _mm_div_pd(Eb,_mm_add_pd(vN0,vN0));
+        __m128d G     = G_PLL_bandwidth_2xf64_v2(vBl,vTb);
+        __m128d sqrtG = _mm_sub_pd(_mm_sqrt_pd(G),_mm_set1_pd(1.0f));
+        __m128d vres  = _mm_sub_pd(ratio,_mm_mul_pd(sqrtG,sqrtG));
+        
+        if constexpr(copy_pointers_to_stack==1)
+        {
+           _mm_storeu_pd(presult+idx,vres);
+           BPSK_Param_a_8_61_2xf64_t<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(pAc,pTs,pM,pN0,pBl,pTb,presult);
+        }
+        else if constexpr(copy_pointers_to_stack==2)
+        {   
+            _mm_storeu_pd(result+idx,vres);
+            BPSK_Param_a_8_61_2xf64_t<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(Ac,Ts,M,N0,Bl,Tb,result);
+        }
+    }
+}
+
+};
+
 
 }
 
