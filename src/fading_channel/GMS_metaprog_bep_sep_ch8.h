@@ -979,7 +979,7 @@ compile_time_execute(const double * __restrict__ Ac,
 
 template<std::size_t Index,std::size_t BatchSize,
          std::int32_t copy_pointers_to_stack>
-struct Analytic_BEP_DPSK_chernoff_bound_8_9_4xf32
+struct Analytic_BEP_DPSK_chernoff_bound_8_9_4xf32_t
 {
 static inline void 
 compile_time_execute(const float * __restrict__ Ac,
@@ -1024,12 +1024,71 @@ compile_time_execute(const float * __restrict__ Ac,
         if constexpr(copy_pointers_to_stack==1)
         {
             _mm_storeu_ps(presult+idx,vres);
-            Analytic_BEP_DPSK_chernoff_bound_8_9_4xf32<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(Ac,Ts,M,N0,presult);
+            Analytic_BEP_DPSK_chernoff_bound_8_9_4xf32_t<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(Ac,Ts,M,N0,presult);
         }
         else if constexpr(copy_pointers_to_stack==2)
         {
             _mm_storeu_ps(result+idx,vres);
-            Analytic_BEP_DPSK_chernoff_bound_8_9_4xf32<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(Ac,Ts,M,N0,result);
+            Analytic_BEP_DPSK_chernoff_bound_8_9_4xf32_t<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(Ac,Ts,M,N0,result);
+        }
+    }
+}
+
+};
+
+template<std::size_t Index,std::size_t BatchSize,
+         std::int32_t copy_pointers_to_stack>
+struct Analytic_BEP_DPSK_chernoff_bound_8_9_2xf64_t
+{
+static inline void 
+compile_time_execute(const double * __restrict__ Ac,
+                     const double * __restrict__ Ts,
+                     const double * __restrict__ M,
+                     const double * __restrict__ N0,
+                     double       * __restrict__ result) 
+{
+    if constexpr(Index < BatchSize)
+    {
+        constexpr std::size_t idx = Index*2ull;
+        if constexpr(copy_pointers_to_stack==1)
+        {
+            const double * __restrict__ pAc = Ac;
+            const double * __restrict__ pTs = Ts;
+            const double * __restrict__ pM  = M;
+            const double * __restrict__ pN0 = N0;
+            double       * __restrict__ presult = result;
+            __m128d vAc   = _mm_loadu_pd(pAc+idx);
+            __m128d vTs   = _mm_loadu_pd(pTs+idx);
+            __m128d vM    = _mm_loadu_pd(pM+idx);
+            __m128d vN0   = _mm_loadu_pd(pN0+idx);
+        }
+        else if constexpr(copy_pointers_to_stack==2)
+        {
+            __m128d vAc   = _mm_loadu_pd(Ac+idx);
+            __m128d vTs   = _mm_loadu_pd(Ts+idx);
+            __m128d vM    = _mm_loadu_pd(M+idx);
+            __m128d vN0   = _mm_loadu_pd(N0+idx);
+        }
+        __m128d one      = _mm_set1_pd(1.0);
+        __m128d Pi_div_M = _mm_div_pd(_mm_set1_pd(3.1415926535897932384626433832795),vM);
+        __m128d Es       = avg_symbol_E_to_carrier_A_2xf64(vAc,vTs,vM);
+        __m128d snr      = _mm_div_pd(_mm_add_pd(Es,Es),vN0);
+        __m128d cosPiM   = _mm_cos_pd(Pi_div_M);
+        __m128d exp_arg  = _mm_sqrt_pd(_mm_mul_pd(snr,_mm_sub_pd(one,cosPiM)));
+        __m128d cos_ratio= _mm_div_pd(_mm_add_pd(one,cosPiM),_mm_add_pd(cosPiM,cosPiM));
+        __m128d left_term= _mm_mul_pd(_mm_set1_pd(1.03),_mm_sqrt_pd(cos_ratio));  
+        __m128d vres     = _mm_mul_pd(left_term,
+                              gms::math::simd_fast_exp_approx_2xf64(_mm_sub_pd(_mm_setzero_pd(),exp_arg)));
+        
+        if constexpr(copy_pointers_to_stack==1)
+        {
+            _mm_storeu_pd(presult+idx,vres);
+            Analytic_BEP_DPSK_chernoff_bound_8_9_2xf64_t<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(Ac,Ts,M,N0,presult);
+        }
+        else if constexpr(copy_pointers_to_stack==2)
+        {
+            _mm_storeu_pd(result+idx,vres);
+            Analytic_BEP_DPSK_chernoff_bound_8_9_2xf64_t<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(Ac,Ts,M,N0,result);
         }
     }
 }
