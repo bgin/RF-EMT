@@ -40,6 +40,7 @@ typedef struct alignas(32)
 } tabular_data_t;
 
 // Highly stable piecewise integration using Akima local slope boundaries
+static inline 
 double integrate_tabular_akima(const tabular_data_t * __restrict__ data) {
     if (data == NULL || data->size < 5) return __builtin_nan("***[FATAL]*** -- data==NULL || size<5!!"); // Akima requires at least 5 points
 
@@ -109,7 +110,7 @@ double integrate_tabular_akima(const tabular_data_t * __restrict__ data) {
     return total_integral;
 }
 
-
+static inline
 double 
 integrate_tabular_akima_v2(const tabular_data_t * __restrict__ data)
 {
@@ -174,6 +175,7 @@ integrate_tabular_akima_v2(const tabular_data_t * __restrict__ data)
     return (total_integral);
 } 
 
+static inline 
 double integrate_tabular_akima_iface(const tabular_data_t * __restrict__ data) 
 {
     const int n = data->size;
