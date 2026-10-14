@@ -1095,6 +1095,56 @@ compile_time_execute(const double * __restrict__ Ac,
 
 };
 
+template<std::size_t Index,std::size_t BatchSize,
+         std::int32_t copy_pointers_to_stack>
+struct Analytic_SEP_QAM4_8_107_4xf32_t
+{
+static inline void 
+compile_time_execute(const float * __restrict__ gamma,
+                     float *       __restrict__ result)
+{
+    if constexpr(Index < BatchSize)
+    {
+        constexpr std::size_t idx = Index+4ull;
+        if constexpr(copy_pointers_to_stack==1)
+        {
+            const float * __restrict__ pgamma  = gamma;
+            float       * __restrict__ presult = result;
+            __m128 vgamma = _mm_loadu_ps(pgamma+idx);
+        }
+        else if constexpr(copy_pointers_to_stack==2)
+        {
+            __m128 vgamma = _mm_loadu_ps(gamma+idx);
+        }
+        __m128 one           = _mm_set1_ps(1.0f);
+        __m128 quarter       = _mm_set1_ps(0.25f);
+        __m128 one_add_gamma = _mm_add_ps(one,vgamma); 
+        __m128 sqrt_arg1     = _mm_div_ps(vgamma,one_add_gamma);
+        __m128 sqrt_val1     = _mm_sqrt_ps(sqrt_arg1);
+        __m128 sqrt_arg2     = _mm_div_ps(one_add_gamma,vgamma);
+        __m128 sqrt_val2     = _mm_sqrt_ps(sqrt_arg2);
+        __m128 term1         = _mm_sub_ps(one,sqrt_val1);
+        __m128 atan_val      = _mm_mul_ps(_mm_set1_ps(1.2732395447351626861510701069801f),sqrt_val2);
+        __m128 term2         = _mm_mul_ps(quarter,_mm_mul_ps(term1,atan_val));
+        __m128 vres          = _mm_sub_ps(term1,term2);
+
+        if constexpr(copy_pointers_to_stack==1)
+        {
+            _mm_storeu_ps(presult+idx,vres);
+            Analytic_SEP_QAM4_8_107_4xf32_t<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(gamma,presult);
+        }
+        else if constexpr(copy_pointers_to_stack==2)
+        {
+            _mm_storeu_ps(result+idx,vres);
+            Analytic_SEP_QAM4_8_107_4xf32_t<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(gamma,result);
+        }
+    }
+}
+
+};
+
+
+
 }
 
 }
