@@ -25,6 +25,8 @@
 #include "GMS_config.h"
 #include "GMS_fast_simd_funcs_approx.h"
 #include "GMS_bessel_i0_sse.h"
+#include "GMS_simd_cephes_cos.h"
+#include "GMS_simd_cephes_sin.h"
 
 namespace file_info 
 {
@@ -960,7 +962,6 @@ compile_time_execute(const double * __restrict__ Ac,
         __m128d sqrt2G = _mm_add_pd(_mm_set1_pd(0.7026423672846755428877589264195f),_mm_sqrt_pd(_mm_add_pd(G,G)));
         __m128d factor = _mm_add_pd(G,sqrt2G);
         __m128d vres   = _mm_mul_pd(_mm_div_pd(Eb,N0),factor);
-        _mm_storeu_pd(result+idx,vres);
         if constexpr(copy_pointers_to_stack==1)
         {  
             _mm_storeu_pd(presult+idx,vres);
@@ -970,6 +971,65 @@ compile_time_execute(const double * __restrict__ Ac,
         {   
             _mm_storeu_pd(result+idx,vres);
             MSK_Param_b2_8_65_2xf64_t<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(Ac,Ts,M,N0,Bl,Tb,result);
+        }
+    }
+}
+
+};
+
+template<std::size_t Index,std::size_t BatchSize,
+         std::int32_t copy_pointers_to_stack>
+struct Analytic_BEP_DPSK_chernoff_bound_8_9_4xf32
+{
+static inline void 
+compile_time_execute(const float * __restrict__ Ac,
+                     const float * __restrict__ Ts,
+                     const float * __restrict__ M,
+                     const float * __restrict__ N0,
+                     float       * __restrict__ result) 
+{
+    if constexpr(Index < BatchSize)
+    {
+        constexpr std::size_t idx = Index*4ull;
+        if constexpr(copy_pointers_to_stack==1)
+        {
+            const float * __restrict__ pAc = Ac;
+            const float * __restrict__ pTs = Ts;
+            const float * __restrict__ pM  = M;
+            const float * __restrict__ pN0 = N0;
+            float       * __restrict__ presult = result;
+            __m128 vAc   = _mm_loadu_ps(pAc+idx);
+            __m128 vTs   = _mm_loadu_ps(pTs+idx);
+            __m128 vM    = _mm_loadu_ps(pM+idx);
+            __m128 vN0   = _mm_loadu_ps(pN0+idx);
+        }
+        else if constexpr(copy_pointers_to_stack==2)
+        {
+            __m128 vAc   = _mm_loadu_ps(Ac+idx);
+            __m128 vTs   = _mm_loadu_ps(Ts+idx);
+            __m128 vM    = _mm_loadu_ps(M+idx);
+            __m128 vN0   = _mm_loadu_ps(N0+idx);
+        }
+        __m128 one      = _mm_set1_ps(1.0f);
+        __m128 Pi_div_M = _mm_div_ps(_mm_set1_ps(3.1415926535897932384626433832795f),vM);
+        __m128 Es       = avg_symbol_E_to_carrier_A_4xf32(vAc,vTs,vM);
+        __m128 snr      = _mm_div_ps(_mm_add_ps(Es,Es),vN0);
+        __m128 cosPiM   = gms::math::_mm_ceph_cosf_ps(Pi_div_M);
+        __m128 exp_arg  = _mm_sqrt_ps(_mm_mul_ps(snr,_mm_sub_ps(one,cosPiM)));
+        __m128 cos_ratio= _mm_div_ps(_mm_add_ps(one,cosPiM),_mm_add_ps(cosPiM,cosPiM));
+        __m128 left_term= _mm_mul_ps(_mm_set1_ps(1.03f),_mm_sqrt_ps(cos_ratio));  
+        __m128 vres     = _mm_mul_ps(left_term,
+                              gms::math::simd_fast_exp_approx_4xf32(_mm_sub_ps(_mm_setzero_ps(),exp_arg)));
+        
+        if constexpr(copy_pointers_to_stack==1)
+        {
+            _mm_storeu_ps(presult+idx,vres);
+            Analytic_BEP_DPSK_chernoff_bound_8_9_4xf32<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(Ac,Ts,M,N0,presult);
+        }
+        else if constexpr(copy_pointers_to_stack==2)
+        {
+            _mm_storeu_ps(result+idx,vres);
+            Analytic_BEP_DPSK_chernoff_bound_8_9_4xf32<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(Ac,Ts,M,N0,result);
         }
     }
 }
