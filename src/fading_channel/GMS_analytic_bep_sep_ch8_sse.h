@@ -1796,15 +1796,15 @@ return (_mm_rcp_ps(_mm_mul_ps(Bl,Tb)));
 #pragma GCC target("sse")
 #endif
 #endif
-template<bool use_div_as_reciprocal>
+template<std::int32_t use_div_as_reciprocal>
 __m128d 
 G_PLL_bandwidth_2xf64(const __m128d Bl,const __m128d Tb)
 {
-if constexpr (use_div_as_reciprocal)
+if constexpr (use_div_as_reciprocal==1)
 {
 return (_mm_div_pd(_mm_set1_pd(1.0),_mm_mul_pd(Bl,Tb)));
 }
-else
+else if constexpr(use_div_as_reciprocal==2)
 { 
 return (_mm_rcp14_pd(_mm_mul_pd(Bl,Tb)));
 }
@@ -1959,7 +1959,7 @@ OQPSK_param_a2_8_64_4xf32(const __m128 Ac,const __m128 Ts,
 {
 const __m128 Eb = avg_bit_E_to_carrier_A_4xf32(Ac,Ts,M);
 const __m128 G  = G_PLL_bandwidth_4xf32(Bl,Tb);
-const __m128 sqrt2G = _mm_sub_ps(_mm_set1_ps(1.0),_mm_sqrt_ps(_mm_add_ps(G,H)));
+const __m128 sqrt2G = _mm_sub_ps(_mm_set1_ps(1.0),_mm_sqrt_ps(_mm_add_ps(G,G)));
 const __m128 factor = _mm_add_ps(G,sqrt2G);
 return (_mm_mul_ps(_mm_div_ps(Eb,N0),factor));
 }
@@ -1980,7 +1980,7 @@ OQPSK_param_a2_8_64_2xf64(const __m128d Ac,const __m128d Ts,
 {
 const __m128d Eb = avg_bit_E_to_carrier_A_2xf64(Ac,Ts,M);
 const __m128d G  = G_PLL_bandwidth_2xf64_v2(Bl,Tb);
-const __m128d sqrt2G = _mm_sub_pd(_mm_set1_pd(1.0),_mm_sqrt_pd(_mm_add_pd(G,H)));
+const __m128d sqrt2G = _mm_sub_pd(_mm_set1_pd(1.0),_mm_sqrt_pd(_mm_add_pd(G,G)));
 const __m128d factor = _mm_add_pd(G,sqrt2G);
 return (_mm_mul_pd(_mm_div_pd(Eb,N0),factor));
 }
