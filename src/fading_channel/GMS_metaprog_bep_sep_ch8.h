@@ -51,6 +51,90 @@ namespace gms
 namespace fading_channel
 {
 
+namespace 
+{
+static inline 
+__m128 
+avg_bit_E_to_carrier_A_4xf32(const __m128 Ac,const __m128 Ts, 
+                             const __m128 M)
+{
+const __m128 num   = _mm_fmsub_ps(M,M,_mm_set1_ps(1.0));
+const __m128 Eg    = _mm_mul_ps(_mm_mul_ps(Ac,Ac,),Ts);
+const __m128 log2M = _mm_mul_ps(_mm_set1_ps(6.0),_mm_log2_ps(M));
+return (_mm_mul_ps(Eg,_mm_div_ps(num,log2M))); 
+}
+
+static inline 
+__m128d 
+avg_bit_E_to_carrier_A_2xf64(const __m128d Ac,const __m128d Ts, 
+                             const __m128d M)
+{
+const __m128d num   = _mm_fmsub_pd(M,M,_mm_set1_pd(1.0));
+const __m128d Eg    = _mm_mul_pd(_mm_mul_pd(Ac,Ac,),Ts);
+const __m128d log2M = _mm_mul_pd(_mm_set1_pd(6.0),_mm_log2_pd(M));
+return (_mm_mul_pd(Eg,_mm_div_pd(num,log2M))); 
+}
+
+static inline 
+__m128 
+avg_symbol_E_to_carrier_A_4xf32(const __m128 Ac,const __m128 Tc,
+                                const __m128 M)
+{
+const __m128 third    = _mm_set1_ps(0.3333333333333333333333333333333333333333f);
+const __m128 AA       = _mm_mul_ps(Ac,Ac);
+const __m128 MM       = _mm_mul_ps(M,M); 
+const __m128 one      = _mm_set1_ps(1.0f);
+const __m128 MM_ratio = _mm_sub_ps(_mm_mul_ps(MM,one),third);
+const __m128 lead_fac = _mm_mul_ps(AA,Ts);
+return (_mm_mul_ps(lead_fac,MM_ratio)); 
+}
+
+static inline 
+__m128d 
+avg_symbol_E_to_carrier_A_2xf64(const __m128d Ac,const __m128d Tc,
+                                const __m128d M)
+{
+const __m128d third    = _mm_set1_pd(0.3333333333333333333333333333333333333333);
+const __m128d AA       = _mm_mul_pd(Ac,Ac);
+const __m128d MM       = _mm_mul_pd(M,M); 
+const __m128d one      = _mm_set1_pd(1.0);
+const __m128d MM_ratio = _mm_sub_pd(_mm_mul_pd(MM,one),third);
+const __m128d lead_fac = _mm_mul_pd(AA,Ts);
+return (_mm_mul_pd(lead_fac,MM_ratio)); 
+}
+
+static inline 
+__m128
+G_PLL_bandwidth_4xf32(const __m128 Bl,const __m128 Tb)
+{
+return (_mm_rcp_ps(_mm_mul_ps(Bl,Tb)));
+}
+
+
+template<std::int32_t use_div_as_reciprocal>
+static inline 
+__m128d 
+G_PLL_bandwidth_2xf64(const __m128d Bl,const __m128d Tb)
+{
+if constexpr (use_div_as_reciprocal==1)
+{
+return (_mm_div_pd(_mm_set1_pd(1.0),_mm_mul_pd(Bl,Tb)));
+}
+else if constexpr(use_div_as_reciprocal==2)
+{ 
+return (_mm_rcp14_pd(_mm_mul_pd(Bl,Tb)));
+}
+}
+
+static inline 
+__m128d 
+G_PLL_bandwidth_2xf64_v2(const __m128d Bl,const __m128d Tb)
+{
+return (_mm_div_pd(_mm_set1_pd(1.0),_mm_mul_pd(Bl,Tb)));
+}
+
+}
+
 template<std::size_t Index, std::size_t BatchSize>
 struct Avg_symbol_E_to_carrier_A_4xf32_t
 {
@@ -195,6 +279,7 @@ compile_time_execute(const float * __restrict__ rho_eq,
         Tikhonov_phase_err_pdf_4xf32_t<Index+1ull,BatchSize>::compile_time_execute(rho_eq,phi_c,result);
     }
 }
+
 };
 
 template<std::size_t Index, std::size_t BatchSize>
@@ -227,6 +312,7 @@ compile_time_execute(const double * __restrict__ rho_eq,
         Tikhonov_phase_err_pdf_2xf64_t<Index+1ull,BatchSize>::compile_time_execute(rho_eq,phi_c,result);
     }
 }
+
 };
 
 template<std::size_t Index,std::size_t BatchSize>
@@ -248,10 +334,11 @@ compile_time_execute(const float * __restrict__ Bl,
         G_PLL_Bandwith_4xf32_t<Index+1ull,BatchSize>::compile_time_execute(Bl,Tb,result); 
     }
 }
+
 };
 
 template<std::size_t Index,std::size_t BatchSize,
-         std::uint32_t reciprocal_by_div>
+         std::int32_t reciprocal_by_div>
 struct G_PLL_Bandwith_2xf64_t
 {
 static inline void
@@ -278,6 +365,36 @@ compile_time_execute(const double * __restrict__ Bl,
         G_PLL_Bandwith_2xf64_t<Index+1ull,BatchSize,reciprocal_by_div>::compile_time_execute(Bl,Tb,result); 
     }
 }
+
+};
+
+template<std::size_t Index,std::size_t BatchSize>
+struct BPSK_Param_a_8_61_4xf32_t
+{
+static inline void
+compile_time_execute(const float * __restrict__ Ac,
+                     const float * __restrict__ Ts,
+                     const float * __restrict__ M,
+                     const float * __restrict__ N0,
+                     const float * __restrict__ Bl,
+                     const float * __restrict__ Tb,
+                     float       * __restrict__ result)
+{
+    if constexpr(Index < BatchSize)
+    {
+        constexpr std::size_t idx = Index*4ull;
+        __m128 vAc = _mm_loadu_ps(Ac+idx);
+        __m128 vTs = _mm_loadu_ps(Ts+idx);
+        __m128 vM   = _mm_loadu_ps(M+idx);
+        __m128 vN0  = _mm_loadu_ps(N0+idx);
+        __m128 vBl   = _mm_loadu_ps(Bl+idx);
+        __m128 vTb   = _mm_loadu_ps(Tb+idx);
+        __m128 Eb    = Avg_bit_E_to_carrier_A_4xf32_t<Index,BatchSize>::compile_time_execute(Ac,Ts,M);
+        __m128 ratio = _mm_div_ps(Eb,_mm_add_ps(vN0,vN0));
+        __m128 G     = G_PLL_Bandwith_4xf32_t<Index,BatchSize>::compile_time_execute(Bl,Tb)
+    }
+}
+
 };
 
 
