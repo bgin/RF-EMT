@@ -205,7 +205,7 @@ compile_time_execute(const double * __restrict__ rho_eq,
                      const double * __restrict__ phi_c,
                      double       * __restric__ result)
 {
-    if constexpr(Index <BatchSize)
+    if constexpr(Index < BatchSize)
     {
         constexpr std::size_t idx = Index*2ull;
         __m128 vrho_eq = _mm_loadu_pd(rho_eq+idx);
@@ -225,6 +225,57 @@ compile_time_execute(const double * __restrict__ rho_eq,
         _mm_storeu_pd(result+idx,vres);
 
         Tikhonov_phase_err_pdf_2xf64_t<Index+1ull,BatchSize>::compile_time_execute(rho_eq,phi_c,result);
+    }
+}
+};
+
+template<std::size_t Index,std::size_t BatchSize>
+struct G_PLL_Bandwith_4xf32_t
+{
+static inline void
+compile_time_execute(const float * __restrict__ Bl,
+                     const float * __restrict__ Tb,
+                     float       * __restrict__ result)
+{
+    if constexpr(Index < BatchSize)
+    {
+        constexpr std::size_t idx = Index*4ull;
+        __m128 vBl  = _mm_loadu_ps(Bl+idx);
+        __m128 vTb  = _mm_loadu_ps(Tb+idx);
+        __m128 vres = _mm_rcp_ps(_mm_mul_ps(vBl,vTb));
+        _mm_storeu_ps(result+idx,vres);
+
+        G_PLL_Bandwith_4xf32_t<Index+1ull,BatchSize>::compile_time_execute(Bl,Tb,result); 
+    }
+}
+};
+
+template<std::size_t Index,std::size_t BatchSize,
+         std::uint32_t reciprocal_by_div>
+struct G_PLL_Bandwith_2xf64_t
+{
+static inline void
+compile_time_execute(const double * __restrict__ Bl,
+                     const double * __restrict__ Tb,
+                     double       * __restrict__ result)
+{
+    if constexpr(Index < BatchSize)
+    {
+        constexpr std::size_t idx = Index*2ull;
+        __m128d vBl  = _mm_loadu_pd(Bl+idx);
+        __m128d vTb  = _mm_loadu_pd(Tb+idx);
+        if constexpr(reciprocal_by_div==1)
+        {
+            __m128d vres = _mm_div_pd(_mm_set1_pd(1.0),
+                                      _mm_mul_pd(vBl,vTb));
+        }
+        else if constexpr(reciprocal_by_div==2)
+        {
+        __m128d vres = _mm_rcp14_pd(_mm_mul_pd(vBl,vTb));
+        }
+        _mm_storeu_pd(result+idx,vres);
+
+        G_PLL_Bandwith_2xf64_t<Index+1ull,BatchSize,reciprocal_by_div>::compile_time_execute(Bl,Tb,result); 
     }
 }
 };
