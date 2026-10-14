@@ -1218,13 +1218,13 @@ compile_time_execute(const float * __restrict__ gamma,
             __m128 vM     = _mm_loadu_ps(M+idx);
         }
         __m128 Pi       = _mm_set1_ps(3.1415926535897932384626433832795f);
-        __m128 Pi_div_M = _mm_div_ps(Pi,M);
+        __m128 Pi_div_M = _mm_div_ps(Pi,vM);
         __m128 sin_tmp  = gms::math::_mm_ceph_sinf_ps(Pi_div_M);
         __m128 halfPi   = _mm_set1_ps(1.5707963267948966192313216916398f);
         __m128 one      = _mm_set1_ps(1.0f);
         __m128 g_psk    = _mm_mul_ps(sin_tmp,sin_tmp);
         __m128 M_sub_1  = _mm_sub_ps(vM,one);
-        __m128 term1    = _mm_div_ps(M_sub_1,M);
+        __m128 term1    = _mm_div_ps(M_sub_1,vM);
         __m128 gpskgamm = _mm_mul_ps(g_psk,vgamma);
         __m128 term2    = _mm_div_ps(gpskgamm,_mm_div_ps(one,gpskgamm));
         __m128 sqrt_val = _mm_sqrt_ps(term2);
@@ -1244,6 +1244,64 @@ compile_time_execute(const float * __restrict__ gamma,
         {
             _mm_storeu_ps(result+idx,vres);
             Analytic_SEP_MPSK_rayleigh_chan_8_112_4xf32_t<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(gamma,M,result);
+        }
+    }
+}
+
+};
+
+template<std::size_t Index,std::size_t BatchSize,
+         std::int32_t copy_pointers_to_stack>
+struct Analytic_SEP_MPSK_rayleigh_chan_8_112_2xf64_t
+{
+static inline void 
+compile_time_execute(const double * __restrict__ gamma,
+                     const double * __restrict__ M,
+                     double       * __restrict__ result)
+{
+    if constexpr(Index < BatchSize)
+    {
+        constexpr std::size_t idx = Index*2ull;
+        if constexpr(copy_pointers_to_stack==1)
+        {
+            const double  * __restrict__ pgamma  = gamma;
+            const double  * __restrict__ pM      = M;
+            double        * __restrict__ presult = result;
+            __m128d vgamma = _mm_loadu_pd(pgamma+idx);
+            __m128d vM     = _mm_loadu_pd(pM+idx);
+        }
+        else if constexpr(copy_pointers_to_stack==2)
+        {
+            __m128d vgamma = _mm_loadu_pd(gamma+idx);
+            __m128d vM     = _mm_loadu_pd(M+idx);
+        }
+        __m128d Pi       = _mm_set1_pd(3.1415926535897932384626433832795);
+        __m128d Pi_div_M = _mm_div_pd(Pi,vM);
+        __m128d sin_tmp  = _mm_sin_pd(Pi_div_M);
+        __m128d halfPi   = _mm_set1_pd(1.5707963267948966192313216916398);
+        __m128d one      = _mm_set1_pd(1.0f);
+        __m128d g_psk    = _mm_mul_pd(sin_tmp,sin_tmp);
+        __m128d M_sub_1  = _mm_sub_pd(vM,one);
+        __m128d term1    = _mm_div_pd(M_sub_1,vM);
+        __m128d gpskgamm = _mm_mul_pd(g_psk,vgamma);
+        __m128d term2    = _mm_div_pd(gpskgamm,_mm_div_pd(one,gpskgamm));
+        __m128d sqrt_val = _mm_sqrt_pd(term2);
+        __m128d tmp      = _mm_mul_pd(M_sub_1,Pi);
+        __m128d term3    = _mm_div_pd(vM,term3);
+        __m128d cot_val  = _mm_tan_pd(_mm_mul_pd(halfPi,Pi_div_M));
+        __m128d term4    = _mm_sub_pd(one,_mm_mul_pd(sqrt_val,term3));
+        __m128d atan_val = _mm_mul_pd(halfPi,_mm_atan_pd(_mm_mul_pd(sqrt_val,cot_val)));   
+        __m128d vres     = _mm_mul_pd(term1,_mm_mul_pd(term4,atan_val));
+
+        if constexpr(copy_pointers_to_stack==1)
+        {
+            _mm_storeu_pd(presult+idx,vres);
+            Analytic_SEP_MPSK_rayleigh_chan_8_112_2xf64_t<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(pgamma,M,presult);
+        }
+        else if constexpr(copy_pointers_to_stack==2)
+        {
+            _mm_storeu_pd(result+idx,vres);
+            Analytic_SEP_MPSK_rayleigh_chan_8_112_2xf64_t<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(gamma,M,result);
         }
     }
 }
