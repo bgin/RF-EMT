@@ -1479,6 +1479,57 @@ compile_time_execute(const float * __restrict__ m_I,
 
 };
 
+template<std::size_t Index,std::size_t BatchSize,
+         std::int32_t copy_pointers_to_stack>
+struct Spec_pow_to_rand_pow_8_145_2xf64
+{
+static inline void 
+compile_time_execute(const double * __restrict__ m_I,
+                     const double * __restrict__ m_Q,
+                     const double * __restrict__ sigma,
+                     double       * __restrict__ result)
+{
+    if constexpr (Index < BatchSize)
+    {
+        constexpr std::size_t idx = Index*2ull;
+        if constexpr(copy_pointers_to_stack==1)
+        {
+            const double  * __restrict__ pm_I    = m_I;
+            const double  * __restrict__ pm_Q    = M_Q;
+            const double  * __restrict__ psigma  = sigma;
+            double        * __restrict__ presult = result;
+            __m128d vm_I   = _mm_loadu_pd(pm_I+idx);
+            __m128d vm_Q   = _mm_loadu_pd(pm_Q+idx);
+            __m128d vsigma = _mm_loadu_pd(psigma+idx);
+        }
+        else if constexpr(copy_pointers_to_stack==2)
+        {
+            __m128d vm_I   = _mm_loadu_pd(m_I+idx);
+            __m128d vm_Q   = _mm_loadu_pd(m_Q+idx);
+            __m128d vsigma = _mm_loadu_pd(sigma+idx);
+        }
+
+        __m128d sigma_sqr = _mm_mul_pd(vsigma,vsigma);
+        __m128d one       = _mm_set1_pd(1.0);
+        __m128d ricc_fac  = _mm_add_pd(one,riccian_factor_8_144_2xf64(vm_I,vm_Q,vsigma));
+        __m128d vres      = _mm_mul_pd(_mm_add_pd(sigma_sqr,sigma_sqr),ricc_fac);
+
+         if constexpr(copy_pointers_to_stack==1)
+        {
+            _mm_storeu_pd(presult+idx,vres);
+            Spec_pow_to_rand_pow_8_145_2xf64<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(pm_I,pm_Q,psigma,presult);
+        }
+        else if constexpr(copy_pointers_to_stack==2)
+        {
+            _mm_storeu_pd(result+idx,vres);
+            Spec_pow_to_rand_pow_8_145_2xf64<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(m_I,m_Q,sigma,result);
+        }
+    }
+
+}
+
+};
+
 
 
 }
