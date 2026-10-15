@@ -5525,6 +5525,31 @@ __m128  filter_out = _mm_sqrt_ps(_mm_mul_ps(K_term,Om_term));
 return (filter_out); 
 }
 
+#if (ANALYTIC_BEP_SEP_CH8_SSE_OVERRIDE_COMPILER_CMD_LINE) == 1
+#if defined(__INTEL_COMPILER) || defined(__ICC)
+#pragma intel optimization_level 3 
+#pragma intel optimization_parameter target_arch=sse
+#elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
+#pragma GCC optimize("O3")
+#pragma GCC target("sse")
+#endif
+#endif
+__ATTR_ALWAYS_INLINE__
+static inline 
+__m128d kth_matched_filter_output_8_146_2xf64(const __m128d m_I,const __m128d m_Q,
+                                             const __m128d sigma,const __m128d Ac,
+                                             const __m128d Tb)
+{
+__m128d  AA     = _mm_mul_pd(Ac,Ac);
+__m128d  TT     = _mm_mul_pd(Tb,Tb);
+__m128d  K      = riccian_factor_8_144_2xf64(m_I,m_Q,sigma);
+__m128d  Omega  = spec_pow_to_rand_pow_8_145_2xf64(m_I,m_Q,sigma);
+__m128d  K_term = _mm_div_pd(K,_mm_add_pd(_mm_set1_pd(1.0),K));
+__m128d  Om_term= _mm_mul_pd(Omega,_mm_mul_pd(AA,TT));
+__m128d  filter_out = _mm_sqrt_pd(_mm_mul_pd(K_term,Om_term));
+return (filter_out); 
+}
+
 }
 }
 #endif /*__GMS_ANALYTIC_BEP_SEP_CH8_SSE_H__*/
