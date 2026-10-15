@@ -135,6 +135,26 @@ G_PLL_bandwidth_2xf64_v2(const __m128d Bl,const __m128d Tb)
 return (_mm_div_pd(_mm_set1_pd(1.0),_mm_mul_pd(Bl,Tb)));
 }
 
+static inline 
+__m128 spec_pow_to_rand_pow_8_145_4xf32(const __m128 m_I,const __m128 m_Q,
+                                        const __m128 sigma)
+{
+__m128 sigma_sqr = _mm_mul_ps(sigma,sigma);
+__m128 one       = _mm_set1_ps(1.0f);
+__m128 ricc_fac  = _mm_add_ps(one,riccian_factor_8_144_4xf32(m_I,m_Q,sigma));
+return (_mm_mul_ps(_mm_add_ps(sigma_sqr,sigma_sqr),ricc_fac));
+}
+
+static inline 
+__m128d spec_pow_to_rand_pow_8_145_2xf64(const __m128d m_I,const __m128d m_Q,
+                                        const __m128d sigma)
+{
+__m128d sigma_sqr = _mm_mul_pd(sigma,sigma);
+__m128d one       = _mm_set1_pd(1.0);
+__m128d ricc_fac  = _mm_add_pd(one,riccian_factor_8_144_2xf64(m_I,m_Q,sigma));
+return (_mm_mul_pd(_mm_add_pd(sigma_sqr,sigma_sqr),ricc_fac));
+}
+
 }
 
 template<std::size_t Index, std::size_t BatchSize>
@@ -1302,6 +1322,56 @@ compile_time_execute(const double * __restrict__ gamma,
         {
             _mm_storeu_pd(result+idx,vres);
             Analytic_SEP_MPSK_rayleigh_chan_8_112_2xf64_t<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(gamma,M,result);
+        }
+    }
+}
+
+};
+
+template<std::size_t Index,std::size_t BatchSize,
+         std::int32_t copy_pointers_to_stack>
+struct Riccian_factor_8_144_4xf32_t
+{
+static inline void 
+compile_time_execute(const float * __restrict__ m_I,
+                     const float * __restrict__ m_Q,
+                     const float * __restrict__ sigma,
+                     float       * __restrict__ result)
+{
+    if constexpr (Index < BatchSize)
+    {
+        constexpr std::size_t idx = Index*4ull;
+        if constexpr(copy_pointers_to_stack==1)
+        {
+            const float  * __restrict__ pm_I    = m_I;
+            const float  * __restrict__ pm_Q    = M_Q;
+            const float  * __restrict__ psigma  = sigma;
+            float        * __restrict__ presult = result;
+            __m128 vm_I   = _mm_loadu_ps(pm_I+idx);
+            __m128 vm_Q   = _mm_loadu_ps(pm_Q+idx);
+            __m128 vsigma = _mm_loadu_ps(psigma+idx);
+        }
+        else if constexpr(copy_pointers_to_stack==2)
+        {
+            __m128 vm_I   = _mm_loadu_ps(m_I+idx);
+            __m128 vm_Q   = _mm_loadu_ps(m_Q+idx);
+            __m128 vsigma = _mm_loadu_ps(sigma+idx);
+        }
+
+        __m128 m_I_sqr   = _mm_mul_ps(vm_I,vm_I);
+        __m128 sigma_sqr = _mm_mul_ps(vsigma,vsigma);
+        __m128 m_Q_sqr   = _mm_mul_ps(vm_Q,vm_Q);
+        __m128 vres      = _mm_div_ps(_mm_add_ps(m_I_sqr,m_Q_sqr),_mm_add_ps(sigma_sqr,sigma_sqr));
+
+        if constexpr(copy_pointers_to_stack==1)
+        {
+            _mm_storeu_ps(presult+idx,vres);
+            Riccian_factor_8_144_4xf32_t<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(pm_I,pm_Q,psigma,presult);
+        }
+        else if constexpr(copy_pointers_to_stack==2)
+        {
+            _mm_storeu_ps(result+idx,vres);
+            Riccian_factor_8_144_4xf32_t<Index+1ull,BatchSize,copy_pointers_to_stack>::compile_time_execute(m_I,m_Q,sigma,result);
         }
     }
 }
