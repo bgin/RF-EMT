@@ -26,8 +26,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 */
 
-#ifndef __GMS_NUMERICAL_METHODS_H__
-#define __GMS_NUMERICAL_METHODS_H__ 161020261157
+#ifndef __GMS_NUMERICAL_DIFFERENTIATION_H__
+#define __GMS_NUMERICAL_DIFFERENTIATION_H__ 161020261157
 
 #include <cmath>
 #include <functional>
@@ -71,4 +71,4 @@ void XDIFPOLY(double A[], const double X[], const double Y[], int N, double& Df)
 
 }
 
-#endif // __GMS_NUMERICAL_METHODS_H__
+#endif // __GMS_NUMERICAL_DIFFERENTIATION_H__
