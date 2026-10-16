@@ -1646,6 +1646,8 @@ enum class Gaussian_Q_approximations_sse_t : std::int32_t
 #pragma GCC target("sse")
 #endif
 #endif 
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128 
 avg_symbol_E_to_carrier_A_4xf32(const __m128 Ac,const __m128 Tc,
                                 const __m128 M)
@@ -1669,6 +1671,8 @@ return (_mm_mul_ps(lead_fac,MM_ratio));
 #pragma GCC target("sse")
 #endif
 #endif 
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128d 
 avg_symbol_E_to_carrier_A_2xf64(const __m128d Ac,const __m128d Tc,
                                 const __m128d M)
@@ -1691,6 +1695,8 @@ return (_mm_mul_pd(lead_fac,MM_ratio));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128 
 avg_bit_E_to_carrier_A_4xf32(const __m128 Ac,const __m128 Ts, 
                              const __m128 M)
@@ -1710,6 +1716,8 @@ return (_mm_mul_ps(Eg,_mm_div_ps(num,log2M)));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128d 
 avg_bit_E_to_carrier_A_2xf64(const __m128d Ac,const __m128d Ts, 
                              const __m128d M)
@@ -1729,6 +1737,8 @@ return (_mm_mul_pd(Eg,_mm_div_pd(num,log2M)));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128 
 tikhonov_phase_err_pdf_4xf32(const __m128 rho_eq,const __m128 phi_c)
 {
@@ -1755,6 +1765,8 @@ return (_mm_div_ps(exp_val,_mm_mul_ps(posPI,bessi0)));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128d 
 tikhonov_phase_err_pdf_2xf64(const __m128d rho_eq,__m128d phi_c)
 {
@@ -1781,6 +1793,8 @@ return (_mm_div_pd(exp_val,_mm_mul_pd(posPI,bessi0)));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128
 G_PLL_bandwidth_4xf32(const __m128 Bl,const __m128 Tb)
 {
@@ -1797,6 +1811,8 @@ return (_mm_rcp_ps(_mm_mul_ps(Bl,Tb)));
 #endif
 #endif
 template<std::int32_t use_div_as_reciprocal>
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128d 
 G_PLL_bandwidth_2xf64(const __m128d Bl,const __m128d Tb)
 {
@@ -1819,6 +1835,8 @@ return (_mm_rcp14_pd(_mm_mul_pd(Bl,Tb)));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128d 
 G_PLL_bandwidth_2xf64_v2(const __m128d Bl,const __m128d Tb)
 {
@@ -1834,6 +1852,8 @@ return (_mm_div_pd(_mm_set1_pd(1.0),_mm_mul_pd(Bl,Tb)));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128 
 BPSK_param_a_8_61_4xf32(const __m128 Ac,const __m128 Ts, 
                         const __m128 M, const __m128 N0,
@@ -1855,6 +1875,8 @@ return (_mm_sub_ps(ratio,_mm_mul_ps(sqrtG,sqrtG)));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128d 
 BPSK_param_a_8_61_2xf64(const __m128d Ac,const __m128d Ts, 
                         const __m128d M, const __m128d N0,
@@ -1876,6 +1898,8 @@ return (_mm_sub_pd(ratio,_mm_mul_pd(sqrtG,sqrtG)));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128 
 BPSK_param_b_8_61_4xf32(const __m128 Ac,const __m128 Ts, 
                         const __m128 M, const __m128 N0,
@@ -1897,6 +1921,8 @@ return (_mm_sub_ps(ratio,_mm_mul_ps(sqrtG,sqrtG)));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128d 
 BPSK_param_b_8_61_2xf64(const __m128d Ac,const __m128d Ts, 
                         const __m128d M, const __m128d N0,
@@ -1918,6 +1944,8 @@ return (_mm_sub_pd(ratio,_mm_mul_pd(sqrtG,sqrtG)));
 #pragma GCC target("sse")
 #endif
 #endif 
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128
 OQPSK_param_a1_8_61_4xf32(const __m128 Ac,const __m128 Ts, 
                         const __m128 M, const __m128 N0,
@@ -1935,6 +1963,8 @@ return (BPSK_param_a_8_61_4xf32(Ac,Ts,M,N0,Bl,Tb));
 #pragma GCC target("sse")
 #endif
 #endif 
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128d
 OQPSK_param_b1_8_61_2xf64(const __m128d Ac,const __m128d Ts, 
                           const __m128d M, const __m128d N0,
@@ -1952,6 +1982,8 @@ return (BPSK_param_a_8_61_2xf64(Ac,Ts,M,N0,Bl,Tb));
 #pragma GCC target("sse")
 #endif
 #endif 
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128
 OQPSK_param_a2_8_64_4xf32(const __m128 Ac,const __m128 Ts, 
                         const __m128 M, const __m128 N0,
@@ -1973,6 +2005,8 @@ return (_mm_mul_ps(_mm_div_ps(Eb,N0),factor));
 #pragma GCC target("sse")
 #endif
 #endif 
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128d
 OQPSK_param_a2_8_64_2xf64(const __m128d Ac,const __m128d Ts, 
                           const __m128d M, const __m128d N0,
@@ -1994,6 +2028,8 @@ return (_mm_mul_pd(_mm_div_pd(Eb,N0),factor));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128
 OQPSK_param_b2_8_64_4xf32(const __m128 Ac,const __m128 Ts, 
                           const __m128 M, const __m128 N0,
@@ -2011,6 +2047,8 @@ return (OQPSK_param_a2_8_64_4xf32(Ac,Ts,M,N0,Bl,Tb));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128d
 OQPSK_param_b2_8_64_2xf64(const __m128d Ac,const __m128d Ts, 
                           const __m128d M, const __m128d N0,
@@ -2028,6 +2066,8 @@ return (OQPSK_param_a2_8_64_2xf64(Ac,Ts,M,N0,Bl,Tb));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128 
 MSK_param_a1_8_65_4xf32(const __m128 Ac,const __m128 Ts, 
                         const __m128 M, const __m128 N0,
@@ -2045,6 +2085,8 @@ return (BPSK_param_a_8_61_4xf32(Ac,Ts,M,N0,Bl,Tb));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128 
 MSK_param_a1_8_65_2xf64(const __m128d Ac,const __m128d Ts, 
                         const __m128d M, const __m128d N0,
@@ -2062,6 +2104,8 @@ return (BPSK_param_a_8_61_2xf64(Ac,Ts,M,N0,Bl,Tb));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128 
 MSK_param_b1_8_65_4xf32(const __m128 Ac,const __m128 Ts, 
                         const __m128 M, const __m128 N0,
@@ -2079,6 +2123,8 @@ return (BPSK_param_b_8_61_4xf32(Ac,Ts,M,N0,Bl,Tb));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128 
 MSK_param_b1_8_65_2xf64(const __m128d Ac,const __m128d Ts, 
                         const __m128d M, const __m128d N0,
@@ -2096,6 +2142,8 @@ return (BPSK_param_b_8_61_2xf64(Ac,Ts,M,N0,Bl,Tb));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128 
 MSK_param_a2_8_65_4xf32(const __m128 Ac,const __m128 Ts, 
                         const __m128 M, const __m128 N0,
@@ -2117,6 +2165,8 @@ return (_mm_mul_ps(_mm_div_ps(Eb,N0),factor));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128d 
 MSK_param_a2_8_65_2xf64(const __m128d Ac,const __m128d Ts, 
                         const __m128d M, const __m128d N0,
@@ -2138,6 +2188,8 @@ return (_mm_mul_pd(_mm_div_pd(Eb,N0),factor));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128 
 MSK_param_b2_8_65_4xf32(const __m128 Ac,const __m128 Ts, 
                         const __m128 M, const __m128 N0,
@@ -2159,6 +2211,8 @@ return (_mm_mul_ps(_mm_div_ps(Eb,N0),factor));
 #pragma GCC target("sse")
 #endif
 #endif
+__ATTR_ALWAYS_INLINE__
+static inline
 __m128d 
 MSK_param_b2_8_65_2xf64(const __m128d Ac,const __m128d Ts, 
                         const __m128d M, const __m128d N0,
