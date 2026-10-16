@@ -42,6 +42,10 @@ namespace file_info
                                                            
 }
 
+#if !defined(BESSEL_I0_AVX_OVERRIDE_COMPILER_CMD_LINE)
+#define BESSEL_I0_AVX_OVERRIDE_COMPILER_CMD_LINE 0
+#endif 
+
 namespace gms
 {
 
@@ -115,6 +119,7 @@ namespace math
    1) ABS(ARG) <= 15.0
    2) 15.0 <= ABS(ARG)
 */
+#if (BESSEL_I0_AVX_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=AVX2
@@ -122,6 +127,7 @@ namespace math
 #pragma GCC optimize("O3")
 #pragma GCC target("avx2")
 #endif
+#endif 
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m256d
@@ -145,7 +151,7 @@ bessel_i0_le15_avx_pd(const __m256d arg)
     _mm256_set1_pd(-5.5050369673018427753E+14), 
     _mm256_set1_pd(-2.2335582639474375249E+15)
   };
-  __ATTR_ALIGN__(16) const __m256d q[5] = 
+  __ATTR_ALIGN__(32) const __m256d q[5] = 
   {
     _mm256_set1_pd(-3.7277560179962773046E+03), 
     _mm256_set1_pd(6.5158506418655165707E+06), 
@@ -183,6 +189,7 @@ bessel_i0_le15_avx_pd(const __m256d arg)
   return (result);
 }
 
+#if (BESSEL_I0_AVX_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=AVX2
@@ -190,6 +197,7 @@ bessel_i0_le15_avx_pd(const __m256d arg)
 #pragma GCC optimize("O3")
 #pragma GCC target("avx2")
 #endif
+#endif 
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m256d
