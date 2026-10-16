@@ -66,6 +66,9 @@ namespace file_info
 
 }
 
+#if !defined(MATRIX_INV_CHOLESKY_OVERRIDE_COMPILER_CMD_LINE)
+#define MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE 0
+#endif
 
 #if !defined(MATRIX_INV_CHOLESKY_USE_TSC_INSTRUMENTATION)
 #define MATRIX_INV_CHOLESKY_USE_TSC_INSTRUMENTATION 0
@@ -287,7 +290,7 @@ std::int32_t print_results(const std::string &&reg_name,
 
 using namespace mat_inv_chol_detail;
 
-
+#if (MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=skylake-avx512
@@ -295,6 +298,7 @@ using namespace mat_inv_chol_detail;
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
 #endif
+#endif 
 template<bool use_prefetching,bool mitigate_nan>         
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
@@ -304,7 +308,7 @@ mat_inv_cholesky_2x2_16xf32(const __m512 matBRe[MAT_SQR_SIZE_2][MAT_SQR_SIZE_2],
                             __m512       matInvBRe[MAT_SQR_SIZE_2][MAT_SQR_SIZE_2],
                             __m512       matInvBIm[MAT_SQR_SIZE_2][MAT_SQR_SIZE_2]);
 
-
+#if (MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=skylake-avx512
@@ -312,6 +316,7 @@ mat_inv_cholesky_2x2_16xf32(const __m512 matBRe[MAT_SQR_SIZE_2][MAT_SQR_SIZE_2],
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
 #endif
+#endif 
 template<bool use_prefetching,bool mitigate_nan>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
@@ -321,13 +326,14 @@ mat_inv_cholesky_3x3_16xf32(const __m512 matBRe[MAT_SQR_SIZE_3][MAT_SQR_SIZE_3],
                             __m512       matInvBRe[MAT_SQR_SIZE_3][MAT_SQR_SIZE_3],
                             __m512       matInvBIm[MAT_SQR_SIZE_3][MAT_SQR_SIZE_3]);
 
-
+#if (MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=skylake-avx512
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
+#endif
 #endif
 template<bool use_prefetching,bool mitigate_nan>
 __ATTR_HOT__
@@ -338,13 +344,14 @@ mat_inv_cholesky_4x4_16xf32(const __m512 matBRe[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4],
                             __m512       matInvBRe[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4],
                             __m512       matInvBIm[MAT_SQR_SIZE_4][MAT_SQR_SIZE_4]);
 
-
+#if (MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=skylake-avx512
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
+#endif
 #endif
 template<bool use_prefetching,bool mitigate_nan>
 __ATTR_HOT__
@@ -355,13 +362,14 @@ mat_inv_cholesky_5x5_16xf32(const __m512 matBRe[MAT_SQR_SIZE_5][MAT_SQR_SIZE_5],
                             __m512       matInvBRe[MAT_SQR_SIZE_5][MAT_SQR_SIZE_5],
                             __m512       matInvBIm[MAT_SQR_SIZE_5][MAT_SQR_SIZE_5]);
 
-
+#if (MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=skylake-avx512
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
+#endif
 #endif
 template<bool use_prefetching,bool mitigate_nan>
 __ATTR_HOT__
@@ -372,13 +380,14 @@ mat_inv_cholesky_6x6_16xf32(const __m512 matBRe[MAT_SQR_SIZE_6][MAT_SQR_SIZE_6],
                             __m512       matInvBRe[MAT_SQR_SIZE_6][MAT_SQR_SIZE_6],
                             __m512       matInvBIm[MAT_SQR_SIZE_6][MAT_SQR_SIZE_6]);
 
-
+#if (MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=skylake-avx512
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
+#endif
 #endif
 template<bool use_prefetching,bool mitigate_nan>
 __ATTR_HOT__
@@ -389,13 +398,14 @@ mat_inv_cholesky_7x7_16xf32(const __m512 matBRe[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7],
                             __m512       matInvBRe[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7],
                             __m512       matInvBIm[MAT_SQR_SIZE_7][MAT_SQR_SIZE_7]);
 
-
+#if (MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=skylake-avx512
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
+#endif
 #endif
 template<bool use_prefetching,bool mitigate_nan>
 __ATTR_HOT__
@@ -406,13 +416,14 @@ mat_inv_cholesky_8x8_16xf32(const __m512 matBRe[MAT_SQR_SIZE_8][MAT_SQR_SIZE_8],
                             __m512       matInvBRe[MAT_SQR_SIZE_8][MAT_SQR_SIZE_8],
                             __m512       matInvBIm[MAT_SQR_SIZE_8][MAT_SQR_SIZE_8]);
 
-
+#if (MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=skylake-avx512
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
+#endif
 #endif
 template<bool use_prefetching,bool mitigate_nan>
 __ATTR_HOT__
@@ -423,13 +434,14 @@ mat_inv_cholesky_9x9_16xf32(const __m512 matBRe[MAT_SQR_SIZE_9][MAT_SQR_SIZE_9],
                             __m512       matInvBRe[MAT_SQR_SIZE_9][MAT_SQR_SIZE_9],
                             __m512       matInvBIm[MAT_SQR_SIZE_9][MAT_SQR_SIZE_9]);
 
-
+#if (MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=skylake-avx512
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
+#endif
 #endif
 template<bool use_prefetching,bool mitigate_nan>
 __ATTR_HOT__
@@ -440,13 +452,14 @@ mat_inv_cholesky_10x10_16xf32(const __m512 matBRe[MAT_SQR_SIZE_10][MAT_SQR_SIZE_
                               __m512       matInvBRe[MAT_SQR_SIZE_10][MAT_SQR_SIZE_10],
                               __m512       matInvBIm[MAT_SQR_SIZE_10][MAT_SQR_SIZE_10]);
 
-
+#if (MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=skylake-avx512
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
+#endif
 #endif
 template<bool use_prefetching,bool mitigate_nan>
 __ATTR_HOT__
@@ -457,7 +470,7 @@ mat_inv_cholesky_11x11_16xf32(const __m512 matBRe[MAT_SQR_SIZE_11][MAT_SQR_SIZE_
                               __m512       matInvBRe[MAT_SQR_SIZE_11][MAT_SQR_SIZE_11],
                               __m512       matInvBIm[MAT_SQR_SIZE_11][MAT_SQR_SIZE_11]);
 
-
+#if (MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=skylake-avx512
@@ -465,6 +478,7 @@ mat_inv_cholesky_11x11_16xf32(const __m512 matBRe[MAT_SQR_SIZE_11][MAT_SQR_SIZE_
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
 #endif
+#endif 
 template<bool use_prefetching,bool mitigate_nan>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
@@ -474,13 +488,14 @@ mat_inv_cholesky_12x12_16xf32(const __m512 matBRe[MAT_SQR_SIZE_12][MAT_SQR_SIZE_
                               __m512       matInvBRe[MAT_SQR_SIZE_12][MAT_SQR_SIZE_12],
                               __m512       matInvBIm[MAT_SQR_SIZE_12][MAT_SQR_SIZE_12]);
 
-
+#if (MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=skylake-avx512
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
+#endif
 #endif
 template<bool use_prefetching,bool mitigate_nan>
 __ATTR_HOT__
@@ -492,12 +507,14 @@ mat_inv_cholesky_13x13_16xf32(const __m512 matBRe[MAT_SQR_SIZE_13][MAT_SQR_SIZE_
                               __m512       matInvBIm[MAT_SQR_SIZE_13][MAT_SQR_SIZE_13]);
 
 // An attempt to force a constexpr evaluation of the SIMD loop.
+#if (MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=skylake-avx512
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
+#endif
 #endif
 template<bool use_prefetching,bool mitigate_nan,
          std::int32_t N_VECS_13>
@@ -510,12 +527,14 @@ mat_inv_cholesky_13x13_16xf32_v2(const __m512 matBRe[N_VECS_13][N_VECS_13],
                                  __m512       matInvBRe[N_VECS_13][N_VECS_13],
                                  __m512       matInvBIm[N_VECS_13][N_VECS_13]);
 
+#if (MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=skylake-avx512
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
+#endif
 #endif
 template<bool use_prefetching,bool mitigate_nan>
 __ATTR_HOT__
@@ -526,13 +545,14 @@ mat_inv_cholesky_14x14_16xf32(const __m512 matBRe[MAT_SQR_SIZE_14][MAT_SQR_SIZE_
                               __m512       matInvBRe[MAT_SQR_SIZE_14][MAT_SQR_SIZE_14],
                               __m512       matInvBIm[MAT_SQR_SIZE_14][MAT_SQR_SIZE_14]);
 
-
+#if (MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=skylake-avx512
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
+#endif
 #endif
 template<bool use_prefetching,bool mitigate_nan>
 __ATTR_HOT__
@@ -543,13 +563,14 @@ mat_inv_cholesky_15x15_16xf32(const __m512 matBRe[MAT_SQR_SIZE_15][MAT_SQR_SIZE_
                               __m512       matInvBRe[MAT_SQR_SIZE_15][MAT_SQR_SIZE_15],
                               __m512       matInvBIm[MAT_SQR_SIZE_15][MAT_SQR_SIZE_15]);
 
-
+#if (MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=skylake-avx512
 #elif defined (__GNUC__) && (!defined (__INTEL_COMPILER) || !defined(__ICC))
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
+#endif
 #endif
 template<bool use_prefetching,bool mitigate_nan>
 __ATTR_HOT__
@@ -560,6 +581,7 @@ mat_inv_cholesky_16x16_16xf32(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_
                               __m512       matInvBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16],
                               __m512       matInvBIm[MAT_SQR_SIZE_16][MAT_SQR_SIZE_16]);
 
+#if (MATRIX_INV_CHOLSKY_OVERRIDE_COMPILER_CMD_LINE) == 1
 #if defined(__INTEL_COMPILER) || defined(__ICC)
 #pragma intel optimization_level 3 
 #pragma intel optimization_parameter target_arch=skylake-avx512
@@ -567,6 +589,7 @@ mat_inv_cholesky_16x16_16xf32(const __m512 matBRe[MAT_SQR_SIZE_16][MAT_SQR_SIZE_
 #pragma GCC optimize("O3")
 #pragma GCC target("avx512f")
 #endif
+#endif 
 template<bool use_prefetching,bool mitigate_nan,std::int32_t tsc_measuring_function>
 __ATTR_HOT__
 __ATTR_ALIGN__(32)
@@ -582,16 +605,6 @@ mat_inv_cholesky_16x16_16xf32_tsc_instr(const __m512 matBRe[MAT_SQR_SIZE_16][MAT
 } // math 
 
 } // gms
-
-
-
-
-
-
-
-
-
-
 
 
 #endif /*__GMS_MATRIX_INV_CHOLESKY_H__*/
