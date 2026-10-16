@@ -201,7 +201,7 @@ bessel_i0_le15_avx512_pd(const __m512d arg)
 __ATTR_ALWAYS_INLINE__
 static inline 
 __m512d
-bessel_i0_ge15_avx_pd(const __m512d arg)
+bessel_i0_ge15_avx512_pd(const __m512d arg)
 {
   __ATTR_ALIGN__(64) const __m512d pp[8] = 
   {
