@@ -47,6 +47,11 @@ namespace file_info
 
 }
 
+/* Prevents compile-time execution*/
+#if !defined(METAPROG_BEP_SEP_CH8_SSE_CALL_STD_BESSEL_I_FUNC)
+#define METAPROG_BEP_SEP_CH8_SSE_CALL_STD_BESSEL_I_FUNC 0
+#endif
+
 namespace gms
 {
 
@@ -271,6 +276,7 @@ compile_time_execute(const double * __restrict__ Ac,
 }
 };
 
+#if (METAPROG_BEP_SEP_CH8_SSE_CALL_STD_BESSEL_I_FUNC) == 1
 template<std::size_t Index, std::size_t BatchSize>
 struct Tikhonov_phase_err_pdf_4xf32_t
 {
@@ -303,6 +309,9 @@ compile_time_execute(const float * __restrict__ rho_eq,
 }
 
 };
+#else 
+#error "User or Compiler enabled compilation of the runtime std::bessel_i function!!"
+#endif 
 
 template<std::size_t Index, std::size_t BatchSize>
 struct Tikhonov_phase_err_pdf_2xf64_t
