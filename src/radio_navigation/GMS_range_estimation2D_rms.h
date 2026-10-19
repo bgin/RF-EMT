@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <iostream>
 #include <vector>
+#include <optional>
 #include "GMS_config.h"
 #include "GMS_dyn_array.h"
 
@@ -38,7 +39,7 @@ namespace file_info
      static const char GMS_RANGE_ESTIMATION_2D_RMS_BUILD_DATE[]    = __DATE__; 
      static const char GMS_RANGE_ESTIMATION_2D_RMS_BUILD_TIME[]    = __TIME__;
      static const char GMS_RANGE_ESTIMATION_2D_RMS_AUTHOR[]        = "Programmer: Bernard Gingold, beniekg@gmail.com";
-     static const char GMS_RANGE_ESTIMATION_2D_RMS_SYNOPSIS[]      = "Based upon the chapter 2 of the book titled (Rus): Статистическая теория радионавигации Ярлыков, Михаил Семенович,
+     static const char GMS_RANGE_ESTIMATION_2D_RMS_SYNOPSIS[]      = "Based upon the chapter 2 of the book titled (Rus): Статистическая теория радионавигации Ярлыков, Михаил Семенович,\
                                                                       (Eng):  The Statistical Theory of Radio-Navigation, authorship of Mikhail Semyonovich Yarlykov";
 }
 
@@ -85,12 +86,12 @@ namespace radio_navigation
 struct alignas(64) range_estimation_2D_rms_t 
 {
     std::size_t  m_nsteps; // in
-    darray_r4_t  m_radio_range_buoy_a; // in
-    darray_r4_t  m_radio_range_buoy_b; // in
+    darray_r4_t  m_radio_range_buoy_a; // 'x' in
+    darray_r4_t  m_radio_range_buoy_b; //  'y' in
     darray_r4_t  m_radio_buoys_target_angle; // in
-    darray_r4_t  m_hyperbolic_pose_shift; // in
-    darray_r4_t  m_hyperbolic_pose_rms; // out: the result of calculation
     darray_r4_t  m_rmse_signal_delay; // in
+    darray_r4_t  m_hyperbolic_pose_shift; // out
+    darray_r4_t  m_hyperbolic_pose_rms; // out: the result of calculation
     float        m_radio_buoys_ab_base; // in
 
     range_estimation_2D_rms_t() = default;
@@ -100,8 +101,14 @@ struct alignas(64) range_estimation_2D_rms_t
                               const darray_r4_t &,
                               const darray_r4_t &,
                               const darray_r4_t &,
-                              const darray_r4_t &,
                               const float) noexcept(false);
+
+    range_estimation_2D_rms_t(const std::size_t,
+                              darray_r4_t &&,
+                              darray_r4_t &&,
+                              darray_r4_t &&,
+                              darray_r4_t &&,
+                              const float) noexcept(true);
 
     range_estimation_2D_rms_t(range_estimation_2D_rms_t &&) noexcept(true);
 
@@ -113,8 +120,15 @@ struct alignas(64) range_estimation_2D_rms_t
 
     range_estimation_2D_rms_t & operator=(range_estimation_2D_rms_t &&) noexcept(true);
 
-    bool compute_hyberbolic_pose_rms();    
+    bool analytic_grad_D_param(const darray_r4_t &,
+                               const darray_r4_t &,
+                               darray_r4_t &);
 
+    bool compute_hyberbolic_pose_rms( const darray_r4_t &,
+                                      const darray_r4_t &,
+                                      const darray_r4_t &,
+                                      std::optional<float>);    
+    
 
 };
 
@@ -122,10 +136,10 @@ struct alignas(64) range_estimation_2D_rms_t
                     range_estimation_2D_rms_t &)->std::ostream &;
 
     auto operator==(const range_estimation_2D_rms_t &,
-                    const range_estimation_2D_rms_t &)->std::pair<std::vector<bool>,std::vector<bool>>;
+                    const range_estimation_2D_rms_t &)->std::vector<bool>;
 
     auto operator!=(const range_estimation_2D_rms_t &,
-                    const range_estimation_2D_rms_t &)->std::pair<std::vector<bool>,std::vector<bool>>;
+                    const range_estimation_2D_rms_t &)->std::vector<bool>;
 
 }
 
