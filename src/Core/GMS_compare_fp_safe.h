@@ -15,29 +15,27 @@
    limitations under the License.
 */
 
-/* Copyright (C) Bernard Gingold, 2020-2026 
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or (at
- * your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+/*MIT License
+Copyright (c) 2020 Bernard Gingold
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 
 #ifndef __GMS_COMPARE_FP_SAFE_H__
 #define __GMS_COMPARE_FP_SAFE_H__ 050920220913
-
-
-
-
 
 namespace file_version 
 {
@@ -61,6 +59,8 @@ namespace file_version
 #include <assert.h>
 #include <float.h>
 #include <cstdint>
+#include <cstdio>
+#include <iostream>
 #include "GMS_config.h"
 #if (USE_OPENMP) == 1
 #include <omp.h>
@@ -363,10 +363,20 @@ almostEqualUlpsFinal(float A, float B,
 __ATTR_ALWAYS_INLINE__
 static inline 
 void 
-printNumber(float f, const std::int32_t offset) 
+print_float(float f, const std::int32_t offset) 
 {
   (*((int *)&f)) += offset;
   std::printf("%+1.11g,0x%08X,%d\n", f, *(int *)&f, *(int *)&f);
+}
+
+__ATTR_ALWAYS_INLINE__ 
+static inline 
+std::int32_t 
+print_double(const char * val_name,double f, const std::int32_t offset) 
+{
+  (*((std::uint64_t *)&f)) += offset;
+  std::int32_t printf_ret = std::printf("value: %s,%1.17g,%017llx,%llu\n",val_name,f, *(std::uint64_t *)&f, *(std::uint64_t *)&f);
+  return (printf_ret);
 }
 
 __ATTR_ALWAYS_INLINE__
@@ -378,8 +388,8 @@ test_1_almostEqual2sComplement()
     constexpr const float y{0.3989429f};
     bool is_equal{almostEqual2sComplement(x,y,10)};
     std::cout << std::boolalpha << is_equal <<"\n";
-    printNumber(x,0);
-    printNumber(y,0);
+    print_float(x,0);
+    print_float(y,0);
 }
 
 __ATTR_ALWAYS_INLINE__
@@ -390,8 +400,8 @@ test_2_almostEqual2sComplement(float x, float y,
 {
     bool is_equal{almostEqual2sComplement(x,y,10)};
     std::cout << std::boolalpha << is_equal <<"\n";
-    printNumber(x,0);
-    printNumber(y,0);
+    print_float(x,0);
+    print_float(y,0);
 }
 
 
