@@ -63,7 +63,31 @@ alignas(64) struct GPS_pos_pseudorange_params_t
     const tuple_1ui_2s m_sat_clk_read = std::make_tuple(4U,"t'si","Actual satellite clock reading");
     const tuple_1ui_2s m_sat_clk_bias = std::make_tuple(5U,"delta bi","Satellite bias clock error (expressed in s)");      
     const tuple_1ui_2s m_gps_sys_time = std::make_tuple(6U,"t","GPS system time");
-                                                                                             
+    const tuple_1ui_2s m_act_user_time= std::make_tuple(7U,"t'si", "Actual user clock time at time of reception of signal");
+    const tuple_1ui_2s m_true_user_time=std::make_yuple(8U,"tu", "True user time at time of reception");
+    const tuple_1ui_2s m_user_clk_bias= std::make_tuple(9U,"bu","User clock bias—can vary with time");
+    const tuple_1ui_2s m_true_val_psr = std::make_tuple(10U,"rho_iT", "True value of pseudorange");
+    const tuple_1ui_2s m_meas_err_psr = std::make_tuple(11U,"rho_i", "Measured pseudorange with various error contributors");
+    const tuple_1ui_2s m_rx_thermal_n = std::make_tuple(12U,"n(t)", "Receiver thermal noise");
+    const tuple_1ui_2s m_sat_bias_clk_err = std::make_tuple(13U,"delta_bi", "Satellite bias clock error (expressed in s)");
+    const tuple_1ui_2s m_sat_bias_pos_err = std::make_tuple(14U,"delta_Di", "Satellite position bias error effect on range");
+    const tuple_1ui_2s m_rx_psr_noise_err = std::make_tuple(15U,"mu_i", "Receiver pseudorange measurement noise error for satellite i,s");
+    const tuple_1ui_2s m_ionosph_delay    = std::make_tuple(16U,"delta_Ii", "Ionospheric delay (expressed in s)");
+    const tuple_1ui_2s m_troposph_delay   = std::make_tuple(17U,"delta_Ti", "Tropospheric delay (expressed in s)");
+    const tuple_1ui_2s m_rel_time_correct = std::make_tuple(18U,"delta_mui","Relativistic time correction (expressed in s)");
+    const tuple_1ui_2s m_velocity_light   = std::make_tuple(18U,"c","Velocity of Light");
+    const tuple_1ui_2s m_DOP              = std::make_tuple(19U,"DOP", "Dilution of Precession");
+    const tuple_1ui_2s m_VDOP             = std::make_tuple(20U,"VDOP", "Vertical geometric dilutions of precession");
+    const tuple_1ui_2s m_HDOP             = std::make_tuple(21U,"HDOP", "Horizontal geometric dilutions of precession"); 
+    const tuple_1ui_2s m_PDOP             = std::make_tuple(22U,"PDOP", "Position geometric dilutions of precession");  
+    const tuple_1ui_2s m_GDOP             = std::make_tuple(23U,"GDOP", "Geometric dilution of precession includes both position and time error effects");
+    const tuple_1ui_2s m_meas_carr_ph_off = std::make_tuple(24U,"phi_i", "Measured carrier phase offset as received from satellite i");
+    const tuple_1ui_2s m_true_rx_cph_off  = std::make_tuple(25U,"phi_iT","True received carrier phase offset, at frequency Omega0");
+    const tuple_1ui_2s m_gps_carr_wavel   = std::make_tuple(26U,"gamma", "Wavelength of GPS carriers");      
+    const tuple_1ui_2s m_carr_cyc_ambig   = std::make_tuple(27U,"n", "Carrier phase count cycles ambiguity");
+    const tuple_1ui_2s m_true_user_rng    = std::make_tuple(28U,"D_i", "True range from satellite i to user");  
+    inline constexpr GPS_pos_pseudorange_params_t & operator=(const GPS_pos_pseudorange_params_t &) /* noexcept */ = delete;
+    inline constexpr GPS_pos_pseudorange_params_t & operator=(GPS_pos_pseudorange_params_t &&) /* noexcept */ = delete;                                                                        
 };
 
 }
