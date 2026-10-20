@@ -18,16 +18,6 @@
 #include "GMS_range_estimation2D_rms.h"
 #include "GMS_compare_fp_safe.h"
 
-/*
- std::size_t  m_nsteps; // in
-    darray_r4_t  m_radio_range_buoy_a; // in
-    darray_r4_t  m_radio_range_buoy_b; // in
-    darray_r4_t  m_radio_buoys_target_angle; // in
-    darray_r4_t  m_hyperbolic_pose_shift; // in
-    darray_r4_t  m_rmse_signal_delay; // in
-    darray_r4_t  m_hyperbolic_pose_rms; // out: the result of calculation
-    float        m_radio_buoys_ab_base; // in
-*/
 
 gms::radio_navigation
 ::range_estimation_2D_rms_t
