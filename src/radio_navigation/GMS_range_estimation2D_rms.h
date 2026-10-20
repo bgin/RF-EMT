@@ -129,6 +129,25 @@ struct alignas(64) range_estimation_2D_rms_t
                                       const darray_r4_t &,
                                       std::optional<float>);    
     
+    __ATTR_ALWAYS_INLINE__
+    inline 
+    bool reset_hyperbolic_pose_shift(const float fill) noexcept
+    {
+        bool b_state = false;
+        std::fill(this->m_hyperbolic_pose_shift.m_data,this->m_hyperbolic_pose_shift+this->m_nsteps,fill);
+        b_state = true;
+        return (b_state);
+    }
+
+    __ATTR_ALWAYS_INLINE__
+    inline
+    bool reset_hyperbolic_pose_rms(const float fill) noexcept 
+    {
+        bool b_state = false;
+        std::fill(this->m_hyperbolic_pose_rms.m_data,this->m_hyperbolic_pose_rms.m_data+this->m_nsteps,fill);
+        b_state = true;
+        return (b_state);
+    }
 
 };
 
