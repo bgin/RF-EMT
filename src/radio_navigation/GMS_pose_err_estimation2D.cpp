@@ -19,21 +19,6 @@
 #include "GMS_pose_err_estimation2D.h"
 #include "GMS_compare_fp_safe.h"
 
-/*
-  std::size_t    m_nsteps;
-    darray_r4_t    m_r1; // true pose radius       (output-state)
-    darray_r4_t    m_r2; // errornous pose radius  (output-state)
-    darray_r4_t    m_l1; // AB-line estimation error (input)
-    darray_r4_t    m_l2; // CD-line estimation error (input)
-    darray_r4_t    m_alpham; // a variable angle between the line CD and line AB (input)
-    darray_r4_t    m_sigma_l1; //RMS error estimation of AB (input)
-    darray_r4_t    m_sigma_l2; //RMS error estimation of CD (input)
-    darray_r4_t    m_rho; // cross-correl coefficient 'rho' of mutually measured lines AB and CD (input) 
-    darray_r4_t    m_l1_est_pdf; // Normal PDF of l1 estimation (output-state)
-    darray_r4_t    m_l2_est_pdf; // Normal PDF of l2 estimation (output-state)
-    darray_r4_t    m_l12_joint_est_pdf; // Joint Normal PDF of l1,l2 error estimation (output-state)
-    darray_r4_t    m_pose_error_prob; // Gaussian PDF INtegrated (CDF) of position error ellipsoid (output-state)
-*/
 
 gms::radio_navigation
 ::pose_err_estimation_2D_t
@@ -1208,4 +1193,44 @@ gms::radio_navigation
     } 
     std::cout << typeid(rhs).name() << "End: object state dump." << std::endl;
     return (os);
+}
+
+auto 
+gms::radio_navigation
+::operator==(const pose_err_estimation_2D_t &lhs,
+             const pose_err_estimation_2D_t &rhs)->pose_err_estimation_2D_compare_t
+{
+    if(__builtin_expect(lhs.m_nsteps!=rhs.m_nsteps,0)) { return (pose_err_estimation_2D_compare_t());}
+    pose_err_estimation_2D_compare_t pose_err_comp(lhs.m_nsteps);
+    float lhs_val;
+    float rhs_val;
+    bool  are_equal;
+    for(std::size_t i = 0ull; i<lhs.m_nsteps; ++i)
+    {
+       lhs_val   = lhs.m_r1.m_data[i];
+       rhs_val   = rhs.m_r1.m_data[i];
+       are_equal = almostEqual2sComplement(lhs_val,rhs_val,7); 
+       pose_err_comp.m_r1_state_comp.operator[](i) = are_equal;
+       lhs_val   = lhs.m_r2.m_data[i];
+       rhs_val   = rhs.m_r2.m_data[i];
+       are_equal = almostEqual2sComplement(lhs_val,rhs_val,7); 
+       pose_err_comp.m_r2_state_comp.operator[](i) = are_equal;
+       lhs_val   = lhs.m_l1_est_pdf.m_data[i];
+       rhs_val   = rhs.m_l1_est_pdf.m_data[i];
+       are_equal = almostEqual2sComplement(lhs_val,rhs_val,7); 
+       pose_err_comp.m_l1_est_pdf_state_comp.operator[](i) = are_equal;
+       lhs_val   = lhs.m_l2_est_pdf.m_data[i];
+       rhs_val   = rhs.m_l2_est_pdf.m_data[i];
+       are_equal = almostEqual2sComplement(lhs_val,rhs_val,7); 
+       pose_err_comp.m_l2_est_pdf_state_comp.operator[](i) = are_equal;
+       lhs_val   = lhs.m_l12_joint_est_pdf.m_data[i];
+       rhs_val   = rhs.m_l12_joint_est_pdf.m_data[i];
+       are_equal = almostEqual2sComplement(lhs_val,rhs_val,7); 
+       pose_err_comp.m_l12_est_joint_pdf_state_comp.operator[](i) = are_equal;
+       lhs_val   = lhs.m_pose_error_prob.m_data[i];
+       rhs_val   = rhs.m_pose_error_prob.m_data[i];
+       are_equal = almostEqual2sComplement(lhs_val,rhs_val,7); 
+       pose_err_comp.m_pose_prob_state_comp.operator[](i) = are_equal;
+    }
+    return (pose_err_comp);
 }
