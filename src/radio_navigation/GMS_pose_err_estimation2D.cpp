@@ -1234,3 +1234,43 @@ gms::radio_navigation
     }
     return (pose_err_comp);
 }
+
+auto 
+gms::radio_navigation
+::operator!=(const pose_err_estimation_2D_t &lhs,
+             const pose_err_estimation_2D_t &rhs)->pose_err_estimation_2D_compare_t
+{
+    if(__builtin_expect(lhs.m_nsteps!=rhs.m_nsteps,0)) { return (pose_err_estimation_2D_compare_t());}
+    pose_err_estimation_2D_compare_t pose_err_comp(lhs.m_nsteps);
+    float lhs_val;
+    float rhs_val;
+    bool  are_not_equal;
+    for(std::size_t i = 0ull; i<lhs.m_nsteps; ++i)
+    {
+       lhs_val   = lhs.m_r1.m_data[i];
+       rhs_val   = rhs.m_r1.m_data[i];
+       are_not_equal = !almostEqual2sComplement(lhs_val,rhs_val,7); 
+       pose_err_comp.m_r1_state_comp.operator[](i) = are_not_equal;
+       lhs_val   = lhs.m_r2.m_data[i];
+       rhs_val   = rhs.m_r2.m_data[i];
+       are_not_equal = !almostEqual2sComplement(lhs_val,rhs_val,7); 
+       pose_err_comp.m_r2_state_comp.operator[](i) = are_not_equal;
+       lhs_val   = lhs.m_l1_est_pdf.m_data[i];
+       rhs_val   = rhs.m_l1_est_pdf.m_data[i];
+       are_not_equal = !almostEqual2sComplement(lhs_val,rhs_val,7); 
+       pose_err_comp.m_l1_est_pdf_state_comp.operator[](i) = are_not_equal;
+       lhs_val   = lhs.m_l2_est_pdf.m_data[i];
+       rhs_val   = rhs.m_l2_est_pdf.m_data[i];
+       are_not_equal = !almostEqual2sComplement(lhs_val,rhs_val,7); 
+       pose_err_comp.m_l2_est_pdf_state_comp.operator[](i) = are_not_equal;
+       lhs_val   = lhs.m_l12_joint_est_pdf.m_data[i];
+       rhs_val   = rhs.m_l12_joint_est_pdf.m_data[i];
+       are_not_equal = !almostEqual2sComplement(lhs_val,rhs_val,7); 
+       pose_err_comp.m_l12_est_joint_pdf_state_comp.operator[](i) = are_not_equal;
+       lhs_val   = lhs.m_pose_error_prob.m_data[i];
+       rhs_val   = rhs.m_pose_error_prob.m_data[i];
+       are_not_equal = !almostEqual2sComplement(lhs_val,rhs_val,7); 
+       pose_err_comp.m_pose_prob_state_comp.operator[](i) = are_not_qual;
+    }
+    return (pose_err_comp);
+}
