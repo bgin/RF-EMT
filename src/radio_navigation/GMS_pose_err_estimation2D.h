@@ -55,6 +55,10 @@ namespace file_info
 #define POSE_ERR_ESTIMATION_2D_USE_PMC_INSTRUMENTATION 0
 #endif 
 
+#if !defined (POSE_ERR_ESTIMATION_2D_VERBOSE)
+#define POSE_ERR_ESTIMATION_2D_VERBOSE 1
+#endif 
+
 #if (POSE_ERR_ESTIMATION_2D_USE_PMC_INSTRUMENTATION) == 1
 #include "GMS_hw_perf_macros.h"
 
@@ -291,7 +295,11 @@ alignas(64) struct pose_err_estimation_2D_t
 
     __ATTR_HOT__
     __ATTR_ALIGN__(32)
-    std::int32_t compue_pose_error_prob();
+    std::int32_t compute_pose_error_prob();
+
+    __ATTR_HOT__ 
+    __ATTR_ALIGN__(32)
+    std::int32_t compute_radial_pose_err_rms(const bool);
 
 };
 
