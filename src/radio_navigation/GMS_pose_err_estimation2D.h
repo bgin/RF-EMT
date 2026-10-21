@@ -145,7 +145,7 @@ alignas(64) struct pose_err_estimation_2D_compare_t
         {
             if(__builtin_expect(this==&rhs,0)) { return (*this);}
             
-            this->m_nvals = other.m_nvals;
+            this->m_nvals = rhs.m_nvals;
             this->m_r1_state_comp.operator=(rhs.m_r1_state_comp);
             this->m_r2_state_comp.operator=(rhs.m_r2_state_comp);
             this->m_l1_est_pdf_state_comp.operator=(rhs.m_l1_est_pdf_state_comp);
@@ -161,7 +161,7 @@ alignas(64) struct pose_err_estimation_2D_compare_t
         {
             if(__builtin_expect(this==&rhs,0)) { return (*this);}
             
-            this->m_nvals = other.m_nvals;
+            this->m_nvals = rhs.m_nvals;
             this->m_r1_state_comp.operator=(rhs.m_r1_state_comp);
             this->m_r2_state_comp.operator=(rhs.m_r2_state_comp);
             this->m_l1_est_pdf_state_comp.operator=(rhs.m_l1_est_pdf_state_comp);
