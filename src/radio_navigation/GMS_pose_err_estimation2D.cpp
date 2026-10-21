@@ -1179,3 +1179,33 @@ gms::radio_navigation
         return (ret_state);
     }
 }
+
+auto 
+gms::radio_navigation
+::operator<<(std::ostream &os, const pose_err_estimation_2D_t &rhs)->std::ostream &
+{
+    std::cout << typeid(rhs).name()     << "Begin: object state dump." << std::endl;
+    std::cout << "m_nsteps:              " << rhs.m_nsteps << std::endl;
+    std::cout << std::setw(4) << "r1" << std::setw(7) << "r2" << std::setw(17) << "l1_est_pdf" << std::setw(27) << "l2_est_pdf" 
+              << std::setw(44) << "l12_joint_est_pdf" << std::setw(59) << "pose_error_prob" << std::endl;
+    for(std::size_t i = 0ull; i<rhs.m_nsteps; ++i) 
+    {
+        os << std::fixed 
+           << std::setprecision(7) 
+           << std::setw(4) 
+           << std::setw(7) 
+           << std::setw(17)  
+           << std::setw(27)  
+           << std::setw(44) 
+           << std::setw(59) 
+           << rhs.m_r1.m_data[i]
+           << rhs.m_r2.m_data[i]
+           << rhs.m_l1_est_pdf.m_data[i]
+           << rhs.m_l2_est_pdf.m_data[i]
+           << rhs.m_l12_joint_est_pdf.m_data[i]
+           << rhs.m_pose_error_prob.m_data[i]
+           << std::endl;
+    } 
+    std::cout << typeid(rhs).name() << "End: object state dump." << std::endl;
+    return (os);
+}
