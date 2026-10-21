@@ -739,3 +739,443 @@ gms::radio_navigation
         return (ret_state);
     }
 }
+
+std::int32_t 
+gms::radio_navigation
+::pose_err_estimation_2D_t
+::compute_radial_pose_err_rms(const bool is_rho_zero)
+{
+    std::size_t i,j;
+    float val_l1;
+    float val_l2;
+    float val_l1s;
+    float val_l2s;
+    float val_sigl1;
+    float val_sigl2;
+    float val_sigl1s;
+    float val_sigl2s;
+    float val_alpham;
+    float cosam;
+    float sinam;
+    float val_rho;
+    float r_rtherm;
+    float sig_rtherm;
+    float sqrt_r;
+    float sqrt_sig;
+    std::int32_t ret_state = -9999;
+    if(__builtin_expect(this->m_nsteps>=1ull,0) && 
+       __builtin_expect(this->m_nsteps<=16ull,0))
+    {
+        if(is_rho_zero==true)
+        {
+            for(int i = 0ull; i<this->m_nsteps; ++i)
+            {
+                val_alpham = this->m_alpham.m_data[i];
+                val_l1     = this->m_l1.m_data[i];
+                val_l1s    = val_l1*val_l1;
+                val_l2     = this->m_l2.m_data[i];
+                val_l2s    = val_l2*val_l2;
+                val_sigl1  = this->m_sigma_l1.m_data[i];
+                val_sigl1s = val_sigl1*val_sigl1;
+                val_sigl2  = this->m_sigma_l2.m_data[i];
+                val_sigl2s = val_sigl2*val_sigl2;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                cosam      = gms::math::ceph_cosf(val_alpham);
+                sinam      = gms::math::ceph_sinf(val_alpham);
+#else 
+                cosam      = std::cos(val_alpham);
+                sinam      = std::sin(val_alpham);
+#endif 
+                r_rtherm   = 2.0f*val_l1*val_l2*cosam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_sig   = gms::math::ceph_sqrtf(val_sigl1s+val_sigl2s);
+#else 
+                sqrt_sig   = std::sqrt(val_sigl1s+val_sigl2s);
+#endif 
+                this->m_r2.m_data[i] = sqrt_sig/sinam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_r     = gms::math::ceph_sqrtf(val_l1s+val_l2s+r_rtherm);
+#else 
+                sqrt_r     = std::sqrt(val_l1s+val_l2s+r_rtherm);
+#endif 
+                this->m_r1.m_data[i] = sqrt_r/sinam;
+            }
+        }
+        else 
+        {
+            for(int i = 0ull; i<this->m_nsteps; ++i)
+            {
+                val_alpham = this->m_alpham.m_data[i];
+                val_l1     = this->m_l1.m_data[i];
+                val_rho    = this->m_rho.m_data[i];
+                val_l1s    = val_l1*val_l1;
+                val_l2     = this->m_l2.m_data[i];
+                val_l2s    = val_l2*val_l2;
+                val_sigl1  = this->m_sigma_l1.m_data[i];
+                val_sigl1s = val_sigl1*val_sigl1;
+                val_sigl2  = this->m_sigma_l2.m_data[i];
+                val_sigl2s = val_sigl2*val_sigl2;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                cosam      = gms::math::ceph_cosf(val_alpham);
+                sinam      = gms::math::ceph_sinf(val_alpham);
+#else 
+                cosam      = std::cos(val_alpham);
+                sinam      = std::sin(val_alpham);
+#endif 
+                r_rtherm   = 2.0f*val_l1*val_l2*cosam;
+                sig_rtherm = 2.0f*val_sigl1*val_sigl2*val_rho*cosam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_sig   = gms::math::ceph_sqrtf(val_sigl1s+val_sigl2s+sig_rtherm);
+#else 
+                sqrt_sig   = std::sqrt(val_sigl1s+val_sigl2s+sig_rtherm);
+#endif 
+                this->m_r2.m_data[i] = sqrt_sig/sinam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_r     = gms::math::ceph_sqrtf(val_l1s+val_l2s+r_rtherm);
+#else 
+                sqrt_r     = std::sqrt(val_l1s+val_l2s+r_rtherm);
+#endif 
+                this->m_r1.m_data[i] = sqrt_r/sinam;
+            }
+        }
+        ret_state = 1;
+        return (ret_state);
+    }
+    else if(__builtin_expect(this->m_nsteps>16ull,1))
+    {
+        if(is_rho_zero==true)
+        {
+            for(i = 0ull; i!=ROUND_DOWN(this->m_nsteps,3ull); i += 4ull)
+            {
+                const std::size_t idx1 = i+1ull;
+                const std::size_t idx2 = i+2ull;
+                const std::size_t idx3 = i+3ull;
+                val_alpham = this->m_alpham.m_data[i];
+                val_l1     = this->m_l1.m_data[i];
+                val_l1s    = val_l1*val_l1;
+                val_l2     = this->m_l2.m_data[i];
+                val_l2s    = val_l2*val_l2;
+                val_sigl1  = this->m_sigma_l1.m_data[i];
+                val_sigl1s = val_sigl1*val_sigl1;
+                val_sigl2  = this->m_sigma_l2.m_data[i];
+                val_sigl2s = val_sigl2*val_sigl2;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                cosam      = gms::math::ceph_cosf(val_alpham);
+                sinam      = gms::math::ceph_sinf(val_alpham);
+#else 
+                cosam      = std::cos(val_alpham);
+                sinam      = std::sin(val_alpham);
+#endif 
+                r_rtherm   = 2.0f*val_l1*val_l2*cosam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_sig   = gms::math::ceph_sqrtf(val_sigl1s+val_sigl2s);
+#else 
+                sqrt_sig   = std::sqrt(val_sigl1s+val_sigl2s);
+#endif 
+                this->m_r2.m_data[i] = sqrt_sig/sinam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_r     = gms::math::ceph_sqrtf(val_l1s+val_l2s+r_rtherm);
+#else 
+                sqrt_r     = std::sqrt(val_l1s+val_l2s+r_rtherm);
+#endif 
+                this->m_r1.m_data[i] = sqrt_r/sinam;
+
+                val_alpham = this->m_alpham.m_data[idx1];
+                val_l1     = this->m_l1.m_data[idx1];
+                val_l1s    = val_l1*val_l1;
+                val_l2     = this->m_l2.m_data[idx1];
+                val_l2s    = val_l2*val_l2;
+                val_sigl1  = this->m_sigma_l1.m_data[idx1];
+                val_sigl1s = val_sigl1*val_sigl1;
+                val_sigl2  = this->m_sigma_l2.m_data[idx1];
+                val_sigl2s = val_sigl2*val_sigl2;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                cosam      = gms::math::ceph_cosf(val_alpham);
+                sinam      = gms::math::ceph_sinf(val_alpham);
+#else 
+                cosam      = std::cos(val_alpham);
+                sinam      = std::sin(val_alpham);
+#endif 
+                r_rtherm   = 2.0f*val_l1*val_l2*cosam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_sig   = gms::math::ceph_sqrtf(val_sigl1s+val_sigl2s);
+#else 
+                sqrt_sig   = std::sqrt(val_sigl1s+val_sigl2s);
+#endif 
+                this->m_r2.m_data[idx1] = sqrt_sig/sinam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_r     = gms::math::ceph_sqrtf(val_l1s+val_l2s+r_rtherm);
+#else 
+                sqrt_r     = std::sqrt(val_l1s+val_l2s+r_rtherm);
+#endif 
+                this->m_r1.m_data[idx1] = sqrt_r/sinam;
+
+                val_alpham = this->m_alpham.m_data[idx2];
+                val_l1     = this->m_l1.m_data[idx2];
+                val_l1s    = val_l1*val_l1;
+                val_l2     = this->m_l2.m_data[idx2];
+                val_l2s    = val_l2*val_l2;
+                val_sigl1  = this->m_sigma_l1.m_data[idx2];
+                val_sigl1s = val_sigl1*val_sigl1;
+                val_sigl2  = this->m_sigma_l2.m_data[idx2];
+                val_sigl2s = val_sigl2*val_sigl2;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                cosam      = gms::math::ceph_cosf(val_alpham);
+                sinam      = gms::math::ceph_sinf(val_alpham);
+#else 
+                cosam      = std::cos(val_alpham);
+                sinam      = std::sin(val_alpham);
+#endif 
+                r_rtherm   = 2.0f*val_l1*val_l2*cosam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_sig   = gms::math::ceph_sqrtf(val_sigl1s+val_sigl2s);
+#else 
+                sqrt_sig   = std::sqrt(val_sigl1s+val_sigl2s);
+#endif 
+                this->m_r2.m_data[idx2] = sqrt_sig/sinam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_r     = gms::math::ceph_sqrtf(val_l1s+val_l2s+r_rtherm);
+#else 
+                sqrt_r     = std::sqrt(val_l1s+val_l2s+r_rtherm);
+#endif 
+                this->m_r1.m_data[idx2] = sqrt_r/sinam;
+
+                val_alpham = this->m_alpham.m_data[idx3];
+                val_l1     = this->m_l1.m_data[idx3];
+                val_l1s    = val_l1*val_l1;
+                val_l2     = this->m_l2.m_data[idx3];
+                val_l2s    = val_l2*val_l2;
+                val_sigl1  = this->m_sigma_l1.m_data[idx3];
+                val_sigl1s = val_sigl1*val_sigl1;
+                val_sigl2  = this->m_sigma_l2.m_data[idx3];
+                val_sigl2s = val_sigl2*val_sigl2;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                cosam      = gms::math::ceph_cosf(val_alpham);
+                sinam      = gms::math::ceph_sinf(val_alpham);
+#else 
+                cosam      = std::cos(val_alpham);
+                sinam      = std::sin(val_alpham);
+#endif 
+                r_rtherm   = 2.0f*val_l1*val_l2*cosam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_sig   = gms::math::ceph_sqrtf(val_sigl1s+val_sigl2s);
+#else 
+                sqrt_sig   = std::sqrt(val_sigl1s+val_sigl2s);
+#endif 
+                this->m_r2.m_data[idx3] = sqrt_sig/sinam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_r     = gms::math::ceph_sqrtf(val_l1s+val_l2s+r_rtherm);
+#else 
+                sqrt_r     = std::sqrt(val_l1s+val_l2s+r_rtherm);
+#endif 
+                this->m_r1.m_data[idx3] = sqrt_r/sinam;
+            }
+
+            for(j = i; j<this->m_nsteps; ++j)  
+            {
+                val_alpham = this->m_alpham.m_data[j];
+                val_l1     = this->m_l1.m_data[j];
+                val_l1s    = val_l1*val_l1;
+                val_l2     = this->m_l2.m_data[j];
+                val_l2s    = val_l2*val_l2;
+                val_sigl1  = this->m_sigma_l1.m_data[j];
+                val_sigl1s = val_sigl1*val_sigl1;
+                val_sigl2  = this->m_sigma_l2.m_data[j];
+                val_sigl2s = val_sigl2*val_sigl2;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                cosam      = gms::math::ceph_cosf(val_alpham);
+                sinam      = gms::math::ceph_sinf(val_alpham);
+#else 
+                cosam      = std::cos(val_alpham);
+                sinam      = std::sin(val_alpham);
+#endif 
+                r_rtherm   = 2.0f*val_l1*val_l2*cosam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_sig   = gms::math::ceph_sqrtf(val_sigl1s+val_sigl2s);
+#else 
+                sqrt_sig   = std::sqrt(val_sigl1s+val_sigl2s);
+#endif 
+                this->m_r2.m_data[j] = sqrt_sig/sinam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_r     = gms::math::ceph_sqrtf(val_l1s+val_l2s+r_rtherm);
+#else 
+                sqrt_r     = std::sqrt(val_l1s+val_l2s+r_rtherm);
+#endif 
+                this->m_r1.m_data[j] = sqrt_r/sinam;
+            }
+        }
+        else 
+        {
+            for(i = 0ull; i!=ROUND_DOWN(this->m_nsteps,3ull); i += 4ull)
+            {
+                const std::size_t idx1 = i+1ull;
+                const std::size_t idx2 = i+2ull;
+                const std::size_t idx3 = i+3ull;
+                val_alpham = this->m_alpham.m_data[i];
+                val_l1     = this->m_l1.m_data[i];
+                val_rho    = this->m_rho.m_data[i];
+                val_l1s    = val_l1*val_l1;
+                val_l2     = this->m_l2.m_data[i];
+                val_l2s    = val_l2*val_l2;
+                val_sigl1  = this->m_sigma_l1.m_data[i];
+                val_sigl1s = val_sigl1*val_sigl1;
+                val_sigl2  = this->m_sigma_l2.m_data[i];
+                val_sigl2s = val_sigl2*val_sigl2;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                cosam      = gms::math::ceph_cosf(val_alpham);
+                sinam      = gms::math::ceph_sinf(val_alpham);
+#else 
+                cosam      = std::cos(val_alpham);
+                sinam      = std::sin(val_alpham);
+#endif 
+                r_rtherm   = 2.0f*val_l1*val_l2*cosam;
+                sig_rtherm = 2.0f*val_sigl1*val_sigl2*val_rho*cosam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_sig   = gms::math::ceph_sqrtf(val_sigl1s+val_sigl2s+sig_rtherm);
+#else 
+                sqrt_sig   = std::sqrt(val_sigl1s+val_sigl2s+sig_rtherm);
+#endif 
+                this->m_r2.m_data[i] = sqrt_sig/sinam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_r     = gms::math::ceph_sqrtf(val_l1s+val_l2s+r_rtherm);
+#else 
+                sqrt_r     = std::sqrt(val_l1s+val_l2s+r_rtherm);
+#endif 
+                this->m_r1.m_data[i] = sqrt_r/sinam;
+
+                val_alpham = this->m_alpham.m_data[idx1];
+                val_l1     = this->m_l1.m_data[idx1];
+                val_rho    = this->m_rho.m_data[idx1];
+                val_l1s    = val_l1*val_l1;
+                val_l2     = this->m_l2.m_data[idx1];
+                val_l2s    = val_l2*val_l2;
+                val_sigl1  = this->m_sigma_l1.m_data[idx1];
+                val_sigl1s = val_sigl1*val_sigl1;
+                val_sigl2  = this->m_sigma_l2.m_data[idx1];
+                val_sigl2s = val_sigl2*val_sigl2;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                cosam      = gms::math::ceph_cosf(val_alpham);
+                sinam      = gms::math::ceph_sinf(val_alpham);
+#else 
+                cosam      = std::cos(val_alpham);
+                sinam      = std::sin(val_alpham);
+#endif 
+                r_rtherm   = 2.0f*val_l1*val_l2*cosam;
+                sig_rtherm = 2.0f*val_sigl1*val_sigl2*val_rho*cosam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_sig   = gms::math::ceph_sqrtf(val_sigl1s+val_sigl2s+sig_rtherm);
+#else 
+                sqrt_sig   = std::sqrt(val_sigl1s+val_sigl2s+sig_rtherm);
+#endif 
+                this->m_r2.m_data[idx1] = sqrt_sig/sinam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_r     = gms::math::ceph_sqrtf(val_l1s+val_l2s+r_rtherm);
+#else 
+                sqrt_r     = std::sqrt(val_l1s+val_l2s+r_rtherm);
+#endif 
+                this->m_r1.m_data[idx1] = sqrt_r/sinam;
+
+                val_alpham = this->m_alpham.m_data[idx2];
+                val_l1     = this->m_l1.m_data[idx2];
+                val_rho    = this->m_rho.m_data[idx2];
+                val_l1s    = val_l1*val_l1;
+                val_l2     = this->m_l2.m_data[idx2];
+                val_l2s    = val_l2*val_l2;
+                val_sigl1  = this->m_sigma_l1.m_data[idx2];
+                val_sigl1s = val_sigl1*val_sigl1;
+                val_sigl2  = this->m_sigma_l2.m_data[idx2];
+                val_sigl2s = val_sigl2*val_sigl2;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                cosam      = gms::math::ceph_cosf(val_alpham);
+                sinam      = gms::math::ceph_sinf(val_alpham);
+#else 
+                cosam      = std::cos(val_alpham);
+                sinam      = std::sin(val_alpham);
+#endif 
+                r_rtherm   = 2.0f*val_l1*val_l2*cosam;
+                sig_rtherm = 2.0f*val_sigl1*val_sigl2*val_rho*cosam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_sig   = gms::math::ceph_sqrtf(val_sigl1s+val_sigl2s+sig_rtherm);
+#else 
+                sqrt_sig   = std::sqrt(val_sigl1s+val_sigl2s+sig_rtherm);
+#endif 
+                this->m_r2.m_data[idx2] = sqrt_sig/sinam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_r     = gms::math::ceph_sqrtf(val_l1s+val_l2s+r_rtherm);
+#else 
+                sqrt_r     = std::sqrt(val_l1s+val_l2s+r_rtherm);
+#endif 
+                this->m_r1.m_data[idx2] = sqrt_r/sinam;
+
+                val_alpham = this->m_alpham.m_data[idx3];
+                val_l1     = this->m_l1.m_data[idx3];
+                val_rho    = this->m_rho.m_data[idx3];
+                val_l1s    = val_l1*val_l1;
+                val_l2     = this->m_l2.m_data[idx3];
+                val_l2s    = val_l2*val_l2;
+                val_sigl1  = this->m_sigma_l1.m_data[idx3];
+                val_sigl1s = val_sigl1*val_sigl1;
+                val_sigl2  = this->m_sigma_l2.m_data[idx3];
+                val_sigl2s = val_sigl2*val_sigl2;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                cosam      = gms::math::ceph_cosf(val_alpham);
+                sinam      = gms::math::ceph_sinf(val_alpham);
+#else 
+                cosam      = std::cos(val_alpham);
+                sinam      = std::sin(val_alpham);
+#endif 
+                r_rtherm   = 2.0f*val_l1*val_l2*cosam;
+                sig_rtherm = 2.0f*val_sigl1*val_sigl2*val_rho*cosam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_sig   = gms::math::ceph_sqrtf(val_sigl1s+val_sigl2s+sig_rtherm);
+#else 
+                sqrt_sig   = std::sqrt(val_sigl1s+val_sigl2s+sig_rtherm);
+#endif 
+                this->m_r2.m_data[idx3] = sqrt_sig/sinam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_r     = gms::math::ceph_sqrtf(val_l1s+val_l2s+r_rtherm);
+#else 
+                sqrt_r     = std::sqrt(val_l1s+val_l2s+r_rtherm);
+#endif 
+                this->m_r1.m_data[idx3] = sqrt_r/sinam;
+            }
+
+            for(j = i; j<this->m_nsteps; ++j)   
+            {
+                val_alpham = this->m_alpham.m_data[j];
+                val_l1     = this->m_l1.m_data[j];
+                val_rho    = this->m_rho.m_data[j];
+                val_l1s    = val_l1*val_l1;
+                val_l2     = this->m_l2.m_data[j];
+                val_l2s    = val_l2*val_l2;
+                val_sigl1  = this->m_sigma_l1.m_data[j];
+                val_sigl1s = val_sigl1*val_sigl1;
+                val_sigl2  = this->m_sigma_l2.m_data[j];
+                val_sigl2s = val_sigl2*val_sigl2;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                cosam      = gms::math::ceph_cosf(val_alpham);
+                sinam      = gms::math::ceph_sinf(val_alpham);
+#else 
+                cosam      = std::cos(val_alpham);
+                sinam      = std::sin(val_alpham);
+#endif 
+                r_rtherm   = 2.0f*val_l1*val_l2*cosam;
+                sig_rtherm = 2.0f*val_sigl1*val_sigl2*val_rho*cosam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_sig   = gms::math::ceph_sqrtf(val_sigl1s+val_sigl2s+sig_rtherm);
+#else 
+                sqrt_sig   = std::sqrt(val_sigl1s+val_sigl2s+sig_rtherm);
+#endif 
+                this->m_r2.m_data[j] = sqrt_sig/sinam;
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+                sqrt_r     = gms::math::ceph_sqrtf(val_l1s+val_l2s+r_rtherm);
+#else 
+                sqrt_r     = std::sqrt(val_l1s+val_l2s+r_rtherm);
+#endif 
+                this->m_r1.m_data[j] = sqrt_r/sinam;
+            }
+        }
+        ret_state = 2;
+        return (ret_state);
+    }
+}
