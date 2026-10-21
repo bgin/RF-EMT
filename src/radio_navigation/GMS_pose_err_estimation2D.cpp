@@ -310,3 +310,126 @@ gms::radio_navigation
         return (ret_state);
     }
 }
+
+std::int32_t 
+gms::radio_navigation
+::pose_err_estimation_2D_t
+::compute_l2_pdf()
+{
+    constexpr float sqrt2Pi = 2.506628274631000502415765284811;
+    std::size_t i,j;
+    float val_l2;
+    float val_l2s;
+    float val_sigl2;
+    float val_sigl2s;
+    float fac2;
+    float exp_arg;
+    float exp_val;
+    float pdf_res;
+    std::int32_t ret_state = -9999;
+    if(__builtin_expect(this->m_nsteps>=1ull,0) && 
+       __builtin_expect(this->m_nsteps<=16ull,0)) 
+    {
+       for(i = 0ull; i<this->m_nsteps; ++i) 
+       {
+           val_l2    = this->m_l2.m_data[i];
+           val_l2s   = val_l2*val_l2;
+           val_sigl2 = this->m_sigma_l2.m_data[i];
+           val_sigl2s= val_sigl2*val_sigl2;
+           fac2      = 1.0f/(val_sigl2*sqrt2Pi);
+           exp_arg   = -val_l2s/(val_sigl2s+val_sigl2s);
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+           exp_val   = gms::math::ceph_expf(exp_arg);
+#else 
+           exp_val   = std::exp(exp_arg);
+#endif 
+           pdf_res   = fac2*exp_val;
+           this->m_l2_est_pdf.m_data[i];
+       }
+       ret_state = 1;
+       return (ret_state);
+    }
+    else if(__builtin_expect(this->m_nsteps>16ull,1)) 
+    {
+        for(i = 0; i!=ROUND_DOWN(this->m_nsteps,3ull); i += 4ull) 
+        {
+            const std::size_t idx1 = i+1ull;
+            const std::size_t idx2 = i+2ull;
+            const std::size_t idx3 = i+3ull;
+            val_l2    = this->m_l2.m_data[i];
+            val_l2s   = val_l2*val_l2;
+            val_sigl2 = this->m_sigma_l2.m_data[i];
+            val_sigl2s= val_sigl2*val_sigl2;
+            fac2      = 1.0f/(val_sigl2*sqrt2Pi);
+            exp_arg   = -val_l2s/(val_sigl2s+val_sigl2s);
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+            exp_val   = gms::math::ceph_expf(exp_arg);
+#else 
+            exp_val   = std::exp(exp_arg);
+#endif 
+            pdf_res   = fac2*exp_val;
+            this->m_l2_est_pdf.m_data[i];
+
+            val_l2    = this->m_l2.m_data[idx1];
+            val_l2s   = val_l2*val_l2;
+            val_sigl2 = this->m_sigma_l2.m_data[idx1];
+            val_sigl2s= val_sigl2*val_sigl2;
+            fac2      = 1.0f/(val_sigl2*sqrt2Pi);
+            exp_arg   = -val_l2s/(val_sigl2s+val_sigl2s);
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+            exp_val   = gms::math::ceph_expf(exp_arg);
+#else 
+            exp_val   = std::exp(exp_arg);
+#endif 
+            pdf_res   = fac2*exp_val;
+            this->m_l2_est_pdf.m_data[idx1];
+
+            val_l2    = this->m_l2.m_data[idx2];
+            val_l2s   = val_l2*val_l2;
+            val_sigl2 = this->m_sigma_l2.m_data[idx2];
+            val_sigl2s= val_sigl2*val_sigl2;
+            fac2      = 1.0f/(val_sigl2*sqrt2Pi);
+            exp_arg   = -val_l2s/(val_sigl2s+val_sigl2s);
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+            exp_val   = gms::math::ceph_expf(exp_arg);
+#else 
+            exp_val   = std::exp(exp_arg);
+#endif 
+            pdf_res   = fac2*exp_val;
+            this->m_l2_est_pdf.m_data[idx2];
+
+            val_l2    = this->m_l2.m_data[idx3];
+            val_l2s   = val_l2*val_l2;
+            val_sigl2 = this->m_sigma_l2.m_data[idx3];
+            val_sigl2s= val_sigl2*val_sigl2;
+            fac2      = 1.0f/(val_sigl2*sqrt2Pi);
+            exp_arg   = -val_l2s/(val_sigl2s+val_sigl2s);
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+            exp_val   = gms::math::ceph_expf(exp_arg);
+#else 
+            exp_val   = std::exp(exp_arg);
+#endif 
+            pdf_res   = fac2*exp_val;
+            this->m_l2_est_pdf.m_data[idx3];
+        }
+
+        for(j = i; j<this->m_nsteps; ++j)  
+        {
+            val_l2    = this->m_l2.m_data[j];
+            val_l2s   = val_l2*val_l2;
+            val_sigl2 = this->m_sigma_l2.m_data[j];
+            val_sigl2s= val_sigl2*val_sigl2;
+            fac2      = 1.0f/(val_sigl2*sqrt2Pi);
+            exp_arg   = -val_l2s/(val_sigl2s+val_sigl2s);
+#if (POSE_ERR_ESTIMATION_2D_USE_CEPHES) == 1
+            exp_val   = gms::math::ceph_expf(exp_arg);
+#else 
+            exp_val   = std::exp(exp_arg);
+#endif 
+            pdf_res   = fac2*exp_val;
+            this->m_l2_est_pdf.m_data[j];
+        }
+        ret_state = 2;
+        return (ret_state);
+    }
+}
