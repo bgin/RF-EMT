@@ -181,30 +181,6 @@ vectorized_uint64_to_double_avx512(const std::uint64_t* __restrict src, double* 
     }
 }
 
-
-
-/*
- std::size_t           m_nruns;
-    std::size_t           m_nsamples;
-    std::size_t           m_totsamples;
-    std::valarray<double> m_a; // a - event 
-    std::valarray<double> m_b; // b - event
-    std::valarray<double> m_c; // c - event
-    std::valarray<double> m_d; // d - metric calculation result
-    std::string           m_cpu_arch;
-    std::string           m_date; // date of processing
-    std::string           m_time; // time of processing
-    double                m_a_robust_mean; // Mathematical-Expectation
-    double                m_b_robust_mean; // Mathematical-Expectation
-    double                m_c_robust_mean; // Mathematical-Expectation
-    double                m_d_robust_mean; // Mathematical-Expectation
-    double                m_a_normality; // Shapiro-Wilk normality test
-    double                m_b_normality; // Shapiro-Wilk normality test
-    double                m_c_normality; // Shapiro-Wilk normality test
-    double                m_d_normality; // Shapiro-Wilk normality test
-*/
-
-
 gms::hw_profiling
 ::SKX_cpu_operating_frequency_t
 ::SKX_cpu_operating_frequency_t() noexcept(true) 
