@@ -6,7 +6,6 @@
 
 #include <omp.h>
 
-
 /*
    CPU operating frequency (in GHz)
 */
@@ -678,9 +677,9 @@ __attribute__((aligned(32)))
 #pragma omp declare simd
 static inline
 double skx_ITLB_mpi(const double ITLB_MISSES_WALK_COMPLETED,
-                    const double INT_RETIRED_ANY) {
+                    const double INST_RETIRED_ANY) {
 
-       return (ILTB_MISSES_WALK_COMPLETED/INST_RETIRED_ANY);
+       return (ITLB_MISSES_WALK_COMPLETED/INST_RETIRED_ANY);
 }
 
 
@@ -939,7 +938,7 @@ double skx_half_width_link_tx_cycles(const double UNC_UPI_TxL0P_POWER_CYCLES,
 				     const double UNC_UPI_L1_POWER_CYCLES) {
 
         const double term1 = UNC_UPI_TxL0P_POWER_CYCLES/
-	                     (UNC_UPI_CLOCKTICKS-UNC_UPI_1_POWER_CYCLES);
+	                     (UNC_UPI_CLOCKTICKS-UNC_UPI_L1_POWER_CYCLES);
 	return (100.0*term1);
 }
 
@@ -957,7 +956,7 @@ double skx_half_width_link_rx_cycles(const double UNC_UPI_RxL0P_POWER_CYCLES,
 				     const double UNC_UPI_L1_POWER_CYCLES) {
 
         const double term1 = UNC_UPI_RxL0P_POWER_CYCLES/
-	                     (UNC_UPI_CLOCKTICKS-UNC_UPI_1_POWER_CYCLES);
+	                     (UNC_UPI_CLOCKTICKS-UNC_UPI_L1_POWER_CYCLES);
 	return (100.0*term1);
 }
 
@@ -1233,7 +1232,7 @@ double skx_total_mem_instr_mem_bw(const double UNC_M_CAS_COUNT_WR,
 	const double mem_read_bw =  skx_memory_read_bw(UNC_M_CAS_COUNT_RD,
                                                      TIME_INTERVAL_SECONDS);
 	return ((MEM_INST_RETIRED_ALL_STORES/mem_write_bw)+
-	        (MEM_INST_RETIRED_ALL_LOADS/mem_read_be));
+	        (MEM_INST_RETIRED_ALL_LOADS/mem_read_bw));
 }
 
 
@@ -1501,22 +1500,6 @@ double skx_MMIO_reads_sec(const double UNC_CHA_TOR_INSERTS_IA_MISS_filter1_0x400
                           const double TIME_INTERVAL_SECONDS) {
 
        return (UNC_CHA_TOR_INSERTS_IA_MISS_filter1_0x40040e33/
-                TIME_INTERVAL_SECONDS);
-}
-
-
-/*
-     MMIO writes  per second.
-*/
-__attribute__((always_inline))
-__attribute__((pure))
-__attribute__((aligned(32)))
-#pragma omp declare simd
-static inline
-double skx_MMIO_reads_sec(const double UNC_CHA_TOR_INSERTS_IA_MISS_filter1_0x40041e33,
-                          const double TIME_INTERVAL_SECONDS) {
-
-       return (UNC_CHA_TOR_INSERTS_IA_MISS_filter1_0x40041e33/
                 TIME_INTERVAL_SECONDS);
 }
 
@@ -2013,7 +1996,7 @@ __attribute__((pure))
 __attribute__((aligned(32)))
 #pragma omp declare simd
 static inline
-double skx_Core_power_throttled(const double CORE_POWER_THROTTLE,
+double skx_Core_power_throttled(const double CORE_POWER_THROTTLED,
                                 const double CPU_CLK_UNHALTED_THREAD) {
 
        return (100.0*CORE_POWER_THROTTLED/
@@ -2071,7 +2054,7 @@ double skx_TMAM_SMT_activity(const double CPU_CLK_THREAD_UNHALTED_ONE_THREAD_ACT
 
        const double term1 = 1.0-CPU_CLK_THREAD_UNHALTED_ONE_THREAD_ACTIVE/
                             (CPU_CLK_THREAD_UNHALTED_REF_XCLK_ANY*0.5);
-       return ((HW_THREAD_COUNT < 2.0) ? 0.0 : 100.0*term1)
+       return ((HW_THREAD_COUNT < 2.0) ? 0.0 : 100.0*term1);
 }
 
 
@@ -2086,7 +2069,6 @@ static inline
 double skx_frontend_bound(const double CPU_CLK_UNHALTED_THREAD,
                           const double IDQ_UOPS_NOT_DELIVERED_CORE){
 			
-
         const double term1 = 4.0*CPU_CLK_UNHALTED_THREAD;
 	return (100.0*IDQ_UOPS_NOT_DELIVERED_CORE/term1);
 }
