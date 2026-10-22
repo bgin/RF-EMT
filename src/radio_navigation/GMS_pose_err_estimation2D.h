@@ -87,7 +87,7 @@ namespace gms
 namespace radio_navigation
 {
 
-alignas(64) struct pose_err_estimation_2D_compare_t
+ struct alignas(64) pose_err_estimation_2D_compare_t
 {
         std::size_t m_nvals;
         std::vector<bool> m_r1_state_comp;
@@ -175,7 +175,7 @@ alignas(64) struct pose_err_estimation_2D_compare_t
 };
 
 /* Valid only for the Gaussian PDF prior assumption!!*/
-alignas(64) struct pose_err_estimation_2D_t
+ struct alignas(64) pose_err_estimation_2D_t
 {
     std::size_t    m_nsteps;
     darray_r4_t    m_r1; // true pose radius       (output-state)
