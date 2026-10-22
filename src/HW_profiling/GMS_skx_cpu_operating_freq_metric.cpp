@@ -109,8 +109,6 @@ void
 vectorized_uint64_to_double_avx512(const std::uint64_t* __restrict src, double* __restrict dst, std::size_t size) {
     std::size_t i = 0ull;
 
-    // 1. PEEL LOOP: Align the destination pointer to 64 bytes to guarantee optimal streaming stores
-    // Aligning 'dst' is generally preferred since write-combining and store ports are highly sensitive to cache-line splits.
     std::size_t dst_addr = reinterpret_cast<std::size_t>(dst);
     if (dst_addr % 64ull != 0 && size > 0) {
         std::size_t alignment_offset = (64ull - (dst_addr % 64ull)) / sizeof(double);
@@ -121,9 +119,6 @@ vectorized_uint64_to_double_avx512(const std::uint64_t* __restrict src, double* 
         }
     }
 
-    // 2. MAIN UNROLLED KERNEL: Process 64 elements per loop iteration
-    // Each ZMM register holds 8 uint64_t/double elements. Unrolling 8x uses ZMM0-ZMM7.
-    // This depth hides the ~4-5 cycle latency of _mm512_cvtepu64_pd.
     constexpr std::size_t UNROLL_FACTOR = 8ull;
     constexpr std::size_t ELEMENTS_PER_REG = 8ull;
     constexpr std::size_t LOOP_STRIDE = UNROLL_FACTOR * ELEMENTS_PER_REG; // 64 elements
@@ -149,7 +144,6 @@ vectorized_uint64_to_double_avx512(const std::uint64_t* __restrict src, double* 
             __m512i src6 = _mm512_loadu_si512(reinterpret_cast<const __m512i*>(src + idx48));
             __m512i src7 = _mm512_loadu_si512(reinterpret_cast<const __m512i*>(src + idx56));
 
-            // Native hardware translation: uint64_t -> double via vcvtuqq2pd
             __m512d dst0 = _mm512_cvtepu64_pd(src0);
             __m512d dst1 = _mm512_cvtepu64_pd(src1);
             __m512d dst2 = _mm512_cvtepu64_pd(src2);
@@ -159,7 +153,6 @@ vectorized_uint64_to_double_avx512(const std::uint64_t* __restrict src, double* 
             __m512d dst6 = _mm512_cvtepu64_pd(src6);
             __m512d dst7 = _mm512_cvtepu64_pd(src7);
 
-            // Aligned streaming or standard stores (since dst is forced to 64-byte alignment via peel)
             _mm512_store_pd(dst + idx0, dst0);
             _mm512_store_pd(dst + idx8, dst1);
             _mm512_store_pd(dst + idx16, dst2);
@@ -171,20 +164,17 @@ vectorized_uint64_to_double_avx512(const std::uint64_t* __restrict src, double* 
         }
     }
 
-    // 3. VECTOR REMAINDER LOOP: Convert chunks of 8 elements at a time
     for (; i + ELEMENTS_PER_REG <= size; i += ELEMENTS_PER_REG) {
         __m512i src_rem = _mm512_loadu_si512(reinterpret_cast<const __m512i*>(src + i));
         __m512d dst_rem = _mm512_cvtepu64_pd(src_rem);
         _mm512_storeu_pd(dst + i, dst_rem); // Use unaligned store here as loop stride is smaller than alignment constraints
     }
 
-    // 4. SCALAR MASK / TAIL CLEANUP: Handle remaining < 8 elements
     if (i < size) {
         std::size_t remaining = size - i;
         // Generate a tail mask based on the remaining elements
         __mmask8 mask = (__mmask8)((1U << remaining) - 1U);
 
-        // Masked load, conversion, and store to completely avoid faults and scalar fallback branches
         __m512i src_tail = _mm512_maskz_loadu_epi64(mask, src + i);
         __m512d dst_tail = _mm512_cvtepu64_pd(src_tail);
         _mm512_mask_storeu_pd(dst + i, mask, dst_tail);
