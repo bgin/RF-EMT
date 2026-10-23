@@ -39,6 +39,10 @@ namespace file_info
      static const char GMS_SKX_CPU_UTILIZATION_METRIC_SYNOPSIS[]      = "Preprocessing of Skylake-X (uarch:server) CPU CORE UTILIZATION metric.";
 }
 
+#if !defined(SKX_CPU_UTILIZATION_METRIC_VERBOSE)
+#define SKX_CPU_UTILIZATION_METRIC_VERBOSE 0
+#endif 
+
 namespace gms
 {
 
@@ -62,7 +66,7 @@ struct alignas(64) SKX_cpu_core_utilization_t
     double                m_a_normality; // Shapiro-Wilk normality test
     double                m_b_normality; // Shapiro-Wilk normality test
     double                m_c_normality; // Shapiro-Wilk normality test
-    std::uint32_t         m_cpuid_basic[8]; //basic cpuid info
+    std::uint32_t         m_cpuid_basic[8] = {0}; //basic cpuid info
     struct alignas(64)    metric_metadata_t
     {
        const std::string     m_brief_descr = "Percentage of time spent in the active CPU power state C0";
@@ -155,7 +159,7 @@ struct alignas(64) SKX_cpu_core_utilization_t
     __ATTR_HOT__ 
     __ATTR_ALIGN__(32)
     std::int32_t 
-        parse_cpuid_basic_info();
+        parse_cpuid_basic_info(const bool);
 
     __ATTR_HOT__
     __ATTR_ALIGN__(32)
