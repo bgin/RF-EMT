@@ -43,7 +43,7 @@ This directory contains the electromagnetic-modeling, scattering, and radar-anal
 
 | File / entry | Type | Short description |
 | --- | --- | --- |
-| `Antenna/` | Directory | Antenna-related implementation area |
+| `Antenna/` | Directory | Antenna-related analytical radiation patterns coupled with statistical modeling. |
 | `EOS/` | Directory | Equation-of-state or electromagnetic/material modeling submodule. |
 | `FDTD/` | Directory | Finite-difference time-domain implementations and related routines. |
 | `RCS/` | Directory | Radar cross-section (RCS) analysis submodule. |
