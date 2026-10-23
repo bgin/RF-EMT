@@ -107,7 +107,7 @@ void unit_test_constructors()
     printf_retv = std::printf("   SKX_cpu_operating_frequency_t class constructors test\n");
     printf_retv = std::printf("===============================================================\n");
 
-    printf_retv = std::printf("[1] ============== Test Default Constuctor =============\n");
+    printf_retv = std::printf("[1] ============== Test Default Constructor =============\n");
     {
         SKX_cpu_operating_frequency_t default_ctor;
         printf_retv = std::printf("m_nruns=%llu\n",default_ctor.m_nruns);
@@ -135,7 +135,7 @@ void unit_test_constructors()
         printf_retv = std::printf("m_scale_unit=%s\n",default_ctor.metadata_t.m_scale_unit.c_str());
     }
 
-     printf_retv = std::printf("[2] ============== Test Multi-argument Constuctor =============\n");
+     printf_retv = std::printf("[2] ============== Test Multi-argument Constructor =============\n");
     {
         constexpr std::size_t nruns = 50ull;
         constexpr std::size_t nsamples = 1000ull;
