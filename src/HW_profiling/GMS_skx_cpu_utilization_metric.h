@@ -163,7 +163,7 @@ struct alignas(64) SKX_cpu_core_utilization_t
 
     __ATTR_HOT__
     __ATTR_ALIGN__(32)
-    std::int32_t compute_metric_u4x() noexcept(true);
+    std::int32_t compute_metric_u4x(const bool) noexcept(true);
          
 };
 
