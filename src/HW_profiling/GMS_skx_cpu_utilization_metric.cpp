@@ -514,7 +514,7 @@ gms::hw_profiling
 std::int32_t 
 gms::hw_profiling
 ::SKX_cpu_core_utilization_t
-::compute_metric_u4x() noexcept(true) 
+::compute_metric_u4x(const bool kernel_mode_utilization) noexcept(true) 
 {
     std::size_t i,j;
     double a0;
@@ -529,41 +529,84 @@ gms::hw_profiling
     if(__builtin_expect(this->m_totsamples>=1ull,0) && 
        __builtin_expect(this->m_totsamples<=4ull,0))
     {
-        for(i = 0ull; i<this->m_totsamples; ++i) 
+        if(kernel_mode_utilization==true)
         {
-            a0 = this->m_a.operator[](i);
-            b0 = this->m_b.operator[](i);
-            this->m_c.operator[](i) = skx_cpu_utilization(a0,b0);
+           for(i = 0ull; i<this->m_totsamples; ++i) 
+           {
+               a0 = this->m_a.operator[](i);
+               b0 = this->m_b.operator[](i);
+               this->m_c.operator[](i) = skx_cpu_utilization_kernel(a0,b0);
+           }
+        }
+        else
+        {
+            for(i = 0ull; i<this->m_totsamples; ++i) 
+            {
+               a0 = this->m_a.operator[](i);
+               b0 = this->m_b.operator[](i);
+               this->m_c.operator[](i) = skx_cpu_utilization(a0,b0);
+            }
         }
         ret_status = 1;
         return (ret_status);
     }
     else if(__builtin_expect(this->m_totsamples>4ull,1))
-    {
-        for(i = 0ull; i!=ROUND_DOWN(this->m_totsamples,3ull); i += 4ull) 
+    {   
+        if(kernel_mode_utilization==true)
         {
-            std::size_t idx1 = i+1ull;
-            std::size_t idx2 = i+2ull;
-            std::size_t idx3 = i+3ull;
-            a0 = this->m_a.operator[](i);
-            b0 = this->m_b.operator[](i);
-            this->m_c.operator[](i) = skx_cpu_utilization(a0,b0);
-            a1 = this->m_a.operator[](idx1);
-            b1 = this->m_b.operator[](idx1);
-            this->m_c.operator[](idx1) = skx_cpu_utilization(a1,b1);
-            a2 = this->m_a.operator[](idx2);
-            b2 = this->m_b.operator[](idx2);
-            this->m_c.operator[](idx2) = skx_cpu_utilization(a2,b2);
-            a3 = this->m_a.operator[](idx3);
-            b3 = this->m_b.operator[](idx3);
-            this->m_c.operator[](idx3) = skx_cpu_utilization(a3,b3);
-        }
+            for(i = 0ull; i!=ROUND_DOWN(this->m_totsamples,3ull); i += 4ull) 
+            {
+                std::size_t idx1 = i+1ull;
+                std::size_t idx2 = i+2ull;
+                std::size_t idx3 = i+3ull;
+                a0 = this->m_a.operator[](i);
+                b0 = this->m_b.operator[](i);
+                this->m_c.operator[](i) = skx_cpu_utilization_kernel(a0,b0);
+                a1 = this->m_a.operator[](idx1);
+                b1 = this->m_b.operator[](idx1);
+                this->m_c.operator[](idx1) = skx_cpu_utilization_kernel(a1,b1);
+                a2 = this->m_a.operator[](idx2);
+                b2 = this->m_b.operator[](idx2);
+                this->m_c.operator[](idx2) = skx_cpu_utilization_kernel(a2,b2);
+                a3 = this->m_a.operator[](idx3);
+                b3 = this->m_b.operator[](idx3);
+                this->m_c.operator[](idx3) = skx_cpu_utilization_kernel(a3,b3);
+           }
 
-        for(j = i; j<this->m_totsamples; ++j)  
+           for(j = i; j<this->m_totsamples; ++j)  
+           {
+                a0 = this->m_a.operator[](j);
+                b0 = this->m_b.operator[](j);
+                this->m_c.operator[](j) = skx_cpu_utilization_kernel(a0,b0);
+           }
+        }
+        else 
         {
-            a0 = this->m_a.operator[](j);
-            b0 = this->m_b.operator[](j);
-            this->m_c.operator[](j) = skx_cpu_utilization(a0,b0);
+            for(i = 0ull; i!=ROUND_DOWN(this->m_totsamples,3ull); i += 4ull) 
+            {
+                std::size_t idx1 = i+1ull;
+                std::size_t idx2 = i+2ull;
+                std::size_t idx3 = i+3ull;
+                a0 = this->m_a.operator[](i);
+                b0 = this->m_b.operator[](i);
+                this->m_c.operator[](i) = skx_cpu_utilization(a0,b0);
+                a1 = this->m_a.operator[](idx1);
+                b1 = this->m_b.operator[](idx1);
+                this->m_c.operator[](idx1) = skx_cpu_utilization(a1,b1);
+                a2 = this->m_a.operator[](idx2);
+                b2 = this->m_b.operator[](idx2);
+                this->m_c.operator[](idx2) = skx_cpu_utilization(a2,b2);
+                a3 = this->m_a.operator[](idx3);
+                b3 = this->m_b.operator[](idx3);
+                this->m_c.operator[](idx3) = skx_cpu_utilization(a3,b3);
+           }
+
+           for(j = i; j<this->m_totsamples; ++j)  
+           {
+                a0 = this->m_a.operator[](j);
+                b0 = this->m_b.operator[](j);
+                this->m_c.operator[](j) = skx_cpu_utilization(a0,b0);
+           }
         }
         ret_status = 2;
         return (ret_status);
