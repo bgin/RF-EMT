@@ -43,8 +43,8 @@ This directory contains the electromagnetic-modeling, scattering, and radar-anal
 
 | File / entry | Type | Short description |
 | --- | --- | --- |
-| `Antenna/` | Directory | Antenna-related analytical radiation patterns coupled with statistical modeling. |
-| `EOS/` | Directory | Equation-of-state or electromagnetic/material modeling submodule. |
+| `Antenna/` | Directory | Antenna-related analytical radiation patterns coupled with statistical modelling. |
+| `EOS/` | Directory | Electro-optical(EO) Sensor simulation and modelling. |
 | `FDTD/` | Directory | Finite-difference time-domain implementations and related routines. |
 | `RCS/` | Directory | Radar cross-section (RCS) analysis submodule. |
 | `GMS_em_fields_types.h` | Header | Core type definitions used by the electromagnetic field kernels and vectorized code. |
