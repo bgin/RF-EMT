@@ -121,7 +121,6 @@ inline MatrixXd kron(const MatrixXd& A, const MatrixXd& B)
 
 inline MatrixXd sqrtm(const MatrixXd& A)
 {
-    // For the PSD matrices used in the original M-files, this is appropriate.
     Eigen::SelfAdjointEigenSolver<MatrixXd> es(A);
     if (es.info() != Eigen::Success)
         throw std::runtime_error("sqrtm(): eigen decomposition failed");
@@ -163,9 +162,6 @@ inline MatrixXd diff(const MatrixXd& M)
     return out;
 }
 
-// ---------------------------
-// Proper StateSpace wrapper
-// ---------------------------
 
 struct StateSpace
 {
@@ -200,9 +196,6 @@ inline std::tuple<MatrixXd, MatrixXd, MatrixXd, MatrixXd> ssdata(const StateSpac
     return sys.ssdata();
 }
 
-// ---------------------------
-// Discretization c2d
-// ---------------------------
 
 inline StateSpace c2d(const StateSpace& sys, double Ts, bool zeroOrderHold = true)
 {
@@ -213,7 +206,7 @@ inline StateSpace c2d(const StateSpace& sys, double Ts, bool zeroOrderHold = tru
     if (n != sys.A.cols())
         throw std::invalid_argument("c2d(): A must be square");
 
-    // Exact discretization using augmented matrix exponential:
+    
     // [A  B]
     // [0  0] * Ts
     // expm( [A B; 0 0]*Ts ) = [Phi Gamma; 0 I]
@@ -226,7 +219,6 @@ inline StateSpace c2d(const StateSpace& sys, double Ts, bool zeroOrderHold = tru
     MatrixXd Phi = E.block(0, 0, n, n);
     MatrixXd Gamma = E.block(0, n, n, m);
 
-    // For direct feedthrough, D is preserved for discrete time at sample times.
     // Exact ZOH gives y[k] = C * x[k] + D * u[k]
     MatrixXd Dd = sys.D;
     return StateSpace(Phi, Gamma, sys.C, Dd);
@@ -276,7 +268,6 @@ inline MatrixXd dlqr(const MatrixXd& A,
     return inv(M) * T;
 }
 
-// MATLAB-style alias (same as dlqr)
 inline MatrixXd lqr(const MatrixXd& A,
                     const MatrixXd& B,
                     const MatrixXd& Q,
@@ -291,7 +282,6 @@ inline MatrixXd lqr(const MatrixXd& A,
 // ---------------------------
 // For x_{k+1} = A x_k + G w_k
 //     y_k = C x_k + v_k
-// with covariances W and V
 inline MatrixXd dlqe(const MatrixXd& A,
                      const MatrixXd& G,
                      const MatrixXd& C,
@@ -325,7 +315,7 @@ inline MatrixXd dlqe(const MatrixXd& A,
     return A * P * C.transpose() * inv(S);
 }
 
-// MATLAB-style alias
+
 inline MatrixXd lqe(const MatrixXd& A,
                     const MatrixXd& G,
                     const MatrixXd& C,
@@ -370,7 +360,6 @@ inline std::pair<MatrixXd, MatrixXd> lsim(const StateSpace& sys,
     return {X, Y};
 }
 
-// MATLAB "initial" wrapper, approximated via discrete simulation over a time grid
 inline std::pair<MatrixXd, MatrixXd> initial(const StateSpace& sys,
                                            const VectorXd& x0,
                                            double tf,
@@ -415,8 +404,7 @@ inline MatrixXd expm(const MatrixXd& A)
 // ---------------------------
 // MATLAB-like time-varying gain storage (3D arrays)
 // ---------------------------
-// In Eigen, the natural representation is std::vector<MatrixXd>.
-// This is used for the original MATLAB arrays such as Kd(:,:,k), Sb(:,:,k), etc.
+
 using Matrix3D = std::vector<MatrixXd>;
 
 // ---------------------------
@@ -476,8 +464,7 @@ inline DbatResult dbat_u(const MatrixXd& Ph,
         Cpieces.push_back(Cs * Z2 * Gw);
     }
     for (int k = 0; k < Ns; ++k) {
-        // This follows the same row-block/column-block pattern used in MATLAB
-        // by placing the appropriate Cpiece into the right-side blocks.
+       
         int col0 = (Ns - 1 - k) * nd;
         int row0 = k * nm;
         Cyw.block(row0, col0, nm, nd) = Cpieces[k];
@@ -644,9 +631,6 @@ inline DbatResult dbat_u(const MatrixXd& Ph,
     return out;
 }
 
-// ---------------------------
-// 2) dbat.m translation
-// ---------------------------
 
 // Same structure as dbat_u but without u input.
 inline DbatResult dbat(const MatrixXd& Ph,
@@ -798,9 +782,6 @@ inline DbatResult dbat(const MatrixXd& Ph,
     return out;
 }
 
-// ---------------------------
-// 3) tdfcf_cn.m translation
-// ---------------------------
 
 struct TdfcfCnResult
 {
@@ -983,9 +964,6 @@ inline TdfcfCnResult tdfcf_cn(const MatrixXd& Ph,
     return out;
 }
 
-// ---------------------------
-// 4) lqg.m translation
-// ---------------------------
 
 struct LqgResult
 {
@@ -1055,9 +1033,6 @@ inline LqgResult lqg(const MatrixXd& A,
     return out;
 }
 
-// ---------------------------
-// A small helper for Lyapunov-like steady state solves
-// ---------------------------
 
 inline MatrixXd lyapunov_discrete(const MatrixXd& A, const MatrixXd& Q)
 {
