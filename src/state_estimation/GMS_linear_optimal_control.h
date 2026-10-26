@@ -45,12 +45,31 @@ Applied Linear Optimal Control: Examples and Algorithms
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
 #include <unsupported/Eigen/MatrixFunctions>
+#include <Eigen/KroneckerProduct>
 #include <cmath>
 #include <random>
 #include <stdexcept>
 #include <tuple>
 #include <vector>
 #include "GMS_config.h"
+
+namespace file_info 
+{
+
+     static const unsigned int GMS_LINEAR_OPTIMAL_CONTROL_MAJOR = 1;
+     static const unsigned int GMS_LINEAR_OPTIMAL_CONTROL_MINOR = 1;
+     static const unsigned int GMS_LINEAR_OPTIMAL_CONTROL_MICRO = 0;
+     static const unsigned int GMS_LINEAR_OPTIMAL_CONTROL_FULLVER =
+       1000U*GMS_LINEAR_OPTIMAL_CONTROL_MAJOR+100U*GMS_LINEAR_OPTIMAL_CONTROL_MINOR+
+       10U*GMS_LINEAR_OPTIMAL_CONTROL_MICRO;
+     static const char GMS_LINEAR_OPTIMAL_CONTROL_CREATION_DATE[]  = "24-10-2026 07:45PM +00200 (SAT 24 OCT 2026 GMT+2)";
+     static const char GMS_LINEAR_OPTIMAL_CONTROL_BUILD_DATE[]    = __DATE__; 
+     static const char GMS_LINEAR_OPTIMAL_CONTROL_BUILD_TIME[]    = __TIME__;
+     static const char GMS_LINEAR_OPTIMAL_CONTROL_AUTHOR[]        = "Programmer: Bernard Gingold, beniekg@gmail.com, \
+                                                                     Adapted from the Matlab original implementation, being a part of the book: \
+                                                                     Applied Linear Optimal Control: Examples and Algorithms, by Bryson A.E.";
+     static const char GMS_LINEAR_OPTIMAL_CONTROL_SYNOPSIS[]      = "Linear optimal control essential routines.";
+}
 
 namespace gms
 {
@@ -67,31 +86,37 @@ using VectorXi = Eigen::VectorXi;
 // Basic MATLAB-like helpers
 // ---------------------------
 
+__ATTR_ALWAYS_INLINE__
 inline MatrixXd zeros(int r, int c)
 {
     return MatrixXd::Zero(r, c);
 }
 
+__ATTR_ALWAYS_INLINE__
 inline VectorXd zeros_vec(int n)
 {
     return VectorXd::Zero(n);
 }
 
+__ATTR_ALWAYS_INLINE__
 inline MatrixXd eye(int n)
 {
     return MatrixXd::Identity(n, n);
 }
 
+__ATTR_ALWAYS_INLINE__
 inline MatrixXd ones(int r, int c)
 {
     return MatrixXd::Ones(r, c);
 }
 
+__ATTR_ALWAYS_INLINE__
 inline VectorXd ones_vec(int n)
 {
     return VectorXd::Ones(n);
 }
 
+__ATTR_ALWAYS_INLINE__
 inline MatrixXd inv(const MatrixXd& A)
 {
     if (A.rows() != A.cols())
@@ -104,6 +129,7 @@ inline MatrixXd inv(const MatrixXd& A)
     return lu.inverse();
 }
 
+__ATTR_ALWAYS_INLINE__
 inline MatrixXd transpose(const MatrixXd& A)
 {
     return A.transpose();
@@ -121,6 +147,7 @@ inline MatrixXd kron(const MatrixXd& A, const MatrixXd& B)
 
 inline MatrixXd sqrtm(const MatrixXd& A)
 {
+    // For the PSD matrices used in the original M-files, this is appropriate.
     Eigen::SelfAdjointEigenSolver<MatrixXd> es(A);
     if (es.info() != Eigen::Success)
         throw std::runtime_error("sqrtm(): eigen decomposition failed");
@@ -163,32 +190,57 @@ inline MatrixXd diff(const MatrixXd& M)
 }
 
 
-struct StateSpace
+
+// ---------------------------
+// Proper StateSpace wrapper
+// ---------------------------
+
+struct alignas(64) StateSpace
 {
-    MatrixXd A, B, C, D;
+    MatrixXd A; 
+    MatrixXd B; 
+    MatrixXd C; 
+    MatrixXd D;
 
     StateSpace() = default;
 
-    StateSpace(const MatrixXd& A_, const MatrixXd& B_, const MatrixXd& C_, const MatrixXd& D_)
-        : A(A_), B(B_), C(C_), D(D_)
+    StateSpace(const MatrixXd& A_, 
+               const MatrixXd& B_, 
+               const MatrixXd& C_, 
+               const MatrixXd& D_) noexcept(false)
+        : 
+        A(A_), 
+        B(B_), 
+        C(C_), 
+        D(D_)
     {
+
     }
+
+    StateSpace(MatrixXd &&A_, 
+               MatrixXd &&B_, 
+               MatrixXd &&C_, 
+               MatrixXd &&D_) noexcept(true)
+        :
+        A(std::move(A_)),
+        B(std::move(B_)),
+        C(std::move(C_)),
+        D(std::move(D_))
+    {
+
+    }
+
+    ~StateSpace()
+    {
+
+    }
+        
 
     std::tuple<MatrixXd, MatrixXd, MatrixXd, MatrixXd> ssdata() const
     {
         return {A, B, C, D};
     }
 
-    StateSpace discretize(double Ts) const
-    {
-        return c2d(*this, Ts);
-    }
-
-    // For discrete-time state-space only.
-    std::pair<MatrixXd, MatrixXd> simulate(const MatrixXd& U, const VectorXd& x0) const
-    {
-        return lsim(*this, U, x0);
-    }
 };
 
 inline std::tuple<MatrixXd, MatrixXd, MatrixXd, MatrixXd> ssdata(const StateSpace& sys)
@@ -196,7 +248,7 @@ inline std::tuple<MatrixXd, MatrixXd, MatrixXd, MatrixXd> ssdata(const StateSpac
     return sys.ssdata();
 }
 
-
+// discretization.
 inline StateSpace c2d(const StateSpace& sys, double Ts, bool zeroOrderHold = true)
 {
     const int n = sys.A.rows();
@@ -206,7 +258,7 @@ inline StateSpace c2d(const StateSpace& sys, double Ts, bool zeroOrderHold = tru
     if (n != sys.A.cols())
         throw std::invalid_argument("c2d(): A must be square");
 
-    
+    // Exact discretization using augmented matrix exponential:
     // [A  B]
     // [0  0] * Ts
     // expm( [A B; 0 0]*Ts ) = [Phi Gamma; 0 I]
@@ -219,6 +271,7 @@ inline StateSpace c2d(const StateSpace& sys, double Ts, bool zeroOrderHold = tru
     MatrixXd Phi = E.block(0, 0, n, n);
     MatrixXd Gamma = E.block(0, n, n, m);
 
+    // For direct feedthrough, D is preserved for discrete time at sample times.
     // Exact ZOH gives y[k] = C * x[k] + D * u[k]
     MatrixXd Dd = sys.D;
     return StateSpace(Phi, Gamma, sys.C, Dd);
@@ -268,6 +321,7 @@ inline MatrixXd dlqr(const MatrixXd& A,
     return inv(M) * T;
 }
 
+// MATLAB-style alias (same as dlqr)
 inline MatrixXd lqr(const MatrixXd& A,
                     const MatrixXd& B,
                     const MatrixXd& Q,
@@ -282,6 +336,7 @@ inline MatrixXd lqr(const MatrixXd& A,
 // ---------------------------
 // For x_{k+1} = A x_k + G w_k
 //     y_k = C x_k + v_k
+// with covariances W and V
 inline MatrixXd dlqe(const MatrixXd& A,
                      const MatrixXd& G,
                      const MatrixXd& C,
@@ -315,7 +370,7 @@ inline MatrixXd dlqe(const MatrixXd& A,
     return A * P * C.transpose() * inv(S);
 }
 
-
+// MATLAB-style alias
 inline MatrixXd lqe(const MatrixXd& A,
                     const MatrixXd& G,
                     const MatrixXd& C,
@@ -360,6 +415,7 @@ inline std::pair<MatrixXd, MatrixXd> lsim(const StateSpace& sys,
     return {X, Y};
 }
 
+// MATLAB "initial" wrapper, approximated via discrete simulation over a time grid
 inline std::pair<MatrixXd, MatrixXd> initial(const StateSpace& sys,
                                            const VectorXd& x0,
                                            double tf,
@@ -404,7 +460,8 @@ inline MatrixXd expm(const MatrixXd& A)
 // ---------------------------
 // MATLAB-like time-varying gain storage (3D arrays)
 // ---------------------------
-
+// In Eigen, the natural representation is std::vector<MatrixXd>.
+// This is used for the original MATLAB arrays such as Kd(:,:,k), Sb(:,:,k), etc.
 using Matrix3D = std::vector<MatrixXd>;
 
 // ---------------------------
@@ -464,7 +521,8 @@ inline DbatResult dbat_u(const MatrixXd& Ph,
         Cpieces.push_back(Cs * Z2 * Gw);
     }
     for (int k = 0; k < Ns; ++k) {
-       
+        // This follows the same row-block/column-block pattern used in MATLAB
+        // by placing the appropriate Cpiece into the right-side blocks.
         int col0 = (Ns - 1 - k) * nd;
         int row0 = k * nm;
         Cyw.block(row0, col0, nm, nd) = Cpieces[k];
@@ -631,6 +689,9 @@ inline DbatResult dbat_u(const MatrixXd& Ph,
     return out;
 }
 
+// ---------------------------
+// 2) dbat.m translation
+// ---------------------------
 
 // Same structure as dbat_u but without u input.
 inline DbatResult dbat(const MatrixXd& Ph,
@@ -782,6 +843,9 @@ inline DbatResult dbat(const MatrixXd& Ph,
     return out;
 }
 
+// ---------------------------
+// 3) tdfcf_cn.m translation
+// ---------------------------
 
 struct TdfcfCnResult
 {
@@ -964,6 +1028,9 @@ inline TdfcfCnResult tdfcf_cn(const MatrixXd& Ph,
     return out;
 }
 
+// ---------------------------
+// 4) lqg.m translation
+// ---------------------------
 
 struct LqgResult
 {
@@ -984,6 +1051,42 @@ struct LqgResult
     MatrixXd L;
     VectorXd ev;
 };
+
+// ---------------------------
+// A small helper for Lyapunov-like steady state solves
+// ---------------------------
+
+inline MatrixXd lyapunov_discrete(const MatrixXd& A, const MatrixXd& Q)
+{
+    // Solve X = A X A^T + Q
+    MatrixXd X = Q;
+    for (int it = 0; it < 100; ++it) {
+        MatrixXd Xnext = A * X * A.transpose() + Q;
+        if ((Xnext - X).norm() < 1e-12)
+            return Xnext;
+        X = Xnext;
+    }
+    return X;
+}
+
+inline MatrixXd GausssianRiccatiApprox(const MatrixXd& A,
+                                      const MatrixXd& G,
+                                      const MatrixXd& C,
+                                      const MatrixXd& W,
+                                      const MatrixXd& V)
+{
+    MatrixXd P = G * W * G.transpose();
+    for (int it = 0; it < 100; ++it) {
+        MatrixXd S = C * P * C.transpose() + V;
+        MatrixXd Pnext = A * P * A.transpose()
+            + G * W * G.transpose()
+            - A * P * C.transpose() * inv(S) * C * P * A.transpose();
+        if ((Pnext - P).norm() < 1e-12)
+            return Pnext;
+        P = Pnext;
+    }
+    return P;
+}
 
 inline LqgResult lqg(const MatrixXd& A,
                      const MatrixXd& Bu,
@@ -1032,40 +1135,6 @@ inline LqgResult lqg(const MatrixXd& A,
 
     return out;
 }
-
-
-inline MatrixXd lyapunov_discrete(const MatrixXd& A, const MatrixXd& Q)
-{
-    // Solve X = A X A^T + Q
-    MatrixXd X = Q;
-    for (int it = 0; it < 100; ++it) {
-        MatrixXd Xnext = A * X * A.transpose() + Q;
-        if ((Xnext - X).norm() < 1e-12)
-            return Xnext;
-        X = Xnext;
-    }
-    return X;
-}
-
-inline MatrixXd GausssianRiccatiApprox(const MatrixXd& A,
-                                      const MatrixXd& G,
-                                      const MatrixXd& C,
-                                      const MatrixXd& W,
-                                      const MatrixXd& V)
-{
-    MatrixXd P = G * W * G.transpose();
-    for (int it = 0; it < 100; ++it) {
-        MatrixXd S = C * P * C.transpose() + V;
-        MatrixXd Pnext = A * P * A.transpose()
-            + G * W * G.transpose()
-            - A * P * C.transpose() * inv(S) * C * P * A.transpose();
-        if ((Pnext - P).norm() < 1e-12)
-            return Pnext;
-        P = Pnext;
-    }
-    return P;
-}
-
 
 } // namespace state_space
 } // namespace gms
