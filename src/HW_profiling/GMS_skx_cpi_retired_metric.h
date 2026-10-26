@@ -21,8 +21,10 @@
 #include <cstdint>
 #include <string>
 #include <valarray> // used instead of vector for non-runtime relocatable guarantee
+#if 0 /*Currently inactive due to compilation errors (g++,icpc)*/
 #if !defined(__ICC) || !defined(__INTEL_COMPILER)
 #include <boost/histogram.hpp>
+#endif 
 #endif 
 #include "GMS_config.h"
 
