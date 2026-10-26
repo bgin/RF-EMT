@@ -21,6 +21,9 @@
 #include <cstdint>
 #include <string>
 #include <valarray> // used instead of vector for non-runtime relocatable guarantee
+#if !defined(__ICC) || !defined(__INTEL_COMPILER)
+#include <boost/histogram.hpp>
+#endif 
 #include "GMS_config.h"
 
 namespace file_info 
@@ -49,6 +52,64 @@ namespace gms
 namespace hw_profiling
 {
 
+/*
+//////////////// Begin: put this in header file ////////////////////
+
+#include <algorithm>           // std::max_element
+#include <boost/format.hpp>    // only needed for printing
+#include <boost/histogram.hpp> // make_histogram, integer, indexed
+#include <iostream>            // std::cout, std::endl
+#include <sstream>             // std::ostringstream
+#include <tuple>
+#include <vector>
+
+// use this when axis configuration is fix to get highest performance
+struct HolderOfStaticHistogram {
+  // put axis types here
+  using axes_t = std::tuple<
+    boost::histogram::axis::regular<>,
+    boost::histogram::axis::integer<>
+  >;
+  using hist_t = boost::histogram::histogram<axes_t>;
+  hist_t hist_;
+};
+
+// use this when axis configuration should be flexible
+struct HolderOfDynamicHistogram {
+  // put all axis types here that you are going to use
+  using axis_t = boost::histogram::axis::variant<
+    boost::histogram::axis::regular<>,
+    boost::histogram::axis::variable<>,
+    boost::histogram::axis::integer<>
+  >;
+  using axes_t = std::vector<axis_t>;
+  using hist_t = boost::histogram::histogram<axes_t>;
+  hist_t hist_;
+};
+
+//////////////// End: put this in header file ////////////////////
+
+int main() {
+  using namespace boost::histogram;
+
+  HolderOfStaticHistogram hs;
+  hs.hist_ = make_histogram(axis::regular<>(5, 0, 1), axis::integer<>(0, 3));
+  // now assign a different histogram
+  hs.hist_ = make_histogram(axis::regular<>(3, 1, 2), axis::integer<>(4, 6));
+  // hs.hist_ = make_histogram(axis::regular<>(5, 0, 1)); does not work;
+  // the static histogram cannot change the number or order of axis types
+
+  HolderOfDynamicHistogram hd;
+  hd.hist_ = make_histogram(axis::regular<>(5, 0, 1), axis::integer<>(0, 3));
+  // now assign a different histogram
+  hd.hist_ = make_histogram(axis::regular<>(3, -1, 2));
+  // and assign another
+  hd.hist_ = make_histogram(axis::integer<>(0, 5), axis::integer<>(3, 5));
+}
+*/
+
+
+
 struct alignas(64) SKX_cpu_cpi_retired_t 
 {
     
@@ -67,6 +128,17 @@ struct alignas(64) SKX_cpu_cpi_retired_t
     double                m_b_normality; // Shapiro-Wilk normality test
     double                m_c_normality; // Shapiro-Wilk normality test
     std::uint32_t         m_cpuid_basic[8] = {0}; //basic cpuid info
+#if 0 /*Boost Histogram compilation error!!*/
+#if !defined(__ICC) && !defined(__INTEL_COMPILER)
+    struct alignas(64) metric_histograms_t
+    {
+       using axis_reg_t = boost::histogram::axis::regular<>;
+       boost::histogram::histogram<axis_reg_t> m_hist_a;
+       boost::histogram::histogram<axis_reg_t> m_hist_b;
+       boost::histogram::histogram<axis_reg_t> m_hist_c;
+    } static m_histograms_t;
+#endif 
+#endif 
     struct alignas(64)    metric_metadata_t
     {
        const std::string     m_brief_descr = "Cycles per instruction retired; indicating how much time each executed instruction took; in units of cycles";
@@ -164,6 +236,18 @@ struct alignas(64) SKX_cpu_cpi_retired_t
     __ATTR_HOT__
     __ATTR_ALIGN__(32)
     std::int32_t compute_metric_u4x() noexcept(true);
+#if 0
+#if !defined(__ICC) || !defined(__INTEL_COMPILER)
+    __ATTR_HOT__
+    __ATTR_ALIGN__(32)
+    std::int32_t process_histogram_data(const double,
+                                        const double,
+                                        const double,
+                                        const double,
+                                        const double,
+                                        const double);
+#endif 
+#endif 
          
 };
 

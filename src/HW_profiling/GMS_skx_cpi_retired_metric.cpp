@@ -18,10 +18,9 @@
 
 #include <immintrin.h>
 #include <cpuid.h>
-#if (SKX_CPI_RETIRED_METRIC_VERBOSE) == 1
 #include <iostream>
 #include <iomanip>
-#endif
+#include <numeric>
 #include "GMS_skx_cpi_retired_metric.h"
 #include "GMS_skx_clk_hw_events_metrics.hpp"
 
@@ -572,3 +571,107 @@ gms::hw_profiling
     return (ret_status);
 }
 
+#if 0 /*Boost Histogram compilation errors (g++,icpc)*/
+#if !defined(__ICC) || !defined(__INTEL_COMPILER)
+std::int32_t 
+gms::hw_profiling
+::SKX_cpu_cpi_retired_t
+::process_histogram_data(const double lo_a,
+                         const double hi_a,
+                         const double lo_b,
+                         const double hi_b,
+                         const double lo_c,
+                         const double hi_c)
+{
+    namespace bh = boost::histogram;
+    std::int32_t ret_status = -9999;
+    if(__builtin_expect((hi_a-lo_a)<=0.0,0)) { ret_status = -1; return (ret_status);}
+    if(__builtin_expect((hi_b-lo_b)<=0.0,0)) { ret_status = -2; return (ret_status);}
+    if(__builtin_expect((hi_c-lo_c)<=0.0,0)) { ret_status = -3; return (ret_status);}
+    
+    this->m_histograms_t.m_hist_a = 
+        bh::make_histogram(bh::axis::regular<>(this->m_totsamples,lo_a,hi_a,"Event:CPU_CLK_UNHALTED.THREAD"));
+    this->m_histograms_t.m_hist_b = 
+        bh::make_histogram(bh::axis::regular<>(this->m_totsamples,lo_b,hi_b,"Event:INST_RETIRED.ANY"));
+    this->m_histograms_t.m_hist_a = 
+        bh::make_histogram(bh::axis::regular<>(this->m_totsamples,lo_c,hi_c,"Metric:CPU_CLK_UNHALTED.THREAD/INST_RETIRED.ANY"));
+    for(std::size_t i = 0ull; i<this->m_totsamples; ++i) 
+    {
+        this->m_histograms_t.m_hist_a(this->m_a.operator[](i));
+        this->m_histograms_t.m_hist_b(this->m_b.operator[](i));
+        this->m_histograms_t.m_hist_c(this->m_c.operator[](i));
+    }
+
+    std::cout << "\n=======================================================================" << std::endl;
+    std::cout << "      BOOST HISTOGRAM 1D STATISTICAL REPORT:       CPI Retired           " << std::endl;
+    std::cout << "=======================================================================" << std::endl;
+    std::cout << "   Magnitude Bin Range    |    Raw Hit Count    |    Relative Density  " << std::endl;
+    std::cout << "-----------------------------------------------------------------------" << std::endl;
+    double tot_cnt_samp_a = std::accumulate(this->m_histograms_t.m_hist_a.begin(),this->m_histograms_t.m_hist_a.end(),0.0);
+    double tot_cnt_samp_b = std::accumulate(this->m_histograms_t.m_hist_b.begin(),this->m_histograms_t.m_hist_b.end(),0.0);
+    double tot_cnt_samp_c = std::accumulate(this->m_histograms_t.m_hist_c.begin(),this->m_histograms_t.m_hist_c.end(),0.0);
+    std::int32_t active_rows_a = 0;
+    std::int32_t active_rows_b = 0;
+    std::int32_t active_rows_c = 0;
+    std::int32_t cnt_bin = 0;
+    for(auto&& cell : bh::indexed(this->m_histograms_t.m_hist_a))
+    {
+        auto bin       = cell.bin(cnt_bin++);
+        double count   = *cell;
+        double density = count/tot_cnt_samp_a;
+
+        if(count > 10.0)
+        {
+           std::cout  << "  [" << std::setw(5) << std::fixed << std::setprecision(2) << bin.lower()
+                      << ", " << std::setw(5) << bin.upper() << ")         |"
+                      << std::setw(15) << static_cast<size_t>(count) << "      |"
+                      << std::setw(17) << std::setprecision(5) << density << "\n";
+            active_rows_a++;
+        }
+    }
+    cnt_bin = 0;
+    for(auto&& cell : bh::indexed(this->m_histograms_t.m_hist_b))
+    {
+        auto bin       = cell.bin(cnt_bin++);
+        double count   = *cell;
+        double density = count/tot_cnt_samp_b;
+
+        if(count > 10.0)
+        {
+           std::cout  << "  [" << std::setw(5) << std::fixed << std::setprecision(2) << bin.lower()
+                      << ", " << std::setw(5) << bin.upper() << ")         |"
+                      << std::setw(15) << static_cast<size_t>(count) << "      |"
+                      << std::setw(17) << std::setprecision(5) << density << "\n";
+            active_rows_b++;
+        }
+    }
+    cnt_bin = 0;
+    for(auto&& cell : bh::indexed(this->m_histograms_t.m_hist_c))
+    {
+        auto bin       = cell.bin(cnt_bin++);
+        double count   = *cell;
+        double density = count/tot_cnt_samp_c;
+
+        if(count > 10.0)
+        {
+           std::cout  << "  [" << std::setw(5) << std::fixed << std::setprecision(2) << bin.lower()
+                      << ", " << std::setw(5) << bin.upper() << ")         |"
+                      << std::setw(15) << static_cast<size_t>(count) << "      |"
+                      << std::setw(17) << std::setprecision(5) << density << "\n";
+            active_rows_c++;
+        }
+    }
+    std::cout << "=======================================================================" << std::endl;
+    std::cout << "Total successfully indexed events: CPU_CLK_UNHALTED.THREAD: " << static_cast<std::size_t>(tot_cnt_samp_a) << std::endl;
+    std::cout << "Underflow count: " << hist.at(-1) << " | Overflow count: " << hist.at(hist.axis().size()) << std::endl;
+    std::cout << "=======================================================================" << std::endl;
+    std::cout << "Total successfully indexed events: INST_RETIRED.ANY: " << static_cast<std::size_t>(tot_cnt_samp_b) << std::endl;
+    std::cout << "Underflow count: " << hist.at(-1) << " | Overflow count: " << hist.at(hist.axis().size()) << std::endl;
+    std::cout << "=======================================================================" << std::endl;
+    std::cout << "Total successfully indexed metrics: CPU_CLK_UNHALTED.THREAD/INST_RETIRED.ANY: " << static_cast<std::size_t>(tot_cnt_samp_c) << std::endl;
+    std::cout << "Underflow count: " << hist.at(-1) << " | Overflow count: " << hist.at(hist.axis().size()) << std::endl;
+    std::cout << "=======================================================================" << std::endl;
+    return (0);
+}
+#endif 
+#endif 
