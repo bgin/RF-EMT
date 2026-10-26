@@ -45,7 +45,8 @@ Applied Linear Optimal Control: Examples and Algorithms
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
 #include <unsupported/Eigen/MatrixFunctions>
-#include <Eigen/KroneckerProduct>
+//#include <Eigen/KroneckerTensorProduct>
+#include<unsupported/Eigen/KroneckerProduct>
 #include <cmath>
 #include <random>
 #include <stdexcept>
