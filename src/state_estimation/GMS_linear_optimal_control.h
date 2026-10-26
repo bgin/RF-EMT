@@ -45,7 +45,7 @@ Applied Linear Optimal Control: Examples and Algorithms
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
 #include <unsupported/Eigen/MatrixFunctions>
-//#include <Eigen/KroneckerTensorProduct>
+/*This compiles*/
 #include<unsupported/Eigen/KroneckerProduct>
 #include <cmath>
 #include <random>
@@ -193,19 +193,51 @@ inline MatrixXd diff(const MatrixXd& M)
 
 
 // ---------------------------
-// Proper StateSpace wrapper
+// Proper state_space_t wrapper
 // ---------------------------
 
-struct alignas(64) StateSpace
+/*
+• A (State matrix): n × n (square matrix)
+• B (Input-to-state matrix): n × m
+• C (State-to-output matrix): p × n
+• D (Feedthrough / direct-transmission matrix): p × m
+
+Summary Table
+
+
+Matrix	Description	Size (Rows × Columns)
+A	State	n × n (n states)
+B	Input	n × m (m inputs)
+C	Output	p × n (p outputs)
+D	Feedthrough	p × m (p outputs, m inputs)
+
+
+Associated Vectors
+
+• x(t) or \(x_{k}\) (State vector): n × 1
+• u(t) or \(u_{k}\) (Input vector): m × 1
+• y(t) or \(y_{k}\) (Output vector): p × 1
+*/
+
+struct alignas(64) state_space_t
 {
+    std::int32_t m_n;
+    std::int32_t m_m;
+    std::int32_t m_p;
+    /* state matrix: size= n*n*/
     MatrixXd A; 
+    /* Input-to-state matrix: size= n*m*/
     MatrixXd B; 
+    /* State-to-output matrix: size=p*n*/
     MatrixXd C; 
+    /* Feedthtough matrix: size=p*m*/
     MatrixXd D;
 
-    StateSpace() = default;
+    state_space_t() = default;
 
-    StateSpace(const MatrixXd& A_, 
+
+
+    state_space_t(const MatrixXd& A_, 
                const MatrixXd& B_, 
                const MatrixXd& C_, 
                const MatrixXd& D_) noexcept(false)
@@ -218,7 +250,7 @@ struct alignas(64) StateSpace
 
     }
 
-    StateSpace(MatrixXd &&A_, 
+    state_space_t(MatrixXd &&A_, 
                MatrixXd &&B_, 
                MatrixXd &&C_, 
                MatrixXd &&D_) noexcept(true)
@@ -231,7 +263,7 @@ struct alignas(64) StateSpace
 
     }
 
-    ~StateSpace()
+    ~state_space_t()
     {
 
     }
@@ -244,13 +276,13 @@ struct alignas(64) StateSpace
 
 };
 
-inline std::tuple<MatrixXd, MatrixXd, MatrixXd, MatrixXd> ssdata(const StateSpace& sys)
+inline std::tuple<MatrixXd, MatrixXd, MatrixXd, MatrixXd> ssdata(const state_space_t& sys)
 {
     return sys.ssdata();
 }
 
 // discretization.
-inline StateSpace c2d(const StateSpace& sys, double Ts, bool zeroOrderHold = true)
+inline state_space_t c2d(const state_space_t& sys, double Ts, bool zeroOrderHold = true)
 {
     const int n = sys.A.rows();
     const int m = sys.B.cols();
@@ -275,7 +307,7 @@ inline StateSpace c2d(const StateSpace& sys, double Ts, bool zeroOrderHold = tru
     // For direct feedthrough, D is preserved for discrete time at sample times.
     // Exact ZOH gives y[k] = C * x[k] + D * u[k]
     MatrixXd Dd = sys.D;
-    return StateSpace(Phi, Gamma, sys.C, Dd);
+    return state_space_t(Phi, Gamma, sys.C, Dd);
 }
 
 // ---------------------------
@@ -387,7 +419,7 @@ inline MatrixXd lqe(const MatrixXd& A,
 // x[k+1] = A x[k] + B u[k]
 // y[k]   = C x[k] + D u[k]
 // U is m x N, x0 is n x 1
-inline std::pair<MatrixXd, MatrixXd> lsim(const StateSpace& sys,
+inline std::pair<MatrixXd, MatrixXd> lsim(const state_space_t& sys,
                                          const MatrixXd& U,
                                          const VectorXd& x0)
 {
@@ -417,7 +449,7 @@ inline std::pair<MatrixXd, MatrixXd> lsim(const StateSpace& sys,
 }
 
 // MATLAB "initial" wrapper, approximated via discrete simulation over a time grid
-inline std::pair<MatrixXd, MatrixXd> initial(const StateSpace& sys,
+inline std::pair<MatrixXd, MatrixXd> initial(const state_space_t& sys,
                                            const VectorXd& x0,
                                            double tf,
                                            int Ns = 100)
@@ -441,12 +473,12 @@ inline std::pair<MatrixXd, MatrixXd> initial(const StateSpace& sys,
 // MATLAB::ss() construction
 // ---------------------------
 
-inline StateSpace ss(const MatrixXd& A,
+inline state_space_t ss(const MatrixXd& A,
                     const MatrixXd& B,
                     const MatrixXd& C,
                     const MatrixXd& D)
 {
-    return StateSpace(A, B, C, D);
+    return state_space_t(A, B, C, D);
 }
 
 // ---------------------------
