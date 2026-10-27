@@ -193,7 +193,7 @@ inline MatrixXd diff(const MatrixXd& M)
 
 
 // ---------------------------
-// Proper state_space_t wrapper
+// Proper state_space_holder_t wrapper
 // ---------------------------
 
 /*
@@ -219,11 +219,9 @@ Associated Vectors
 • y(t) or \(y_{k}\) (Output vector): p × 1
 */
 
-struct alignas(64) state_space_t
+/* Matrix based limited state-space ADT*/
+struct alignas(64) state_space_holder_t
 {
-    std::int32_t m_n;
-    std::int32_t m_m;
-    std::int32_t m_p;
     /* state matrix: size= n*n*/
     MatrixXd A; 
     /* Input-to-state matrix: size= n*m*/
@@ -233,14 +231,14 @@ struct alignas(64) state_space_t
     /* Feedthtough matrix: size=p*m*/
     MatrixXd D;
 
-    state_space_t() = default;
+    state_space_holder_t() = default;
 
 
 
-    state_space_t(const MatrixXd& A_, 
-               const MatrixXd& B_, 
-               const MatrixXd& C_, 
-               const MatrixXd& D_) noexcept(false)
+    state_space_holder_t(const MatrixXd& A_, 
+                  const MatrixXd& B_, 
+                  const MatrixXd& C_, 
+                  const MatrixXd& D_) noexcept(false)
         : 
         A(A_), 
         B(B_), 
@@ -250,7 +248,7 @@ struct alignas(64) state_space_t
 
     }
 
-    state_space_t(MatrixXd &&A_, 
+    state_space_holder_t(MatrixXd &&A_, 
                MatrixXd &&B_, 
                MatrixXd &&C_, 
                MatrixXd &&D_) noexcept(true)
@@ -263,7 +261,7 @@ struct alignas(64) state_space_t
 
     }
 
-    ~state_space_t()
+    ~state_space_holder_t()
     {
 
     }
@@ -276,13 +274,109 @@ struct alignas(64) state_space_t
 
 };
 
-inline std::tuple<MatrixXd, MatrixXd, MatrixXd, MatrixXd> ssdata(const state_space_t& sys)
+struct alignas(64) state_space_model_t
+{
+    std::size_t m_n;
+    std::size_t m_m;
+    std::size_t m_p;
+    /* state matrix: size= n*n*/
+    MatrixXd m_A; 
+    /* Input-to-state matrix: size= n*m*/
+    MatrixXd m_B; 
+    /* State-to-output matrix: size=p*n*/
+    MatrixXd m_C; 
+    /* Feedthtough matrix: size=p*m*/
+    MatrixXd m_D;
+    /*x(t) or \(x_{k}\) (State vector): n × 1*/
+    VectorXd m_X;
+    /*u(t) or \(u_{k}\) (Input vector): m × 1*/
+    VectorXd m_U;
+    /*y(t) or \(y_{k}\) (Output vector): p × 1*/
+    VectorXd m_Y;
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline 
+    state_space_model_t()
+    :
+    m_n{},
+    m_m{},
+    m_p{},
+    m_A(),
+    m_B(),
+    m_C(),
+    m_D(),
+    m_X(),
+    m_U(),
+    m_Y()
+    {
+
+    }
+
+    template<std::int32_t initialization_kind>
+    __ATTR_ALWAYS_INLINE__
+    inline 
+    state_space_model_t(const std::size_t n,
+                        const std::size_t m,
+                        const std::size_t p)         
+    :
+    m_n((n<4ull)?32ull:n),
+    m_m((m<4ull)?32ull:m),
+    m_p((m<4ull)?32ull:p)
+    {
+       if constexpr(initialization_kind==1)
+       {
+           this->m_A = MatrixXd::Zero(m_n,m_n);
+           this->m_B = MatrixXd::Zero(m_n,m_m);
+           this->m_C = MatrixXd::Zero(m_p,m_n);
+           this->m_D = MatrixXd::Zero(m_p,m_m);
+           this->m_X = VectorXd::Zero(m_n);
+           this->m_U = VectorXd::Zero(m_m);
+           this->m_Y = VectorXd::Zero(m_p);
+       }
+       else if constexpr(initialization_kind==2)
+       {
+           this->m_A = MatrixXd::Random(m_n,m_n);
+           this->m_B = MatrixXd::Random(m_n,m_m);
+           this->m_C = MatrixXd::Random(m_p,m_n);
+           this->m_D = MatrixXd::Random(m_p,m_m);
+           this->m_X = VectorXd::Random(m_n);
+           this->m_U = VectorXd::Random(m_m);
+           this->m_Y = VectorXd::Random(m_p);
+       }
+    }
+
+    __ATTR_ALWAYS_INLINE__
+    inline 
+    state_space_model_t(const std::size_t n,
+                        const std::size_t m,
+                        const std::size_t p)
+    :
+    m_n((n<4ull)?32ull:n),
+    m_m((m<4ull)?32ull:m),
+    m_p((m<4ull)?32ull:p),
+    m_A(m_n,m_n),
+    m_B(m_n,m_m),
+    m_C(m_p,m_n),
+    m_D(m_p,m_m),
+    m_X(m_n),
+    m_U(m_m),
+    m_Y(m_p)
+    {
+
+    }
+    
+    
+
+
+};
+
+inline std::tuple<MatrixXd, MatrixXd, MatrixXd, MatrixXd> ssdata(const state_space_holder_t& sys)
 {
     return sys.ssdata();
 }
 
 // discretization.
-inline state_space_t c2d(const state_space_t& sys, double Ts, bool zeroOrderHold = true)
+inline state_space_holder_t c2d(const state_space_holder_t& sys, double Ts, bool zeroOrderHold = true)
 {
     const int n = sys.A.rows();
     const int m = sys.B.cols();
@@ -307,7 +401,7 @@ inline state_space_t c2d(const state_space_t& sys, double Ts, bool zeroOrderHold
     // For direct feedthrough, D is preserved for discrete time at sample times.
     // Exact ZOH gives y[k] = C * x[k] + D * u[k]
     MatrixXd Dd = sys.D;
-    return state_space_t(Phi, Gamma, sys.C, Dd);
+    return state_space_holder_t(Phi, Gamma, sys.C, Dd);
 }
 
 // ---------------------------
@@ -419,7 +513,7 @@ inline MatrixXd lqe(const MatrixXd& A,
 // x[k+1] = A x[k] + B u[k]
 // y[k]   = C x[k] + D u[k]
 // U is m x N, x0 is n x 1
-inline std::pair<MatrixXd, MatrixXd> lsim(const state_space_t& sys,
+inline std::pair<MatrixXd, MatrixXd> lsim(const state_space_holder_t& sys,
                                          const MatrixXd& U,
                                          const VectorXd& x0)
 {
@@ -449,7 +543,7 @@ inline std::pair<MatrixXd, MatrixXd> lsim(const state_space_t& sys,
 }
 
 // MATLAB "initial" wrapper, approximated via discrete simulation over a time grid
-inline std::pair<MatrixXd, MatrixXd> initial(const state_space_t& sys,
+inline std::pair<MatrixXd, MatrixXd> initial(const state_space_holder_t& sys,
                                            const VectorXd& x0,
                                            double tf,
                                            int Ns = 100)
@@ -473,12 +567,12 @@ inline std::pair<MatrixXd, MatrixXd> initial(const state_space_t& sys,
 // MATLAB::ss() construction
 // ---------------------------
 
-inline state_space_t ss(const MatrixXd& A,
+inline state_space_holder_t ss(const MatrixXd& A,
                     const MatrixXd& B,
                     const MatrixXd& C,
                     const MatrixXd& D)
 {
-    return state_space_t(A, B, C, D);
+    return state_space_holder_t(A, B, C, D);
 }
 
 // ---------------------------
