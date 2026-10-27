@@ -94,31 +94,31 @@ using MatXcdRM = Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dyna
 // ---------------------------
 
 __ATTR_ALWAYS_INLINE__
-inline MatrixXd zeros(int r, int c)
+inline MatrixXd zeros(Eigen::Index r, Eigen::Index c)
 {
     return MatrixXd::Zero(r, c);
 }
 
 __ATTR_ALWAYS_INLINE__
-inline VectorXd zeros_vec(int n)
+inline VectorXd zeros_vec(Eigen::Index n)
 {
     return VectorXd::Zero(n);
 }
 
 __ATTR_ALWAYS_INLINE__
-inline MatrixXd eye(int n)
+inline MatrixXd eye(Eigen::Index n)
 {
     return MatrixXd::Identity(n, n);
 }
 
 __ATTR_ALWAYS_INLINE__
-inline MatrixXd ones(int r, int c)
+inline MatrixXd ones(Eigen::Index r, Eigen::Index c)
 {
     return MatrixXd::Ones(r, c);
 }
 
 __ATTR_ALWAYS_INLINE__
-inline VectorXd ones_vec(int n)
+inline VectorXd ones_vec(Eigen::Index n)
 {
     return VectorXd::Ones(n);
 }
@@ -137,7 +137,26 @@ inline MatrixXd inv(const MatrixXd& A)
 }
 
 __ATTR_ALWAYS_INLINE__
+inline MatrixXd inv(MatrixXd&& A)
+{
+    if (A.rows() != A.cols())
+        throw std::invalid_argument("inv(): matrix must be square");
+
+    Eigen::FullPivLU<MatrixXd> lu(A);
+    if (lu.rank() < A.rows())
+        throw std::runtime_error("inv(): matrix is singular or rank deficient");
+
+    return lu.inverse();
+}
+
+__ATTR_ALWAYS_INLINE__
 inline MatrixXd transpose(const MatrixXd& A)
+{
+    return A.transpose();
+}
+
+__ATTR_ALWAYS_INLINE__
+inline MatrixXd transpose(MatrixXd&& A)
 {
     return A.transpose();
 }
@@ -147,7 +166,17 @@ inline VectorXd diag(const MatrixXd& M)
     return M.diagonal();
 }
 
+inline VectorXd diag(MatrixXd&& M)
+{
+    return M.diagonal();
+}
+
 inline MatrixXd kron(const MatrixXd& A, const MatrixXd& B)
+{
+    return Eigen::kroneckerProduct(A, B);
+}
+
+inline MatrixXd kron(MatrixXd&& A, MatrixXd&& B)
 {
     return Eigen::kroneckerProduct(A, B);
 }
@@ -173,13 +202,39 @@ inline MatrixXd randn(int rows, int cols)
     return M;
 }
 
-inline VectorXd randn_vec(int n)
+inline MatrixXd randn(Eigen::Index rows, Eigen::Index cols,
+                      const double mu, const double sigma)
+{
+    static std::mt19937 rng(std::random_device{}());
+    std::normal_distribution<double> dist(mu, sigma);
+
+    MatrixXd M(rows, cols);
+    for (Eigen::Index i = 0; i < rows; ++i)
+        for (int j = 0; j < cols; ++j)
+            M(i, j) = dist(rng);
+    return M;
+}
+
+inline VectorXd randn_vec(Eigen::Index n)
 {
     static std::mt19937 rng(std::random_device{}());
     std::normal_distribution<double> dist(0.0, 1.0);
 
     VectorXd v(n);
     for (int i = 0; i < n; ++i)
+        v(i) = dist(rng);
+    return v;
+}
+
+inline VectorXd randn_vec(Eigen::Index n,
+                          const double mu,
+                          const double sigma)
+{
+    static std::mt19937 rng(std::random_device{}());
+    std::normal_distribution<double> dist(mu, sigma);
+
+    VectorXd v(n);
+    for (Eigen::Index i = 0; i < n; ++i)
         v(i) = dist(rng);
     return v;
 }
