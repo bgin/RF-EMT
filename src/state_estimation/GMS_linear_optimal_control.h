@@ -420,6 +420,66 @@ struct alignas(64) state_space_model_t
     }
 
     __ATTR_ALWAYS_INLINE__ 
+    inline state_space_model_t(state_space_model_t &&other) noexcept(true)
+    :
+    m_n(other.m_n),
+    m_m(other.m_m),
+    m_p(other.m_p),
+    m_A(std::move(other.m_A)),
+    m_B(std::move(other.m_B)),
+    m_C(std::move(other.m_C)),
+    m_D(std::move(other.m_D)),
+    m_X(std::move(other.m_X)),
+    m_U(std::move(other.m_U)),
+    m_Y(std::move(other.m_Y)) 
+    {
+
+    }
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline   
+    ~state_space_model_t() noexcept(true)
+    {
+
+    }   
+
+    state_space_model_t & operator=(const state_space_model_t &other) 
+    {
+        if(__builtin_expect(this==&other,0)) { return (*this);}
+
+        this->m_n = other.m_n;
+        this->m_m = other.m_m;
+        this->m_p = other.m_p;
+        this->m_A.operator=(other.m_A);
+        this->m_B.operator=(other.m_B);
+        this->m_C.operator=(other.m_C);
+        this->m_D.operator=(other.m_D);
+        this->m_X.operator=(other.m_X);
+        this->m_U.operator=(other.m_U);
+        this->m_Y.operator=(other.m_Y);
+
+        return (*this);
+    } 
+
+    state_space_model_t & operator=(state_space_model_t &&other) 
+    {
+        if(__builtin_expect(this==&other,0)) { return (*this);}
+        
+        this->m_n = other.m_n;
+        this->m_m = other.m_m;
+        this->m_p = other.m_p;
+        this->m_A.operator=(std::move(other.m_A));
+        this->m_B.operator=(std::move(other.m_B));
+        this->m_C.operator=(std::move(other.m_C));
+        this->m_D.operator=(std::move(other.m_D));
+        this->m_X.operator=(std::move(other.m_X));
+        this->m_U.operator=(std::move(other.m_U));
+        this->m_Y.operator=(std::move(other.m_Y));
+
+        return (*this);
+    } 
+
+    __ATTR_ALWAYS_INLINE__ 
     inline static   
     MatXdRM matd_cpy_from_ptr(double * __restrict__ ptr, 
                               const Eigen::Index rows,
