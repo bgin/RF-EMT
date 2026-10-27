@@ -53,6 +53,7 @@ Applied Linear Optimal Control: Examples and Algorithms
 #include <tuple>
 #include <vector>
 #include <complex>
+#include <immintrin.h> 
 #include "GMS_config.h"
 
 namespace file_info 
@@ -92,6 +93,47 @@ using MatXcdRM = Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dyna
 // ---------------------------
 // Basic MATLAB-like helpers
 // ---------------------------
+
+
+// Header for AVX-512 intrinsics
+
+
+
+__ATTR_ALWAYS_INLINE__ 
+inline 
+void lightweight_gemm_avx512(const MatXdRM& A, const MatXdRM& B, MatXdRM& C) 
+{
+    const Eigen::Index M = A.rows();
+    const Eigen::Index K = A.cols();
+    const Eigen::Index N = B.cols();
+
+    C.setZero(M, N);
+
+    const double  * __restrict__ a_ptr = A.data();
+    const double  * __restrict__ b_ptr = B.data();
+    double        * __restrict__ c_ptr = C.data();
+
+    for (Eigen::Index i = 0; i < M; ++i) {
+        for (Eigen::Index k = 0; k < K; ++k) {
+            double a_val = a_ptr[i * K + k]; 
+            __m512d a_vec = _mm512_set1_pd(a_val);
+            Eigen::Index j = 0;
+            for (; j <= N - 8; j += 8) {
+               
+                Eigen::Index b_idx = k * N + j;
+                Eigen::Index c_idx = i * N + j;
+                __m512d b_vec = _mm512_loadu_pd(&b_ptr[b_idx]);
+                __m512d c_vec = _mm512_loadu_pd(&c_ptr[c_idx]);
+                c_vec = _mm512_fmadd_pd(a_vec, b_vec, c_vec);
+                _mm512_storeu_pd(&c_ptr[c_idx], c_vec);
+            }
+
+            for (; j < N; ++j) {
+                c_ptr[i * N + j] += a_val * b_ptr[k * N + j];
+            }
+        }
+    }
+}
 
 __ATTR_ALWAYS_INLINE__
 inline MatrixXd zeros(Eigen::Index r, Eigen::Index c)
