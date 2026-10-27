@@ -336,9 +336,9 @@ struct alignas(64) state_space_model_t
                         const Eigen::Index m,
                         const Eigen::Index p)         
     :
-    m_n((n<4ull)?32ull:n),
-    m_m((m<4ull)?32ull:m),
-    m_p((m<4ull)?32ull:p)
+    m_n((n<(std::ptrdiff_t)4)?(std::ptrdiff_t)32:n),
+    m_m((m<(std::ptrdiff_t)4)?(std::ptrdiff_t)32:m),
+    m_p((m<(std::ptrdiff_t)4)?(std::ptrdiff_t)32:p)
     {
        if constexpr(initialization_kind==1)
        {
@@ -368,9 +368,9 @@ struct alignas(64) state_space_model_t
                         const Eigen::Index m,
                         const Eigen::Index p)
     :
-    m_n((n<4ull)?32ull:n),
-    m_m((m<4ull)?32ull:m),
-    m_p((m<4ull)?32ull:p),
+    m_n((n<(std::ptrdiff_t)4)?(std::ptrdiff_t)32:n),
+    m_m((m<(std::ptrdiff_t)4)?(std::ptrdiff_t)32:m),
+    m_p((m<(std::ptrdiff_t)4)?(std::ptrdiff_t)32:p),
     m_A(m_n,m_n),
     m_B(m_n,m_m),
     m_C(m_p,m_n),
@@ -389,8 +389,8 @@ struct alignas(64) state_space_model_t
                                const ss_model_ptr_holder_t & ptr_holder)
     :
     m_n((n<(std::ptrdiff_t)4)?(std::ptrdiff_t)32:n),
-    m_m((m<4ull)?32ull:m),
-    m_p((m<4ull)?32ull:p),
+    m_m((m<(std::ptrdiff_t)4)?(std::ptrdiff_t)32:m),
+    m_p((m<(std::ptrdiff_t)4)?(std::ptrdiff_t)32:p),
     m_A(Eigen::Map<MatXdRM>(ptr_holder.m_A_ptr,m_n,m_n)),
     m_B(Eigen::Map<MatXdRM>(ptr_holder.m_B_ptr,m_n,m_m)),
     m_C(Eigen::Map<MatXdRM>(ptr_holder.m_C_ptr,m_p,m_n)),
@@ -398,6 +398,23 @@ struct alignas(64) state_space_model_t
     m_X(Eigen::Map<VectorXd>(ptr_holder.m_X_ptr,m_n)),
     m_U(Eigen::Map<VectorXd>(ptr_holder.m_U_ptr,m_m)),
     m_Y(Eigen::Map<VectorXd>(ptr_holder.m_Y_ptr,m_p))
+    {
+
+    }
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline state_space_model_t(const state_space_model_t &other) 
+    :
+    m_n(other.m_n),
+    m_m(other.m_m),
+    m_p(other.m_p),
+    m_A(other.m_A),
+    m_B(other.m_B),
+    m_C(other.m_C),
+    m_D(other.m_D),
+    m_X(other.m_X),
+    m_U(other.m_U),
+    m_Y(other.m_Y) 
     {
 
     }
@@ -419,6 +436,116 @@ struct alignas(64) state_space_model_t
     {
         VectorXd vec_from_ptr = Eigen::Map<VectorXd>(ptr,rows);
         return (vec_from_ptr);
+    }
+
+/*
+    
+2. Lifetime and Dangling Pointers
+
+The raw pointer returned by .data() is only valid as long as the parent Eigen::MatrixXd object remains alive and 
+is not resized. If the matrix goes out of scope or you 
+call functions like .resize(), the pointer becomes a dangling pointer, leading to undefined behavior.
+
+3. Strict Memory Alignment
+
+Eigen may align its internal memory buffers for SIMD vectorization. 
+If you are passing this raw pointer to legacy C functions, external libraries (like LAPACK/BLAS), 
+or computing strides yourself, you can query the memory stride using mat.outerStride() and mat.innerStride() t
+o ensure your pointer offsets remain mathematically accurate
+*/
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline
+    const double * __restrict__ get_m_A_raw_ptr() const
+    {
+        return (this->m_A.data());
+    } 
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline 
+    const double * __restrict__ get_m_B_raw_ptr() const 
+    {
+        return (this->m_B.data());
+    }
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline 
+    const double * __restrict__ get_m_C_raw_ptr() const 
+    {
+        return (this->m_C.data());
+    }
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline 
+    const double * __restrict__ get_m_D_raw_ptr() const 
+    {
+        return (this->m_D.data());
+    }
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline 
+    const double * __restrict__ get_m_X_raw_ptr() const 
+    {
+        return (this->m_X.data());
+    }
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline 
+    const double * __restrict__ get_m_U_raw_ptr() const 
+    {
+        return (this->m_U.data());
+    }
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline 
+    const double * __restrict__ get_m_Y_raw_ptr() const 
+    {
+        return (this->m_Y.data());
+    }
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline static
+    void check_matd_alignment(bool results[3],const MatXdRM &mat)
+    {
+        const double * __restrict__ mat_ptr = mat.data();
+        const std::uintptr_t mem_addr       = reinterpret_cast<std::uintptr_t>(mat_ptr);
+        constexpr std::uintptr_t val64      = (std::uintptr_t)64;
+        constexpr std::uintptr_t val32      = (std::uintptr_t)32;
+        constexpr std::uintptr_t val16      = (std::uintptr_t)16;  
+        if(mem_addr%val64 == 0)
+           results[0] = true;
+        else 
+           results[0] = false;
+        if(mem_addr%val32 == 0)
+           results[1] = true;
+        else 
+           results[1] = false;
+        if(mem_addr%16 == 0)
+           results[2] = true;
+        else 
+           results[2] = false;
+    }  
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline static 
+    bool check_matd_rowmajor_contiguity(const MatXdRM &mat)
+    {
+        const std::ptrdiff_t inner = mat.innerStride();
+        const std::ptrdiff_t outer = mat.outerStride();
+        bool is_contiguous = false;
+        is_contiguous      = (inner == 1 && outer == mat.rows());
+        return (is_contiguous);
+    }
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline static 
+    bool check_matd_colmajor_contiguity(const MatXdRM &mat)
+    {
+        const std::ptrdiff_t inner = mat.innerStride();
+        const std::ptrdiff_t outer = mat.outerStride();
+        bool is_contiguous = false;
+        is_contiguous      = (inner == 1 && outer == mat.cols());
+        return (is_contiguous);
     }
 
 };
