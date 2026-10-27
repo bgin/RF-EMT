@@ -52,6 +52,7 @@ Applied Linear Optimal Control: Examples and Algorithms
 #include <stdexcept>
 #include <tuple>
 #include <vector>
+#include <complex>
 #include "GMS_config.h"
 
 namespace file_info 
@@ -82,6 +83,11 @@ using MatrixXd = Eigen::MatrixXd;
 using VectorXd = Eigen::VectorXd;
 using MatrixXi = Eigen::MatrixXi;
 using VectorXi = Eigen::VectorXi;
+
+// row-major type alias
+using MatXdRM  = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+using MatXiRM  = Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+using MatXcdRM = Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>; 
 
 // ---------------------------
 // Basic MATLAB-like helpers
@@ -274,19 +280,30 @@ struct alignas(64) state_space_holder_t
 
 };
 
+struct alignas(64) ss_model_ptr_holder_t
+{
+    double * __restrict__ m_A_ptr{nullptr};
+    double * __restrict__ m_B_ptr{nullptr};
+    double * __restrict__ m_C_ptr{nullptr};
+    double * __restrict__ m_D_ptr{nullptr};
+    double * __restrict__ m_X_ptr{nullptr};
+    double * __restrict__ m_U_ptr{nullptr};
+    double * __restrict__ m_Y_ptr{nullptr};
+};
+
 struct alignas(64) state_space_model_t
 {
-    std::size_t m_n;
-    std::size_t m_m;
-    std::size_t m_p;
+    Eigen::Index m_n;
+    Eigen::Index m_m;
+    Eigen::Index m_p;
     /* state matrix: size= n*n*/
-    MatrixXd m_A; 
+    MatXdRM m_A; 
     /* Input-to-state matrix: size= n*m*/
-    MatrixXd m_B; 
+    MatXdRM m_B; 
     /* State-to-output matrix: size=p*n*/
-    MatrixXd m_C; 
+    MatXdRM m_C; 
     /* Feedthtough matrix: size=p*m*/
-    MatrixXd m_D;
+    MatXdRM m_D;
     /*x(t) or \(x_{k}\) (State vector): n × 1*/
     VectorXd m_X;
     /*u(t) or \(u_{k}\) (Input vector): m × 1*/
@@ -315,9 +332,9 @@ struct alignas(64) state_space_model_t
     template<std::int32_t initialization_kind>
     __ATTR_ALWAYS_INLINE__
     inline 
-    state_space_model_t(const std::size_t n,
-                        const std::size_t m,
-                        const std::size_t p)         
+    state_space_model_t(const Eigen::Index n,
+                        const Eigen::Index m,
+                        const Eigen::Index p)         
     :
     m_n((n<4ull)?32ull:n),
     m_m((m<4ull)?32ull:m),
@@ -325,20 +342,20 @@ struct alignas(64) state_space_model_t
     {
        if constexpr(initialization_kind==1)
        {
-           this->m_A = MatrixXd::Zero(m_n,m_n);
-           this->m_B = MatrixXd::Zero(m_n,m_m);
-           this->m_C = MatrixXd::Zero(m_p,m_n);
-           this->m_D = MatrixXd::Zero(m_p,m_m);
+           this->m_A = MatXdRM::Zero(m_n,m_n);
+           this->m_B = MatXdRM::Zero(m_n,m_m);
+           this->m_C = MatXdRM::Zero(m_p,m_n);
+           this->m_D = MatXdRM::Zero(m_p,m_m);
            this->m_X = VectorXd::Zero(m_n);
            this->m_U = VectorXd::Zero(m_m);
            this->m_Y = VectorXd::Zero(m_p);
        }
        else if constexpr(initialization_kind==2)
        {
-           this->m_A = MatrixXd::Random(m_n,m_n);
-           this->m_B = MatrixXd::Random(m_n,m_m);
-           this->m_C = MatrixXd::Random(m_p,m_n);
-           this->m_D = MatrixXd::Random(m_p,m_m);
+           this->m_A = MatXdRM::Random(m_n,m_n);
+           this->m_B = MatXdRM::Random(m_n,m_m);
+           this->m_C = MatXdRM::Random(m_p,m_n);
+           this->m_D = MatXdRM::Random(m_p,m_m);
            this->m_X = VectorXd::Random(m_n);
            this->m_U = VectorXd::Random(m_m);
            this->m_Y = VectorXd::Random(m_p);
@@ -347,9 +364,9 @@ struct alignas(64) state_space_model_t
 
     __ATTR_ALWAYS_INLINE__
     inline 
-    state_space_model_t(const std::size_t n,
-                        const std::size_t m,
-                        const std::size_t p)
+    state_space_model_t(const Eigen::Index n,
+                        const Eigen::Index m,
+                        const Eigen::Index p)
     :
     m_n((n<4ull)?32ull:n),
     m_m((m<4ull)?32ull:m),
@@ -365,8 +382,44 @@ struct alignas(64) state_space_model_t
 
     }
     
-    
+    __ATTR_ALWAYS_INLINE__ 
+    inline state_space_model_t(const Eigen::Index n,
+                               const Eigen::Index m,
+                               const Eigen::Index p,
+                               const ss_model_ptr_holder_t & ptr_holder)
+    :
+    m_n((n<(std::ptrdiff_t)4)?(std::ptrdiff_t)32:n),
+    m_m((m<4ull)?32ull:m),
+    m_p((m<4ull)?32ull:p),
+    m_A(Eigen::Map<MatXdRM>(ptr_holder.m_A_ptr,m_n,m_n)),
+    m_B(Eigen::Map<MatXdRM>(ptr_holder.m_B_ptr,m_n,m_m)),
+    m_C(Eigen::Map<MatXdRM>(ptr_holder.m_C_ptr,m_p,m_n)),
+    m_D(Eigen::Map<MatXdRM>(ptr_holder.m_D_ptr,m_p,m_m)),
+    m_X(Eigen::Map<VectorXd>(ptr_holder.m_X_ptr,m_n)),
+    m_U(Eigen::Map<VectorXd>(ptr_holder.m_U_ptr,m_m)),
+    m_Y(Eigen::Map<VectorXd>(ptr_holder.m_Y_ptr,m_p))
+    {
 
+    }
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline static   
+    MatXdRM matd_cpy_from_ptr(double * __restrict__ ptr, 
+                              const Eigen::Index rows,
+                              const Eigen::Index cols) 
+    {
+        MatXdRM mat_from_ptr = Eigen::Map<MatXdRM>(ptr,rows,cols);
+        return (mat_from_ptr);
+    }
+
+    __ATTR_ALWAYS_INLINE__  
+    inline static 
+    VectorXd vecd_cpy_from_ptr(double * __restrict__ ptr,
+                               const std::int32_t rows)
+    {
+        VectorXd vec_from_ptr = Eigen::Map<VectorXd>(ptr,rows);
+        return (vec_from_ptr);
+    }
 
 };
 
