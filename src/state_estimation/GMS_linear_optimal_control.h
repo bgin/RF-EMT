@@ -232,12 +232,23 @@ inline MatrixXd sqrtm(const MatrixXd& A)
     return es.operatorSqrt();
 }
 
-inline MatrixXd randn(int rows, int cols)
+inline MatrixXd randn(Eigen::Index rows, Eigen::Index cols)
 {
     static std::mt19937 rng(std::random_device{}());
     std::normal_distribution<double> dist(0.0, 1.0);
-
     MatrixXd M(rows, cols);
+    for (int i = 0; i < rows; ++i)
+        for (int j = 0; j < cols; ++j)
+            M(i, j) = dist(rng);
+    return M;
+}
+
+inline void randn(MatrixXd& M)
+{
+    static std::mt19937 rng(std::random_device{}());
+    std::normal_distribution<double> dist(0.0, 1.0);
+    const Eigen::Index rows = M.rows();
+    const Eigen::Index cols = M.cols();
     for (int i = 0; i < rows; ++i)
         for (int j = 0; j < cols; ++j)
             M(i, j) = dist(rng);
@@ -249,7 +260,6 @@ inline MatrixXd randn(Eigen::Index rows, Eigen::Index cols,
 {
     static std::mt19937 rng(std::random_device{}());
     std::normal_distribution<double> dist(mu, sigma);
-
     MatrixXd M(rows, cols);
     for (Eigen::Index i = 0; i < rows; ++i)
         for (int j = 0; j < cols; ++j)
@@ -261,7 +271,6 @@ inline VectorXd randn_vec(Eigen::Index n)
 {
     static std::mt19937 rng(std::random_device{}());
     std::normal_distribution<double> dist(0.0, 1.0);
-
     VectorXd v(n);
     for (int i = 0; i < n; ++i)
         v(i) = dist(rng);
@@ -274,7 +283,6 @@ inline VectorXd randn_vec(Eigen::Index n,
 {
     static std::mt19937 rng(std::random_device{}());
     std::normal_distribution<double> dist(mu, sigma);
-
     VectorXd v(n);
     for (Eigen::Index i = 0; i < n; ++i)
         v(i) = dist(rng);
