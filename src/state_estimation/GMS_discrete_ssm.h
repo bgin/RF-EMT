@@ -451,6 +451,15 @@ o ensure your pointer offsets remain mathematically accurate
         return VectorXd::Ones(n);
     }
 
+    __ATTR_ALWAYS_INLINE__
+    inline MatrixXd inv()
+    {
+        Eigen::FullPivLU<MatrixXd> lu(this->m_A);
+        if (lu.rank() < this->m_A.rows())
+        throw std::runtime_error("inv(): matrix is singular or rank deficient");
+        return lu.inverse();
+    }
+
 };
 
 }
