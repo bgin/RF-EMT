@@ -20,6 +20,7 @@
 
 #include <Eigen/Dense>
 #include <array>
+#include <iostream>
 #include "GMS_config.h"
 
 namespace file_info 
@@ -191,20 +192,20 @@ struct alignas(64) ode_to_state_space_t
         this->m_D               = b.operator[](this->m_norder);
         for(Eigen::Index i = 0; i<this->m_norder-1; ++i) 
         {
-            this->m_A.operator[](i,i+1) = 1.0;
+            this->m_A(i,i+1) = 1.0;
         }
         for(Eigen::Index j = 0; j<this->m_norder; ++j)   
         {
-            this->m_A.operator[](this->m_norder-1,j) = -a.operator[](j);
+            this->m_A(this->m_norder-1,j) = -a.operator[](j);
         }
         const double bn = b.operator[](this->m_norder);
         for(Eigen::Index i = 0; i<this->m_norder; ++i) 
         {   
             const double b_i = b.operator[](i);
             const double a_i = a.operator[](i);
-            this->m_C.operator[](i) = b_i-bn*a_i;
+            this->m_C(i) = b_i-bn*a_i;
         }
-        this->m_B.operator[](this->m_norder-1) = 1.0;
+        this->m_B(this->m_norder-1) = 1.0;
         ret_status = 1;
         return (ret_status);
     }
@@ -218,22 +219,31 @@ struct alignas(64) ode_to_state_space_t
         this->m_D               = b[this->m_norder];
         for(Eigen::Index i = 0; i<this->m_norder-1; ++i) 
         {
-            this->m_A.operator[](i,i+1) = 1.0;
+            this->m_A(i,i+1) = 1.0;
         }
         for(Eigen::Index j = 0; j<this->m_norder; ++j)   
         {
-            this->m_A.operator[](this->m_norder-1,j) = -a[j];
+            this->m_A(this->m_norder-1,j) = -a[j];
         }
         const double bn = b[this->m_norder];
         for(Eigen::Index i = 0; i<this->m_norder; ++i) 
         {   
             const double b_i = b[i];
             const double a_i = a[i];
-            this->m_C.operator[](i) = b_i-bn*a_i;
+            this->m_C(i) = b_i-bn*a_i;
         }
-        this->m_B.operator[](this->m_norder-1) = 1.0;
+        this->m_B(this->m_norder-1) = 1.0;
         ret_status = 1;
         return (ret_status);
+    }
+
+    __ATTR_ALWAYS_INLINE__ 
+    void print_ode_to_ss() const
+    {
+        std::cout << "State Matrix A:\n" << this->m_A << "\n\n";
+        std::cout << "Input Matrix B:\n" << this->m_B << "\n\n";
+        std::cout << "Output Matrix C:\n" << this->m_C << "\n\n";
+        std::cout << "Feedforward Matrix D:\n" << this->m_D << "\n";
     }
 
 };
