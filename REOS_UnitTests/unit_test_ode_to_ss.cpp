@@ -27,9 +27,6 @@ void unit_test_ode_to_ss()
     printf_retv = std::printf("               ODE_TO_STATE_SPACE class constructors tests\n");
     printf_retv = std::printf("===============================================================\n");
 
-    // Example: Third-order controlled plant ODE
-    // y''' + 4y'' + 6y' + 2y = 5u' + 3u
-    // Leading coefficient of y''' is 1.
     printf_retv = std::printf("[1] ============== Test Default Constructor =============\n");
     {
         ode_to_state_space_t default_ctor;
@@ -41,7 +38,7 @@ void unit_test_ode_to_ss()
         printf_retv = std::printf("m_D=%.17f\n",     default_ctor.m_D);
     }
 
-    printf_retv = std::printf("[1] ============== Test MultiArg Constructor =============\n");
+    printf_retv = std::printf("[2] ============== Test MultiArg Constructor =============\n");
     {
         ode_to_state_space_t multiarg_ctor((Eigen::Index)3);
         printf_retv = std::printf("m_norder=%llu\n", multiarg_ctor.m_norder);
@@ -52,7 +49,7 @@ void unit_test_ode_to_ss()
         printf_retv = std::printf("m_D=%.17f\n",     multiarg_ctor.m_D);
     }
 
-    printf_retv = std::printf("[1] ============== Test Copy/Move Constructors =============\n");
+    printf_retv = std::printf("[3] ============== Test Copy/Move Constructors =============\n");
     {
         ode_to_state_space_t multiarg_ctor((Eigen::Index)3);
         ode_to_state_space_t cpy_ctor(multiarg_ctor);
@@ -71,6 +68,16 @@ void unit_test_ode_to_ss()
         printf_retv = std::printf("m_D=%.17f\n",     move_ctor.m_D);
     }
 
+    printf_retv = std::printf("[3] ============== Test convert_ode_to_ss =============\n");
+    {
+        std::array<double,3> a = {2.0,6.0,4.0};
+        std::array<double,4> b = {3.0,5.0,0.0,0.0};
+        std::int32_t ret_status = -9999;
+        ode_to_state_space_t ode_to_ss(static_cast<Eigen::Index>(a.size()));
+        ret_status = ode_to_ss.convert_ode_to_ss(a,b);
+        ode_to_ss.print_ode_to_ss();
+    }
+    printf_retv = std::printf("[UNIT-TEST:] -- of function=%s -- ENDED at day=%s,time=%s!!.\n",__func__,__DATE__,__TIME__);
 }
 
 int main()
