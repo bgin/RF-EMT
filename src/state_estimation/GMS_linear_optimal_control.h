@@ -203,26 +203,31 @@ inline MatrixXd transpose(MatrixXd&& A)
     return A.transpose();
 }
 
+__ATTR_ALWAYS_INLINE__
 inline VectorXd diag(const MatrixXd& M)
 {
     return M.diagonal();
 }
 
+__ATTR_ALWAYS_INLINE__
 inline VectorXd diag(MatrixXd&& M)
 {
     return M.diagonal();
 }
 
+__ATTR_ALWAYS_INLINE__
 inline MatrixXd kron(const MatrixXd& A, const MatrixXd& B)
 {
     return Eigen::kroneckerProduct(A, B);
 }
 
+__ATTR_ALWAYS_INLINE__
 inline MatrixXd kron(MatrixXd&& A, MatrixXd&& B)
 {
     return Eigen::kroneckerProduct(A, B);
 }
 
+__ATTR_ALWAYS_INLINE__
 inline MatrixXd sqrtm(const MatrixXd& A)
 {
     // For the PSD matrices used in the original M-files, this is appropriate.
@@ -232,6 +237,7 @@ inline MatrixXd sqrtm(const MatrixXd& A)
     return es.operatorSqrt();
 }
 
+__ATTR_ALWAYS_INLINE__
 inline MatrixXd randn(Eigen::Index rows, Eigen::Index cols)
 {
     static std::mt19937 rng(std::random_device{}());
@@ -243,6 +249,7 @@ inline MatrixXd randn(Eigen::Index rows, Eigen::Index cols)
     return M;
 }
 
+__ATTR_ALWAYS_INLINE__
 inline void randn(MatrixXd& M)
 {
     static std::mt19937 rng(std::random_device{}());
@@ -252,9 +259,9 @@ inline void randn(MatrixXd& M)
     for (int i = 0; i < rows; ++i)
         for (int j = 0; j < cols; ++j)
             M(i, j) = dist(rng);
-    return M;
 }
 
+__ATTR_ALWAYS_INLINE__
 inline MatrixXd randn(Eigen::Index rows, Eigen::Index cols,
                       const double mu, const double sigma)
 {
@@ -267,6 +274,7 @@ inline MatrixXd randn(Eigen::Index rows, Eigen::Index cols,
     return M;
 }
 
+__ATTR_ALWAYS_INLINE__
 inline VectorXd randn_vec(Eigen::Index n)
 {
     static std::mt19937 rng(std::random_device{}());
@@ -277,6 +285,18 @@ inline VectorXd randn_vec(Eigen::Index n)
     return v;
 }
 
+__ATTR_ALWAYS_INLINE__
+inline 
+void randn_vec(VectorXd& v)
+{
+    static std::mt19937 rng(std::random_device{}());
+    std::normal_distribution<double> dist(0.0, 1.0);
+    const Eigen::Index n = v.rows();
+    for (int i = 0; i < n; ++i)
+        v(i) = dist(rng);
+}
+
+__ATTR_ALWAYS_INLINE__
 inline VectorXd randn_vec(Eigen::Index n,
                           const double mu,
                           const double sigma)
@@ -289,6 +309,7 @@ inline VectorXd randn_vec(Eigen::Index n,
     return v;
 }
 
+__ATTR_ALWAYS_INLINE__
 inline MatrixXd diff(const MatrixXd& M)
 {
     // MATLAB diff(A) along columns for row-major sampled data.
@@ -301,7 +322,18 @@ inline MatrixXd diff(const MatrixXd& M)
     return out;
 }
 
-
+__ATTR_ALWAYS_INLINE__
+inline MatrixXd diff(MatrixXd&& M) noexcept(true)
+{
+    // MATLAB diff(A) along columns for row-major sampled data.
+    MatrixXd out = M;
+    if (M.cols() > 1) {
+        out = M.rightCols(M.cols() - 1) - M.leftCols(M.cols() - 1);
+    } else {
+        out = MatrixXd::Zero(M.rows(), 1);
+    }
+    return out;
+}
 
 // ---------------------------
 // Proper state_space_holder_t wrapper
