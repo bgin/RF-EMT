@@ -41,6 +41,36 @@ void unit_test_ode_to_ss()
         printf_retv = std::printf("m_D=%.17f\n",     default_ctor.m_D);
     }
 
+    printf_retv = std::printf("[1] ============== Test MultiArg Constructor =============\n");
+    {
+        ode_to_state_space_t multiarg_ctor((Eigen::Index)3);
+        printf_retv = std::printf("m_norder=%llu\n", multiarg_ctor.m_norder);
+        printf_retv = std::printf("m_A.rows=%llu\n", multiarg_ctor.m_A.rows());
+        printf_retv = std::printf("m_A.cols=%llu\n", multiarg_ctor.m_A.cols());
+        printf_retv = std::printf("m_B.rows=%llu\n", multiarg_ctor.m_B.rows());
+        printf_retv = std::printf("m_C.rows=%llu\n", multiarg_ctor.m_C.rows());
+        printf_retv = std::printf("m_D=%.17f\n",     multiarg_ctor.m_D);
+    }
+
+    printf_retv = std::printf("[1] ============== Test Copy/Move Constructors =============\n");
+    {
+        ode_to_state_space_t multiarg_ctor((Eigen::Index)3);
+        ode_to_state_space_t cpy_ctor(multiarg_ctor);
+        printf_retv = std::printf("m_norder=%llu\n", cpy_ctor.m_norder);
+        printf_retv = std::printf("m_A.rows=%llu\n", cpy_ctor.m_A.rows());
+        printf_retv = std::printf("m_A.cols=%llu\n", cpy_ctor.m_A.cols());
+        printf_retv = std::printf("m_B.rows=%llu\n", cpy_ctor.m_B.rows());
+        printf_retv = std::printf("m_C.rows=%llu\n", cpy_ctor.m_C.rows());
+        printf_retv = std::printf("m_D=%.17f\n",     cpy_ctor.m_D);
+        ode_to_state_space_t move_ctor(ode_to_state_space_t((Eigen::Index)3));
+        printf_retv = std::printf("m_norder=%llu\n", move_ctor.m_norder);
+        printf_retv = std::printf("m_A.rows=%llu\n", move_ctor.m_A.rows());
+        printf_retv = std::printf("m_A.cols=%llu\n", move_ctor.m_A.cols());
+        printf_retv = std::printf("m_B.rows=%llu\n", move_ctor.m_B.rows());
+        printf_retv = std::printf("m_C.rows=%llu\n", move_ctor.m_C.rows());
+        printf_retv = std::printf("m_D=%.17f\n",     move_ctor.m_D);
+    }
+
 }
 
 int main()
