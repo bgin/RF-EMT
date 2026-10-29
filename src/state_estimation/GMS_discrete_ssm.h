@@ -47,6 +47,26 @@ namespace file_info
      static const char GMS_DISCRETE_SSM_SYNOPSIS[]      = "Discrete State-Space Model class implementation.";
 }
 
+#if !defined (CPM_DISCRETE_SSM_USE_PMC_INSTRUMENTATION)
+#define CPM_DISCRETE_SSM_USE_PMC_INSTRUMENTATION 0
+#endif 
+
+#if (CPM_DISCRETE_SSM_USE_PMC_INSTRUMENTATION) == 1
+#include "GMS_hw_perf_macros.h"
+
+#define PMC_VARS\
+      uint64_t prog_counters_start[4] = {};\
+      uint64_t prog_counters_stop[4]  = {};\
+      uint64_t tsc_start,tsc_stop;\
+      uint64_t act_cyc_start,act_cyc_stop;\
+      uint64_t ref_cyc_start,ref_cyc_stop;\
+      [[maybe_unused]] uint64_t dummy1;\
+      [[maybe_unused]] uint64_t dummy2;\
+      [[maybe_unused]] uint64_t dummy3;\
+      int32_t core_counter_width;\
+      double utilization,nom_ghz,avg_ghz;
+#endif 
+
 
 namespace gms
 {
@@ -285,6 +305,7 @@ struct alignas(64) state_space_model_t
         return (are_members_nequal);
     }
 
+    
     __ATTR_ALWAYS_INLINE__ 
     inline static   
     MatXdRM matd_cpy_from_ptr(double * __restrict__ ptr, 
