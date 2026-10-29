@@ -455,14 +455,14 @@ o ensure your pointer offsets remain mathematically accurate
     inline MatrixXd inv()
     {
         Eigen::FullPivLU<MatrixXd> lu(this->m_A);
-        if (lu.rank() < this->m_A.rows()) {return MatrixXd()};
+        if (lu.rank() < this->m_A.rows()) {return MatrixXd();}
         return lu.inverse();
     }
 
     __ATTR_ALWAYS_INLINE__ 
-    inline MatrixXd & transpose()
+    inline MatrixXd transpose()
     {
-        return (*this->m_A.transpose());
+        return this->m_A.transpose();
     }
 
     __ATTR_ALWAYS_INLINE__ 
@@ -472,9 +472,9 @@ o ensure your pointer offsets remain mathematically accurate
     }
 
     __ATTR_ALWAYS_INLINE__ 
-    inline MatrixXd & diag() 
+    inline MatrixXd  diag() 
     {
-        return (*this->m_A.diagonal());
+        return this->m_A.diagonal();
     }
 
     __ATTR_ALWAYS_INLINE__ 
@@ -484,9 +484,9 @@ o ensure your pointer offsets remain mathematically accurate
     }
 
     __ATTR_ALWAYS_INLINE__ 
-    inline MatrixXd & kron()
+    inline  MatrixXd  kron()
     {
-        return (*Eigen::kroneckerProduct(this->m_A,this->m_B));
+        return Eigen::kroneckerProduct(this->m_A,this->m_B);
     }
 
     __ATTR_ALWAYS_INLINE__ 
@@ -494,6 +494,102 @@ o ensure your pointer offsets remain mathematically accurate
     {
         C.operator=(Eigen::kroneckerProduct(this->m_A,this->m_B));
     }
+
+    __ATTR_ALWAYS_INLINE__
+    inline MatrixXd sqrtm()
+    {
+       // For the PSD matrices used in the original M-files, this is appropriate.
+       Eigen::SelfAdjointEigenSolver<MatrixXd> es(this->m_A);
+       if (es.info() != Eigen::Success) {return (MatrixXd());}
+       return es.operatorSqrt();
+    }
+
+    __ATTR_ALWAYS_INLINE__
+    inline sqrtm(MatrixXd &A)
+    {
+       // For the PSD matrices used in the original M-files, this is appropriate.
+       Eigen::SelfAdjointEigenSolver<MatrixXd> es(this->m_A);
+       if (es.info() != Eigen::Success) {return (MatrixXd());}
+       A.operator=(es.operatorSqrt());
+    }
+
+    __ATTR_ALWAYS_INLINE__
+    static
+    inline MatrixXd randn(Eigen::Index rows, Eigen::Index cols)
+    {
+        static std::mt19937 rng(std::random_device{}());
+        std::normal_distribution<double> dist(0.0, 1.0);
+        MatrixXd M(rows, cols);
+        for (int i = 0; i < rows; ++i)
+            for (int j = 0; j < cols; ++j)
+                M(i, j) = dist(rng);
+        return M;
+    }
+
+    template<typename Func>
+    __ATTR_ALWAYS_INLINE__
+    static
+    inline MatrixXd rand_parametric_distr(Func &dist,
+                                          Eigen::Index rows, Eigen::Index cols)
+    {
+        MatrixXd M(rows, cols);
+        for (int i = 0; i < rows; ++i)
+            for (int j = 0; j < cols; ++j)
+                M(i, j) = dist();
+        return M;
+    }
+
+    __ATTR_ALWAYS_INLINE__
+    static
+    inline void randn(MatrixXd& M)
+    {
+       static std::mt19937 rng(std::random_device{}());
+       std::normal_distribution<double> dist(0.0, 1.0);
+       const Eigen::Index rows = M.rows();
+       const Eigen::Index cols = M.cols();
+       for (int i = 0; i < rows; ++i)
+           for (int j = 0; j < cols; ++j)
+               M(i, j) = dist(rng);
+    }
+
+    template<typename Func> 
+    __ATTR_ALWAYS_INLINE__
+    static
+    inline void rand_parametric_distr(MatrixXd& M,
+                                      Func &dist)
+    {
+       const Eigen::Index rows = M.rows();
+       const Eigen::Index cols = M.cols();
+       for (int i = 0; i < rows; ++i)
+           for (int j = 0; j < cols; ++j)
+               M(i, j) = dist();
+    }
+
+    __ATTR_ALWAYS_INLINE__
+    static
+    inline MatrixXd randn(Eigen::Index rows, Eigen::Index cols,
+                      const double mu, const double sigma)
+    {
+        static std::mt19937 rng(std::random_device{}());
+        std::normal_distribution<double> dist(mu, sigma);
+        MatrixXd M(rows, cols);
+        for (Eigen::Index i = 0; i < rows; ++i)
+            for (int j = 0; j < cols; ++j)
+                 M(i, j) = dist(rng);
+        return M;
+    }
+
+    __ATTR_ALWAYS_INLINE__
+    static
+    inline VectorXd randn_vec(Eigen::Index n)
+    {
+        static std::mt19937 rng(std::random_device{}());
+        std::normal_distribution<double> dist(0.0, 1.0);
+        VectorXd v(n);
+        for (int i = 0; i < n; ++i)
+            v(i) = dist(rng);
+        return v;
+}
 
 };
 
