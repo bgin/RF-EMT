@@ -100,7 +100,7 @@ using MatXcdRM = Eigen::Matrix<std::complex<double>, Eigen::Dynamic, Eigen::Dyna
 
 
 __ATTR_ALWAYS_INLINE__ 
-inline 
+inline static
 void lightweight_gemm_avx512(const MatXdRM& A, const MatXdRM& B, MatXdRM& C) 
 {
     const Eigen::Index M = A.rows();
@@ -136,36 +136,42 @@ void lightweight_gemm_avx512(const MatXdRM& A, const MatXdRM& B, MatXdRM& C)
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline MatrixXd zeros(Eigen::Index r, Eigen::Index c)
 {
     return MatrixXd::Zero(r, c);
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline VectorXd zeros_vec(Eigen::Index n)
 {
     return VectorXd::Zero(n);
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline MatrixXd eye(Eigen::Index n)
 {
     return MatrixXd::Identity(n, n);
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline MatrixXd ones(Eigen::Index r, Eigen::Index c)
 {
     return MatrixXd::Ones(r, c);
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline VectorXd ones_vec(Eigen::Index n)
 {
     return VectorXd::Ones(n);
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline MatrixXd inv(const MatrixXd& A)
 {
     if (A.rows() != A.cols())
@@ -179,6 +185,7 @@ inline MatrixXd inv(const MatrixXd& A)
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline MatrixXd inv(MatrixXd&& A)
 {
     if (A.rows() != A.cols())
@@ -192,42 +199,49 @@ inline MatrixXd inv(MatrixXd&& A)
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline MatrixXd transpose(const MatrixXd& A)
 {
     return A.transpose();
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline MatrixXd transpose(MatrixXd&& A)
 {
     return A.transpose();
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline VectorXd diag(const MatrixXd& M)
 {
     return M.diagonal();
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline VectorXd diag(MatrixXd&& M)
 {
     return M.diagonal();
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline MatrixXd kron(const MatrixXd& A, const MatrixXd& B)
 {
     return Eigen::kroneckerProduct(A, B);
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline MatrixXd kron(MatrixXd&& A, MatrixXd&& B)
 {
     return Eigen::kroneckerProduct(A, B);
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline MatrixXd sqrtm(const MatrixXd& A)
 {
     // For the PSD matrices used in the original M-files, this is appropriate.
@@ -238,6 +252,7 @@ inline MatrixXd sqrtm(const MatrixXd& A)
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline MatrixXd randn(Eigen::Index rows, Eigen::Index cols)
 {
     static std::mt19937 rng(std::random_device{}());
@@ -250,6 +265,7 @@ inline MatrixXd randn(Eigen::Index rows, Eigen::Index cols)
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline void randn(MatrixXd& M)
 {
     static std::mt19937 rng(std::random_device{}());
@@ -262,6 +278,7 @@ inline void randn(MatrixXd& M)
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline MatrixXd randn(Eigen::Index rows, Eigen::Index cols,
                       const double mu, const double sigma)
 {
@@ -275,6 +292,7 @@ inline MatrixXd randn(Eigen::Index rows, Eigen::Index cols,
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline VectorXd randn_vec(Eigen::Index n)
 {
     static std::mt19937 rng(std::random_device{}());
@@ -286,6 +304,7 @@ inline VectorXd randn_vec(Eigen::Index n)
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline 
 void randn_vec(VectorXd& v)
 {
@@ -297,6 +316,7 @@ void randn_vec(VectorXd& v)
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline VectorXd randn_vec(Eigen::Index n,
                           const double mu,
                           const double sigma)
@@ -310,6 +330,7 @@ inline VectorXd randn_vec(Eigen::Index n,
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline MatrixXd diff(const MatrixXd& M)
 {
     // MATLAB diff(A) along columns for row-major sampled data.
@@ -323,6 +344,7 @@ inline MatrixXd diff(const MatrixXd& M)
 }
 
 __ATTR_ALWAYS_INLINE__
+static
 inline MatrixXd diff(MatrixXd&& M) noexcept(true)
 {
     // MATLAB diff(A) along columns for row-major sampled data.
@@ -747,12 +769,17 @@ o ensure your pointer offsets remain mathematically accurate
 
 };
 
-inline std::tuple<MatrixXd, MatrixXd, MatrixXd, MatrixXd> ssdata(const state_space_holder_t& sys)
+__ATTR_ALWAYS_INLINE__ 
+static
+inline 
+std::tuple<MatrixXd, MatrixXd, MatrixXd, MatrixXd> ssdata(const state_space_holder_t& sys)
 {
     return sys.ssdata();
 }
 
 // discretization.
+__ATTR_ALWAYS_INLINE__ 
+static
 inline state_space_holder_t c2d(const state_space_holder_t& sys, double Ts, bool zeroOrderHold = true)
 {
     const int n = sys.A.rows();
@@ -786,6 +813,8 @@ inline state_space_holder_t c2d(const state_space_holder_t& sys, double Ts, bool
 // ---------------------------
 // Solves K = argmin sum x^T Q x + u^T R u + 2 x^T N u
 // assuming discrete-time dynamics x_{k+1} = A x_k + B u_k
+__ATTR_ALWAYS_INLINE__ 
+static
 inline MatrixXd dlqr(const MatrixXd& A,
                      const MatrixXd& B,
                      const MatrixXd& Q,
@@ -826,6 +855,8 @@ inline MatrixXd dlqr(const MatrixXd& A,
 }
 
 // MATLAB-style alias (same as dlqr)
+__ATTR_ALWAYS_INLINE__ 
+static
 inline MatrixXd lqr(const MatrixXd& A,
                     const MatrixXd& B,
                     const MatrixXd& Q,
@@ -841,6 +872,8 @@ inline MatrixXd lqr(const MatrixXd& A,
 // For x_{k+1} = A x_k + G w_k
 //     y_k = C x_k + v_k
 // with covariances W and V
+__ATTR_ALWAYS_INLINE__ 
+static
 inline MatrixXd dlqe(const MatrixXd& A,
                      const MatrixXd& G,
                      const MatrixXd& C,
@@ -875,6 +908,8 @@ inline MatrixXd dlqe(const MatrixXd& A,
 }
 
 // MATLAB-style alias
+__ATTR_ALWAYS_INLINE__ 
+static
 inline MatrixXd lqe(const MatrixXd& A,
                     const MatrixXd& G,
                     const MatrixXd& C,
@@ -890,6 +925,8 @@ inline MatrixXd lqe(const MatrixXd& A,
 // x[k+1] = A x[k] + B u[k]
 // y[k]   = C x[k] + D u[k]
 // U is m x N, x0 is n x 1
+__ATTR_ALWAYS_INLINE__ 
+static
 inline std::pair<MatrixXd, MatrixXd> lsim(const state_space_holder_t& sys,
                                          const MatrixXd& U,
                                          const VectorXd& x0)
@@ -920,6 +957,8 @@ inline std::pair<MatrixXd, MatrixXd> lsim(const state_space_holder_t& sys,
 }
 
 // MATLAB "initial" wrapper, approximated via discrete simulation over a time grid
+__ATTR_ALWAYS_INLINE__ 
+static
 inline std::pair<MatrixXd, MatrixXd> initial(const state_space_holder_t& sys,
                                            const VectorXd& x0,
                                            double tf,
@@ -944,6 +983,8 @@ inline std::pair<MatrixXd, MatrixXd> initial(const state_space_holder_t& sys,
 // MATLAB::ss() construction
 // ---------------------------
 
+__ATTR_ALWAYS_INLINE__ 
+static
 inline state_space_holder_t ss(const MatrixXd& A,
                     const MatrixXd& B,
                     const MatrixXd& C,
@@ -956,6 +997,8 @@ inline state_space_holder_t ss(const MatrixXd& A,
 // Utility: matrix exponential helper
 // ---------------------------
 
+__ATTR_ALWAYS_INLINE__ 
+static
 inline MatrixXd expm(const MatrixXd& A)
 {
     return A.exp();
@@ -982,6 +1025,8 @@ struct DbatResult
     MatrixXd Rv;
 };
 
+__ATTR_ALWAYS_INLINE__ 
+static
 inline DbatResult dbat_u(const MatrixXd& Ph,
                         const MatrixXd& Gu,
                         const MatrixXd& Gw,
@@ -1198,6 +1243,8 @@ inline DbatResult dbat_u(const MatrixXd& Ph,
 // ---------------------------
 
 // Same structure as dbat_u but without u input.
+__ATTR_ALWAYS_INLINE__ 
+static
 inline DbatResult dbat(const MatrixXd& Ph,
                       const MatrixXd& Gw,
                       const MatrixXd& Wd,
@@ -1364,6 +1411,8 @@ struct TdfcfCnResult
     MatrixXd Rxs;
 };
 
+__ATTR_ALWAYS_INLINE__ 
+static
 inline TdfcfCnResult tdfcf_cn(const MatrixXd& Ph,
                              const MatrixXd& Gw,
                              const MatrixXd& Wd,
@@ -1560,6 +1609,8 @@ struct LqgResult
 // A small helper for Lyapunov-like steady state solves
 // ---------------------------
 
+__ATTR_ALWAYS_INLINE__ 
+static
 inline MatrixXd lyapunov_discrete(const MatrixXd& A, const MatrixXd& Q)
 {
     // Solve X = A X A^T + Q
@@ -1573,6 +1624,8 @@ inline MatrixXd lyapunov_discrete(const MatrixXd& A, const MatrixXd& Q)
     return X;
 }
 
+__ATTR_ALWAYS_INLINE__ 
+static
 inline MatrixXd GausssianRiccatiApprox(const MatrixXd& A,
                                       const MatrixXd& G,
                                       const MatrixXd& C,
@@ -1592,6 +1645,8 @@ inline MatrixXd GausssianRiccatiApprox(const MatrixXd& A,
     return P;
 }
 
+__ATTR_ALWAYS_INLINE__ 
+static
 inline LqgResult lqg(const MatrixXd& A,
                      const MatrixXd& Bu,
                      const MatrixXd& Cc,
