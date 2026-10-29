@@ -1,20 +1,5 @@
 
-/* Copyright (C) Bernard Gingold, 2020-2026 
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or (at
- * your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but
- * WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-*/
+
 
 #include <math.h>
 #include "GMS_drag_coeff.h"
@@ -22,11 +7,11 @@
 
 void
 gms
-::compute_drag_coeff(_Out_  double * __restrict Cd,
-					 _In_   const int32_t nt,
-					 _In_   const double * __restrict C0,
-                     _In_	const double delta0,
-					 _In_   const double * __restrict Re) {
+::compute_drag_coeff(  double * __restrict Cd,
+					    const int32_t nt,
+					    const double * __restrict C0,
+                     	const double delta0,
+					    const double * __restrict Re) {
 	
 	for (int32_t i = 0; i != nt; ++i) {
 		Cd[i] = C0[i] * (1.0 + delta0 / pow(Re[i],0.5)) * 
@@ -36,15 +21,15 @@ gms
 
 void
 gms
-::compute_reynolds_number(_Out_ double * __restrict Re,
-						  _In_  const int32_t nt,
-						  _In_  const double * __restrict Vt,
-						  _In_  const double D,
-						  _In_  const double * __restrict rho_f,
-						  _In_  const double * __restrict d_visc,
-						  _In_  const int32_t  nx,
-						  _In_  const int32_t  ny,
-						  _In_  const int32_t  nz) {
+::compute_reynolds_number( double * __restrict Re,
+						    const int32_t nt,
+						    const double * __restrict Vt,
+						    const double D,
+						    const double * __restrict rho_f,
+						    const double * __restrict d_visc,
+						    const int32_t  nx,
+						    const int32_t  ny,
+						    const int32_t  nz) {
 	
 	for (int32_t i = 0; i != nt; ++i) {
 		 
@@ -60,17 +45,17 @@ gms
 
 void
 gms
-::compute_davies_number(_Out_ double * __restrict X,
-					    _In_  const int32_t nt,
-						_In_  const double vb,
-						_In_  const double rho_b,
-						_In_  const double * __restrict rho_f,
-						_In_  const int32_t nx,
-						_In_  const int32_t ny,
-						_In_  const int32_t nz,
-						_In_  const double D,
-						_In_  const double A,
-						_In_  const double * __restrict k_visc) {
+::compute_davies_number( double * __restrict X,
+					      const int32_t nt,
+						  const double vb,
+						  const double rho_b,
+						  const double * __restrict rho_f,
+						  const int32_t nx,
+						  const int32_t ny,
+						  const int32_t nz,
+						  const double D,
+						  const double A,
+						  const double * __restrict k_visc) {
 
 	double term1{}, term2{};
 	for (int32_t i = 0; i != nt; ++i) {
@@ -90,12 +75,12 @@ gms
 
 void
 gms
-::compute_aRe(_Out_ double * __restrict aRe,
-			  _In_   double * __restrict bRe,
-			  _In_   double * __restrict X,
-			  _In_  const int32_t nt,
-			  _In_  const double delta0,
-			  _In_  const double * __restrict C1) {
+::compute_aRe( double * __restrict aRe,
+			     double * __restrict bRe,
+			     double * __restrict X,
+			    const int32_t nt,
+			    const double delta0,
+			    const double * __restrict C1) {
 
 	double term1{}, term2{};
 	for (int32_t i = 0; i != nt; ++i) {
@@ -108,10 +93,10 @@ gms
 
 void
 gms
-::compute_bRe(_Out_ double * __restrict bRe,
-			  _In_  const int32_t nt,
-			  _In_  const double * __restrict C1,
-			  _In_  const double * __restrict X) {
+::compute_bRe( double * __restrict bRe,
+			    const int32_t nt,
+			    const double * __restrict C1,
+			    const double * __restrict X) {
 
 	double term1{}, term2{}, term3{};
 	for (int32_t i = 0; i != nt; ++i) {
@@ -124,12 +109,12 @@ gms
 
 void
 gms
-::psi_interpolation(_Out_ double *  __restrict psi,
-					_In_  const double * __restrict X,
-					_In_  const double * __restrict X0,
-					_In_  const int32_t nt,
-					_In_  const double k,
-					_In_  const double * __restrict Ct) {
+::psi_interpolation( double *  __restrict psi,
+					  const double * __restrict X,
+					  const double * __restrict X0,
+					  const int32_t nt,
+					  const double k,
+					  const double * __restrict Ct) {
 
 	double term1{}, term2{};
 
@@ -152,12 +137,12 @@ gms
 
 void
 gms
-::compute_delta_bRe(_Out_ double * __restrict dbRe,
-					_In_  const int32_t nt,
-					_In_  const double * __restrict X,
-					_In_  const double * __restrict X0,
-					_In_  const double * __restrict Ct,
-					_In_  const double k) {
+::compute_delta_bRe( double * __restrict dbRe,
+					  const int32_t nt,
+					  const double * __restrict X,
+					  const double * __restrict X0,
+					  const double * __restrict Ct,
+					  const double k) {
 
 	double term1{}, term2{}, term3{}, z{};
 	for (int32_t i = 0; i != nt; ++i) {
