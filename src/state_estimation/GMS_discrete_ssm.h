@@ -455,9 +455,44 @@ o ensure your pointer offsets remain mathematically accurate
     inline MatrixXd inv()
     {
         Eigen::FullPivLU<MatrixXd> lu(this->m_A);
-        if (lu.rank() < this->m_A.rows())
-        throw std::runtime_error("inv(): matrix is singular or rank deficient");
+        if (lu.rank() < this->m_A.rows()) {return MatrixXd()};
         return lu.inverse();
+    }
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline MatrixXd & transpose()
+    {
+        return (*this->m_A.transpose());
+    }
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline void transpose(MatrixXd &A)
+    {
+        A.operator=(this->m_A.transpose());
+    }
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline MatrixXd & diag() 
+    {
+        return (*this->m_A.diagonal());
+    }
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline void diag(MatrixXd &A)  
+    {
+        A.operator=(this->m_A.diagonal());
+    }
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline MatrixXd & kron()
+    {
+        return (*Eigen::kroneckerProduct(this->m_A,this->m_B));
+    }
+
+    __ATTR_ALWAYS_INLINE__ 
+    inline void kron(MatrixXd &C) 
+    {
+        C.operator=(Eigen::kroneckerProduct(this->m_A,this->m_B));
     }
 
 };
