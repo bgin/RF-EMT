@@ -26,11 +26,8 @@
 #include<unsupported/Eigen/KroneckerProduct>
 #include <cmath>
 #include <random>
-#include <stdexcept>
-#include <tuple>
-#include <vector>
-#include <complex>
 #include <immintrin.h> 
+#include <array>
 #include "GMS_config.h"
 #include "GMS_eigen_defines.h"
 
@@ -255,6 +252,21 @@ struct alignas(64) state_space_model_t
 
         return (*this);
     } 
+
+    std::array<bool,7ull> operator==(state_space_model_t &other) noexcept(true) 
+    {
+        std::array<bool,7ull> are_members_equal;
+        bool A_equality = this->m_A.operator==(other.m_A);
+        bool B_equality = this->m_B.operator==(other.m_B);
+        bool C_equality = this->m_C.operator==(other.m_C);
+        bool D_equality = this->m_D.operator==(other.m_D);
+        bool X_equality = this->m_X.operator==(other.m_X);
+        bool U_equality = this->m_U.operator==(other.m_U);
+        bool Y_equality = this->m_Y.operator==(other.m_Y);
+        are_members_equal = {A_equality,B_equality,C_equality,D_equality,
+                             X_equality,U_equality,Y_equality};
+        return (are_members_equal);
+    }
 
     __ATTR_ALWAYS_INLINE__ 
     inline static   
@@ -639,7 +651,47 @@ o ensure your pointer offsets remain mathematically accurate
         return v;
     }
 
+    __ATTR_ALWAYS_INLINE__
+    static
+    inline MatrixXd diff(const MatrixXd& M)
+    {
+        // MATLAB diff(A) along columns for row-major sampled data.
+        MatrixXd out = M;
+        if (M.cols() > 1) {
+            out = M.rightCols(M.cols() - 1) - M.leftCols(M.cols() - 1);
+        } else {
+            out = MatrixXd::Zero(M.rows(), 1);
+        }
+        return out;
+    }
 
+    __ATTR_ALWAYS_INLINE__
+    static
+    inline MatrixXd diff(MatrixXd&& M) noexcept(true)
+    {
+        // MATLAB diff(A) along columns for row-major sampled data.
+        MatrixXd out = M;
+        if (M.cols() > 1) {
+            out = M.rightCols(M.cols() - 1) - M.leftCols(M.cols() - 1);
+        } else {
+            out = MatrixXd::Zero(M.rows(), 1);
+        }
+        return out;
+    }
+
+    __ATTR_ALWAYS_INLINE__
+    static
+    inline void diff(const MatrixXd& M,
+                     MatrixXd &out)
+    {
+        // MATLAB diff(A) along columns for row-major sampled data.
+        out = M;
+        if (M.cols() > 1) {
+            out = M.rightCols(M.cols() - 1) - M.leftCols(M.cols() - 1);
+        } else {
+            out = MatrixXd::Zero(M.rows(), 1);
+        }
+    }
 
 };
 
