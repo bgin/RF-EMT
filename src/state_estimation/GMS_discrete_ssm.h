@@ -505,11 +505,11 @@ o ensure your pointer offsets remain mathematically accurate
     }
 
     __ATTR_ALWAYS_INLINE__
-    inline sqrtm(MatrixXd &A)
+    inline void sqrtm(MatrixXd &A)
     {
        // For the PSD matrices used in the original M-files, this is appropriate.
        Eigen::SelfAdjointEigenSolver<MatrixXd> es(this->m_A);
-       if (es.info() != Eigen::Success) {return (MatrixXd());}
+       if (es.info() != Eigen::Success) {return;}
        A.operator=(es.operatorSqrt());
     }
 
@@ -589,7 +589,57 @@ o ensure your pointer offsets remain mathematically accurate
         for (int i = 0; i < n; ++i)
             v(i) = dist(rng);
         return v;
-}
+    }
+
+    template<typename Func>
+    __ATTR_ALWAYS_INLINE__
+    static
+    inline VectorXd randn_vec(Func &distr,Eigen::Index n)
+    {
+        VectorXd v(n);
+        for (int i = 0; i < n; ++i)
+            v(i) = distr();
+        return v;
+    }
+
+    __ATTR_ALWAYS_INLINE__
+    static
+    inline 
+    void randn_vec(VectorXd& v)
+    {
+        static std::mt19937 rng(std::random_device{}());
+        std::normal_distribution<double> dist(0.0, 1.0);
+        const Eigen::Index n = v.rows();
+        for (int i = 0; i < n; ++i)
+            v(i) = dist(rng);
+    }
+
+    template<typename Func>
+    __ATTR_ALWAYS_INLINE__
+    static
+    inline 
+    void randn_vec(Func &distr, VectorXd& v)
+    {
+        const Eigen::Index n = v.rows();
+        for (int i = 0; i < n; ++i)
+            v(i) = distr(rng);
+    }
+
+    __ATTR_ALWAYS_INLINE__
+    static
+    inline VectorXd randn_vec(Eigen::Index n,
+                          const double mu,
+                          const double sigma)
+    {
+        static std::mt19937 rng(std::random_device{}());
+        std::normal_distribution<double> dist(mu, sigma);
+        VectorXd v(n);
+        for (Eigen::Index i = 0; i < n; ++i)
+             v(i) = dist(rng);
+        return v;
+    }
+
+
 
 };
 
