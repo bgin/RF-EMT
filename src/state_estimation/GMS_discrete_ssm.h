@@ -252,7 +252,8 @@ struct alignas(64) state_space_model_t
 
         return (*this);
     } 
-
+    
+    // Unsafe for double primitive scalar type
     std::array<bool,7ull> operator==(state_space_model_t &other) noexcept(true) 
     {
         std::array<bool,7ull> are_members_equal;
@@ -266,6 +267,22 @@ struct alignas(64) state_space_model_t
         are_members_equal = {A_equality,B_equality,C_equality,D_equality,
                              X_equality,U_equality,Y_equality};
         return (are_members_equal);
+    }
+
+     // Unsafe for double primitive scalar type
+    std::array<bool,7ull> operator!=(state_space_model_t &other) noexcept(true) 
+    {
+        std::array<bool,7ull> are_members_nequal;
+        bool A_nequality = this->m_A.operator!=(other.m_A);
+        bool B_nequality = this->m_B.operator!=(other.m_B);
+        bool C_nequality = this->m_C.operator!=(other.m_C);
+        bool D_nequality = this->m_D.operator!=(other.m_D);
+        bool X_nequality = this->m_X.operator!=(other.m_X);
+        bool U_nequality = this->m_U.operator!=(other.m_U);
+        bool Y_nequality = this->m_Y.operator!=(other.m_Y);
+        are_members_nequal = {A_nequality,B_nequality,C_nequality,D_nequality,
+                             X_nequality,U_nequality,Y_nequality};
+        return (are_members_nequal);
     }
 
     __ATTR_ALWAYS_INLINE__ 
