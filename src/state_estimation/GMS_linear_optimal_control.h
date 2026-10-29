@@ -74,6 +74,10 @@ namespace file_info
      static const char GMS_LINEAR_OPTIMAL_CONTROL_SYNOPSIS[]      = "Linear optimal control essential routines.";
 }
 
+#if !defined(LINEAR_OPTIMAL_CONTROL_KEEP_IMPLEMENTATION_INACTIVE)
+#define LINEAR_OPTIMAL_CONTROL_KEEP_IMPLEMENTATION_INACTIVE 0
+#endif 
+
 namespace gms
 {
 
@@ -439,6 +443,7 @@ struct alignas(64) state_space_holder_t
 
 };
 
+#if (LINEAR_OPTIMAL_CONTROL_KEEP_IMPLEMENTATION_INACTIVE) == 1
 struct alignas(64) ss_model_ptr_holder_t
 {
     double * __restrict__ m_A_ptr{nullptr};
@@ -768,6 +773,8 @@ o ensure your pointer offsets remain mathematically accurate
     }
 
 };
+
+#endif 
 
 __ATTR_ALWAYS_INLINE__ 
 static
