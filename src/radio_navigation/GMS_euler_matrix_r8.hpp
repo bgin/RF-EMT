@@ -59,10 +59,6 @@ namespace file_info {
 #define INIT_BY_STD_FILL 0
 #endif 
 
-#if !defined(EULER_MATRIX_R8_ZERO_INIT)
-#define EULER_MATRIX_R8_ZERO_INIT 0
-#endif 
-
 // Enable non-temporal stores for this class only( used with free-standing operators)
 // defaulted to 0.
 #if !defined (USE_EULER_MATRIX_R8_NT_STORES)
@@ -261,6 +257,92 @@ namespace gms {
                                  std::fill(this->m_r2.m_data,this->m_r2.m_data+this->m_n,filler);
 #endif
                               }
+
+                               __ATTR_ALWAYS_INLINE__ 
+                              inline
+                              void init_r3(const double fill) noexcept(true)
+                              {
+#if (INIT_BY_STD_FILL) == 0
+                                 using namespace gms::common;
+	                             sse_memset_unroll8x_pd(this->m_r3.m_data,filler,this->m_n);
+#else 
+                                 std::fill(this->m_r3.m_data,this->m_r3.m_data+this->m_n,filler);
+#endif
+                              }
+
+                               __ATTR_ALWAYS_INLINE__ 
+                              inline
+                              void init_r4(const double fill) noexcept(true)
+                              {
+#if (INIT_BY_STD_FILL) == 0
+                                 using namespace gms::common;
+	                             sse_memset_unroll8x_pd(this->m_r4.m_data,filler,this->m_n);
+#else 
+                                 std::fill(this->m_r4.m_data,this->m_r4.m_data+this->m_n,filler);
+#endif
+                              }
+
+                               __ATTR_ALWAYS_INLINE__ 
+                              inline
+                              void init_r5(const double fill) noexcept(true)
+                              {
+#if (INIT_BY_STD_FILL) == 0
+                                 using namespace gms::common;
+	                             sse_memset_unroll8x_pd(this->m_r5.m_data,filler,this->m_n);
+#else 
+                                 std::fill(this->m_r5.m_data,this->m_r5.m_data+this->m_n,filler);
+#endif
+                              }
+
+                               __ATTR_ALWAYS_INLINE__ 
+                              inline
+                              void init_r6(const double fill) noexcept(true)
+                              {
+#if (INIT_BY_STD_FILL) == 0
+                                 using namespace gms::common;
+	                             sse_memset_unroll8x_pd(this->m_r6.m_data,filler,this->m_n);
+#else 
+                                 std::fill(this->m_r6.m_data,this->m_r6.m_data+this->m_n,filler);
+#endif
+                              }
+
+                               __ATTR_ALWAYS_INLINE__ 
+                              inline
+                              void init_r7(const double fill) noexcept(true)
+                              {
+#if (INIT_BY_STD_FILL) == 0
+                                 using namespace gms::common;
+	                             sse_memset_unroll8x_pd(this->m_r7.m_data,filler,this->m_n);
+#else 
+                                 std::fill(this->m_r7.m_data,this->m_r7.m_data+this->m_n,filler);
+#endif
+                              }
+
+                               __ATTR_ALWAYS_INLINE__ 
+                              inline
+                              void init_r8(const double fill) noexcept(true)
+                              {
+#if (INIT_BY_STD_FILL) == 0
+                                 using namespace gms::common;
+	                             sse_memset_unroll8x_pd(this->m_r8.m_data,filler,this->m_n);
+#else 
+                                 std::fill(this->m_r8.m_data,this->m_r8.m_data+this->m_n,filler);
+#endif
+                              }
+
+                               __ATTR_ALWAYS_INLINE__ 
+                              inline
+                              void init_r9(const double fill) noexcept(true)
+                              {
+#if (INIT_BY_STD_FILL) == 0
+                                 using namespace gms::common;
+	                             sse_memset_unroll8x_pd(this->m_r9.m_data,filler,this->m_n);
+#else 
+                                 std::fill(this->m_r9.m_data,this->m_r9.m_data+this->m_n,filler);
+#endif
+                              }
+
+
                                  
                        };
 
