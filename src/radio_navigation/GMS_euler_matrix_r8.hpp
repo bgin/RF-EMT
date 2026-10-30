@@ -342,7 +342,33 @@ namespace gms {
 #endif
                               }
 
-
+                              __ATTR_ALWAYS_INLINE__ 
+                              inline 
+                              std::int32_t plot_euler_matrix() const 
+                              {
+                                   std::int32_t ret_status = -9999;
+                                   const std::string struct_header(typeid(*this).name());
+                                   const std::string r1_axis("Eulerian r1-rotation axis.");
+                                   const std::string r2_axis("Eulerian r2-rotation axis.");
+                                   const std::string r3_axis("Eulerian r3-rotation axis.");
+                                   const std::string r4_axis("Eulerian r4-rotation axis.");
+                                   const std::string r5_axis("Eulerian r5-rotation axis.");
+                                   const std::string r6_axis("Eulerian r6-rotation axis.");
+                                   const std::string r7_axis("Eulerian r7-rotation axis.");
+                                   const std::string r8_axis("Eulerian r8-rotation axis.");
+                                   const std::string r9_axis("Eulerian r9-rotation axis.");
+                                   gms::common::create_function_xy_plot(this->m_n,nullptr,this->m_r1.m_data,struct_header,r1_axis,false);
+                                   gms::common::create_function_xy_plot(this->m_n,nullptr,this->m_r2.m_data,struct_header,r2_axis,false);
+                                   gms::common::create_function_xy_plot(this->m_n,nullptr,this->m_r3.m_data,struct_header,r3_axis,false);
+                                   gms::common::create_function_xy_plot(this->m_n,nullptr,this->m_r4.m_data,struct_header,r4_axis,false);
+                                   gms::common::create_function_xy_plot(this->m_n,nullptr,this->m_r5.m_data,struct_header,r5_axis,false);
+                                   gms::common::create_function_xy_plot(this->m_n,nullptr,this->m_r6.m_data,struct_header,r6_axis,false);
+                                   gms::common::create_function_xy_plot(this->m_n,nullptr,this->m_r7.m_data,struct_header,r7_axis,false);
+                                   gms::common::create_function_xy_plot(this->m_n,nullptr,this->m_r8.m_data,struct_header,r8_axis,false);
+                                   gms::common::create_function_xy_plot(this->m_n,nullptr,this->m_r9.m_data,struct_header,r9_axis,false);
+                                   ret_status = 0;
+                                   return (ret_status);
+                              }
                                  
                        };
 
