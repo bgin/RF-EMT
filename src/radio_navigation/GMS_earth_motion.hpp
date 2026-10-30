@@ -39,11 +39,11 @@ namespace file_info {
 
 #include <cstdint>
 #include <cassert>
-#include <fstream>
-#include <iomanip>
+#include <string>
 #include "GMS_config.h"
 #include "GMS_dyn_array.h"
 #include "GMS_sse_memset.h"
+#include "GMS_func_plotter.h"
 
 #if !defined(EARTH_MOTION_USE_PMC_INSTRUMENTATION)
 #define EARTH_MOTION_USE_PMC_INSTRUMENTATION 0
@@ -90,7 +90,7 @@ namespace gms {
                     Earth Motion angular velocity
                     Bernard Etkin, "Dynamics of Atmospheric Flight", page: 124.
                */
-              struct alignas(64) earth_motion_t final 
+              static struct alignas(64) earth_motion_r4_t final 
               {
                      // Only non-zero vector-elements are defined
                      std::size_t m_nsec;   // number of seconds of Earth's rotation
@@ -100,7 +100,7 @@ namespace gms {
                      darray_r4_t m_cosLon; // cosine of Longitude
                      darray_r4_t m_sinLon; // sine of Longtitude
                      
-                     inline earth_motion_t() noexcept(true)
+                     inline earth_motion_r4_t() noexcept(true)
                      : 
                      m_nsec{},
                      m_OE{darray_r4_t()},
@@ -112,7 +112,7 @@ namespace gms {
 
                      }
 
-                     inline  earth_motion_t(const std::size_t nsec) noexcept(false)
+                     inline  earth_motion_r4_t(const std::size_t nsec) noexcept(false)
                      :
                      m_nsec(nsec<=1ull?4ull:nsec),
                      m_OE(darray_r4_t(this->m_nsec)),
@@ -124,7 +124,7 @@ namespace gms {
 
                      }
 
-                     inline earth_motion_t(const earth_motion_t &other) noexcept(false)
+                     inline earth_motion_r4_t(const earth_motion_r4_t &other) noexcept(false)
                      :
                      m_nsec(other.m_nsec),
                      m_OE(other.m_OE),
@@ -136,7 +136,7 @@ namespace gms {
 
                      }
 
-                     inline earth_motion_t(earth_motion_t &&other) noexcept(true)
+                     inline earth_motion_r4_t(earth_motion_r4_t &&other) noexcept(true)
                      :
                      m_nsec(other.m_nsec),
                      m_OE(std::move(other.m_OE)),
@@ -148,13 +148,13 @@ namespace gms {
 
                      }
 
-                     inline ~earth_motion_t() noexcept(true)
+                     inline ~earth_motion_r4_t() noexcept(true)
                      {
 
                      }
 
-                     inline earth_motion_t &
-                     operator=(const earth_motion_t &other) noexcept(false)
+                     inline earth_motion_r4_t &
+                     operator=(const earth_motion_r4_t &other) noexcept(false)
                      {
                          if(__builtin_expect(this==&other,0)) { return (*this);}
                          this->m_nsec = other.m_nsec;
@@ -166,8 +166,8 @@ namespace gms {
                          return (*this);
                      }
 
-                     inline earth_motion_t &
-                     operator=(earth_motion_t &&other) noexcept(true)
+                     inline earth_motion_r4_t &
+                     operator=(earth_motion_r4_t &&other) noexcept(true)
                      {
                          if(__builtin_expect(this==&other,0)) { return (*this);}
                          this->m_nsec = other.m_nsec;
@@ -233,73 +233,31 @@ namespace gms {
                       std::fill(this->m_sinLon.m_data,this->m_sinLon.m_data+this->m_nsec,filler);
 #endif   
                     }
-
-                    static void 
-                    create_sequence_plot(const std::uint32_t n_samp,
-                                         const float * __restrict sig_arg,
-                                         const float * __restrict sig_val,
-                                         const std::string &header,
-                                         const std::string &title,
-                                         const bool is_sig_arg_present)
-                    {
-                         std::string plot_fname;
-                         std::string sig_fname;
-                         std::ofstream plot_unit;
-                         std::ofstream sig_unit;
-                         sig_fname = header+"_plot.txt";
-                         sig_unit.open(sig_fname.c_str());
-                         if(is_sig_arg_present==true)
-                         {
-                              for(std::size_t __i{0ull}; __i != n_samp; ++__i)
-                              {
-                                     sig_unit << " " << sig_arg[__i] << " "
-                                                     << sig_val[__i] << "\n";
-                              }
-                         }
-                         else
-                         {
-                              for(std::size_t __i{0ull}; __i != n_samp; ++__i)
-                              {
-                                      sig_unit << " " << sig_arg[__i] << "\n";
-         
-                              }
-                         }
-                         sig_unit.close();
-                         std::cout << "Created signal data file \"" << sig_fname << "\".\n";
-                         plot_fname = header+"plot_commands.txt";
-                         plot_unit.open(plot_fname.c_str());
-                         plot_unit << "#" << plot_fname << "\n";
-                         plot_unit << "#\n";
-                         plot_unit << "# Usage:\n";
-                         plot_unit << "# gnuplot < " << plot_fname << "\n";
-                         plot_unit << "#\n";
-                         plot_unit << "set term png\n";
-                         plot_unit << "set output \"" << header << ".png\"\n";
-                         plot_unit << "set xlabel 't'\n";
-                         plot_unit << "set ylabel 'y(t)'\n";
-                         plot_unit << "set title '" << title << "'\n";
-                         plot_unit << "set grid\n";
-                         plot_unit << "set style data lines\n";
-                         if(is_sig_arg_present==true)
-                         {
-                                   plot_unit << "plot \"" << sig_fname << "\" using 1:2 lw 1 linecolor rgb \"red\"\n";
-                         }
-                         else
-                         {
-                                   plot_unit << "plot \"" << sig_fname << "\" lw 1 linecolor rgb \"red\"\n";
-                         }
-                         plot_unit << "quit\n";
-                         plot_unit.close();
-                         std::cout << " Created signal data file \"" << plot_fname << "\"\n";
-                    }
-                     
                    
-                     
-                     
-              };
+                   __ATTR_ALWAYS_INLINE__ 
+                   inline
+                   std::int32_t plot_earth_motion()
+                   {
+                        std::int32_t ret_status = -9999;
+                        const std::string struct_header(typeid(*this).name());
+                        const std::string rot_rate_title("Earth rotational rate.");
+                        const std::string cos_latitude("Cosine of Latitude.");
+                        const std::string sin_latitude("Sine of Latitude.");
+                        const std::string cos_longtitude("Cosine of Longtitude.");
+                        const std::string sin_longtitude("Sine of Longtitude.");
+                        gms::common::create_function_xy_plot(this->m_nsec,nullptr,this->m_OE.m_data,struct_header,rot_rate_title,false);
+                        gms::common::create_function_xy_plot(this->m_nsec,nullptr,this->m_cosLat.m_data,struct_header,cos_latitude,false);
+                        gms::common::create_function_xy_plot(this->m_nsec,nullptr,this->m_sinLat.m_data,struct_header,sin_latitude,false);
+                        gms::common::create_function_xy_plot(this->m_nsec,nullptr,this->m_cosLon.m_data,struct_header,cos_longtitude,false);
+                        gms::common::create_function_xy_plot(this->m_nsec,nullptr,this->m_sinLon.m_data,struct_header,sin_longtitude,false);
+                        ret_status = 0;
+                        return (ret_status);
+                   }
+                   
+              } earth_motion_stat_instance;
 
                auto 
-               operator<<(std::ostream &os,const earth_motion_t &rhs)->std::ostream &
+               operator<<(std::ostream &os,const earth_motion_r4_t &rhs)->std::ostream &
                {
                     std::cout << typeid(rhs).name() << "Begin: object state dump." << std::endl;
                     std::cout << "m_nsec: " << std::cout << rhs.m_nsec << "\n";
@@ -331,18 +289,11 @@ namespace gms {
                     std::cout << typeid(rhs).name() << "End: object state dump." << std::endl;
                     return (os);
                }
-    } // fdm
+
+
+    } // state_space
 
 } // gms
-
-
-
-
-
-
-
-
-
 
 
 #endif /*__GMS_EARTH_MOTION_R8_HPP__*/
