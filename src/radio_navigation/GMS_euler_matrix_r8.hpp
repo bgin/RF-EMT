@@ -39,10 +39,12 @@ namespace file_info {
 #include <cstdint>
 #include <array>
 #include <cassert>
+#include <vector>
 #include "GMS_config.h"
 #include "GMS_dyn_array.h"
 #include "GMS_sse_memset.h"
 #include "GMS_func_plotter.h
+#include "GMS_compare_fp_safe.h"
 
 #if !defined(EULER_MATRIX_R8_USE_PMC_INSTRUMENTATION)
 #define EULER_MATRIX_R8_USE_PMC_INSTRUMENTATION 0
@@ -91,6 +93,21 @@ namespace gms {
 
         namespace radio_navigation {
 
+                       
+
+                      struct alignas(64) em_r8_comparison_holder_t 
+                      {
+                             std::vector<bool> comp_r1;
+                             std::vector<bool> comp_r2;
+                             std::vector<bool> comp_r3;
+                             std::vector<bool> comp_r4;
+                             std::vector<bool> comp_r5;
+                             std::vector<bool> comp_r6;
+                             std::vector<bool> comp_r7;
+                             std::vector<bool> comp_r8;
+                             std::vector<bool> comp_r9;
+                             double comp_epsilon{};
+                      };
                         /*
                               Generic representation of the Euler Matrices (the total number of 12 matrices). 
                               During this class instantiation the proper type will be named and
@@ -369,6 +386,8 @@ namespace gms {
                                    ret_status = 0;
                                    return (ret_status);
                               }
+
+                              
                                  
                        };
 
