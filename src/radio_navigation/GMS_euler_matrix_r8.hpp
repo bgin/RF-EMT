@@ -596,6 +596,48 @@ namespace gms {
                                    }
                                    return (comp_res_holder);
                               }
+#if 0
+                              template<typename Functor>
+                              __ATTR_ALWAYS_INLINE__ 
+                              bool static inline 
+                              compare_r1_to_r1(const darray_r8_t &a_r1,
+                                               const darray_r8_t &b_r1,
+                                               Functor &comparator)
+                              {
+                                   // Skiping over the size check.
+                                   const double * __restrict__ par1 = &a_r1.m_data[0];
+                                   const double * __restrict__ pbr1 = &b_r1.m_data[0];
+                                   bool  bcomp_res = false;
+                                   for(std::size_t i = 0; i<a_r1.mnx; ++i)
+                                   {
+                                       const double r1a = par1[i];
+                                       const double r1b = pbr1[i];
+                                       bcomp_res        = comparator(r1a,r1b,std::numeric_limits<double>::epsilon());
+                                       if(bcomp_res) {break;}
+                                   }
+                                   return (bcomp_res);
+                              }
+#endif 
+                              // Container is of type darray_r8_t only.
+                              template<typename Functor,
+                                       class Container>
+                              bool static inline 
+                              compare_r1_to_r1(const Container &cont1,
+                                               const Container &cont2,
+                                               Functor &comparator) 
+                              {
+                                   const double * __restrict__ par1 = &cont1.m_data[0];
+                                   const double * __restrict__ pbr1 = &cont2.m_data[0];
+                                   bool  bcomp_res = false;
+                                   for(std::size_t i = 0; i<a_r1.mnx; ++i)
+                                   {
+                                       const double r1a = par1[i];
+                                       const double r1b = pbr1[i];
+                                       bcomp_res        = comparator(r1a,r1b,std::numeric_limits<double>::epsilon());
+                                       if(bcomp_res) {break;}
+                                   }
+                                   return (bcomp_res);
+                              }
                                  
                        };
 
