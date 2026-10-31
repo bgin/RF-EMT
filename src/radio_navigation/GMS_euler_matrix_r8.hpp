@@ -622,9 +622,9 @@ namespace gms {
                               template<typename Functor,
                                        class Container>
                               bool static inline 
-                              compare_r1_to_r1(const Container &cont1,
-                                               const Container &cont2,
-                                               Functor &comparator) 
+                              compare_rxy_axes(  const Container &cont1,
+                                                 const Container &cont2,
+                                                 Functor &comparator) 
                               {
                                    const double * __restrict__ par1 = &cont1.m_data[0];
                                    const double * __restrict__ pbr1 = &cont2.m_data[0];
