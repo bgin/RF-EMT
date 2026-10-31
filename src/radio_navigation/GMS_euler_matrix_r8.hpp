@@ -464,6 +464,72 @@ namespace gms {
                                    if(__builtin_expect(this->m_n!=other.m_n,0)) { return (em_r8_comparison_holder_t());}
                                    return (this->operator==(other));
                               }
+
+                              __ATTR_ALWAYS_INLINE__ 
+                              inline auto operator>(const euler_matrix_r8_t &other)->em_r8_comparison_holder_t
+                              {
+                                   if(__builtin_expect(this==&other,0)) { return (em_r8_comparison_holder_t());}
+                                   if(__builtin_expect(this->m_n!=other.m_n,0)) { return (em_r8_comparison_holder_t());}
+                                   em_r8_comparison_holder_t comp_res_holder;
+                                   const double * __restrict__ pr1 = &other.m_r1.m_data[0];
+                                   const double * __restrict__ pr2 = &other.m_r2.m_data[0];
+                                   const double * __restrict__ pr3 = &other.m_r3.m_data[0];
+                                   const double * __restrict__ pr4 = &other.m_r4.m_data[0];
+                                   const double * __restrict__ pr5 = &other.m_r5.m_data[0];
+                                   const double * __restrict__ pr6 = &other.m_r6.m_data[0];
+                                   const double * __restrict__ pr7 = &other.m_r7.m_data[0];
+                                   const double * __restrict__ pr8 = &other.m_r8.m_data[0];
+                                   const double * __restrict__ pr9 = &other.m_r9.m_data[0];
+                                   comp_res_holder.comp_epsilon = std::numeric_limits<double>::epsilon();
+                                   for(std::size_t i = 0; i<this->m_n; ++i)
+                                   {
+                                       const double r1a = this->m_r1.m_data[i];
+                                       const double r1b = pr1[i];
+                                       const bool   br1 = gms::definitelyGreaterThan(r1a,r1b,comp_res_holder.comp_epsilon);
+                                       comp_res_holder.comp_r1.operator[](i) = br1;
+                                       const double r2a = this->m_r2.m_data[i];
+                                       const double r2b = pr2[i];
+                                       const bool   br2 = gms::definitelyGreaterThan(r2a,r2b,comp_res_holder.comp_epsilon);
+                                       comp_res_holder.comp_r2.operator[](i) = br2;
+                                       const double r3a = this->m_r3.m_data[i];
+                                       const double r3b = pr3[i];
+                                       const bool   br3 = gms::definitelyGreaterThan(r3a,r3b,comp_res_holder.comp_epsilon);
+                                       comp_res_holder.comp_r3.operator[](i) = br3;
+                                       const double r4a = this->m_r4.m_data[i];
+                                       const double r4b = pr4[i];
+                                       const bool   br4 = gms::definitelyGreaterThan(r4a,r4b,comp_res_holder.comp_epsilon);
+                                       comp_res_holder.comp_r4.operator[](i) = br4;
+                                       const double r4a = this->m_r4.m_data[i];
+                                       const double r4b = pr4[i];
+                                       const bool   br4 = gms::definitelyGreaterThan(r4a,r4b,comp_res_holder.comp_epsilon);
+                                       comp_res_holder.comp_r4.operator[](i) = br4;
+                                       const double r5a = this->m_r5.m_data[i];
+                                       const double r5b = pr5[i];
+                                       const bool   br5 = gms::definitelyGreaterThan(r5a,r5b,comp_res_holder.comp_epsilon);
+                                       comp_res_holder.comp_r5.operator[](i) = br5;
+                                       const double r5a = this->m_r5.m_data[i];
+                                       const double r5b = pr5[i];
+                                       const bool   br5 = gms::definitelyGreaterThan(r5a,r5b,comp_res_holder.comp_epsilon);
+                                       comp_res_holder.comp_r5.operator[](i) = br5;
+                                       const double r6a = this->m_r6.m_data[i];
+                                       const double r6b = pr6[i];
+                                       const bool   br6 = gms::definitelyGreaterThan(r6a,r6b,comp_res_holder.comp_epsilon);
+                                       comp_res_holder.comp_r6.operator[](i) = br6;
+                                       const double r7a = this->m_r7.m_data[i];
+                                       const double r7b = pr7[i];
+                                       const bool   br7 = gms::definitelyGreaterThan(r7a,r7b,comp_res_holder.comp_epsilon);
+                                       comp_res_holder.comp_r7.operator[](i) = br7;
+                                       const double r8a = this->m_r8.m_data[i];
+                                       const double r8b = pr8[i];
+                                       const bool   br8 = gms::definitelyGreaterThan(r8a,r8b,comp_res_holder.comp_epsilon);
+                                       comp_res_holder.comp_r8.operator[](i) = br8;
+                                       const double r9a = this->m_r9.m_data[i];
+                                       const double r9b = pr9[i];
+                                       const bool   br9 = gms::definitelyGreaterThan(r9a,r9b,comp_res_holder.comp_epsilon);
+                                       comp_res_holder.comp_r9.operator[](i) = br9;
+                                   }
+                                   return (comp_res_holder);
+                              }
                                  
                        };
 
