@@ -387,6 +387,8 @@ namespace gms {
                                    return (ret_status);
                               }
 
+                              // Sweeping over the whole ranges, hence for the performance critical operations
+                              // use more optimized standalone version.
                               __ATTR_ALWAYS_INLINE__ 
                               inline auto operator==(const euler_matrix_r8_t &other)->em_r8_comparison_holder_t
                               {
@@ -451,6 +453,16 @@ namespace gms {
                                        comp_res_holder.comp_r9.operator[](i) = br9;
                                    }
                                    return (comp_res_holder);
+                              }
+
+                              // Return operator==, the results will be containing either true, ro false,
+                              // Postporcessing shall be done on this values.
+                              __ATTR_ALWAYS_INLINE__ 
+                              inline auto operator!=(const euler_matrix_r8_t &other)->em_r8_comparison_holder_t
+                              {
+                                   if(__builtin_expect(this==&other,0)) { return (em_r8_comparison_holder_t());}
+                                   if(__builtin_expect(this->m_n!=other.m_n,0)) { return (em_r8_comparison_holder_t());}
+                                   return (this->operator==(other));
                               }
                                  
                        };
