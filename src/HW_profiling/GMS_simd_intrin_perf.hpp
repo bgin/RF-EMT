@@ -55,7 +55,7 @@ typedef std::unique_ptr<UopFusedMap> UptrFusedMap;
 
 typedef std::unique_ptr<UopUnfusedMap> UptrUnfusedMap;
 
-template <typename T> struct IntrinsicsConfig 
+template <typename T> struct intrinsics_config_t 
 {
 
   T CpuCycles;
@@ -118,7 +118,68 @@ template <typename T> struct IntrinsicsConfig
 
   static auto is_memory_load() -> std::int32_t { return ((LoadSource) ? 1 : 0); }
 };
-			
+
+
+struct alignas(64) port_decomp_helper_avx_t 
+{
+
+  static auto set_port_value(std::string &val1, std::int32_t val2)
+      -> std::pair<std::string, std::int32_t> {
+    return (std::make_pair(val1, val2));
+  }
+
+  static const constexpr auto uops_min_pd_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm256_min_pd per Port unfused decomposition:"});
+  }
+
+  static const constexpr auto uops_min_ps_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm256_min_ps per Port unfused decomposition:"});
+  }
+
+  static const constexpr auto uops_max_pd_descr() -> std::string {
+    return (std::string{
+        "Micro-ops  of _mm256_max_pd per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_max_ps_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm256_max_ps per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_ceil_ps_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm256_ceil_ps per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_ceil_pd_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm256_ceil_pd per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_floor_ps_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm256_floor_ps per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_floor_pd_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm256_floor_pd per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_zero_ps_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm256_setzero_ps per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_zero_pd_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm256_setzero_pd per Port unfused decomposition: "});
+  }
+
+  
+};	
 
 			
 
