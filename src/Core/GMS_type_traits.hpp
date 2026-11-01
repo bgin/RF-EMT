@@ -30,6 +30,19 @@ namespace gms
 namespace common
 {
 
+// mulit_array alignment.
+/*
+#include <boost/multi_array.hpp>
+#include <boost/align/aligned_allocator.hpp>
+
+// Create a 2D array of floats with forced 64-byte memory block alignment
+typedef boost::multi_array<float, 2, boost::alignment::aligned_allocator<float, 64>> AlignedArray2D;
+
+AlignedArray2D A(boost::extents[10][10]); 
+// A.origin() is now guaranteed to start on a 64-byte boundary
+
+*/
+
 template <typename T, class Container_t>
 struct Is_Container_std_vector : public std::integral_constant<bool, false> {};
 
@@ -52,6 +65,58 @@ struct Is_Container_boost_multi_array1d
 template <typename T>
 struct Is_Container_boost_multi_array1d<T, boost::multi_array<T, 1>>
     : public std::integral_constant<bool, true> {};
+
+class primitive_type_tag {};
+
+class float32_t_tag final : public primitive_type_tag {};
+
+class float64_t_tag final : public primitive_type_tag {};
+
+/**********************************************
+                 Array types tags
+                                 Dynamic arrays
+***********************************************/
+
+class dyn_container_type_tag {};
+
+class dyn_container_boost_t_tag final : public dyn_container_type_tag {};
+
+class dyn_container_valarray_t_tag final : public dyn_container_type_tag {};
+
+class dyn_container_vector_t_tag final : public dyn_container_type_tag {};
+
+class dyn_container_blaze_t_tag final : public dyn_container_type_tag {};
+
+class dyn_container_armadillo_t_tag final : public dyn_container_type_tag {};
+
+class dyn_container_raw_ptr_t_tag final : public dyn_container_type_tag {};
+
+class dyn_container_smart_ptr_t_tag final : public dyn_container_type_tag {};
+
+class dyn_container_own_impl_t_tag final : public dyn_container_type_tag {};
+
+/*****************************************************
+                  Array types tags
+                                  Static arrays.
+******************************************************/
+
+class stat_container_type_tag {};
+
+class stat_container_std_array_t_tag final : public stat_container_type_tag {};
+
+class stat_container_builtin_array_t_tag final : public stat_container_type_tag {};
+    
+class stat_container_rf_emt_half_impl_t_tag final : public stat_container_type_tag {};
+
+class stat_container_rf_emt_float_impl_t_tag final : public stat_container_type_tag {};
+
+class stat_container_rf_emt_double_impl_t_tag final : public stat_container_type_tag {};
+
+class stat_container_rf_emt_complex_half_impl_t_tag final : public stat_container_type_tag {};
+
+class stat_container_rf_emt_complex_float_impl_t_tag final : public stat_container_type_tag {};
+
+class stat_container_rf_emt_complex_double_impl_t_tag final : public stat_container_type_tag {};
 
 }
 
