@@ -22,17 +22,20 @@ SOFTWARE.
 #ifndef __GMS_EULER_MATRIX_R8_HPP__
 #define __GMS_EULER_MATRIX_R8_HPP__ 240420250657
 
-namespace file_info {
+namespace file_info 
+{
 
-     const unsigned int GMS_EULER_MATRIX_R4_MAJOR = 1;
-     const unsigned int GMS_EULER_MATRIX_R4_MINOR = 1;
-     const unsigned int GMS_EULER_MATRIX_R4_MICRO = 0;
-     const unsigned int GMS_EULER_MATRIX_R4_FULLVER =
-       1000U*GMS_EULER_MATRIX_R4_MAJOR+100U*GMS_EULER_MATRIX_R4_MINOR+
-       10U*GMS_EULER_MATRIX_R4_MICRO;
-     const char * const GMS_EULER_MATRIX_R4_CREATION_DATE = "24-04-2025 06:57 AM  +00200 (THR 24 APR 2025 GMT+2)";
-     const char * const GMS_EULER_MATRIX_R4_BUILD_DATE    = __DATE__ " " __TIME__;
-     const char * const GMS_EULER_MATRIX_R4_SYNOPSIS      = "Dynamically allocated, 64-byte aligned Euler Matrix (generic representation) double-precision type.";
+     const unsigned int GMS_EULER_MATRIX_R8_MAJOR = 2;
+     const unsigned int GMS_EULER_MATRIX_R8_MINOR = 0;
+     const unsigned int GMS_EULER_MATRIX_R8_MICRO = 0;
+     const unsigned int GMS_EULER_MATRIX_R8_FULLVER =
+       1000U*GMS_EULER_MATRIX_R8_MAJOR+100U*GMS_EULER_MATRIX_R8_MINOR+
+       10U*GMS_EULER_MATRIX_R8_MICRO;
+     const char * const GMS_EULER_MATRIX_R8_CREATION_DATE = "24-04-2025 06:57 AM  +00200 (THR 24 APR 2025 GMT+2)";
+     const char * const GMS_EULER_MATRIX_R8_REFACTOR_DATE = "31-10-2026 09:20 AM  +00200 (SAT 31 OCT 2026 GMT+2)"; 
+     const char * const GMS_EULER_MATRIX_R8_BUILD_DATE    = __DATE__ " " __TIME__;
+     static const char  GMS_EULER_MATRIX_R8_AUTHOR[]      = "Programmer: Bernard Gingold, beniekg@gmail.com"; 
+     const char * const GMS_EULER_MATRIX_R8_SYNOPSIS      = "Dynamically allocated, 64-byte aligned Euler Matrix (generic representation) double-precision type.";
 
 }
 
