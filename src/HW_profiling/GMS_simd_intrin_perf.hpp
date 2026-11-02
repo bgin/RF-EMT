@@ -24,7 +24,8 @@
 #include <cstdint>
 #include "GMS_config.h"
 
-namespace file_info {
+namespace file_info 
+{
 
      const unsigned int GMS_SIMD_INTRIN_PERF_MAJOR = 1;
      const unsigned int GMS_SIMD_INTRIN_PERF_MINOR = 1;
@@ -36,7 +37,6 @@ namespace file_info {
      const char * const GMS_SIMD_INTRIN_PERF_BUILD_DATE    = __DATE__ " " __TIME__;
      static const char  GMS_SIMD_INTRIN_PERF_AUTHOR[]      = "Programmer: Bernard Gingold, beniekg@gmail.com"; 
      const char * const GMS_SIMD_INTRIN_PERF_SYNOPSIS      = "Configuration ADTs for the SIMD intrinsics performance measurements.";
-
 }
 
 namespace gms 
@@ -108,9 +108,9 @@ template <typename T> struct intrinsics_config_t
   /* Used to describe zero - throughput instruction.*/
   static constexpr T Thr0PipeCycle = static_cast<T>(0.0);
 
-  static constexpr T RCPRelError = static_cast<T>(0.0003662109375L);
+  static constexpr T RCPRelError = static_cast<T>(0.0003662109375);
 
-  static constexpr T RSQRTRelError = static_cast<T>(0.0003662109375L);
+  static constexpr T RSQRTRelError = static_cast<T>(0.0003662109375);
 
   static constexpr T RelErrorUnk = static_cast<T>(std::numeric_limits<T>::quiet_Nan());
   
@@ -118,6 +118,67 @@ template <typename T> struct intrinsics_config_t
 
   static auto is_memory_load() -> std::int32_t { return ((LoadSource) ? 1 : 0); }
 };
+
+struct alignas(64) port_decomp_helper_sse_t 
+{
+
+  static auto set_port_value(std::string &val1, std::int32_t val2)
+      -> std::pair<std::string, std::int32_t> {
+    return (std::make_pair(val1, val2));
+  }
+
+  static const constexpr auto uops_min_pd_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm_min_pd per Port unfused decomposition:"});
+  }
+
+  static const constexpr auto uops_min_ps_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm_min_ps per Port unfused decomposition:"});
+  }
+
+  static const constexpr auto uops_max_pd_descr() -> std::string {
+    return (std::string{
+        "Micro-ops  of _mm_max_pd per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_max_ps_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm_max_ps per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_ceil_ps_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm_ceil_ps per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_ceil_pd_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm_ceil_pd per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_floor_ps_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm_floor_ps per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_floor_pd_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm_floor_pd per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_zero_ps_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm_setzero_ps per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_zero_pd_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm_setzero_pd per Port unfused decomposition: "});
+  }
+
+
+};	
 
 
 struct alignas(64) port_decomp_helper_avx_t 
@@ -178,7 +239,7 @@ struct alignas(64) port_decomp_helper_avx_t
         "Micro-ops of _mm256_setzero_pd per Port unfused decomposition: "});
   }
 
-  
+
 };	
 
 			
