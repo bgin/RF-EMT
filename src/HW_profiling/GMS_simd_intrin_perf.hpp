@@ -239,8 +239,146 @@ struct alignas(64) port_decomp_helper_avx_t
         "Micro-ops of _mm256_setzero_pd per Port unfused decomposition: "});
   }
 
+};	
+
+
+struct alignas(64) port_decomp_helper_avx512_t 
+{
+
+  static auto set_port_value(std::string &val1, std::int32_t val2)
+      -> std::pair<std::string, std::int32_t> {
+    return (std::make_pair(val1, val2));
+  }
+
+  static const constexpr auto uops_min_pd_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm512_min_pd per Port unfused decomposition:"});
+  }
+
+  static const constexpr auto uops_min_ps_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm512_min_ps per Port unfused decomposition:"});
+  }
+
+  static const constexpr auto uops_max_pd_descr() -> std::string {
+    return (std::string{
+        "Micro-ops  of _mm512_max_pd per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_max_ps_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm512_max_ps per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_ceil_ps_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm512_ceil_ps per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_ceil_pd_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm512_ceil_pd per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_floor_ps_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm512_floor_ps per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_floor_pd_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm512_floor_pd per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_zero_ps_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm512_setzero_ps per Port unfused decomposition: "});
+  }
+
+  static const constexpr auto uops_zero_pd_descr() -> std::string {
+    return (std::string{
+        "Micro-ops of _mm512_setzero_pd per Port unfused decomposition: "});
+  }
 
 };	
+
+struct RegisterType {
+
+  enum class Types {
+
+    XMM = 0,
+
+    YMM = 1,
+
+    ZMM = 2
+  };
+};
+
+template <class Type = RegisterType>
+struct Register_XMM final : public RegisterType {
+
+  enum class reg_type { XMM = Type::Types::XMM };
+
+  static constexpr std::uint32_t m_BitWidth = 1 << 7;
+
+  static constexpr std::uint32_t m_NumScalarsSP = 1 << 2;
+
+  static constexpr std::uint32_t m_NumScalarsDP = 1 << 1;
+
+  static auto getBitWidth() -> constexpr std::uint32_t { return (m_BitWidth); }
+
+  static auto getNumScalarsSP() -> constexpr std::uint32_t {
+    return (m_NumScalarsSP);
+  }
+
+  static auto getNumScalarsDP() -> constexpr std::uint32_t {
+    return (m_NumScalarsDP);
+  }
+};
+
+template <class Type = RegisterType>
+struct Register_YMM final : public RegisterType {
+
+  enum class reg_type { YMM = Type::Types::YMM };
+
+  static constexpr std::uint32_t m_BitWidth = 1 << 8;
+
+  static constexpr std::uint32_t m_NumScalar32bit = 1 << 3;
+
+  static constexpr std::uint32_t m_NumScalar64bit = 1 << 2;
+
+  static auto getBitWidth() -> constexpr std::uint32_t { return (m_BitWidth); }
+
+  static auto getNumScalar32bit() -> constexpr std::uint32_t {
+    return (m_NumScalar32bit);
+  }
+
+  static auto getNumScalar64bit() -> constexpr std::uint32_t {
+    return (m_NumScalar64bit);
+  }
+};
+
+template <class Type = RegisterType>
+struct Register_ZMM final : public RegisterType {
+
+  enum class reg_type { ZMM = Type::Types::ZMM };
+
+  static constexpr std::uint32_t m_BitWidth = 1 << 9;
+
+  static constexpr std::uint32_t m_NumScalar32bit = 1 << 4;
+
+  static constexpr std::uint32_t m_NumScalar64bit = 1 << 3;
+
+  static auto getBitWidth() -> constexpr std::uint32_t { return (m_BitWidth); }
+
+  static auto getNumScalar32bit() -> constexpr std::uint32_t {
+    return (m_NumScalar32bit);
+  }
+
+  static auto getNumScalar64bit() -> constexpr std::uint32_t {
+    return (m_NumScalar64bit);
+  }
+};
 
 			
 
