@@ -52,6 +52,12 @@ typedef boost::multi_array<double,1, boost::alignment::aligned_allocator<float,3
 
 typedef boost::multi_array<double,1, boost::alignment::aligned_allocator<float,64>> Aligned64Vec1DF64;
 
+typedef boost::multi_array<std::complex<half_float::half>,1, boost::alignment::aligned_allocator<std::complex<half_float::half>,16>> Aligned16CVec1DF16;
+
+typedef boost::multi_array<std::complex<half_float::half>,1, boost::alignment::aligned_allocator<std::complex<half_float::half>,32>> Aligned32CVec1DF16;
+
+typedef boost::multi_array<std::complex<half_float::half>,1, boost::alignment::aligned_allocator<std::complex<half_float::half>,64>> Aligned64CVec1DF16;
+
 typedef boost::multi_array<std::complex<float>,1, boost::alignment::aligned_allocator<std::complex<float>,16>> Aligned16CVec1DF32;
 
 typedef boost::multi_array<std::complex<float>,1, boost::alignment::aligned_allocator<std::complex<float>,32>> Aligned32CVec1DF32;
@@ -63,6 +69,10 @@ typedef boost::multi_array<std::complex<double>,1, boost::alignment::aligned_all
 typedef boost::multi_array<std::complex<double>,1, boost::alignment::aligned_allocator<std::complex<double>,32>> Aligned32CVec1DF64;
 
 typedef boost::multi_array<std::complex<double>,1, boost::alignment::aligned_allocator<std::complex<double>,64>> Aligned64CVec1DF64;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 }
 
