@@ -72,7 +72,43 @@ typedef boost::multi_array<std::complex<double>,1, boost::alignment::aligned_all
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+typedef boost::multi_array<half_float::half,2, boost::alignment::aligned_allocator<half_float::half,16>> Aligned16Mat2DF16;
 
+typedef boost::multi_array<half_float::half,2, boost::alignment::aligned_allocator<half_float::half,32>> Aligned32Mat21DF16;
+
+typedef boost::multi_array<half_float::half,2, boost::alignment::aligned_allocator<half_float::half,64>> Aligned64Mat21DF16;
+
+typedef boost::multi_array<float,2, boost::alignment::aligned_allocator<float,16>> Aligned16Mat2DDF32;
+
+typedef boost::multi_array<float,2, boost::alignment::aligned_allocator<float,32>> Aligned32Mat2DF32;
+
+typedef boost::multi_array<float,2, boost::alignment::aligned_allocator<float,64>> Aligned64Mat2DF32;
+
+typedef boost::multi_array<double,2, boost::alignment::aligned_allocator<float,16>> Aligned16Mat2DF64;
+
+typedef boost::multi_array<double,2, boost::alignment::aligned_allocator<float,32>> Aligned32Mat2DF64;
+
+typedef boost::multi_array<double,2, boost::alignment::aligned_allocator<float,64>> Aligned64Mat2DF64;
+
+typedef boost::multi_array<std::complex<half_float::half>,2, boost::alignment::aligned_allocator<std::complex<half_float::half>,16>> Aligned16CMat2DF16;
+
+typedef boost::multi_array<std::complex<half_float::half>,2, boost::alignment::aligned_allocator<std::complex<half_float::half>,32>> Aligned32CMat2DF16;
+
+typedef boost::multi_array<std::complex<half_float::half>,2, boost::alignment::aligned_allocator<std::complex<half_float::half>,64>> Aligned64CMat2DF16;
+
+typedef boost::multi_array<std::complex<float>,2, boost::alignment::aligned_allocator<std::complex<float>,16>> Aligned16CMat2DF32;
+
+typedef boost::multi_array<std::complex<float>,2, boost::alignment::aligned_allocator<std::complex<float>,32>> Aligned32CMat2DF32;
+
+typedef boost::multi_array<std::complex<float>,2, boost::alignment::aligned_allocator<std::complex<float>,64>> Aligned64CMat2DF32;
+
+typedef boost::multi_array<std::complex<double>,2, boost::alignment::aligned_allocator<std::complex<double>,16>> Aligned16CMat2DF64;
+
+typedef boost::multi_array<std::complex<double>,2, boost::alignment::aligned_allocator<std::complex<double>,32>> Aligned32CMat2DF64;
+
+typedef boost::multi_array<std::complex<double>,2, boost::alignment::aligned_allocator<std::complex<double>,64>> Aligned64CMat2DF64;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 }
 
