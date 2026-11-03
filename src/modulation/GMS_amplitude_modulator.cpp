@@ -89,7 +89,7 @@ gms::radiolocation
 {
     if (message_value > 1.0f)  message_value = 1.0f;
     if (message_value < -1.0f) message_value = -1.0f;
-    float carrier = std::cos(2.0f*3.1415926535897932384626433832795f*this->m_carrier_freq*this->m_time);
+    float carrier = std::cos(6.283185307179586476925286766559f*this->m_carrier_freq*this->m_time);
     float am_sample = (1.0f + message_value) * carrier;
     this->m_time += (1.0f / this->m_sampling_rate);
     return am_sample;
@@ -189,8 +189,8 @@ gms::radiolocation
 ::generate_next_sample(double message_value) 
 {
     if (message_value > 1.0)  message_value = 1.0;
-    if (message_value < -1.0) message_value = -1.f;
-    double carrier = std::cos(2.0*3.1415926535897932384626433832795*this->m_carrier_freq*this->m_time);
+    if (message_value < -1.0) message_value = -1.0;
+    double carrier = std::cos(6.283185307179586476925286766559*this->m_carrier_freq*this->m_time);
     double am_sample = (1.0 + message_value) * carrier;
     this->m_time += (1.0 / this->m_sampling_rate);
     return am_sample;
