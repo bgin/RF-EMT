@@ -37,6 +37,22 @@ namespace common
 
 typedef boost::multi_array<std::int32_t,1, boost::alignment::aligned_allocator<std::int32_t,16>> Aligned16Vec1DI32;
 
+typedef boost::multi_array<std::int32_t,2, boost::alignment::aligned_allocator<std::int32_t,16>> Aligned16Mat2DI32;
+
+typedef boost::multi_array<std::int32_t,3, boost::alignment::aligned_allocator<std::int32_t,16>> Aligned16Mat3DI32;
+
+typedef boost::multi_array<std::int32_t,1, boost::alignment::aligned_allocator<std::int32_t,32>> Aligned32Vec1DI32;
+
+typedef boost::multi_array<std::int32_t,2, boost::alignment::aligned_allocator<std::int32_t,32>> Aligned32Mat2DI32;
+
+typedef boost::multi_array<std::int32_t,3, boost::alignment::aligned_allocator<std::int32_t,32>> Aligned32Mat3DI32;
+
+typedef boost::multi_array<std::int32_t,1, boost::alignment::aligned_allocator<std::int32_t,64>> Aligned64Vec1DI32;
+
+typedef boost::multi_array<std::int32_t,2, boost::alignment::aligned_allocator<std::int32_t,64>> Aligned64Mat2DI32;
+
+typedef boost::multi_array<std::int32_t,3, boost::alignment::aligned_allocator<std::int32_t,64>> Aligned64Mat3DI32;
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 typedef boost::multi_array<half_float::half,1, boost::alignment::aligned_allocator<half_float::half,16>> Aligned16Vec1DF16;
