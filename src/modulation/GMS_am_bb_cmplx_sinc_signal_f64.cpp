@@ -97,7 +97,7 @@ gms::radiolocation
 {
 #if (INIT_BY_STD_FILL) == 0
      using namespace gms::common;
-	 sse_memset_unroll8x_pf(reinterpret_cast<double*>(this->m_sig_samples.m_data),filler,this->m_nsamples);
+	 sse_memset_unroll8x_pd(reinterpret_cast<double*>(this->m_sig_samples.m_data),filler,this->m_nsamples);
 #else 
      std::fill(this->m_sig_samples.m_data,this->m_sig_samples.m_data+this->m_nsamples,filler);
 #endif
@@ -219,7 +219,7 @@ gms::radiolocation
         double t__i_3{3.0};
         std::uint32_t __i;
         std::uint32_t __j;
-        for(__i = 0; __i != ROUND_TO_FOUR(n_T,4); __i += 4u)
+        for(__i = 0; __i != ROUND_TO_FOUR(n_T,3); __i += 4u)
         {
             t__i_0 += 4.0;
             sum0    = (0.0,0.0);
@@ -333,7 +333,7 @@ std::int32_t
 gms::radiolocation
 ::am_bb_cmplx_sinc_signal_f64_t
 ::create_noisy_signal_user_data(am_bb_cmplx_sinc_signal_f64_pdf_params_t & pdf_params,
-                                am_bb_cmplx_sinc_signal_rand_distr rd_enum,
+                                am_bb_cmplx_sinc_signal_f64_rand_distr rd_enum,
                                 const double scale,
                                 const double * __restrict__ sym_in, // size of m_nsamples*m_nK values [0,1]
                                 const std::uint32_t n_T,
