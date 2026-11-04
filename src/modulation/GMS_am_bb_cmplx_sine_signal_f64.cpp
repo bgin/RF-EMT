@@ -504,7 +504,32 @@ gms::radiolocation
     return (this->operator==(other));
 }
 
-
+auto 
+gms::radiolocation
+::am_bb_cmplx_sin_signal_f64_t
+::operator>=(const am_bb_cmplx_sin_signal_f64_t &other)->std::pair<std::vector<bool>,
+                                                                   std::vector<bool>>
+{
+    std::pair<std::vector<bool>,std::vector<bool>> gt_comp_holder;
+    std::complex<double> * __restrict__ p_other = &other.m_sig_samples.m_data[0];
+    constexpr double eps = std::numeric_limits<double>::epsilon();
+    double x_re;
+    double x_im;
+    double y_re;
+    double y_im;
+    for(std::size_t i = 0ull; i<this->m_nsamples; ++i) 
+    {
+        x_re = this->m_sig_samples.m_data[i].real();
+        y_re = p_other[i].real();
+        const bool re_re_gt = gms::definitelyGreaterThan(x_re,y_re,eps);
+        gt_comp_holder.first.operator[](i) = re_re_gt;
+        x_im = this->m_sig_samples.m_data[i].imag();
+        y_im = p_other[i].imag();
+        const bool im_im_gt = gms::definitelyGreaterThan(x_im,y_im,eps);
+        gt_comp_holder.second.operator[](i) = im_im_gt;
+    }
+    return (gt_comp_holder);
+}
 
 auto
 gms::radiolocation
