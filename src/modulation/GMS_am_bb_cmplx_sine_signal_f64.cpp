@@ -495,6 +495,15 @@ gms::radiolocation
     return (eq_comp_holder);
 }
 
+auto 
+gms::radiolocation
+::am_bb_cmplx_sin_signal_f64_t
+::operator!=(const am_bb_cmplx_sin_signal_f64_t &other)->std::pair<std::vector<bool>,
+                                                                   std::vector<bool>> 
+{   // Just call the operator== and inspect the boolean values.
+    return (this->operator==(other));
+}
+
 
 
 auto
