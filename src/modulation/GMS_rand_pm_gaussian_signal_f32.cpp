@@ -157,7 +157,7 @@ gms::radiolocation
     double y;
     for(std::size_t i = 0ull; i<this->m_nsamples; ++i) 
     {
-        x = this->m_sigNAL_samples.m_data[i];
+        x = this->m_signal_samples.m_data[i];
         y = p_other[i];
         const bool xy_gt = gms::definitelyGreaterThan(x,y,eps);
         gt_comp_holder.operator[](i) = xy_gt;
