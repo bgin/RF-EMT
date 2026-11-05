@@ -238,7 +238,6 @@ namespace radiolocation
                          }
                         return (0);
                     }
-            };
 
                     auto operator==(const am_bb_trapez_signal_f64_t &)->std::vector<bool>;
                                                                                     
@@ -247,6 +246,9 @@ namespace radiolocation
                     auto operator>=(const am_bb_trapez_signal_f64_t &)->std::vector<bool>;
                                                                                    
                     auto operator<=(const am_bb_trapez_signal_f64_t &)->std::vector<bool>;
+            };
+
+                   
 
              auto operator<<(std::ostream &,
                              am_bb_trapez_signal_f64_t &)->std::ostream &;
