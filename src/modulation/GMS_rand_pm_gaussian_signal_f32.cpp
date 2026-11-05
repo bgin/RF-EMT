@@ -86,7 +86,7 @@ gms::radiolocation
 ::rand_pm_gaussian_signal_f32_t
 ::operator=(const rand_pm_gaussian_signal_f32_t &other) noexcept(false) 
 {
-    if(__builtin_except(this==&other)) { return (*this);}
+    if(__builtin_expect(this==&other)) { return (*this);}
     this->m_nsamples      = other.m_nsamples;
     this->m_num_gaussians = other.m_num_gaussians;
     this->m_tstart        = other.m_tstart;
@@ -104,7 +104,7 @@ gms::radiolocation
 ::rand_pm_gaussian_signal_f32_t
 ::operator=(rand_pm_gaussian_signal_f32_t &&other) noexcept(true) 
 {
-    if(__builtin_except(this==&other)) { return (*this);}
+    if(__builtin_expect(this==&other)) { return (*this);}
     this->m_nsamples      = other.m_nsamples;
     this->m_num_gaussians = other.m_num_gaussians;
     this->m_tstart        = other.m_tstart;
@@ -121,7 +121,7 @@ gms::radiolocation
 ::rand_pm_gaussian_signal_f32_t
 ::operator==(const rand_pm_gaussian_signal_f32_t &other)->std::vector<bool> 
 {
-    if(__builtin_expect(this->m_nsamples!=other.m_signal_samples,0)) {return (std::vector<bool>());}
+    if(__builtin_expect(this->m_nsamples!=other.m_nsamples,0)) {return (std::vector<bool>());}
     std::vector<bool> eq_comp_holder;
     float * __restrict__ p_other = &other.m_signal_samples.m_data[0];
     constexpr float eps = std::numeric_limits<float>::epsilon();
@@ -150,8 +150,9 @@ gms::radiolocation
 ::rand_pm_gaussian_signal_f32_t
 ::operator>=(const rand_pm_gaussian_signal_f32_t &other)->std::vector<bool>                                               
 {
+    if(__builtin_expect(this->m_nsamples!=other.m_nsamples,0)) {return (std::vector<bool>());}
     std::vector<bool> gt_comp_holder;
-    double * __restrict__ p_other = &other.m_sig_samples.m_data[0];
+    double * __restrict__ p_other = &other.m_signal_samples.m_data[0];
     constexpr double eps = std::numeric_limits<double>::epsilon();
     double x;
     double y;
@@ -170,8 +171,9 @@ gms::radiolocation
 ::rand_pm_gaussian_signal_f32_t
 ::operator<=(const rand_pm_gaussian_signal_f32_t &other)->std::vector<bool>                                                             
 {
+    if(__builtin_expect(this->m_nsamples!=other.m_nsamples,0)) {return (std::vector<bool>());}
     std::vector<bool> lt_comp_holder;
-    double * __restrict__ p_other = &other.m_sig_samples.m_data[0];
+    double * __restrict__ p_other = &other.m_signal_samples.m_data[0];
     constexpr double eps = std::numeric_limits<double>::epsilon();
     double x;
     double y;
