@@ -18,7 +18,7 @@ m_nK{nK},
 m_n{n},
 m_A{A},
 m_P{P},
-m_sig_samples{darray_r4_t(m_nsamples)}
+m_sig_samples{darray_r8_t(m_nsamples)}
 {
 
 }
