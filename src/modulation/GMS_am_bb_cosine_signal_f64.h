@@ -159,7 +159,7 @@ namespace radiolocation
                    double             m_n;  // number of 2PI cycles
                    double             m_A;  // An amplitude
                    double             m_P;  // A period 
-                   darray_r4_t       m_sig_samples;
+                   darray_r8_t       m_sig_samples;
 
                    am_bb_cosine_signal_f64_t() = default;
 
