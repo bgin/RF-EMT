@@ -306,7 +306,7 @@ gms::radiolocation
         x = this->m_sig_samples.m_data[i];
         y = p_other[i];
         const bool xy_lt = gms::definitelyLessThan(x,y,eps);
-        lt_comp_holder.first.operator[](i) = xy_lt;
+        lt_comp_holder.operator[](i) = xy_lt;
     }
     return (lt_comp_holder);
 }
