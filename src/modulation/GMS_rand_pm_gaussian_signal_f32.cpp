@@ -169,7 +169,7 @@ gms::radiolocation
 auto 
 gms::radiolocation
 ::rand_pm_gaussian_signal_f32_t
-::operator<=(const rand_pm_gaussian_signal_f32_t &other)->std::vector<bool>                                                             
+::operator<=(const rand_pm_gaussian_signal_f32_t &other)->std::vector<bool>
 {
     if(__builtin_expect(this->m_nsamples!=other.m_nsamples,0)) {return (std::vector<bool>());}
     std::vector<bool> lt_comp_holder;
@@ -230,6 +230,7 @@ gms::radiolocation
 
     }
     const float dt = (this->m_tend-this->m_tstart)/static_cast<float>(this->m_nsamples-1ull);
+    constexpr float sqrt2PI = 2.506628274631000502415765284811f;
     for(std::size_t j = 0ull; j<this->m_nsamples; ++j)   
     {
         const float t_j = static_cast<float>(j);
@@ -237,14 +238,15 @@ gms::radiolocation
         float phase_accumulator = 0.0f;
         for(std::size_t k = 0; k<this->m_num_gaussians; ++k) 
         {   
-            const float tmu        = gc_store[k].mu;
-            float diff             = t-tmu;
-            const float tamplitude = gc_store[k].amplitude;
-            const float tsigma     = gc_store[k].two_sigma_sq;
+            const float tmu           = gc_store[k].mu;
+            float diff                = t-tmu;
+            const float tamplitude    = gc_store[k].amplitude;
+            const float tsigma        = gc_store[k].two_sigma_sq;
+            const float normalization = 1.0f/(tsigma*sqrt2PI);
 #if (RAND_PM_GAUSSIAN_SIGNAL_F32_USE_CEPHES) == 1
-            const float exp_val    = gms::math::ceph_expf(-(diff*diff)/tsigma);
+            const float exp_val    = normalization*gms::math::ceph_expf(-(diff*diff)/tsigma);
 #else 
-            const float exp_val    = std::exp(-(diff*diff)/tsigma);
+            const float exp_val    = normalization*std::exp(-(diff*diff)/tsigma);
 #endif 
             phase_accumulator += (tamplitude*exp_val);
         }
