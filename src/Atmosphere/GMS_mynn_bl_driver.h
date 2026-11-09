@@ -575,9 +575,12 @@ struct alignas(64) mynn_bl_driver_wrapper_t
       m_qc_bl(holder.size3d_row_major()),
       m_cldfra_bl(holder.size3d_row_major()),
 #if WRF_CHEM == 1
-      m_chem3D(),
-      m_vd3d()
+      m_chem3D(holder.size4D_row_major_type1()),
+      m_vd3d(holder.size4D_row_major_type2())
 #endif
+      {
+        
+      }
 };
 
 }
