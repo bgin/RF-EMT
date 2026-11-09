@@ -166,6 +166,30 @@ struct alignas(64) mynn_bl_driver_args_holder_t
 		// Scalar real variables.
 		float m_delt;
 		float m_dx;
+
+    std::size_t size3d_col_major() const 
+    {
+        std::int32_t total_size = (m_JME-m_JMS)*(m_KME-m_KMS)*(m_IME-m_IMS);
+        return (static_cast<std::size_t>(total_size));
+    }
+
+    std::size_t size3d_row_major() const 
+    {
+        std::int32_t total_size = (m_IME-m_IMS)*(m_KME-m_KMS)*(m_IME-m_IMS);
+        return (static_cast<std::size_t>(total_size));
+    }
+
+     std::size_t size2d_col_major() const 
+    {
+        std::int32_t total_size = (m_JME-m_JMS)*(m_IME-m_IMS);
+        return (static_cast<std::size_t>(total_size));
+    }
+
+    std::size_t size2d_row_major() const 
+    {
+        std::int32_t total_size = (m_IME-m_IMS)*(m_IME-m_IMS);
+        return (static_cast<std::size_t>(total_size));
+    }
 };
 
 struct alignas(64) mynn_bl_driver_wrapper_t
@@ -409,8 +433,121 @@ struct alignas(64) mynn_bl_driver_wrapper_t
       m_vd3d()
 #endif
       {
-        
+
       }
+
+      mynn_bl_driver_wrapper_t(const mynn_bl_driver_args_holder_t &holder) noexcept(false) 
+         : 
+      m_initflag(holder.m_initflag),
+      m_grav_settling(holder.m_grav_settling),
+		  m_bl_mynn_tkebudget(holder.m_bl_mynn_tkebudget),
+		  m_bl_mynn_cloudpdf(holder.m_bl_mynn_cloudpdf),
+		  m_bl_mixlength(holder.m_bl_mixlength),
+		  m_bl_mynn_edmf(holder.m_bl_mynn_edmf),
+		  m_bl_mynn_tkeadvect(holder.m_bl_mynn_tkeadvect),
+		  m_bl_mynn_edmf_mom(holder.m_bl_mynn_edmf_mom),
+		  m_bl_mynn_edmf_tke(holder.m_bl_mynn_edmf_tke),
+		  m_bl_mynn_edmf_part(holder.m_bl_mynn_edmf_part),
+		  m_bl_mynn_cloudmix(holder.m_bl_mynn_cloudmix),
+		  m_bl_mynn_mixqt(holder.m_bl_mynn_mixqt),
+		  m_icloud_bl(holder.m_icloud_bl),
+		  m_FLAG_QI(holder.m_FLAG_QI),
+		  m_FLAG_QNI(holder.m_FLAG_QNI),
+		  m_FLAG_QC(holder.m_FLAG_QC),
+		  m_FLAG_QNC(holder.m_FLAG_QNC),
+		  m_IDS(holder.m_IDS),
+		  m_IDE(holder.m_IDE),
+		  m_JDS(holder.m_JDS),
+		  m_JDE(holder.m_JDE),
+		  m_KDS(holder.m_KDS),
+		  m_KDE(holder.m_KDE),
+		  m_IMS(holder.m_IMS),
+		  m_IME(holder.m_IME),
+		  m_JMS(holder.m_JMS),
+		  m_JME(holder.m_JME),
+		  m_KMS(holder.m_KMS),
+		  m_KME(holder.m_KME),
+		  m_ITS(holder.m_ITS),
+		  m_ITE(holder.m_ITE),
+		  m_JTS(holder.m_JTS),
+		  m_JTE(holder.m_JTE),
+		  m_KTS(holder.m_KTS),
+		  m_KTE(holder.m_KTE),
+#if WRF_CHEM == 1
+		  m_nchem(holder.m_nchem),
+		  m_kdvel(holder.m_ldvel),
+		  m_ndvel(holder.m_ndvel),
+		  m_num_vert_mix(holder.m_num_vert_mix),
+#endif
+      m_delt(holder.m_delt),
+		  m_dx(holder.m_dx),
+      m_dz((m_IME-m_IMS)*(m_KME-m_KMS)*(m_JME-m_JMS)),
+      m_u(),
+      m_v(),
+      m_w(),
+      m_th(),
+      m_qv(),
+      m_p(),
+      m_exner(),
+      m_rho(),
+      m_T3D(),
+      m_qc(),
+      m_qi(),
+      m_qni(),
+      m_qnc(),
+      m_xland(),
+      m_ust(),
+      m_ch(),
+      m_rmol(),
+      m_ts(),
+      m_qsfc(),
+      m_qcg(),
+      m_ps(),
+      m_hfx(),
+      m_qfx(),
+      m_wspd(),
+      m_uoce(),
+      m_voce(),
+      m_vdfg(),
+      m_znt(),
+      m_QKE(),
+      m_Tsq(),
+      m_Qsq(),
+      m_Cov(),
+      m_tke_pbl(),
+      m_qke_adv(),
+      m_RUBLTEN(),
+      m_RVBLTEN(),
+      m_RTHBLTEN(),
+      m_RQVBLTEN(),
+      m_RQCBLTEN(),
+      m_RQIBLTEN(),
+      m_RQNBLTEN(),
+      m_exch_h(),
+      m_exch_m(),
+      m_edmf_a(),
+      m_edmf_w(),
+      m_edmf_qt(),
+      m_edmf_thl(),
+      m_edmf_ent(),
+      m_edmf_qc(),
+      m_Pblh(),
+      m_wstar(),
+      m_delta(),
+      m_KPBL(),
+      m_el_pbl(),
+      m_qWT(),
+      m_qSHEAR(),
+      m_qBUOY(),
+      m_qDISS(),
+      m_dqke(),
+      m_Sh3D(),
+      m_qc_bl(),
+      m_cldfra_bl(),
+#if WRF_CHEM == 1
+      m_chem3D(),
+      m_vd3d()
+#endif
 };
 
 }
