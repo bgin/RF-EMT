@@ -69,7 +69,7 @@ namespace file_info
 // *** Warning *** -- An access for the PM hardware counters must be enabled for the user-mode space!!
 // 
 #if !defined (PM_BB_CMPLX_COS_SIGNAL_USE_PMC_INSTRUMENTATION)
-#define PM_BB_CMPLX_COS_SIGNAL_USE_PMC_INSTRUMENTATION 1
+#define PM_BB_CMPLX_COS_SIGNAL_USE_PMC_INSTRUMENTATION 0
 #endif 
 
 #if (PM_BB_CMPLX_COS_SIGNAL_USE_PMC_INSTRUMENTATION) == 1
@@ -232,7 +232,7 @@ namespace radiolocation
                           const float arg{this->m_n*C628318530717958647692528676656*t*invT};
                           const float r_noise{f()*scale};
                           float cos_val{};
-#if (AM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1
+#if (PM_BB_CMPLX_COS_SIGNAL_USE_CEPHES) == 1
                           cos_val = 0.5f*this->m_A*(1.0f-ceph_cosf(arg));
                           cos_val += r_noise;
                           return (cos_val);
