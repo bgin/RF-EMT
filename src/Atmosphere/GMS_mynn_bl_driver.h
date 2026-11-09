@@ -175,7 +175,7 @@ struct alignas(64) mynn_bl_driver_args_holder_t
 
     std::size_t size3d_row_major() const 
     {
-        std::int32_t total_size = (m_IME-m_IMS)*(m_KME-m_KMS)*(m_IME-m_IMS);
+        std::int32_t total_size = (m_IME-m_IMS)*(m_KME-m_KMS)*(m_JME-m_JMS);
         return (static_cast<std::size_t>(total_size));
     }
 
@@ -187,9 +187,39 @@ struct alignas(64) mynn_bl_driver_args_holder_t
 
     std::size_t size2d_row_major() const 
     {
-        std::int32_t total_size = (m_IME-m_IMS)*(m_IME-m_IMS);
+        std::int32_t total_size = (m_IME-m_IMS)*(m_JME-m_JMS);
         return (static_cast<std::size_t>(total_size));
     }
+
+#if WRF_CHEM == 1
+    std::size_t size4D_row_major_type1() const 
+    {
+        std::int32_t total_size = ((m_IME-m_IMS)*(m_KME-m_KMS)*(m_JME-m_JMS)*m_nchem);
+        return (static_cast<std::size_t>(total_size));
+    }
+
+    std::size_t size4D_col_major_type1() const 
+    {
+        std::int32_t total_size = ((m_JME-m_JMS)*(m_KME-m_KMS)*(m_IME-m_IMS)*m_nchem);
+        return (static_cast<std::size_t>(total_size));
+    }
+
+    std::size_t size4D_row_major_type2() const 
+    {  
+        const std::int32_t dim_I = m_IME-m_IMS;
+        const std::int32_t dim_J = m_JME-m_JMS;
+        std::int32_t total_size = (dim_I*m_kdvel*dim_J*m_ndvel);
+        return (static_cast<std::size_t>(total_size));
+    }
+
+    std::size_t size4D_col_major_type2() const 
+    {  
+        const std::int32_t dim_I = m_IME-m_IMS;
+        const std::int32_t dim_J = m_JME-m_JMS;
+        std::int32_t total_size = (dim_J*m_ndvel*dim_I*m_kdvel);
+        return (static_cast<std::size_t>(total_size));
+    }
+#endif 
 };
 
 struct alignas(64) mynn_bl_driver_wrapper_t
@@ -481,69 +511,69 @@ struct alignas(64) mynn_bl_driver_wrapper_t
 #endif
       m_delt(holder.m_delt),
 		  m_dx(holder.m_dx),
-      m_dz((m_IME-m_IMS)*(m_KME-m_KMS)*(m_JME-m_JMS)),
-      m_u(),
-      m_v(),
-      m_w(),
-      m_th(),
-      m_qv(),
-      m_p(),
-      m_exner(),
-      m_rho(),
-      m_T3D(),
-      m_qc(),
-      m_qi(),
-      m_qni(),
-      m_qnc(),
-      m_xland(),
-      m_ust(),
-      m_ch(),
-      m_rmol(),
-      m_ts(),
-      m_qsfc(),
-      m_qcg(),
-      m_ps(),
-      m_hfx(),
-      m_qfx(),
-      m_wspd(),
-      m_uoce(),
-      m_voce(),
-      m_vdfg(),
-      m_znt(),
-      m_QKE(),
-      m_Tsq(),
-      m_Qsq(),
-      m_Cov(),
-      m_tke_pbl(),
-      m_qke_adv(),
-      m_RUBLTEN(),
-      m_RVBLTEN(),
-      m_RTHBLTEN(),
-      m_RQVBLTEN(),
-      m_RQCBLTEN(),
-      m_RQIBLTEN(),
-      m_RQNBLTEN(),
-      m_exch_h(),
-      m_exch_m(),
-      m_edmf_a(),
-      m_edmf_w(),
-      m_edmf_qt(),
-      m_edmf_thl(),
-      m_edmf_ent(),
-      m_edmf_qc(),
-      m_Pblh(),
-      m_wstar(),
-      m_delta(),
-      m_KPBL(),
-      m_el_pbl(),
-      m_qWT(),
-      m_qSHEAR(),
-      m_qBUOY(),
-      m_qDISS(),
-      m_dqke(),
-      m_Sh3D(),
-      m_qc_bl(),
-      m_cldfra_bl(),
+      m_dz(holder.size3d_row_major()),
+      m_u(holder.size3d_row_major()),
+      m_v(holder.size3d_row_major()),
+      m_w(holder.size3d_row_major()),
+      m_th(holder.size3d_row_major()),
+      m_qv(holder.size3d_row_major()),
+      m_p(holder.size3d_row_major()),
+      m_exner(holder.size3d_row_major()),
+      m_rho(holder.size3d_row_major()),
+      m_T3D(holder.size3d_row_major()),
+      m_qc(holder.size3d_row_major()),
+      m_qi(holder.size3d_row_major()),
+      m_qni(holder.size3d_row_major()),
+      m_qnc(holder.size3d_row_major()),
+      m_xland(holder.size2d_row_major()),
+      m_ust(holder.size2d_row_major()),
+      m_ch(holder.size2d_row_major()),
+      m_rmol(holder.size2d_row_major()),
+      m_ts(holder.size2d_row_major()),
+      m_qsfc(holder.size2d_row_major()),
+      m_qcg(holder.size2d_row_major()),
+      m_ps(holder.size2d_row_major()),
+      m_hfx(holder.size2d_row_major()),
+      m_qfx(holder.size2d_row_major()),
+      m_wspd(holder.size2d_row_major()),
+      m_uoce(holder.size2d_row_major()),
+      m_voce(holder.size2d_row_major()),
+      m_vdfg(holder.size2d_row_major()),
+      m_znt(holder.size2d_row_major()),
+      m_QKE(holder.size3d_row_major()),
+      m_Tsq(holder.size3d_row_major()),
+      m_Qsq(holder.size3d_row_major()),
+      m_Cov(holder.size3d_row_major()),
+      m_tke_pbl(holder.size3d_row_major()),
+      m_qke_adv(holder.size3d_row_major()),
+      m_RUBLTEN(holder.size3d_row_major()),
+      m_RVBLTEN(holder.size3d_row_major()),
+      m_RTHBLTEN(holder.size3d_row_major()),
+      m_RQVBLTEN(holder.size3d_row_major()),
+      m_RQCBLTEN(holder.size3d_row_major()),
+      m_RQIBLTEN(holder.size3d_row_major()),
+      m_RQNBLTEN(holder.size3d_row_major()),
+      m_exch_h(holder.size3d_row_major()),
+      m_exch_m(holder.size3d_row_major()),
+      m_edmf_a(std::in_place,holder.size3d_row_major()),
+      m_edmf_w(std::in_place,holder.size3d_row_major()),
+      m_edmf_qt(std::in_place,holder.size3d_row_major()),
+      m_edmf_thl(std::in_place,holder.size3d_row_major()),
+      m_edmf_ent(std::in_place,holder.size3d_row_major()),
+      m_edmf_qc(std::in_place,holder.size3d_row_major()),
+      m_Pblh(holder.size2d_row_major()),
+      m_wstar(holder.size2d_row_major()),
+      m_delta(holder.size2d_row_major()),
+      m_KPBL(holder.size2d_row_major()),
+      m_el_pbl(holder.size3d_row_major()),
+      m_qWT(holder.size3d_row_major()),
+      m_qSHEAR(holder.size3d_row_major()),
+      m_qBUOY(holder.size3d_row_major()),
+      m_qDISS(holder.size3d_row_major()),
+      m_dqke(holder.size3d_row_major()),
+      m_Sh3D(holder.size3d_row_major()),
+      m_qc_bl(holder.size3d_row_major()),
+      m_cldfra_bl(holder.size3d_row_major()),
 #if WRF_CHEM == 1
       m_chem3D(),
       m_vd3d()
