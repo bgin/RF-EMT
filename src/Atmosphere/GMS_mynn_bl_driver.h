@@ -579,9 +579,94 @@ struct alignas(64) mynn_bl_driver_wrapper_t
       m_vd3d(holder.size4D_row_major_type2())
 #endif
       {
-        
+
+      }
+
+      ~mynn_bl_driver_wrapper_t() 
+      {
+
+      }
+
+      mynn_bl_driver_wrapper_t(const mynn_bl_driver_wrapper_t &) = delete;
+
+      mynn_bl_driver_wrapper_t(mynn_bl_driver_wrapper_t &&) = delete;
+
+      mynn_bl_driver_wrapper_t &
+                    operator=(const mynn_bl_driver_wrapper_t &) = delete;
+
+      mynn_bl_driver_wrapper_t &
+                    operator=(mynn_bl_driver_wrapper_t &&) = delete;
+
+
+      std::int32_t call_mynn_bl_driver() 
+      {
+           std::int32_t ret_status = -9999;
+           const bool is_present_edmf_a   = this->m_edmf_a.has_value();
+           const bool is_present_edmf_w   = this->m_edmf_w.has_value();
+           const bool is_present_edmf_qt  = this->m_edmf_qt.has_value();
+           const bool is_present_edmf_thl = this->m_edmf_thl.has_value();
+           const bool is_present_edmf_ent = this->m_edmf_ent.has_value();
+           const bool is_present_edmf_qc  = this->m_edmf_qc.has_value();
+           if(is_present_edmf_a   && 
+              is_present_edmf_w   && 
+              is_present_edmf_qt  && 
+              is_present_edmf_thl && 
+              is_present_edmf_qc  && 
+              is_present_edmf_ent) 
+            {  
+ 
+//#if defined(__INTEL_COMPILER) || defined(__ICC)
+
+#if (MYNN_BL_DRIVER_USE_PMC_INSTRUMENTATION) == 1
+           PMC_VARS
+           HW_PMC_COLLECTION_PROLOGE_BODY
+#endif
+           MODULE_BL_MYNN_mp_MYNN_BL_DRIVER(&this->m_bl_mixlength, &this->m_grav_settling,
+							 &this->m_delt, &this->m_dz.m_data[0], &this->m_dx, &this->m_znt.m_data[0],
+							 &this->m_u.m_data[0], &this->m_v.m_data[0], &this->m_w.m_data[0], &this->m_th.m_data[0], &this->m_qv.m_data[0], &this->m_qc.m_data[0],
+							 &this->m_qi.m_data[0], &this->m_qni.m_data[0], &this->m_qnc.m_data[0], &this->m_p.m_data[0], &this->m_exner.m_data[0], &this->m_rho.m_data[0],
+							 &this->m_T3D.m_data[0], &this->m_xland.m_data[0], &this->m_ts.m_data[0], &this->m_qsfc.m_data[0], &this->m_qcg.m_data[0], &this->m_ps.m_data[0],
+							 &this->m_ust.m_data[0], &this->m_ch.m_data[0], &this->m_hfx.m_data[0], &this->m_qfx.m_data[0], &this->m_rmol.m_data[0], &this->m_wspd.m_data[0],
+							 &this->m_uoce.m_data[0], &this->m_voce.m_data[0], &this->m_vdfg.m_data[0], &this->m_Qke.m_data[0], &this->m_tke_pbl.m_data[0],
+							 &this->m_qke_adv.m_data[0], &this->m_bl_mynn_tkeadvect,
+#if WRF_CHEM == 1
+							 &this->m_chem3D.m_data[0], &this->m_vd3d.m_data[0], &this->m_nchem,
+							 &this->m_kdvel, &this->m_ndvel, &this->m_num_vert_mix,
+#endif							
+							 &this->m_Tsq.m_data[0], &this->m_Qsq.m_data[0], &this->m_Cov.m_data[0],
+							 &this->m_RUBLTEN.m_data[0], &this->m_RVBLTEN.m_data[0], &this->m_RTHBLTEN.m_data[0],
+							 &this->m_RQVBLTEN.m_data[0], &this->m_RQCBLTEN.m_data[0], &this->m_RQIBLTEN.m_data[0],
+							 &this->m_RQNBLTEN.m_data[0], &this->m_exch_h.m_data[0], &this->m_exch_m.m_data[0],
+							 &this->m_Pblh.m_data[0], &this->m_KPBL.m_data[0],
+							 &this->m_el_pbl.m_data[0], 
+							 &this->m_dqke.m_data[0], &this->m_qWT.m_data[0], &this->m_qSHEAR.m_data[0], &this->m_qBUOY.m_data[0], &this->m_qDISS.m_data[0],
+							 &this->m_wstar.m_data[0], &this->m_delta.m_data[0],
+							 &this->m_bl_mynn_tkebudget, &this->m_bl_mynn_cloudpdf, &this->m_Sh3D.m_data[0],
+							 &this->m_bl_mixlength, &this->m_icloud_bl, &this->m_qc_bl.m_data[0], &this->m_cldfra_bl.m_data[0],
+							 &this->m_bl_mynn_edmf, &this->m_bl_mynn_edmf_mom, &this->m_bl_mynn_edmf_tke,
+							 &this->m_bl_mynn_edmf_part, &this->m_bl_mynn_cloudmix, &this->m_bl_mynn_mixqt,
+							 &this->m_edmf_a.operator->()->m_data[0], &this->m_edmf_w.operator->()->m_data[0], &this->m_edmf_qt.operator->()->m_data[0],
+							 &this->m_edmf_thl.operator->()->m_data[0], &this->m_edmf_ent.operator->()->m_data[0], &this->m_edmf_qc.operator->()->m_data[0],
+							 &this->m_FLAG_QI, &this->m_FLAG_QNI, &this->m_FLAG_QC, &this->m_FLAG_QNC,
+							 &this->m_IDS, &this->m_IDE, &this->m_JDS, &this->m_JDE, &this->m_KDS, &this->m_KDE,
+							 &this->m_IMS, &this->m_IME, &this->m_JMS, &this->m_JME, &this->m_KMS, &this->m_KME,
+							 &this->m_ITS, &this->m_ITE, &this->m_JTS, &this->m_JTE, &this->m_KTS, &this->m_KTE);
+#if (MYNN_BL_DRIVER_USE_PMC_INSTRUMENTATION) == 1
+               HW_PMC_COLLECTION_EPILOGE_BODY
+
+               HW_PMC_SHOW_INFO
+#endif 
+               ret_status = 0;
+               return (ret_status);
+          }
+          else
+          {
+              ret_status = -1;
+              return (ret_status);
+          }
       }
 };
+
 
 }
 
