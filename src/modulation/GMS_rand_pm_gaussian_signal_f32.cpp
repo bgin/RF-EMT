@@ -195,15 +195,15 @@ gms::radiolocation
     std::cout << typeid(rhs).name() << "Begin: object state dump." << std::endl;
     std::cout << "m_nsamples     : "      << rhs.m_nsamples << std::endl;
     std::cout << "m_num_gaussians: "      << rhs.m_num_gaussians       << std::endl;
-    std::cout << "m_tstart       : "      << std::fixed << std::setprecision(17) << rhs.m_tstart << std::endl;
-    std::cout << "m_tend         : "      << std::fixed << std::setprecision(17) << rhs.m_tend << std::endl;
-    std::cout << "m_min_sigma    : "      << std::fixed << std::setprecision(17) << rhs.m_min_sigma << std::endl;
-    std::cout << "m_max_sigma    : "      << std::fixed << std::setprecision(17) << rhs.m_max_sigma << std::endl;
-    std::cout << "m_max_amplitude: "      << std::fixed << std::setprecision(17) << rhs.m_max_amplitude << std::endl;
+    std::cout << "m_tstart       : "      << std::fixed << std::setprecision(7) << rhs.m_tstart << std::endl;
+    std::cout << "m_tend         : "      << std::fixed << std::setprecision(7) << rhs.m_tend << std::endl;
+    std::cout << "m_min_sigma    : "      << std::fixed << std::setprecision(7) << rhs.m_min_sigma << std::endl;
+    std::cout << "m_max_sigma    : "      << std::fixed << std::setprecision(7) << rhs.m_max_sigma << std::endl;
+    std::cout << "m_max_amplitude: "      << std::fixed << std::setprecision(7) << rhs.m_max_amplitude << std::endl;
     std::cout << "Randomly PM Gaussian Signal Samples:" << std::endl;
     for(std::size_t i{0ull}; i != rhs.m_nsamples; ++i)
     {
-         os << std::fixed << std::setprecision(17) << 
+         os << std::fixed << std::setprecision(7) << 
                              rhs.m_signal_samples.m_data[i] << std::endl;
     }
     std::cout << typeid(rhs).name() << "End: object state dump." << std::endl;
