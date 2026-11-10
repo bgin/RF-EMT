@@ -34,6 +34,7 @@ WRF® is a registered trademark of the University Corporation for Atmospheric Re
 #include <optional>
 #include "GMS_config.h"
 #include "GMS_boost_multiarray_types.hpp"
+#include "GMS_module_land_params.h"
 
 
 namespace file_info 
@@ -94,7 +95,8 @@ using namespace common;
 
 struct alignas(64) pft_state_type_avx512_t
 {
-    
+    std::size_t m_beg;
+    std::size_t m_end;
     Aligned64Vec1DI32 m_frac_veg_nosno;      //fraction of vegetation not covered by snow (0 OR 1) [-]
     Aligned64Vec1DI32 m_frac_veg_nosno_alb;  //!fraction of vegetation not covered by snow (0 OR 1) [-]
     Aligned64Vec1DF64 m_emv;                 //!vegetation emissivity
