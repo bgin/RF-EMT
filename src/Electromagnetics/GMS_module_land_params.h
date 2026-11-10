@@ -94,7 +94,7 @@ constexpr const static std::int32_t maxpatch_urb = 1;  //the current coupling no
 #if defined(CROP)
 constexpr const static std::int32_t maxpatch_cft = 4; 
 #else 
-constexpr const static std::int32_t maxpatch_cft = 2;
+constexpr const static std::int32_t maxpatch_cft = 2; //
 #endif
 constexpr const static std::int32_t maxpatch_pft   = 4;
 constexpr const static std::int32_t npatch_urban   = maxpatch_pft + 1;
@@ -103,7 +103,14 @@ constexpr const static std::int32_t npatch_wet     = npatch_lake  + 1;
 constexpr const static std::int32_t npatch_glacier = npatch_wet   + 1;
 constexpr const static std::int32_t npatch_crop    = npatch_glacier + maxpatch_cft;
 constexpr const static std::int32_t maxpatch       = npatch_crop;
-
+#if (defined CROP)
+constexpr const static std::int32_t max_pft_per_gcell = numpft+1 + 3 + maxpatch_urb;
+#else
+constexpr const static std::int32_t max_pft_per_gcell = numpft+1+3+maxpatch_urb+numcft;
+#endif
+constexpr const static std::int32_t max_pft_per_lu    = std::max(numpft+1, std::max(numcft, maxpatch_urb));
+constexpr const static std::int32_t max_pft_per_col   = std::max(numpft+1, std::max(numcft, maxpatch_urb));
+std::int32_t num_landcover_types{}; 
 }
 
 }
