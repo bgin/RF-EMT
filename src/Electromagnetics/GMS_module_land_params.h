@@ -111,7 +111,103 @@ constexpr const static std::int32_t max_pft_per_gcell = numpft+1+3+maxpatch_urb+
 constexpr const static std::int32_t max_pft_per_lu    = std::max(numpft+1, std::max(numcft, maxpatch_urb));
 constexpr const static std::int32_t max_pft_per_col   = std::max(numpft+1, std::max(numcft, maxpatch_urb));
 std::int32_t num_landcover_types{}; 
-}
+} // mod_land_varpar
+
+namespace mod_land_vapar
+{
+
+//std::int32_t i;
+// Initialize physical constants
+constexpr const static double cday   = 86400.0;                     //!sec in calendar day ~ sec
+constexpr const static std::int32_t idx_Mie_snw_mx = 1471;           //! number of effective radius indices used in Mie lookup table [idx]
+constexpr const static std::int32_t idx_T_max      = 11;            // ! maxiumum temperature index used in aging lookup table [idx]
+constexpr const static std::int32_t idx_Tgrd_max   = 31;            // ! maxiumum temperature gradient index used in aging lookup table [idx]
+constexpr const static std::int32_t idx_rhos_max   = 8;             // ! maxiumum snow density index used in aging lookup table [idx]
+constexpr const static std::int32_t numrad_snw     = 5;             //  ! number of spectral bands used in snow model [nbr]
+constexpr const static double pie    = 3.141592653589793;           //! pi
+constexpr const static double rpi    = 3.141592653589793;           //! pi
+constexpr const static double grav   = 9.80616;                     //!gravity constant [m/s2]
+constexpr const static double sb     = 5.67e-8;                     //!stefan-boltzmann constant  [W/m2/K4]
+constexpr const static double vkc    = 0.4;                         //!von Karman constant [-]
+constexpr const static double rgas   = 8314.468;                    //!Universal gas constant ~ J/K/kmole
+constexpr const static double rwat   = 461.5046;                    //!gas constant for water vapor [J/(kg K)]
+constexpr const static double rair   = 287.0423;                    //!gas constant for dry air [J/kg/K]
+constexpr const static double roverg = 47062.73;                    //!Rw/g constant = (8.3144/0.018)/(9.80616)*1000. mm/K
+constexpr const static double cpliq  = 4.188e3;                     //!Specific heat of water [J/kg-K]
+constexpr const static double cpice  = 2.11727e3;                   //!Specific heat of ice [J/kg-K]
+constexpr const static double cpair  = 1.00464e3;                   //!specific heat of dry air [J/kg/K]
+constexpr const static double hvap   = 2.501e6;                     //!Latent heat of evap for water [J/kg]
+constexpr const static double hfus   = 3.337e5;                     //!Latent heat of fusion for ice [J/kg]
+constexpr const static double hsub   = 2.501e6+3.337e5;             //!Latent heat of sublimation    [J/kg]
+constexpr const static double denh2o = 1.000e3;                     //!density of liquid water [kg/m3]
+constexpr const static double denice = 0.917e3;                     //!density of ice [kg/m3]
+constexpr const static double tkair  = 0.023;                       //!thermal conductivity of air   [W/m/k]
+constexpr const static double tkice  = 2.290;                       //!thermal conductivity of ice   [W/m/k]
+constexpr const static double tkwat  = 0.6;                         // !thermal conductivity of water [W/m/k]
+constexpr const static double tfrz   = 273.16;                      //!freezing temperature [K]
+constexpr const static double tcrit  = 2.5;                         //!critical temperature to determine rain or snow
+constexpr const static double po2    = 0.209;                       //!constant atmospheric partial pressure  O2 (mol/mol)
+constexpr const static double pco2   = 355.e-06;                    //!constant atmospheric partial pressure CO2 (mol/mol)
+constexpr const static double pstd   = 101325.0;                    //!standard pressure ~ pascals
+constexpr const static double bdsno  = 250.;                        //!bulk density snow (kg/m**3)
+constexpr const static double re     = 6.37122e6*0.001;             //!radius of earth (km)
+constexpr const static double secspday= 86400.0;                    //! Seconds per day
+constexpr const static double spval = 1.e36;                        //! special value for real data
+constexpr const static std::int32_t ispval = -9999;                 //! special value for int data
+constexpr const static double alpha_aero = 1.0;                     //!constant for aerodynamic parameter weighting
+constexpr const static double tlsai_crit = 2.0;                     //!critical value of elai+esai for which aerodynamic parameters are maximum
+constexpr const static double watmin = 0.01;                        //!minimum soil moisture (mm)
+constexpr const static double zlnd = 0.01;                          //!Roughness length for soil [m]
+constexpr const static double zsno = 0.0024;                        //!Roughness length for snow [m]
+constexpr const static double csoilc = 0.004;                       //!Drag coefficient for soil under canopy [-]
+constexpr const static double capr   = 0.34;                        //!Tuning factor to turn first layer T into surface T  
+constexpr const static double cnfac  = 0.5;                         //!Crank Nicholson factor between 0 and 1
+constexpr const static double ssi    = 0.033;                       //!Irreducible water saturation of snow
+constexpr const static double wimp   = 0.05;                        //!Water impremeable if porosity less than wimp
+constexpr const static double pondmx = 10.0;                        //!Ponding depth (mm)
+constexpr const static double pondmx_urban = 1.0;                   //!Ponding depth for urban roof and impervious road (mm)
+constexpr const static double o2_molar_const = 0.209;               //!constant atmospheric O2 molar ratio (mol/mol)
+constexpr const static double maxwattabfract = 1.0;                 //!Max water table fraction for landunit that is not wet or ice
+#if (defined C13)
+
+constexpr const static double preind_atm_del13c = -6.0   //! preindustrial value for atmospheric del13C
+constexpr const static double preind_atm_ratio = SHR_CONST_PDB + (preind_atm_del13c * SHR_CONST_PDB)/1000.0  //! 13C/12C
+constexpr const static double c13ratio = preind_atm_ratio/(1.0+preind_atm_ratio) //! 13C/(12+13)C preind atmosphere
+#endif
+constexpr const static double ht_efficiency_factor = 0.75;          //!efficiency factor for urban heating (-)
+constexpr const static double ac_efficiency_factor = 0.25;          //!efficiency factor for urban air conditioning (-)
+constexpr const static double ht_wasteheat_factor = 1.0/ht_efficiency_factor;  //!wasteheat factor for urban heating (-)
+constexpr const static double ac_wasteheat_factor = 1.0/ac_efficiency_factor;  //!wasteheat factor for urban air conditioning (-)
+constexpr const static double wasteheat_limit = 100.               //!limit on wasteheat (W/m2)
+
+/*
+  !------------------------------------------------------------------
+  ! Initialize water type constants
+  !------------------------------------------------------------------
+
+  ! "water" types 
+  !   1     soil
+  !   2     land ice (glacier)
+  !   3     deep lake
+  !   4     shallow lake
+  !   5     wetland: swamp, marsh, etc
+*/
+constexpr const static std::int32_t istsoil = 1;  //!soil         "water" type
+constexpr const static std::int32_t istice  = 2;  //!land ice     "water" type
+constexpr const static std::int32_t istdlak = 3;  //!deep lake    "water" type
+constexpr const static std::int32_t istslak = 4;  //!shallow lake "water" type
+constexpr const static std::int32_t istwet  = 5;  //!wetland      "water" type
+constexpr const static std::int32_t isturb  = 6;  //!urban        landunit type
+#ifdef (CROP)
+constexpr const static std::int32_t istcrop = 7;  //!crop         landunit type
+#endif
+constexpr const static std::int32_t icol_roof        = 61;
+constexpr const static std::int32_t icol_sunwall     = 62;
+constexpr const static std::int32_t icol_shadewall   = 63;
+constexpr const static std::int32_t icol_road_imperv = 64;
+constexpr const static std::int32_t icol_road_perv   = 65;
+
+}// mod_land_varpar
 
 }
 
