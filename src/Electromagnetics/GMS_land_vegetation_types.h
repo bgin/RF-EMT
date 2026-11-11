@@ -36,6 +36,7 @@ WRF® is a registered trademark of the University Corporation for Atmospheric Re
 #include "GMS_config.h"
 #include "GMS_boost_multiarray_types.hpp"
 #include "GMS_module_land_params.h"
+#include "GMS_avx512_memset.h"
 
 
 namespace file_info 
@@ -438,6 +439,54 @@ struct alignas(64) vegetation_state_avx512_t
           if(__builtin_expect(this==&other,0)) { return (*this)};
           swap(*this,other);
           return (*this);
+    }
+
+    template<std::int32_t which_size>
+    std::size_t total_size() const 
+    {   
+        std::size_t row_size = this->m_end-this->m_beg;
+        if constexpr(which_size==1)
+        {
+            return (row_size*this->m_nband);
+        }
+        else if constexpr(which_size==2)
+        {
+            return (row_size*this->m_nlevgrnd);
+        }
+        else if constexpr(which_size==3)
+        {
+            return (row_size);
+        }
+    }
+
+    std::int32_t 
+    init_frac_veg_nosno(const double filler) noexcept(true)
+    {
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_frac_veg_nosno.data()[0];
+        gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_frac_veg_nosno.num_elements());
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    std::int32_t 
+    init_frac_veg_nosno_alb(const double filler) noexcept(true)
+    {
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_frac_veg_nosno_alb.data()[0];
+        gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_frac_veg_nosno_alb.num_elements());
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    std::int32_t 
+    init_emv(const double filler) noexcept(true)
+    {
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_emv.data()[0];
+        gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_emv.num_elements());
+        ret_status = 0;
+        return (ret_status);
     }
 
     
