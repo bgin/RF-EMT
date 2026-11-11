@@ -290,6 +290,46 @@ struct alignas(64) vegetation_state_avx512_t
 
     }
 
+     vegetation_state_avx512_t(vegetation_state_avx512_t &&other) noexcept(true) 
+        :
+    m_beg(other.beg),m_end(other.end),m_nband(other.nband),m_nlevgrnd(other.nlevgrnd),
+    m_frac_veg_nosno(std::move(other.m_frac_veg_nosno)),m_frac_veg_nosno_alb(std::move(other.m_frac_veg_nosno_alb)),
+    m_emv(std::move(other.m_emv)),m_z0mv(std::move(other.m_z0mv)),m_z0hv(std::move(other.m_z0hv)),
+    m_z0qv(std::move(other.m_z0qv)),m_rootfr(std::move(other.m_rootfr)),
+    m_rootr(std::move(other.m_rootr)),m_rresis(std::move(other.m_rresis)),
+    m_dewmx(std::move(other.m_dewmx)),m_rssun(std::move(other.m_rssun)),
+    m_rssha(std::move(other.m_rssha)),m_laisun(std::move(other.m_laisun)),
+    m_laisha(std::move(other.m_laisha)),m_btran(std::move(other.m_btran)),
+    m_fsun(std::move(other.m_fsun)),m_tlai(std::move(other.m_tlai)),
+    m_tsai(std::move(other.m_tsai)),m_elai(std::move(other.m_elai)),m_esai(std::move(other.m_esai)),
+    m_fwet(std::move(other.m_fwet)),m_fdry(std::move(other.m_fdry)),m_dt_veg(std::move(other.m_dt_veg)),
+    m_htop(std::move(other.m_htop)),m_hbtop(std::move(other.m_hbtop)),m_z0m(std::move(other.m_z0m)),
+    m_displa(std::move(other.m_displa)),m_albd(std::move(other.m_albd)),
+    m_albi(std::move(other.m_albi)),m_fabd(std::move(other.m_fabd)),
+    m_fabi(std::move(other.m_fabi)),m_ftdd(std::move(other.m_ftdd)),
+    m_ftid(std::move(other.m_ftid)),m_ftii(std::move(other.m_ftii)),
+    m_u10(std::move(other.m_u10)),m_ram1(std::move(other.m_ram1)),m_fv(std::move(other.m_fv)),
+    m_forc_hgt_u_pft(std::move(other.m_forc_hgt_u_pft)),m_forc_hgt_t_pft(std::move(other.m_forc_hgt_t_pft)),
+    m_forc_hgt_q_pft(std::move(other.m_forc_hgt_q_pft)),m_vds(std::move(other.m_vds)),
+    m_slasun(std::move(other.m_slasun)),m_slasha(std::move(other.m_slasha)),m_lncsun(std::move(other.m_lncsun)),
+    m_lncsha(std::move(other.m_lncsha)),m_vcmxsun(std::move(other.m_vcmxsun)),m_vcmxsha(std::move(other.m_vcmxsha)),
+    m_gdir(std::move(other.m_gdir)),m_omega(std::move(other.m_omega)),m_eff_kid(std::move(other.m_eff_kid)),
+    m_eff_kii(std::move(other.m_eff_kii)),m_sun_faid(std::move(other.m_sun_faid)),
+    m_sun_faii(std::move(other.m_sun_faii)),m_sha_faid(std::move(other.m_sha_faid)),
+    m_sha_faii(std::move(other.m_sha_faii)),m_sandfrac(std::move(other.m_sandfrac)),m_clayfrac(std::move(other.m_clayfrac)),
+    m_soilt(std::move(other.m_soilt)),m_smoist(std::move(other.m_smoist)),m_sz(std::move(other.m_sz)),
+    m_watopt(std::move(other.m_watopt)),m_watdry(std::move(other.m_watdry)),m_Wlim(std::move(other.m_Wlim)),
+    m_tday(std::move(other.m_tday)),m_tdayavg(std::move(other.m_tdayavg)),m_noveg(std::move(other.m_noveg)),
+    m_tree(std::move(other.m_tree)),m_dleaf(std::move(other.m_dleaf)),m_xl(std::move(other.m_xl)),
+    m_sun_add(std::move(other.m_sun_add)),m_tot_aid(std::move(other.m_tot_aid)),
+    m_sun_aid(std::move(other.m_sun_aid)),m_sun_aii(std::move(other.m_sun_aii)),
+    m_sha_aid(std::move(other.m_sha_aid)),m_sha_aii(std::move(other.m_sha_aii)),
+    m_sun_atot(std::move(other.m_sun_atot)),m_sha_atot(std::move(other.m_sha_atot)),
+    m_sun_alf(std::move(other.m_sun_alf)),m_sha_alf(std::move(other.m_sha_alf))
+    {
+
+    }
+
 };
 
 }
