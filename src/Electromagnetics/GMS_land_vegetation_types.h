@@ -32,6 +32,7 @@ WRF® is a registered trademark of the University Corporation for Atmospheric Re
 
 #include <cstdint>
 #include <optional>
+#include <utility>
 #include "GMS_config.h"
 #include "GMS_boost_multiarray_types.hpp"
 #include "GMS_module_land_params.h"
@@ -328,6 +329,105 @@ struct alignas(64) vegetation_state_avx512_t
     m_sun_alf(std::move(other.m_sun_alf)),m_sha_alf(std::move(other.m_sha_alf))
     {
 
+    }
+
+    ~vegetation_state_avx512_t() noexcept(true) 
+    {
+
+    }
+
+    friend void swap(vegetation_state_avx512_t &lhs, vegetation_state_avx512_t &rhs) noexcept(true) 
+    {
+        using std::swap;
+        swap(lhs.m_beg,rhs.m_beg);
+        swap(lhs.m_end,rhs.m_end);
+        swap(lhs.m_nband,rhs.m_nband);
+        swap(lhs.m_nlevgrnd,rhs.m_nlevgrnd);
+        swap(lhs.m_frac_veg_nosno,rhs.m_frac_veg_nosno);
+        swap(lhs.m_frac_veg_nosno_alb,rhs.m_frac_veg_nosno_alb);
+        swap(lhs.m_emv,rhs.m_emv);
+        swap(lhs.m_z0mv,rhs.m_z0mv);
+        swap(lhs.m_z0hv,rhs.m_z0hv);
+        swap(lhs.m_z0qv,rhs.m_z0qv);
+        swap(lhs.m_rootfr,rhs.m_rootfr);
+        swap(lhs.m_rresis,rhs.m_rresis);
+        swap(lhs.m_dewmx,rhs.m_dewmx);
+        swap(lhs.m_rssun,rhs.m_rssun);
+        swap(lhs.m_rssha,rhs.m_rssha);
+        swap(lhs.m_laisun,rhs.m_laisun);
+        swap(lhs.m_laisha,lhs.m_laisha);
+        swap(lhs.m_btran,rhs.m_btran);
+        swap(lhs.m_fsun,rhs.m_fsun);
+        swap(lhs.m_tlai,rhs.m_tlai);
+        swap(lhs.m_tsai,rhs.m_tsai);
+        swap(lhs.m_elai,rhs.m_elai);
+        swap(lhs.m_esai,rhs.m_esai);
+        swap(lhs.m_fwet,rhs.m_fwet);
+        swap(lhs.m_fdry,rhs.m_fdry);
+        swap(lhs.m_dt_veg,rhs.m_dt_veg);
+        swap(lhs.m_htop,rhs.m_htop);
+        swap(lhs.m_hbtop,rhs.m_hbtop);
+        swap(lhs.m_z0m,rhs.m_z0m);
+        swap(lhs.m_displa,rhs.m_displa);
+        swap(lhs.m_albd,rhs.m_albd);
+        swap(lhs.m_albi,rhs.m_albi);
+        swap(lhs.m_fabd,rhs.m_fabd);
+        swap(lhs.m_fabi,rhs.m_fabi);
+        swap(lhs.m_ftdd,rhs.m_ftdd);
+        swap(lhs.m_ftid,rhs.m_ftid);
+        swap(lhs.m_ftii,rhs.m_ftii);
+        swap(lhs.m_u10,rhs.m_u10);
+        swap(lhs.m_ram1,rhs.m_ram1);
+        swap(lhs.m_fv,rhs.m_fv);
+        swap(lhs.m_forc_hgt_u_pft,rhs.m_forc_hgt_u_pft);
+        swap(lhs.m_forc_hgt_t_pft,rhs.m_forc_hgt_t_pft);
+        swap(lhs.m_forc_hgt_q_pft,rhs.m_forc_hgt_q_pft);
+        swap(lhs.m_vs,rhs.m_vds);
+        swap(lhs.m_slasun,rhs.m_slasun);
+        swap(lhs.m_slasha,rhs.m_slasha);
+        swap(lhs.m_lncsun,rhs.m_lncsun);
+        swap(lhs.m_lncsha,rhs.m_lncsha);
+        swap(lhs.m_vcmxsun,rhs.m_vcmxsun);
+        swap(lhs.m_vcmxsha,rhs.m_vcmxsha);
+        swap(lhs.m_gdir,rhs.m_gdir);
+        swap(lhs.m_omega,rhs.m_omega);
+        swap(lhs.m_eff_kid,rhs.m_eff_kid);
+        swap(lhs.m_eff_kii,rhs.m_eff_kii);
+        swap(lhs.m_sun_faid,rhs.m_sun_faid);
+        swap(lhs.m_sun_faii,rhs.m_sun_faii);
+        swap(lhs.m_sha_faid,rhs.m_sha_faid);
+        swap(lhs.m_sha_faii,rhs.m_sha_faii);
+        swap(lhs.m_sandfrac,rhs.m_sandfrac);
+        swap(lhs.m_clayfrac,rhs.m_clayfrac);
+        swap(lhs.m_soilt,rhs.m_soilt);
+        swap(lhs.m_smoist,rhs.m_smoist);
+        swap(lhs.m_sz,rhs.m_sz);
+        swap(lhs.m_watopt,rhs.m_watopt);
+        swap(lhs.m_watdry,rhs.m_watdry);
+        swap(lhs.m_Wlim,rhs.m_Wlim);
+        swap(lhs.m_tday,rhs.m_tday);
+        swap(lhs.m_tdayavg,rhs.m_tdayavg);
+        swap(lhs.m_noveg,rhs.m_noveg);
+        swap(lhs.m_tree,rhs.m_tree);
+        swap(lhs.m_dleaf,rhs.m_dleaf);
+        swap(lhs.xl,rhs.m_xl);
+        swap(lhs.m_sun_add,rhs.m_sun_add);
+        swap(lhs.m_tot_aid,rhs.m_tot_aid);
+        swap(lhs.m_sun_aid,rhs.m_sun_aid);
+        swap(lhs.m_sun_aii,rhs.m_sun_aii);
+        swap(lhs.m_sha_aid,rhs.m_sha_aid);
+        swap(lhs.m_sha_aii,rhs.m_sha_aii);
+        swap(lhs.m_sun_atot,rhs.m_sun_atot);
+        swap(lhs.m_sha_atot,rhs.m_sha_atot);
+        swap(lhs.m_sun_alf,rhs.m_sun_alf);
+        swap(lhs.m_sha_alf,rhs.m_sha_alf);
+    }
+
+    vegetation_state_avx512_t & 
+    operator=(const vegetation_state_avx512_t &other) noexcept(false)
+    {
+          if(__builtin_expect(this==&other,0)) { return (*this)};
+          
     }
 
 };
