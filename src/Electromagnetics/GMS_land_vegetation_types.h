@@ -247,8 +247,49 @@ struct alignas(64) vegetation_state_avx512_t
     m_sun_atot(boost::extents[m_nband][m_end-m_beg]),m_sha_atot(boost::extents[m_nband][m_end-m_beg]),
     m_sun_alf(boost::extents[m_nband][m_end-m_beg]),m_sha_alf(boost::extents[m_nband][m_end-m_beg])
     {
-      
+
     }
+
+    vegetation_state_avx512_t(const vegetation_state_avx512_t &other) noexcept(false) 
+        :
+    m_beg(other.beg),m_end(other.end),m_nband(other.nband),m_nlevgrnd(other.nlevgrnd),
+    m_frac_veg_nosno(other.m_frac_veg_nosno),m_frac_veg_nosno_alb(other.m_frac_veg_nosno_alb),
+    m_emv(other.m_emv),m_z0mv(other.m_z0mv),m_z0hv(other.m_z0hv),
+    m_z0qv(other.m_z0qv),m_rootfr(other.m_rootfr),
+    m_rootr(other.m_rootr),m_rresis(other.m_rresis),
+    m_dewmx(other.m_dewmx),m_rssun(other.m_rssun),
+    m_rssha(other.m_rssha),m_laisun(other.m_laisun),
+    m_laisha(other.m_laisha),m_btran(other.m_btran),
+    m_fsun(other.m_fsun),m_tlai(other.m_tlai),
+    m_tsai(other.m_tsai),m_elai(other.m_elai),m_esai(other.m_esai),
+    m_fwet(other.m_fwet),m_fdry(other.m_fdry),m_dt_veg(other.m_dt_veg),
+    m_htop(other.m_htop),m_hbtop(other.m_hbtop),m_z0m(other.m_z0m),
+    m_displa(other.m_displa),m_albd(other.m_albd),
+    m_albi(other.m_albi),m_fabd(other.m_fabd),
+    m_fabi(other.m_fabi),m_ftdd(other.m_ftdd),
+    m_ftid(other.m_ftid),m_ftii(other.m_ftii),
+    m_u10(other.m_u10),m_ram1(other.m_ram1),m_fv(other.m_fv),
+    m_forc_hgt_u_pft(other.m_forc_hgt_u_pft),m_forc_hgt_t_pft(other.m_forc_hgt_t_pft),
+    m_forc_hgt_q_pft(other.m_forc_hgt_q_pft),m_vds(other.m_vds),
+    m_slasun(other.m_slasun),m_slasha(other.m_slasha),m_lncsun(other.m_lncsun),
+    m_lncsha(other.m_lncsha),m_vcmxsun(other.m_vcmxsun),m_vcmxsha(other.m_vcmxsha),
+    m_gdir(other.m_gdir),m_omega(other.m_omega),m_eff_kid(other.m_eff_kid),
+    m_eff_kii(other.m_eff_kii),m_sun_faid(other.m_sun_faid),
+    m_sun_faii(other.m_sun_faii),m_sha_faid(other.m_sha_faid),
+    m_sha_faii(other.m_sha_faii),m_sandfrac(other.m_sandfrac),m_clayfrac(other.m_clayfrac),
+    m_soilt(other.m_soilt),m_smoist(other.m_smoist),m_sz(other.m_sz),
+    m_watopt(other.m_watopt),m_watdry(other.m_watdry),m_Wlim(other.m_Wlim),
+    m_tday(other.m_tday),m_tdayavg(other.m_tdayavg),m_noveg(other.m_noveg),
+    m_tree(other.m_tree),m_dleaf(other.m_dleaf),m_xl(other.m_xl),
+    m_sun_add(other.m_sun_add),m_tot_aid(other.m_tot_aid),
+    m_sun_aid(other.m_sun_aid),m_sun_aii(other.m_sun_aii),
+    m_sha_aid(other.m_sha_aid),m_sha_aii(other.m_sha_aii),
+    m_sun_atot(other.m_sun_atot),m_sha_atot(other.m_sha_atot),
+    m_sun_alf(other.m_sun_alf),m_sha_alf(other.m_sha_alf)
+    {
+
+    }
+
 };
 
 }
