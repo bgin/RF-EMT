@@ -97,6 +97,7 @@ struct alignas(64) pft_state_type_avx512_t
 {
     std::size_t m_beg;
     std::size_t m_end;
+    std::size_t m_nband; // e.g. X, Ku
     Aligned64Vec1DI32 m_frac_veg_nosno;      //fraction of vegetation not covered by snow (0 OR 1) [-]
     Aligned64Vec1DI32 m_frac_veg_nosno_alb;  //!fraction of vegetation not covered by snow (0 OR 1) [-]
     Aligned64Vec1DF64 m_emv;                 //!vegetation emissivity
@@ -153,6 +154,33 @@ struct alignas(64) pft_state_type_avx512_t
     Aligned64Vec1DF64 m_sun_faii;
     Aligned64Vec1DF64 m_sha_faid;
     Aligned64Vec1DF64 m_sha_faii;
+    Aligned64Vec1DF64 m_sandfrac;
+    Aligned64Vec1DF64 m_clayfrac;
+    Aligned64Vec1DF64 m_soilt;
+    Aligned64Vec1DF64 m_smoist;
+    Aligned64Vec1DF64 m_sz;
+    Aligned64Vec1DF64 m_watopt;
+    Aligned64Vec1DF64 m_watdry;
+    Aligned64Vec1DF64 m_Wlim;
+    Aligned64Vec1DF64 m_tday;
+    Aligned64Vec1DF64 m_tdayavg;
+    Aligned64Vec1DI32 m_noveg;
+    Aligned64Vec1DI32 m_tree;
+    Aligned64Vec1DF64 m_dleaf;
+    Aligned64Vec1DF64 m_xl;
+    // Energy members maybe adequate for the Radar simulation.
+    Aligned64Mat2DF64 m_sun_add;          //!sun canopy absorbed direct from direct (W/m**2)
+    Aligned64Mat2DF64 m_tot_aid;          //!total canopy absorbed indirect from direct (W/m**2)
+    Aligned64Mat2DF64 m_sun_aid;          //!sun canopy absorbed indirect from direct (W/m**2)
+    Aligned64Mat2DF64 m_sun_aii;          //!sun canopy absorbed indirect from indirect (W/m**2)
+    Aligned64Mat2DF64 m_sha_aid;          //!shade canopy absorbed indirect from direct (W/m**2)
+    Aligned64Mat2DF64 m_sha_aii;          //!shade canopy absorbed indirect from indirect (W/m**2)
+    Aligned64Mat2DF64 m_sun_atot;         //!sun canopy total absorbed (W/m**2)
+    Aligned64Mat2DF64 m_sha_atot;         //!shade canopy total absorbed (W/m**2)
+    Aligned64Mat2DF64 m_sun_alf;          //!sun canopy total absorbed by leaves (W/m**2)
+    Aligned64Mat2DF64 m_sha_alf;          //!shade canopy total absored by leaves (W/m**2)
+
+    
 };
 
 }
