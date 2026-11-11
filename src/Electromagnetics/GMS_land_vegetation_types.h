@@ -427,8 +427,20 @@ struct alignas(64) vegetation_state_avx512_t
     operator=(const vegetation_state_avx512_t &other) noexcept(false)
     {
           if(__builtin_expect(this==&other,0)) { return (*this)};
-          
+          vegetation_state_avx512_t tmp{other};
+          swap(tmp,*this);
+          return (*this);
     }
+
+    vegetation_state_avx512_t & 
+    operator=(vegetation_state_avx512_t &&other) noexcept(true)
+    {
+          if(__builtin_expect(this==&other,0)) { return (*this)};
+          swap(*this,other);
+          return (*this);
+    }
+
+    
 
 };
 
