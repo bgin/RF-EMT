@@ -93,7 +93,7 @@ namespace radiolocation
 
 using namespace common;
 
-struct alignas(64) pft_state_type_avx512_t
+struct alignas(64) vegetation_state_avx512_t
 {
     std::size_t m_beg;
     std::size_t m_end;
@@ -180,6 +180,31 @@ struct alignas(64) pft_state_type_avx512_t
     Aligned64Mat2DF64 m_sun_alf;          //!sun canopy total absorbed by leaves (W/m**2)
     Aligned64Mat2DF64 m_sha_alf;          //!shade canopy total absored by leaves (W/m**2)
 
+    vegetation_state_avx512_t() noexcept
+        : 
+    m_beg{},m_end{},m_nband{},
+    m_frac_veg_nosno{},m_frac_veg_nosno_alb{},
+    m_emv{},m_z0mv{},m_z0hv{},m_z0qv{},m_rootfr{},
+    m_rootr{},m_rresis{},m_dewmx{},m_rssun(),
+    m_rssha(),m_laisun(),m_laisha(),m_btran{},
+    m_fsun(),m_tlai{},m_tsai{},m_elai{},m_esai{},
+    m_fwet{},m_fdry{},m_dt_veg{},m_htop{},m_hbtop{},
+    m_z0m{},m_displa{},m_albd(),m_albi(),m_fabd(),
+    m_fabi(),m_ftdd(),m_ftid(),m_ftii(),m_u10{},
+    m_ram1{},m_fv{},m_forc_hgt_u_pft{},
+    m_forc_hgt_t_pft{},m_forc_hgt_q_pft{},m_vds{},
+    m_slasun{},m_slasha{},m_lncsun{},m_lncsha{},
+    m_vcmxsun{},m_vcmxsha{},m_gdir{},m_omega{},
+    m_eff_kid{},m_eff_kii{},m_sun_faid{},m_sun_faii{},
+    m_sha_faid{},m_sha_faii{},m_sandfrac{},m_clayfrac{},
+    m_soilt{},m_smoist{},m_sz{},m_watopt{},m_watdry{},
+    m_Wlim{},m_tday{},m_tdayavg{},m_noveg{},m_tree{},
+    m_dleaf{},m_xl{},m_sun_add{},m_tot_aid{},
+    m_sun_aid{},m_sun_aii{},m_sha_aid{},m_sha_aii{},
+    m_sun_atot{},m_sha_atot{},m_sun_alf{},m_sha_alf{}
+    {
+      
+    }
     
 };
 
