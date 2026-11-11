@@ -98,6 +98,7 @@ struct alignas(64) vegetation_state_avx512_t
     std::size_t m_beg;
     std::size_t m_end;
     std::size_t m_nband; // e.g. X, Ku
+    std::size_t m_nlevgrnd;
     Aligned64Vec1DI32 m_frac_veg_nosno;      //fraction of vegetation not covered by snow (0 OR 1) [-]
     Aligned64Vec1DI32 m_frac_veg_nosno_alb;  //!fraction of vegetation not covered by snow (0 OR 1) [-]
     Aligned64Vec1DF64 m_emv;                 //!vegetation emissivity
@@ -182,7 +183,7 @@ struct alignas(64) vegetation_state_avx512_t
 
     vegetation_state_avx512_t() noexcept
         : 
-    m_beg{},m_end{},m_nband{},
+    m_beg{},m_end{},m_nband{},m_nlevgrnd{},
     m_frac_veg_nosno{},m_frac_veg_nosno_alb{},
     m_emv{},m_z0mv{},m_z0hv{},m_z0qv{},m_rootfr{},
     m_rootr{},m_rresis{},m_dewmx{},m_rssun(),
@@ -203,9 +204,51 @@ struct alignas(64) vegetation_state_avx512_t
     m_sun_aid{},m_sun_aii{},m_sha_aid{},m_sha_aii{},
     m_sun_atot{},m_sha_atot{},m_sun_alf{},m_sha_alf{}
     {
-      
+
     }
     
+    vegetation_state_avx512_t(const std::size_t beg,
+                              const std::size_t end,
+                              const std::size_t nband,
+                              const std::size_t nlevgrnd) noexcept(false) 
+        :
+    m_beg(beg),m_end(end),m_nband(nband),m_nlevgrnd(nlevgrnd),
+    m_frac_veg_nosno(boost::extents[m_end-m_beg]),m_frac_veg_nosno_alb(boost::extents[m_end-m_beg]),
+    m_emv(boost::extents[m_end-m_beg]),m_z0mv(boost::extents[m_end-m_beg]),m_z0hv(boost::extents[m_end-m_beg]),
+    m_z0qv(boost::extents[m_end-m_beg]),m_rootfr(boost::extents[m_nlevgrnd][m_end-m_beg]),
+    m_rootr(boost::extents[m_nlevgrnd][m_end-m_beg]),m_rresis(boost::extents[m_nlevgrnd][m_end-m_beg]),
+    m_dewmx(boost::extents[m_end-m_beg]),m_rssun(std::in_place,boost::extents[m_end-m_beg]),
+    m_rssha(std::in_place,boost::extents[m_end-m_beg]),m_laisun(std::in_place,boost::extents[m_end-m_beg]),
+    m_laisha(std::in_place,boost::extents[m_end-m_beg]),m_btran(boost::extents[m_end-m_beg]),
+    m_fsun(std::in_place,boost::extents[m_end-m_beg]),m_tlai(boost::extents[m_end-m_beg]),
+    m_tsai(boost::extents[m_end-m_beg]),m_elai(boost::extents[m_end-m_beg]),m_esai(boost::extents[m_end-m_beg]),
+    m_fwet(boost::extents[m_end-m_beg]),m_fdry(boost::extents[m_end-m_beg]),m_dt_veg(boost::extents[m_end-m_beg]),
+    m_htop(boost::extents[m_end-m_beg]),m_hbtop(boost::extents[m_end-m_beg]),m_z0m(boost::extents[m_end-m_beg]),
+    m_displa(boost::extents[m_end-m_beg]),m_albd(std::in_place,boost::extents[m_nband][m_end-m_beg]),
+    m_albi(std::in_place,boost::extents[m_nband][m_end-m_beg]),m_fabd(std::in_place,boost::extents[m_nband][m_end-m_beg]),
+    m_fabi(std::in_place,boost::extents[m_nband][m_end-m_beg]),m_ftdd(std::in_place,boost::extents[m_nband][m_end-m_beg]),
+    m_ftid(std::in_place,boost::extents[m_nband][m_end-m_beg]),m_ftii(std::in_place,boost::extents[m_nband][m_end-m_beg]),
+    m_u10(boost::extents[m_end-m_beg]),m_ram1(boost::extents[m_end-m_beg]),m_fv(boost::extents[m_end-m_beg]),
+    m_forc_hgt_u_pft(boost::extents[m_end-m_beg]),m_forc_hgt_t_pft(boost::extents[m_end-m_beg]),
+    m_forc_hgt_q_pft(boost::extents[m_end-m_beg]),m_vds(boost::extents[m_end-m_beg]),
+    m_slasun(boost::extents[m_end-m_beg]),m_slasha(boost::extents[m_end-m_beg]),m_lncsun(boost::extents[m_end-m_beg]),
+    m_lncsha(boost::extents[m_end-m_beg]),m_vcmxsun(boost::extents[m_end-m_beg]),m_vcmxsha(boost::extents[m_end-m_beg]),
+    m_gdir(boost::extents[m_end-m_beg]),m_omega(boost::extents[m_nband][m_end-m_beg]),m_eff_kid(boost::extents[m_nband][m_end-m_beg]),
+    m_eff_kii(boost::extents[m_nband][m_end-m_beg]),m_sun_faid(boost::extents[m_nband][m_end-m_beg]),
+    m_sun_faii(boost::extents[m_nband][m_end-m_beg]),m_sha_faid(boost::extents[m_nband][m_end-m_beg]),
+    m_sha_faii(boost::extents[m_nband][m_end-m_beg]),m_sandfrac(boost::extents[m_end-m_beg]),m_clayfrac(boost::extents[m_end-m_beg]),
+    m_soilt(boost::extents[m_end-m_beg]),m_smoist(boost::extents[m_end-m_beg]),m_sz(boost::extents[m_end-m_beg]),
+    m_watopt(boost::extents[m_end-m_beg]),m_watdry(boost::extents[m_end-m_beg]),m_Wlim(boost::extents[m_end-m_beg]),
+    m_tday(boost::extents[m_end-m_beg]),m_tdayavg(boost::extents[m_end-m_beg]),m_noveg(boost::extents[m_end-m_beg]),
+    m_tree(boost::extents[m_end-m_beg]),m_dleaf(boost::extents[m_end-m_beg]),m_xl(boost::extents[m_end-m_beg]),
+    m_sun_add(boost::extents[m_nband][m_end-m_beg]),m_tot_aid(boost::extents[m_nband][m_end-m_beg]),
+    m_sun_aid(boost::extents[m_nband][m_end-m_beg]),m_sun_aii(boost::extents[m_nband][m_end-m_beg]),
+    m_sha_aid(boost::extents[m_nband][m_end-m_beg]),m_sha_aii(boost::extents[m_nband][m_end-m_beg]),
+    m_sun_atot(boost::extents[m_nband][m_end-m_beg]),m_sha_atot(boost::extents[m_nband][m_end-m_beg]),
+    m_sun_alf(boost::extents[m_nband][m_end-m_beg]),m_sha_alf(boost::extents[m_nband][m_end-m_beg])
+    {
+      
+    }
 };
 
 }
