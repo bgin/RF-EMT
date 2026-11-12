@@ -649,6 +649,158 @@ struct alignas(64) vegetation_state_avx512_t
         return (ret_status);
     }
 
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_rssha(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_rssha.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_rssha.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_rssha.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_laisun(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_laisun.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_laisun.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_laisun.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_laisha(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_laisha.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_laisha.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_laisha.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_btran(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_btran.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_btran.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_btran.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_fsun(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_fsun.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_fsun.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_fsun.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_tlai(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_tlai.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_tlai.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_tlai.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_tsai(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_tsai.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_tsai.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_tsai.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_elai(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_elai.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_elai.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_elai.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
 };
 
 }
