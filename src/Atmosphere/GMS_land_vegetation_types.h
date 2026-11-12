@@ -1428,6 +1428,198 @@ struct alignas(64) vegetation_state_avx512_t
         return (ret_status);
     }
 
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_sun_faii(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_sun_faii.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_sun_faii.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_sun_faii.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_sun_sandfrac(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_sandfrac.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_sandfrac.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_sandfrac.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_clayfrac(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_clayfrac.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_clayfrac.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_clayfrac.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_solit(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_soilt.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_soilt.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_soilt.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_smoist(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_smoist.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_smoist.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_smoist.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_sz(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_sz.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_sz.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_sz.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_watopt(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_watdry.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_watopt.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_watdry.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_Wlim(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_Wlim.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_Wlim.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_Wlim.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_tday(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_tday.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_tday.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_tday.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_tdayavg(const double filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        double * __restrict__ ptr = &this->m_tdayavg.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_tdayavg.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_tdayavg.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    
+
 };
 
 }
