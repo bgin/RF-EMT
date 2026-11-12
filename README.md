@@ -1,5 +1,4 @@
-
-# Radio-Frequency Engineering and Modeling Toolkit
+# RF-EMT — Radio-Frequency Engineering and Modeling Toolkit
 
 <!-- hy-mt2-i18n:start -->
 
@@ -7,98 +6,92 @@
 
 <!-- hy-mt2-i18n:end -->
 
-This project provides a high-fidelity simulation framework for Radar,Telecommunication and the other Radio-frequency engineering systems. The goal is to achieve realistic, design-level system modeling and simulation, following standards and methodologies found in advanced engineering and technical literature.
+[![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![Top language](https://img.shields.io/github/languages/top/bgin/RF-EMT)](https://github.com/bgin/RF-EMT)
+[![Stars](https://img.shields.io/github/stars/bgin/RF-EMT?style=social)](https://github.com/bgin/RF-EMT/stargazers)
+[![Forks](https://img.shields.io/github/forks/bgin/RF-EMT?style=social)](https://github.com/bgin/RF-EMT/network/members)
 
-## Key Features
+RF-EMT is a research-oriented toolkit for modeling and simulation in radar, telecommunications, and radio-frequency engineering. It brings together electromagnetic models, propagation and scattering utilities, and performance-focused computing techniques to support design-level analysis and integration into larger simulation workflows.
 
-- **Comprehensive System Modeling:**  
-  Models core components of Radar and Telecommunication systems , including analytical Radar Cross Section (RCS) calculations and antennae radiation patterns.  
-- **Performance-Optimized Kernels:**  
-  Implements highly optimized algorithms, leveraging Intel Intrinsics (SSE/AVX/AVX2/AVX512) for massive manual vectorization. Compiler-level autovectorization is used for descriptive statistics and profiling.
-- **GPGPU Acceleration:**  
-  Includes a substantial CUDA codebase (~15,000 lines) covering computational kernels and helper routines for GPU-accelerated simulation.
-- **Modular Architecture:**  
-  Organized as a collection of standalone modules, each describing distinct modeled components. The library can serve as a computational backend or be integrated with a GUI frontend.
-- **Component Scope:**  
-  The framework is structured around four main simulation domains:
-  1. RF Telecommunication system modeling and simulation (partly implemented).
-  2. Radar modeling and simulation (partly implemented).
-  3. Baseband (complex envelope) signal processing and optimum receivers modeling (not yet implemented).
-  4. Support libraries (e.g. an Atmosphere, terrain and buildings) (partly implemented).
-  
-## Implementation Overview
+> **Project status:** RF-EMT is under active development. Radar and telecommunications modeling and environmental support libraries are partly implemented; baseband signal processing and optimal receiver modeling are not yet implemented. Feature coverage and build requirements may vary by module.
 
-- **SIMD Execution Paths:**  
-  Hundreds of computational kernels implemented for both double and single precision, focusing on analytical RCS and antenna modeling.
-- **CUDA Path:**  
-  GPU kernels for large-scale, high-performance computations.
-- **Current Status:**  
-  The project contains hundreds of SIMD kernels and a comprehensive set of analytical and simulation tools for radar and Telecom system analysis and modeling.
-  
-## Overall purpose
+## Contents
 
-The `Electromagnetics` folder is the core computational physics section of RF-EMT. It brings together:
+- [Highlights](#highlights)
+- [Modeling domains](#modeling-domains)
+- [Electromagnetics module](#electromagnetics-module)
+- [Performance and toolchains](#performance-and-toolchains)
+- [Build and integration](#build-and-integration)
+- [Contributing](#contributing)
+- [License](#license)
 
-- high-performance SIMD electromagnetic field solvers
-- scattering and dielectric models for vegetation, hydrometeors, and urban structures
-- radar cross-section and radar-loss analysis
-- polarization and propagation utilities
-- Fortran-based T-matrix and related routines for legacy scientific computations
+## Highlights
 
-## Usage
+- **RF and radar modeling:** Analytical and simulation components include radar cross-section (RCS) analysis, antenna radiation patterns, propagation, polarization, and system-loss utilities.
+- **Electromagnetic and environmental models:** Scattering and dielectric models cover vegetation, hydrometeors, and urban structures, alongside atmospheric and other supporting components.
+- **CPU performance paths:** Computational kernels include single- and double-precision implementations using SIMD instruction sets such as SSE, AVX, AVX2, and AVX-512, with OpenMP in selected paths.
+- **GPU computing:** The repository includes CUDA kernels and supporting routines for GPU-accelerated computation.
+- **Mixed-language scientific computing:** C++, CUDA, and Fortran sources support a range of modeling and numerical requirements.
+- **Modular design:** Components can be used as parts of a computational backend or integrated into a larger engineering application or GUI.
 
-This software is intended as a backend computational library for advanced simulation and modeling applications. It can be integrated into larger software environments or connected to graphical user interfaces for visualization and analysis.
+## Modeling domains
 
-## Compiler Infrastructure & Toolchain Configuration Flags
+RF-EMT is organized around these areas:
 
-To compile the RF-EMT framework with full hardware optimization enabled, the build system must explicitly target the underlying CPU SIMD instruction sets and enable aggressive vectorization pipelines. Below is the comprehensive guide to configuration flags for the four major C++ compilers:
+| Domain | Status |
+| --- | --- |
+| RF telecommunications | Partly implemented |
+| Radar modeling and simulation | Partly implemented |
+| Baseband (complex-envelope) processing and optimal receivers | Not yet implemented |
+| Supporting libraries, including atmosphere, terrain, and buildings | Partly implemented |
 
-### 1. GNU Compiler Collection (GCC)
-GCC provides fine-grained control over architecture target generation and vectorizer heuristics.
-* `-O3`: Activates all high-level optimizations, including aggressive loop vectorization, unrolling, and predictive commoning.
-* `-march=native`: Directs the compiler to discover the host CPU topology at compile time and auto-enable all supported SIMD instruction subsets.
-* `-mavx512f -mavx512cd -mavx512bw -mavx512dq -mavx512vl`: Explicitly enforces compilation targeting the complete AVX-512 instruction set extension.
-* `-ftree-vectorize`: Enables the tree-based auto-vectorization pass (implicitly enabled at `-O3`, but useful for explicit profiling).
-* `-ffast-math`: Relaxes strict IEEE 754 compliance to allow algebraic transformations that accelerate floating-point arithmetic (e.g., reciprocal approximations).
+## Electromagnetics module
 
-### 2. LLVM Clang Compiler
-Clang uses an advanced vectorization optimization loop and fully supports native SIMD vector expansions.
-* `-O3`: Triggers Clang’s deep pipeline optimizations and multi-pass loop vectorizer.
-* `-march=native`: Automatically generates instructions tailored to the compilation host hardware.
-* `-mvx2` / `-mavx512f`: Forces code generation for AVX2 or basic AVX-512 foundation blocks.
-* `-Rpass=loop-vectorize`: Instructs the optimization pass to output verbose diagnostic remarks regarding which loops were successfully vectorized.
-* `-Rpass-missed=loop-vectorize`: Provides detailed feedback on loops that failed vectorization, along with technical reasoning (e.g., pointer aliasing).
+The [`src/Electromagnetics`](./src/Electromagnetics/) directory is the project's core electromagnetic modeling area. It includes:
 
-### 3. Microsoft Visual C++ (MSVC)
-MSVC controls vectorized code generation via specific architecture switches.
-* `/O2` / `/Ox`: Enables maximum speed optimizations and full global optimization passes.
-* `/arch:AVX2`: Instructs the compiler to emit instructions using AVX2 vector registers.
-* `/arch:AVX512`: Directs MSVC to utilize AVX-512 instruction sets for vector operations (available in modern MSVC/Visual Studio toolchains).
-* `/Qvec-report:2`: Configures the auto-vectorizer to emit a detailed diagnostic report mapping out exactly which loops were vectorized and which were skipped.
-* `/fp:fast`: Relaxes floating-point behavior to unlock substantial speedups during massive matrix manipulation loops.
+- SIMD- and OpenMP-oriented electromagnetic field computation paths
+- RCS analysis and scattering models
+- Dielectric models for vegetation and other materials
+- Urban-structure and tree-scattering components
+- Polarization, propagation, and radar-loss utilities
+- Fortran T-matrix routines and related scientific code
 
-### 4. Intel oneAPI DPC++/C++ Compiler (ICX)
-Intel's modern LLVM-based ICX compiler is uniquely optimized for maximizing SIMD throughput on Intel hardware architectures.
-* `-O3`: Instructs the backend optimizer to aggressively vectorize and pipeline loops.
-* `-xHost`: Optimizes code execution specifically for the highest SIMD instruction set available on the compilation host machine.
-* `-xCORE-AVX512`: Instructs the compiler to output highly efficient AVX-512 instructions designed for Intel Xeon / Core architectures.
-* `-qopt-report=3`: Generates a deeply technical, comprehensive optimization report detailing loop transformations, vectorization efficiency, and memory alignments.
-* `-fp-model=fast=2`: Maximizes floating-point speed by permitting extensive math modifications and reciprocal approximations.
+For an inventory of this module, see [`src/Electromagnetics/README.md`](./src/Electromagnetics/README.md). Atmospheric components and related supporting sources are documented in [`src/Atmosphere/README.md`](./src/Atmosphere/README.md).
+
+## Performance and toolchains
+
+Some kernels are specialized for particular CPU instruction sets or use CUDA. Select compiler options to match the code being built and the hardware on which it will run. Architecture-specific binaries may not run on older or differently configured processors. In particular, `-march=native` produces binaries tuned for the build machine, and fast-math options can change floating-point behavior and numerical results.
+
+The following are examples of commonly used optimization and diagnostic options; they are not a universal RF-EMT build command:
+
+| Toolchain | Example options | Notes |
+| --- | --- | --- |
+| GCC | `-O3`, `-march=native`, `-ftree-vectorize` | `-ftree-vectorize` is generally enabled by `-O3`. Add ISA-specific flags only when appropriate for the target CPU. |
+| Clang/LLVM | `-O3`, `-march=native`, `-mavx2`, `-Rpass=loop-vectorize` | `-mavx2` targets AVX2; use a compatible target and hardware. |
+| MSVC | `/O2`, `/arch:AVX2` | Architecture options depend on compiler version and target. |
+| Intel oneAPI (ICX) | `-O3`, `-xHost`, `-qopt-report=3` | `-xHost` targets the build host; check compiler documentation for supported options. |
+
+Use relaxed floating-point options such as `-ffast-math` or `/fp:fast` only when their numerical trade-offs are acceptable for your application. CUDA builds also require a compatible NVIDIA toolchain and device. Check the relevant compiler and project configuration for exact requirements.
+
+## Build and integration
+
+RF-EMT is intended as a computational backend for scientific and engineering applications, simulation pipelines, or application frontends. The repository contains modules with different languages and hardware requirements, so build steps and dependencies can differ between components. Consult the relevant project build files and module documentation before compiling; ensure the selected compiler, optional CUDA setup, and CPU instruction-set flags match your target environment.
 
 ## Contributing
 
-Contributions are welcome, especially from those with expertise in:
-- Radar,Telecommunication and Radioengineering systems
-- High-performance computing (SIMD, CUDA)
-- Numerical methods and scientific computing
+Contributions are welcome, especially in:
 
-If you are interested, please open an issue or a pull request.
+- radar, telecommunications, and radio-frequency engineering
+- electromagnetic modeling and numerical methods
+- high-performance computing, including SIMD, OpenMP, and CUDA
+- scientific software testing, documentation, and build support
+
+Please open an issue to discuss a proposed change, or submit a pull request with a clear description of the problem and solution.
 
 ## License
 
-This project is licensed under the terms of the GPLv3 license.
+RF-EMT is licensed under the [GNU General Public License, version 3 (GPL-3.0)](https://www.gnu.org/licenses/gpl-3.0).
 
 ## Acknowledgments
 
-This project builds on a foundation of engineering and technical literature and is driven by a commitment to realistic and efficient system modeling.
-
+RF-EMT builds on established engineering and scientific literature, with a focus on realistic and computationally efficient modeling for RF and electromagnetic applications.
