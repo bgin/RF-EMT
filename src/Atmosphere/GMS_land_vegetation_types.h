@@ -460,14 +460,92 @@ struct alignas(64) vegetation_state_avx512_t
         }
     }
 
-    std::int32_t show_class_data_layout()
+    std::int32_t show_class_memory_layout()
     {
         std::int32_t ret_status = -9999;
-         std::cout << "alignof(struct vegetation_state_avx512_t) = " << alignof(vegetation_state_avx512_t) << '\n'
+        std::cout << "alignof(struct vegetation_state_avx512_t) = " << alignof(vegetation_state_avx512_t) << '\n'
                    << "sizeof(struct  vegetation_state_avx512_t) = " << sizeof(vegetation_state_avx512_t)  << '\n'
                    << std::hex << std::showbase        << '\n'
-                   << "&this->m_frac_veg_nosno     ="  << (void*)&this->m_frac_veg_nosno  << "\n"
-                      "&this->mnx                  ="  << &this->m_frac_veg_nosno.num_elements()           << "\n";
+                   << "&this->m_frac_veg_nosno        ="  << (void*)&this->m_frac_veg_nosno     << "\n"
+                      "&this->m_frac_veg_nosno_alb    ="  << (void*)&this->m_frac_veg_nosno_alb << "\n"
+                      "&this->m_emv                   ="  << (void*)&this->m_emv                << "\n"
+                      "&this->m_z0mv                  ="  << (void*)&this->m_z0mv               << "\n"
+                      "&this->m_z0hv                  ="  << (void*)&this->m_z0hv               << "\n"
+                      "&this->m_z0qv                  ="  << (void*)&this->m_z0qv               << "\n"
+                      "&this->m_rootfr                ="  << (void*)&this->m_rootfr             << "\n"
+                      "&this->m_rresis                ="  << (void*)&this->m_rresis             << "\n"
+                      "&this->m_dewmx                 ="  << (void*)&this->m_dewmx              << "\n"
+                      "&this->m_rssun                 ="  << (void*)&this->m_rssun              << "\n"
+                      "&this->m_rssha                 ="  << (void*)&this->m_rssha              << "\n"
+                      "&this->m_laisun                ="  << (void*)&this->m_laisun             << "\n"
+                      "&this->m_laisha                ="  << (void*)&this->m_laisha             << "\n"
+                      "&this->m_btran                 ="  << (void*)&this->m_btran              << "\n"
+                      "&this->m_fsun                  ="  << (void*)&this->m_fsun               << "\n"
+                      "&this->m_tlai                  ="  << (void*)&this->m_tlai               << "\n"
+                      "&this->m_tsai                  ="  << (void*)&this->m_tsai               << "\n"
+                      "&this->m_elai                  ="  << (void*)&this->m_elai               << "\n"
+                      "&this->m_esai                  ="  << (void*)&this->m_esai               << "\n"
+                      "&this->m_fwet                  ="  << (void*)&this->m_fwet               << "\n"
+                      "&this->m_fdry                  ="  << (void*)&this->m_fdry               << "\n"
+                      "&this->m_dt_veg                ="  << (void*)&this->m_dt_veg             << "\n"
+                      "&this->m_htop                  ="  << (void*)&this->m_htop               << "\n"
+                      "&this->m_hbtop                 ="  << (void*)&this->m_hbtop              << "\n"
+                      "&this->m_z0m                   ="  << (void*)&this->m_z0m                << "\n"
+                      "&this->m_displa                ="  << (void*)&this->m_displa             << "\n"
+                      "&this->m_albd                  ="  << (void*)&this->m_albd               << "\n"
+                      "&this->m_albi                  ="  << (void*)&this->m_albi               << "\n"
+                      "&this->m_fabd                  ="  << (void*)&this->m_fabd               << "\n"
+                      "&this->m_fabi                  ="  << (void*)&this->m_fabi               << "\n"
+                      "&this->m_ftdd                  ="  << (void*)&this->m_ftdd               << "\n"
+                      "&this->m_ftid                  ="  << (void*)&this->m_ftid               << "\n"
+                      "&this->m_ftii                  ="  << (void*)&this->m_ftii               << "\n"
+                      "&this->m_u10                   ="  << (void*)&this->m_u10                << "\n"
+                      "&this->m_ram1                  ="  << (void*)&this->m_ram1               << "\n"
+                      "&this->m_fv                    ="  << (void*)&this->m_fv                 << "\n"
+                      "&this->m_forc_hgt_u_pft        ="  << (void*)&this->m_forc_hgt_u_pft     << "\n"
+                      "&this->m_forc_hgt_t_pft        ="  << (void*)&this->m_forc_hgt_t_pft     << "\n"
+                      "&this->m_forc_hgt_q_pft        ="  << (void*)&this->m_forc_hgt_q_pft     << "\n"
+                      "&this->m_vds                   ="  << (void*)&this->m_vds                << "\n"
+                      "&this->m_slasun                ="  << (void*)&this->m_slasun             << "\n"
+                      "&this->m_slasha                ="  << (void*)&this->m_slasha             << "\n"
+                      "&this->m_lncsun                ="  << (void*)&this->m_lncsun             << "\n"
+                      "&this->m_lncsha                ="  << (void*)&this->m_lncsha             << "\n"
+                      "&this->m_vcmxsun               ="  << (void*)&this->m_vcmxsun            << "\n"
+                      "&this->m_vcmxsha               ="  << (void*)&this->m_vcmxsha            << "\n"
+                      "&this->m_gdir                  ="  << (void*)&this->m_gdir               << "\n"
+                      "&this->m_omega                 ="  << (void*)&this->m_omega              << "\n"
+                      "&this->m_eff_kid               ="  << (void*)&this->m_eff_kid            << "\n"
+                      "&this->m_eff_kii               ="  << (void*)&this->m_eff_kii            << "\n"
+                      "&this->m_sun_faid              ="  << (void*)&this->m_sun_faid           << "\n"
+                      "&this->m_sun_faii              ="  << (void*)&this->m_sun_faii           << "\n"
+                      "&this->m_sha_faid              ="  << (void*)&this->m_sha_faid           << "\n"
+                      "&this->m_sha_faii              ="  << (void*)&this->m_sha_faii           << "\n"
+                      "&this->m_sandfrac              ="  << (void*)&this->m_sandfrac           << "\n"
+                      "&this->m_clayfrac              ="  << (void*)&this->m_clayfrac           << "\n"
+                      "&this->m_soilt                 ="  << (void*)&this->m_soilt              << "\n"
+                      "&this->m_smoist                ="  << (void*)&this->m_smoist             << "\n"
+                      "&this->m_sz                    ="  << (void*)&this->m_sz                 << "\n"
+                      "&this->m_watopt                ="  << (void*)&this->m_watopt             << "\n"
+                      "&this->m_watdry                ="  << (void*)&this->m_watdry             << "\n"
+                      "&this->m_Wlim                  ="  << (void*)&this->m_Wlim               << "\n"
+                      "&this->m_tday                  ="  << (void*)&this->m_tday               << "\n"
+                      "&this->m_tdayavg               ="  << (void*)&this->m_tdayavg            << "\n"
+                      "&this->m_noveg                 ="  << (void*)&this->m_noveg              << "\n"
+                      "&this->m_tree                  ="  << (void*)&this->m_tree               << "\n"
+                      "&this->m_dleaf                 ="  << (void*)&this->m_dleaf              << "\n"
+                      "&this->m_xl                    ="  << (void*)&this->m_xl                 << "\n"
+                      "&this->m_sun_add               ="  << (void*)&this->m_sun_add            << "\n"
+                      "&this->m_tot_aid               ="  << (void*)&this->m_tot_aid            << "\n"
+                      "&this->m_sun_aid               ="  << (void*)&this->m_sun_aid            << "\n"
+                      "&this->m_sun_aii               ="  << (void*)&this->m_sun_aii            << "\n"
+                      "&this->m_sha_aid               ="  << (void*)&this->m_sha_aid            << "\n"
+                      "&this->m_sha_aii               ="  << (void*)&this->m_sha_aii            << "\n"
+                      "&this->m_sun_atot              ="  << (void*)&this->m_sun_atot           << "\n"
+                      "&this->m_sha_atot              ="  << (void*)&this->m_sha_atot           << "\n"
+                      "&this->m_sun_alf               ="  << (void*)&this->m_sun_alf            << "\n"
+                      "&this->m_sha_alf               ="  << (void*)&this->m_sha_alf            << "\n";
+        ret_status = 0;
+        return (ret_status);    
     }
 
     template<std::int32_t which_unrolling>
