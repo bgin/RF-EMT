@@ -177,7 +177,49 @@ struct alignas(64) vegetation_state_avx512_t
 
     }
 
-    
+    vegetation_state_avx512_t(const std::size_t beg,
+                              const std::size_t end,
+                              const std::size_t nband,
+                              const std::size_t nlevgrnd) noexcept(false) 
+        :
+    m_beg(beg),m_end(end),m_nband(nband),m_nlevgrnd(nlevgrnd),
+    m_frac_veg_nosno(m_end-m_beg),m_frac_veg_nosno_alb(m_end-m_beg),
+    m_emv(m_end-m_beg),m_z0mv(m_end-m_beg),m_z0hv(m_end-m_beg),
+    m_z0qv(m_end-m_beg),m_rootfr(m_nlevgrnd*(m_end-m_beg)),
+    m_rootr(m_nlevgrnd*(m_end-m_beg)),m_rresis(m_nlevgrnd*(m_end-m_beg)),
+    m_dewmx(m_end-m_beg),m_rssun(std::in_place,m_end-m_beg),
+    m_rssha(std::in_place,m_end-m_beg),m_laisun(std::in_place,m_end-m_beg),
+    m_laisha(std::in_place,m_end-m_beg),m_btran(m_end-m_beg),
+    m_fsun(std::in_place,m_end-m_beg),m_tlai(m_end-m_beg),
+    m_tsai(m_end-m_beg),m_elai(m_end-m_beg),m_esai(m_end-m_beg),
+    m_fwet(m_end-m_beg),m_fdry(m_end-m_beg),m_dt_veg(m_end-m_beg),
+    m_htop(m_end-m_beg),m_hbtop(m_end-m_beg),m_z0m(m_end-m_beg),
+    m_displa(m_end-m_beg),m_albd(std::in_place,m_nband*(m_end-m_beg)),
+    m_albi(std::in_place,m_nband*(m_end-m_beg)),m_fabd(std::in_place,m_nband*(m_end-m_beg)),
+    m_fabi(std::in_place,m_nband*(m_end-m_beg)),m_ftdd(std::in_place,m_nband*(m_end-m_beg)),
+    m_ftid(std::in_place,m_nband*(m_end-m_beg)),m_ftii(std::in_place,m_nband*(m_end-m_beg)),
+    m_u10(m_end-m_beg),m_ram1(m_end-m_beg),m_fv(m_end-m_beg),
+    m_forc_hgt_u_pft(m_end-m_beg),m_forc_hgt_t_pft(m_end-m_beg),
+    m_forc_hgt_q_pft(m_end-m_beg),m_vds(m_end-m_beg),
+    m_slasun(m_end-m_beg),m_slasha(m_end-m_beg),m_lncsun(m_end-m_beg),
+    m_lncsha(m_end-m_beg),m_vcmxsun(m_end-m_beg),m_vcmxsha(m_end-m_beg),
+    m_gdir(m_end-m_beg),m_omega(m_nband*(m_end-m_beg)),m_eff_kid(m_nband*(m_end-m_beg)),
+    m_eff_kii(m_nband*(m_end-m_beg)),m_sun_faid(m_nband*(m_end-m_beg)),
+    m_sun_faii(m_nband*(m_end-m_beg)),m_sha_faid(m_nband*(m_end-m_beg)),
+    m_sha_faii(m_nband*(m_end-m_beg)),m_sandfrac(m_end-m_beg),m_clayfrac(m_end-m_beg),
+    m_soilt(m_end-m_beg),m_smoist(m_end-m_beg),m_sz(m_end-m_beg),
+    m_watopt(m_end-m_beg),m_watdry(m_end-m_beg),m_Wlim(m_end-m_beg),
+    m_tday(m_end-m_beg),m_tdayavg(m_end-m_beg),m_noveg(m_end-m_beg),
+    m_tree(m_end-m_beg),m_dleaf(m_end-m_beg),m_xl(m_end-m_beg),
+    m_sun_add(m_nband*(m_end-m_beg)),m_tot_aid(m_nband*(m_end-m_beg)),
+    m_sun_aid(m_nband*(m_end-m_beg)),m_sun_aii(m_nband*(m_end-m_beg)),
+    m_sha_aid(m_nband*(m_end-m_beg)),m_sha_aii(m_nband*(m_end-m_beg)),
+    m_sun_atot(m_nband*(m_end-m_beg)),m_sha_atot(m_nband*(m_end-m_beg)),
+    m_sun_alf(m_nband*(m_end-m_beg)),m_sha_alf(m_nband*(m_end-m_beg))
+    {
+
+    }
+
 
 };
 
