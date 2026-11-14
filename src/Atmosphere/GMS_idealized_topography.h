@@ -76,6 +76,7 @@ const char *const GMS_IDEALIZED_TOPO_SYNOPSIS =
 
 #include <cstdint>
 #include "GMS_config.h"
+#include "GMS_boost_multiarray_types.hpp"
 
 namespace gms {
 
@@ -122,6 +123,65 @@ void sinusoidal_topography(double *__restrict __ATTR_ALIGN__(64) lon,
                            const double deltalat, const bool uneven_sin);
 
 
+
+struct alignas(64) terrain_topography_avx512_t 
+{
+    enum class terrain_types_enum : std::int32_t 
+    {
+        ideal_terrain               = 0,
+        X_m_flat_plate              = 1,
+        witch_of_agnesi2D           = 2,
+        gaussian_hill2D             = 21,
+        witch_of_agnesi3D           = 3,
+        gaussian_hill3D             = 31,
+        ridge_or_isolated_cube      = 4,
+        cube3D                      = 5,
+        idealized_trex_valley2D     = 6,
+        idealized_trex_valley3D     = 7,
+        v_shaped_valley_ridges      = 8,
+        sinusoidal_valley_ridges    = 81,
+        schar_ideal_advect_test     = 9,
+        read_data_1D_ht_array       = 10,
+        witch_of_agnesi2D_ydim      = 11,
+        djw_okc_read_form_file      = 13,
+        rsa_granite_mount_file_read = 14,
+        rsa_jb_askervein_file_read  = 15 
+    };
+
+    std::size_t  m_ids;
+    std::size_t  m_ide;
+    std::size_t  m_jds;
+    std::size_t  m_jde;
+    std::size_t  m_kds;
+    std::size_t  m_kde;
+    std::size_t  m_ims;
+    std::size_t  m_ime;
+    std::size_t  m_jms;
+    std::size_t  m_jme;
+    std::size_t  m_kms;
+    std::size_t  m_kme;
+    std::size_t  m_its;
+    std::size_t  m_ite;
+    std::size_t  m_jts;
+    std::size_t  m_jte;
+    std::size_t  m_kts;
+    std::size_t  m_kte;
+    std::int32_t m_ideal_terrain;
+    std::int32_t m_spec_bdy_width;
+    float        m_flat_plate_ht;
+    float        m_dx;
+    float        m_dy;
+    
+    common::Aligned64Mat3DF32 m_phb;
+    common::Aligned64Mat3DF32 m_ph;
+    common::Aligned64Mat2DF32 m_ibm_ht_u;
+    common::Aligned64Mat2DF32 m_ibm_ht_v;
+    common::Aligned64Mat2DF32 m_ibm_ht_w;
+    common::Aligned64Mat2DF32 m_ibm_ht_c;
+    common::Aligned64Mat2DF32 m_ibm_z0;
+
+    terrain_topography_avx512_t() noexcept;
+};
 
 } // namespace radiolocation
 
