@@ -646,7 +646,28 @@ struct alignas(64) vegetation_state_avx512_t
         return (ret_status);
     }
 
-    
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    set_z0mv(const Aligned64Vec1DF64 &z0mv) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        if(__builtin_expect(this->m_z0mv.num_elements()!=z0mv.num_elements(),0)) { ret_status = -1; return (ret_status);}
+        double * __restrict__ this_z0mv  = &this->m_z0mv.data()[0];
+        double * __restrict__ other_z0mv = &z0mv.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memcpy_unroll16x_pd(&this_z0mv[0],&other_z0mv[0],this->m_z0mv.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memcpy_unroll8x_pd(&this_z0mv[0],&other_z0mv[0],this->m_z0mv.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+
 
     template<std::int32_t which_unrolling>
     std::int32_t 
