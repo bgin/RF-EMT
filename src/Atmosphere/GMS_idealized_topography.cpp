@@ -300,3 +300,19 @@ void gms::radiolocation::sinusoidal_topography(
     }
   }
 }
+
+gms::radiolocation
+::terrain_topography_avx512_t
+::terrain_topography_avx512_t() noexcept(true)
+    : 
+m_ids{},m_ide{},m_jds{},m_jde{},m_kds{},m_kde{},
+m_ims{},m_ime{},m_jms{},m_jme{},m_kms{},m_kme{},
+m_its{},m_ite{},m_jts{},m_jte{},m_kts{},m_kte{},
+m_ideal_terrain{},m_spec_bdy_width{},
+m_flat_plate_ht{},m_dx{},m_dy{},
+m_phb{},m_ph{},m_ibm_ht_u{},m_ibm_ht_v{},m_ibm_ht_w{},
+m_ibm_ht_c{},m_ibm_z0 
+{ 
+  
+}
+
