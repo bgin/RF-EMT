@@ -122,65 +122,20 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
     const double * __restrict__ p_Ts      = Ts;
     const double * __restrict__ p_M       = M;
     const double * __restrict__ p_N0      = N0;
-    double       * __restrict__ p_sep_mam = sep_mam;
     std::size_t             a_sz         = sz;
-    if(a_sz>=1ull && a_sz<2ull)
-    {
-       for(std::uint32_t i = 0; i<2; ++i) 
-       {
-           const double valAc = p_Ac[i];
-           const double valTs = p_Ts[i];
-           const double valM  = p_M[i];
-           const double valN0 = p_N0[i];
-           p_sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
-       }
-       return (0);
-    }
-    else if(a_sz==2ull)
-    {
-        vAc = _mm_loadu_pd(&p_Ac[0]);
-        vTs = _mm_loadu_pd(&p_Ts[0]);
-        vM  = _mm_loadu_pd(&p_M[0]);
-        vN0 = _mm_loadu_pd(&p_N0[0]);
-        _mm_storeu_pd(&p_sep_mam[0], sse_kernel(vAc,vTs,vM,vN0,n));
-        return (0);
-    }
-    else if(a_sz>2ull && a_sz<=32ull)
-    {
-        std::size_t i,j;
-        for(i = 0ull; i!=ROUND_DOWN(a_sz,1ull); i += 2ull)
-        {
-            vAc = _mm_loadu_pd(&p_Ac[i]);
-            vTs = _mm_loadu_pd(&p_Ts[i]);
-            vM  = _mm_loadu_pd(&p_M[i]);
-            vN0 = _mm_loadu_pd(&p_N0[i]);
-            _mm_storeu_pd(&p_sep_mam[i], sse_kernel(vAc,vTs,vM,vN0,n));
-        }
-        for(j = i; j<a_sz; ++j)  
-        {
-            const double valAc = p_Ac[j];
-            const double valTs = p_Ts[j];
-            const double valM  = p_M[j];
-            const double valN0 = p_N0[j];
-            p_sep_mam[j]      = scalar_kernel(valAc,valTs,valM,valN0,n);
-        }
-        return (0);
-    }
-    else if(a_sz>32ull)
-    {
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_USE_PEEL_LOOP) == 1
-       while(((std::uintptr_t)&p_sep_mam & 15ull) && a_sz)
+       while(((std::uintptr_t)&sep_mam & 15ull) && a_sz)
        {
            const double valAc = *p_Ac;
            const double valTs = *p_Ts;
            const double valM  = *p_M;
            const double valN0 = *p_N0;
-           *p_sep_mam        =  scalar_kernel(valAc,valTs,valM,valN0,n);
+           *sep_mam        =  scalar_kernel(valAc,valTs,valM,valN0,n);
            p_Ac++;
            p_Ts++;
            p_M++;
            p_N0++;
-           p_sep_mam++;
+           sep_mam++;
            a_sz--;
        }
 #else 
@@ -230,33 +185,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             const std::size_t idx28 = i+28ull;
             const std::size_t idx30 = i+30ull;
 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx8],_MM_HINT_T0);
@@ -264,33 +219,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[idx8], _MM_HINT_T0);
             _mm_prefetch((const char*)&p_N0[idx8],_MM_HINT_T0);
 #endif
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx10]);
-            xmm11 = _mm_load_pd(&p_Ts[idx10]);
-            xmm12 = _mm_load_pd(&p_M[idx10]);
-            xmm13 = _mm_load_pd(&p_N0[idx10]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx10]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx10]);
+            xmm12 = _mm_loadu_pd(&p_M[idx10]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx10]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx10],xmm14);
+            _mm_store_pd(&sep_mam[idx10],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx12]);
-            xmm1 = _mm_load_pd(&p_Ts[idx12]);
-            xmm2 = _mm_load_pd(&p_M[idx12]);
-            xmm3 = _mm_load_pd(&p_N0[idx12]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx12]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx12]);
+            xmm2 = _mm_loadu_pd(&p_M[idx12]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx12]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx12],xmm4);
+            _mm_store_pd(&sep_mam[idx12],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx14]);
-            xmm6 = _mm_load_pd(&p_Ts[idx14]);
-            xmm7 = _mm_load_pd(&p_M[idx14]);
-            xmm8 = _mm_load_pd(&p_N0[idx14]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx14]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx14]);
+            xmm7 = _mm_loadu_pd(&p_M[idx14]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx14]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx14],xmm9);
+            _mm_store_pd(&sep_mam[idx14],xmm9);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx16],_MM_HINT_T0);
@@ -299,33 +254,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_N0[idx16],_MM_HINT_T0);
 #endif
 
-            xmm10 = _mm_load_pd(&p_Ac[idx16]);
-            xmm11 = _mm_load_pd(&p_Ts[idx16]);
-            xmm12 = _mm_load_pd(&p_M[idx16]);
-            xmm13 = _mm_load_pd(&p_N0[idx16]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx16]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx16]);
+            xmm12 = _mm_loadu_pd(&p_M[idx16]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx16]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx16],xmm14);
+            _mm_store_pd(&sep_mam[idx16],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx18]);
-            xmm1 = _mm_load_pd(&p_Ts[idx18]);
-            xmm2 = _mm_load_pd(&p_M[idx18]);
-            xmm3 = _mm_load_pd(&p_N0[idx18]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx18]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx18]);
+            xmm2 = _mm_loadu_pd(&p_M[idx18]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx18]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx18],xmm4);
+            _mm_store_pd(&sep_mam[idx18],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx20]);
-            xmm6 = _mm_load_pd(&p_Ts[idx20]);
-            xmm7 = _mm_load_pd(&p_M[idx20]);
-            xmm8 = _mm_load_pd(&p_N0[idx20]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx20]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx20]);
+            xmm7 = _mm_loadu_pd(&p_M[idx20]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx20]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx20],xmm9);
+            _mm_store_pd(&sep_mam[idx20],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx22]);
-            xmm11 = _mm_load_pd(&p_Ts[idx22]);
-            xmm12 = _mm_load_pd(&p_M[idx22]);
-            xmm13 = _mm_load_pd(&p_N0[idx22]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx22]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx22]);
+            xmm12 = _mm_loadu_pd(&p_M[idx22]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx22]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx22],xmm14);
+            _mm_store_pd(&sep_mam[idx22],xmm14);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx24],_MM_HINT_T0);
@@ -334,33 +289,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_N0[idx24],_MM_HINT_T0);
 #endif
             
-            xmm0 = _mm_load_pd(&p_Ac[idx24]);
-            xmm1 = _mm_load_pd(&p_Ts[idx24]);
-            xmm2 = _mm_load_pd(&p_M[idx24]);
-            xmm3 = _mm_load_pd(&p_N0[idx24]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx24]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx24]);
+            xmm2 = _mm_loadu_pd(&p_M[idx24]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx24]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx24],xmm4);
+            _mm_store_pd(&sep_mam[idx24],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx26]);
-            xmm6 = _mm_load_pd(&p_Ts[idx26]);
-            xmm7 = _mm_load_pd(&p_M[idx26]);
-            xmm8 = _mm_load_pd(&p_N0[idx26]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx26]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx26]);
+            xmm7 = _mm_loadu_pd(&p_M[idx26]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx26]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx26],xmm9);
+            _mm_store_pd(&sep_mam[idx26],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx28]);
-            xmm11 = _mm_load_pd(&p_Ts[idx28]);
-            xmm12 = _mm_load_pd(&p_M[idx28]);
-            xmm13 = _mm_load_pd(&p_N0[idx28]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx28]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx28]);
+            xmm12 = _mm_loadu_pd(&p_M[idx28]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx28]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx28],xmm14);
+            _mm_store_pd(&sep_mam[idx28],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx30]);
-            xmm1 = _mm_load_pd(&p_Ts[idx30]);
-            xmm2 = _mm_load_pd(&p_M[idx30]);
-            xmm3 = _mm_load_pd(&p_N0[idx30]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx30]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx30]);
+            xmm2 = _mm_loadu_pd(&p_M[idx30]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx30]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx30],xmm4);
+            _mm_store_pd(&sep_mam[idx30],xmm4);
        }
  
        for(; (i+23ull) < a_sz; i += 24ull)
@@ -382,33 +337,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+0ull], _MM_HINT_T0);
             _mm_prefetch((const char*)&p_N0[i+0ull],_MM_HINT_T0);
 #endif 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx8],_MM_HINT_T0);
@@ -416,33 +371,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[idx8], _MM_HINT_T0);
             _mm_prefetch((const char*)&p_N0[idx8],_MM_HINT_T0);
 #endif
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx10]);
-            xmm11 = _mm_load_pd(&p_Ts[idx10]);
-            xmm12 = _mm_load_pd(&p_M[idx10]);
-            xmm13 = _mm_load_pd(&p_N0[idx10]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx10]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx10]);
+            xmm12 = _mm_loadu_pd(&p_M[idx10]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx10]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx10],xmm14);
+            _mm_store_pd(&sep_mam[idx10],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx12]);
-            xmm1 = _mm_load_pd(&p_Ts[idx12]);
-            xmm2 = _mm_load_pd(&p_M[idx12]);
-            xmm3 = _mm_load_pd(&p_N0[idx12]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx12]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx12]);
+            xmm2 = _mm_loadu_pd(&p_M[idx12]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx12]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx12],xmm4);
+            _mm_store_pd(&sep_mam[idx12],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx14]);
-            xmm6 = _mm_load_pd(&p_Ts[idx14]);
-            xmm7 = _mm_load_pd(&p_M[idx14]);
-            xmm8 = _mm_load_pd(&p_N0[idx14]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx14]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx14]);
+            xmm7 = _mm_loadu_pd(&p_M[idx14]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx14]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx14],xmm9);
+            _mm_store_pd(&sep_mam[idx14],xmm9);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx16],_MM_HINT_T0);
@@ -451,33 +406,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_N0[idx16],_MM_HINT_T0);
 #endif
 
-            xmm10 = _mm_load_pd(&p_Ac[idx16]);
-            xmm11 = _mm_load_pd(&p_Ts[idx16]);
-            xmm12 = _mm_load_pd(&p_M[idx16]);
-            xmm13 = _mm_load_pd(&p_N0[idx16]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx16]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx16]);
+            xmm12 = _mm_loadu_pd(&p_M[idx16]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx16]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx16],xmm14);
+            _mm_store_pd(&sep_mam[idx16],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx18]);
-            xmm1 = _mm_load_pd(&p_Ts[idx18]);
-            xmm2 = _mm_load_pd(&p_M[idx18]);
-            xmm3 = _mm_load_pd(&p_N0[idx18]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx18]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx18]);
+            xmm2 = _mm_loadu_pd(&p_M[idx18]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx18]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx18],xmm4);
+            _mm_store_pd(&sep_mam[idx18],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx20]);
-            xmm6 = _mm_load_pd(&p_Ts[idx20]);
-            xmm7 = _mm_load_pd(&p_M[idx20]);
-            xmm8 = _mm_load_pd(&p_N0[idx20]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx20]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx20]);
+            xmm7 = _mm_loadu_pd(&p_M[idx20]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx20]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx20],xmm9);
+            _mm_store_pd(&sep_mam[idx20],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx22]);
-            xmm11 = _mm_load_pd(&p_Ts[idx22]);
-            xmm12 = _mm_load_pd(&p_M[idx22]);
-            xmm13 = _mm_load_pd(&p_N0[idx22]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx22]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx22]);
+            xmm12 = _mm_loadu_pd(&p_M[idx22]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx22]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx22],xmm14);
+            _mm_store_pd(&sep_mam[idx22],xmm14);
        }
 
        for(; (i+15ull) < a_sz; i += 16ull) 
@@ -495,33 +450,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+0ull], _MM_HINT_T0);
             _mm_prefetch((const char*)&p_N0[i+0ull],_MM_HINT_T0);
 #endif 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx8],_MM_HINT_T0);
@@ -529,33 +484,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[idx8], _MM_HINT_T0);
             _mm_prefetch((const char*)&p_N0[idx8],_MM_HINT_T0);
 #endif
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx10]);
-            xmm11 = _mm_load_pd(&p_Ts[idx10]);
-            xmm12 = _mm_load_pd(&p_M[idx10]);
-            xmm13 = _mm_load_pd(&p_N0[idx10]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx10]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx10]);
+            xmm12 = _mm_loadu_pd(&p_M[idx10]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx10]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx10],xmm14);
+            _mm_store_pd(&sep_mam[idx10],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx12]);
-            xmm1 = _mm_load_pd(&p_Ts[idx12]);
-            xmm2 = _mm_load_pd(&p_M[idx12]);
-            xmm3 = _mm_load_pd(&p_N0[idx12]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx12]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx12]);
+            xmm2 = _mm_loadu_pd(&p_M[idx12]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx12]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx12],xmm4);
+            _mm_store_pd(&sep_mam[idx12],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx14]);
-            xmm6 = _mm_load_pd(&p_Ts[idx14]);
-            xmm7 = _mm_load_pd(&p_M[idx14]);
-            xmm8 = _mm_load_pd(&p_N0[idx14]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx14]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx14]);
+            xmm7 = _mm_loadu_pd(&p_M[idx14]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx14]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx14],xmm9);
+            _mm_store_pd(&sep_mam[idx14],xmm9);
        }
 
        for(; (i+9ull) < a_sz; i += 10ull)
@@ -570,40 +525,40 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+0ull], _MM_HINT_T0);
             _mm_prefetch((const char*)&p_N0[i+0ull],_MM_HINT_T0);
 #endif 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
        }
 
        for(; (i+3ull) < a_sz; i += 4ull)
@@ -615,29 +570,29 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+0ull], _MM_HINT_T0);
             _mm_prefetch((const char*)&p_N0[i+0ull],_MM_HINT_T0);
 #endif 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
        }
 
        for(; (i+1ull) < a_sz; i += 2ull)
        {
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
        }
 
        for(; (i+0ull) < a_sz; i += 1ull)
@@ -646,7 +601,7 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             const double valTs = p_Ts[i];
             const double valM  = p_M[i];
             const double valN0 = p_N0[i];
-            p_sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
+            sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
        }
        return (0);
     }
@@ -680,33 +635,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             const std::size_t idx28 = i+28ull;
             const std::size_t idx30 = i+30ull;
 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx8],_MM_HINT_T0);
@@ -718,33 +673,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+L2_offset+idx8], _MM_HIN1_T1);
             _mm_prefetch((const char*)&p_N0[i+L2_offset+idx8],_MM_HINT_T1);
 #endif
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx10]);
-            xmm11 = _mm_load_pd(&p_Ts[idx10]);
-            xmm12 = _mm_load_pd(&p_M[idx10]);
-            xmm13 = _mm_load_pd(&p_N0[idx10]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx10]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx10]);
+            xmm12 = _mm_loadu_pd(&p_M[idx10]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx10]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx10],xmm14);
+            _mm_store_pd(&sep_mam[idx10],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx12]);
-            xmm1 = _mm_load_pd(&p_Ts[idx12]);
-            xmm2 = _mm_load_pd(&p_M[idx12]);
-            xmm3 = _mm_load_pd(&p_N0[idx12]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx12]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx12]);
+            xmm2 = _mm_loadu_pd(&p_M[idx12]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx12]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx12],xmm4);
+            _mm_store_pd(&sep_mam[idx12],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx14]);
-            xmm6 = _mm_load_pd(&p_Ts[idx14]);
-            xmm7 = _mm_load_pd(&p_M[idx14]);
-            xmm8 = _mm_load_pd(&p_N0[idx14]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx14]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx14]);
+            xmm7 = _mm_loadu_pd(&p_M[idx14]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx14]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx14],xmm9);
+            _mm_store_pd(&sep_mam[idx14],xmm9);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx16],_MM_HINT_T0);
@@ -757,33 +712,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_N0[i+L2_offset+idx16],_MM_HINT_T1);
 #endif
 
-            xmm10 = _mm_load_pd(&p_Ac[idx16]);
-            xmm11 = _mm_load_pd(&p_Ts[idx16]);
-            xmm12 = _mm_load_pd(&p_M[idx16]);
-            xmm13 = _mm_load_pd(&p_N0[idx16]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx16]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx16]);
+            xmm12 = _mm_loadu_pd(&p_M[idx16]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx16]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx16],xmm14);
+            _mm_store_pd(&sep_mam[idx16],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx18]);
-            xmm1 = _mm_load_pd(&p_Ts[idx18]);
-            xmm2 = _mm_load_pd(&p_M[idx18]);
-            xmm3 = _mm_load_pd(&p_N0[idx18]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx18]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx18]);
+            xmm2 = _mm_loadu_pd(&p_M[idx18]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx18]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx18],xmm4);
+            _mm_store_pd(&sep_mam[idx18],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx20]);
-            xmm6 = _mm_load_pd(&p_Ts[idx20]);
-            xmm7 = _mm_load_pd(&p_M[idx20]);
-            xmm8 = _mm_load_pd(&p_N0[idx20]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx20]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx20]);
+            xmm7 = _mm_loadu_pd(&p_M[idx20]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx20]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx20],xmm9);
+            _mm_store_pd(&sep_mam[idx20],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx22]);
-            xmm11 = _mm_load_pd(&p_Ts[idx22]);
-            xmm12 = _mm_load_pd(&p_M[idx22]);
-            xmm13 = _mm_load_pd(&p_N0[idx22]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx22]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx22]);
+            xmm12 = _mm_loadu_pd(&p_M[idx22]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx22]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx22],xmm14);
+            _mm_store_pd(&sep_mam[idx22],xmm14);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx24],_MM_HINT_T0);
@@ -796,33 +751,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_N0[i+L2_offset+idx24],_MM_HINT_T1);
 #endif
             
-            xmm0 = _mm_load_pd(&p_Ac[idx24]);
-            xmm1 = _mm_load_pd(&p_Ts[idx24]);
-            xmm2 = _mm_load_pd(&p_M[idx24]);
-            xmm3 = _mm_load_pd(&p_N0[idx24]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx24]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx24]);
+            xmm2 = _mm_loadu_pd(&p_M[idx24]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx24]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx24],xmm4);
+            _mm_store_pd(&sep_mam[idx24],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx26]);
-            xmm6 = _mm_load_pd(&p_Ts[idx26]);
-            xmm7 = _mm_load_pd(&p_M[idx26]);
-            xmm8 = _mm_load_pd(&p_N0[idx26]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx26]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx26]);
+            xmm7 = _mm_loadu_pd(&p_M[idx26]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx26]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx26],xmm9);
+            _mm_store_pd(&sep_mam[idx26],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx28]);
-            xmm11 = _mm_load_pd(&p_Ts[idx28]);
-            xmm12 = _mm_load_pd(&p_M[idx28]);
-            xmm13 = _mm_load_pd(&p_N0[idx28]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx28]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx28]);
+            xmm12 = _mm_loadu_pd(&p_M[idx28]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx28]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx28],xmm14);
+            _mm_store_pd(&sep_mam[idx28],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx30]);
-            xmm1 = _mm_load_pd(&p_Ts[idx30]);
-            xmm2 = _mm_load_pd(&p_M[idx30]);
-            xmm3 = _mm_load_pd(&p_N0[idx30]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx30]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx30]);
+            xmm2 = _mm_loadu_pd(&p_M[idx30]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx30]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx30],xmm4);
+            _mm_store_pd(&sep_mam[idx30],xmm4);
        }
  
        for(; (i+23ull) < a_sz; i += 24ull)
@@ -848,33 +803,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+L2_offset+0ull], _MM_HIN1_T1);
             _mm_prefetch((const char*)&p_N0[i+L2_offset+0ull],_MM_HINT_T1);
 #endif 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx8],_MM_HINT_T0);
@@ -886,33 +841,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+L2_offset+idx8], _MM_HIN1_T1);
             _mm_prefetch((const char*)&p_N0[i+L2_offset+idx8],_MM_HINT_T1);
 #endif
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx10]);
-            xmm11 = _mm_load_pd(&p_Ts[idx10]);
-            xmm12 = _mm_load_pd(&p_M[idx10]);
-            xmm13 = _mm_load_pd(&p_N0[idx10]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx10]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx10]);
+            xmm12 = _mm_loadu_pd(&p_M[idx10]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx10]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx10],xmm14);
+            _mm_store_pd(&sep_mam[idx10],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx12]);
-            xmm1 = _mm_load_pd(&p_Ts[idx12]);
-            xmm2 = _mm_load_pd(&p_M[idx12]);
-            xmm3 = _mm_load_pd(&p_N0[idx12]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx12]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx12]);
+            xmm2 = _mm_loadu_pd(&p_M[idx12]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx12]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx12],xmm4);
+            _mm_store_pd(&sep_mam[idx12],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx14]);
-            xmm6 = _mm_load_pd(&p_Ts[idx14]);
-            xmm7 = _mm_load_pd(&p_M[idx14]);
-            xmm8 = _mm_load_pd(&p_N0[idx14]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx14]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx14]);
+            xmm7 = _mm_loadu_pd(&p_M[idx14]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx14]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx14],xmm9);
+            _mm_store_pd(&sep_mam[idx14],xmm9);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx16],_MM_HINT_T0);
@@ -925,33 +880,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_N0[i+L2_offset+idx16],_MM_HINT_T1);
 #endif
 
-            xmm10 = _mm_load_pd(&p_Ac[idx16]);
-            xmm11 = _mm_load_pd(&p_Ts[idx16]);
-            xmm12 = _mm_load_pd(&p_M[idx16]);
-            xmm13 = _mm_load_pd(&p_N0[idx16]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx16]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx16]);
+            xmm12 = _mm_loadu_pd(&p_M[idx16]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx16]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx16],xmm14);
+            _mm_store_pd(&sep_mam[idx16],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx18]);
-            xmm1 = _mm_load_pd(&p_Ts[idx18]);
-            xmm2 = _mm_load_pd(&p_M[idx18]);
-            xmm3 = _mm_load_pd(&p_N0[idx18]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx18]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx18]);
+            xmm2 = _mm_loadu_pd(&p_M[idx18]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx18]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx18],xmm4);
+            _mm_store_pd(&sep_mam[idx18],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx20]);
-            xmm6 = _mm_load_pd(&p_Ts[idx20]);
-            xmm7 = _mm_load_pd(&p_M[idx20]);
-            xmm8 = _mm_load_pd(&p_N0[idx20]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx20]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx20]);
+            xmm7 = _mm_loadu_pd(&p_M[idx20]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx20]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx20],xmm9);
+            _mm_store_pd(&sep_mam[idx20],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx22]);
-            xmm11 = _mm_load_pd(&p_Ts[idx22]);
-            xmm12 = _mm_load_pd(&p_M[idx22]);
-            xmm13 = _mm_load_pd(&p_N0[idx22]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx22]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx22]);
+            xmm12 = _mm_loadu_pd(&p_M[idx22]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx22]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx22],xmm14);
+            _mm_store_pd(&sep_mam[idx22],xmm14);
        }
 
        for(; (i+15ull) < a_sz; i += 16ull) 
@@ -973,33 +928,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+L2_offset+0ull], _MM_HIN1_T1);
             _mm_prefetch((const char*)&p_N0[i+L2_offset+0ull],_MM_HINT_T1);
 #endif 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx8],_MM_HINT_T0);
@@ -1011,33 +966,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+L2_offset+idx8], _MM_HIN1_T1);
             _mm_prefetch((const char*)&p_N0[i+L2_offset+idx8],_MM_HINT_T1);
 #endif
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx10]);
-            xmm11 = _mm_load_pd(&p_Ts[idx10]);
-            xmm12 = _mm_load_pd(&p_M[idx10]);
-            xmm13 = _mm_load_pd(&p_N0[idx10]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx10]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx10]);
+            xmm12 = _mm_loadu_pd(&p_M[idx10]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx10]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx10],xmm14);
+            _mm_store_pd(&sep_mam[idx10],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx12]);
-            xmm1 = _mm_load_pd(&p_Ts[idx12]);
-            xmm2 = _mm_load_pd(&p_M[idx12]);
-            xmm3 = _mm_load_pd(&p_N0[idx12]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx12]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx12]);
+            xmm2 = _mm_loadu_pd(&p_M[idx12]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx12]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx12],xmm4);
+            _mm_store_pd(&sep_mam[idx12],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx14]);
-            xmm6 = _mm_load_pd(&p_Ts[idx14]);
-            xmm7 = _mm_load_pd(&p_M[idx14]);
-            xmm8 = _mm_load_pd(&p_N0[idx14]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx14]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx14]);
+            xmm7 = _mm_loadu_pd(&p_M[idx14]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx14]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx14],xmm9);
+            _mm_store_pd(&sep_mam[idx14],xmm9);
        }
 
        for(; (i+9ull) < a_sz; i += 10ull)
@@ -1056,40 +1011,40 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+L2_offset+0ull], _MM_HIN1_T1);
             _mm_prefetch((const char*)&p_N0[i+L2_offset+0ull],_MM_HINT_T1);
 #endif 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
        }
 
        for(; (i+3ull) < a_sz; i += 4ull)
@@ -1105,29 +1060,29 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+L2_offset+0ull], _MM_HIN1_T1);
             _mm_prefetch((const char*)&p_N0[i+L2_offset+0ull],_MM_HINT_T1);
 #endif 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
        }
 
        for(; (i+1ull) < a_sz; i += 2ull)
        {
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
        }
 
        for(; (i+0ull) < a_sz; i += 1ull)
@@ -1136,11 +1091,9 @@ analytic_SEP_BEP_generic_2xf64_array1d_u16x(const double * __restrict__ Ac,
             const double valTs = p_Ts[i];
             const double valM  = p_M[i];
             const double valN0 = p_N0[i];
-            p_sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
+            sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
        }
        return (0);
-    }
-
     }
 }
 
@@ -1179,65 +1132,20 @@ analytic_SEP_BEP_generic_2xf64_array1d_u12x(const double * __restrict__ Ac,
     const double * __restrict__ p_Ts      = Ts;
     const double * __restrict__ p_M       = M;
     const double * __restrict__ p_N0      = N0;
-    double       * __restrict__ p_sep_mam = sep_mam;
     std::size_t             a_sz         = sz;
-    if(a_sz>=1ull && a_sz<2ull)
-    {
-       for(std::uint32_t i = 0; i<2; ++i) 
-       {
-           const double valAc = p_Ac[i];
-           const double valTs = p_Ts[i];
-           const double valM  = p_M[i];
-           const double valN0 = p_N0[i];
-           p_sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
-       }
-       return (0);
-    }
-    else if(a_sz==2ull)
-    {
-        vAc = _mm_loadu_pd(&p_Ac[0]);
-        vTs = _mm_loadu_pd(&p_Ts[0]);
-        vM  = _mm_loadu_pd(&p_M[0]);
-        vN0 = _mm_loadu_pd(&p_N0[0]);
-        _mm_storeu_pd(&p_sep_mam[0], sse_kernel(vAc,vTs,vM,vN0,n));
-        return (0);
-    }
-    else if(a_sz>2ull && a_sz<=24ull)
-    {
-        std::size_t i,j;
-        for(i = 0ull; i!=ROUND_DOWN(a_sz,1ull); i += 2ull)
-        {
-            vAc = _mm_loadu_pd(&p_Ac[i]);
-            vTs = _mm_loadu_pd(&p_Ts[i]);
-            vM  = _mm_loadu_pd(&p_M[i]);
-            vN0 = _mm_loadu_pd(&p_N0[i]);
-            _mm_storeu_pd(&p_sep_mam[i], sse_kernel(vAc,vTs,vM,vN0,n));
-        }
-        for(j = i; j<a_sz; ++j)  
-        {
-            const double valAc = p_Ac[j];
-            const double valTs = p_Ts[j];
-            const double valM  = p_M[j];
-            const double valN0 = p_N0[j];
-            p_sep_mam[j]      = scalar_kernel(valAc,valTs,valM,valN0,n);
-        }
-        return (0);
-    }
-    else if(a_sz>24ull)
-    {
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_USE_PEEL_LOOP) == 1
-       while(((std::uintptr_t)&p_sep_mam & 15ull) && a_sz)
+       while(((std::uintptr_t)&sep_mam & 15ull) && a_sz)
        {
            const double valAc = *p_Ac;
            const double valTs = *p_Ts;
            const double valM  = *p_M;
            const double valN0 = *p_N0;
-           *p_sep_mam        =  scalar_kernel(valAc,valTs,valM,valN0,n);
+           *sep_mam        =  scalar_kernel(valAc,valTs,valM,valN0,n);
            p_Ac++;
            p_Ts++;
            p_M++;
            p_N0++;
-           p_sep_mam++;
+           sep_mam++;
            a_sz--;
        }
 #else 
@@ -1283,33 +1191,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u12x(const double * __restrict__ Ac,
             const std::size_t idx20 = i+20ull;
             const std::size_t idx22 = i+22ull;
 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx8],_MM_HINT_T0);
@@ -1317,33 +1225,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u12x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[idx8], _MM_HINT_T0);
             _mm_prefetch((const char*)&p_N0[idx8],_MM_HINT_T0);
 #endif
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx10]);
-            xmm11 = _mm_load_pd(&p_Ts[idx10]);
-            xmm12 = _mm_load_pd(&p_M[idx10]);
-            xmm13 = _mm_load_pd(&p_N0[idx10]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx10]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx10]);
+            xmm12 = _mm_loadu_pd(&p_M[idx10]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx10]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx10],xmm14);
+            _mm_store_pd(&sep_mam[idx10],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx12]);
-            xmm1 = _mm_load_pd(&p_Ts[idx12]);
-            xmm2 = _mm_load_pd(&p_M[idx12]);
-            xmm3 = _mm_load_pd(&p_N0[idx12]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx12]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx12]);
+            xmm2 = _mm_loadu_pd(&p_M[idx12]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx12]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx12],xmm4);
+            _mm_store_pd(&sep_mam[idx12],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx14]);
-            xmm6 = _mm_load_pd(&p_Ts[idx14]);
-            xmm7 = _mm_load_pd(&p_M[idx14]);
-            xmm8 = _mm_load_pd(&p_N0[idx14]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx14]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx14]);
+            xmm7 = _mm_loadu_pd(&p_M[idx14]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx14]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx14],xmm9);
+            _mm_store_pd(&sep_mam[idx14],xmm9);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx16],_MM_HINT_T0);
@@ -1352,33 +1260,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u12x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_N0[idx16],_MM_HINT_T0);
 #endif
 
-            xmm10 = _mm_load_pd(&p_Ac[idx16]);
-            xmm11 = _mm_load_pd(&p_Ts[idx16]);
-            xmm12 = _mm_load_pd(&p_M[idx16]);
-            xmm13 = _mm_load_pd(&p_N0[idx16]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx16]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx16]);
+            xmm12 = _mm_loadu_pd(&p_M[idx16]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx16]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx16],xmm14);
+            _mm_store_pd(&sep_mam[idx16],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx18]);
-            xmm1 = _mm_load_pd(&p_Ts[idx18]);
-            xmm2 = _mm_load_pd(&p_M[idx18]);
-            xmm3 = _mm_load_pd(&p_N0[idx18]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx18]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx18]);
+            xmm2 = _mm_loadu_pd(&p_M[idx18]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx18]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx18],xmm4);
+            _mm_store_pd(&sep_mam[idx18],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx20]);
-            xmm6 = _mm_load_pd(&p_Ts[idx20]);
-            xmm7 = _mm_load_pd(&p_M[idx20]);
-            xmm8 = _mm_load_pd(&p_N0[idx20]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx20]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx20]);
+            xmm7 = _mm_loadu_pd(&p_M[idx20]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx20]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx20],xmm9);
+            _mm_store_pd(&sep_mam[idx20],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx22]);
-            xmm11 = _mm_load_pd(&p_Ts[idx22]);
-            xmm12 = _mm_load_pd(&p_M[idx22]);
-            xmm13 = _mm_load_pd(&p_N0[idx22]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx22]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx22]);
+            xmm12 = _mm_loadu_pd(&p_M[idx22]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx22]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx22],xmm14);
+            _mm_store_pd(&sep_mam[idx22],xmm14);
 
        }
  
@@ -1397,33 +1305,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u12x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+0ull], _MM_HINT_T0);
             _mm_prefetch((const char*)&p_N0[i+0ull],_MM_HINT_T0);
 #endif 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx8],_MM_HINT_T0);
@@ -1431,33 +1339,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u12x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[idx8], _MM_HINT_T0);
             _mm_prefetch((const char*)&p_N0[idx8],_MM_HINT_T0);
 #endif
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx10]);
-            xmm11 = _mm_load_pd(&p_Ts[idx10]);
-            xmm12 = _mm_load_pd(&p_M[idx10]);
-            xmm13 = _mm_load_pd(&p_N0[idx10]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx10]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx10]);
+            xmm12 = _mm_loadu_pd(&p_M[idx10]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx10]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx10],xmm14);
+            _mm_store_pd(&sep_mam[idx10],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx12]);
-            xmm1 = _mm_load_pd(&p_Ts[idx12]);
-            xmm2 = _mm_load_pd(&p_M[idx12]);
-            xmm3 = _mm_load_pd(&p_N0[idx12]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx12]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx12]);
+            xmm2 = _mm_loadu_pd(&p_M[idx12]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx12]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx12],xmm4);
+            _mm_store_pd(&sep_mam[idx12],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx14]);
-            xmm6 = _mm_load_pd(&p_Ts[idx14]);
-            xmm7 = _mm_load_pd(&p_M[idx14]);
-            xmm8 = _mm_load_pd(&p_N0[idx14]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx14]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx14]);
+            xmm7 = _mm_loadu_pd(&p_M[idx14]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx14]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx14],xmm9);
+            _mm_store_pd(&sep_mam[idx14],xmm9);
        }
 
        for(; (i+9ull) < a_sz; i += 10ull)
@@ -1472,68 +1380,68 @@ analytic_SEP_BEP_generic_2xf64_array1d_u12x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+0ull], _MM_HINT_T0);
             _mm_prefetch((const char*)&p_N0[i+0ull],_MM_HINT_T0);
 #endif 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
        }
 
        for(; (i+3ull) < a_sz; i += 4ull)
        {
             const std::size_t idx2  = i+2ull;
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
        }
 
        for(; (i+1ull) < a_sz; i += 2ull)
        {
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
        }
 
        for(; (i+0ull) < a_sz; i += 1ull)
@@ -1542,7 +1450,7 @@ analytic_SEP_BEP_generic_2xf64_array1d_u12x(const double * __restrict__ Ac,
             const double valTs = p_Ts[i];
             const double valM  = p_M[i];
             const double valN0 = p_N0[i];
-            p_sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
+            sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
        }
        return (0);
     }
@@ -1572,33 +1480,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u12x(const double * __restrict__ Ac,
             const std::size_t idx20 = i+20ull;
             const std::size_t idx22 = i+22ull;
 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx8],_MM_HINT_T0);
@@ -1610,33 +1518,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u12x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+L2_offset+idx8], _MM_HIN1_T1);
             _mm_prefetch((const char*)&p_N0[i+L2_offset+idx8],_MM_HINT_T1);
 #endif
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx10]);
-            xmm11 = _mm_load_pd(&p_Ts[idx10]);
-            xmm12 = _mm_load_pd(&p_M[idx10]);
-            xmm13 = _mm_load_pd(&p_N0[idx10]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx10]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx10]);
+            xmm12 = _mm_loadu_pd(&p_M[idx10]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx10]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx10],xmm14);
+            _mm_store_pd(&sep_mam[idx10],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx12]);
-            xmm1 = _mm_load_pd(&p_Ts[idx12]);
-            xmm2 = _mm_load_pd(&p_M[idx12]);
-            xmm3 = _mm_load_pd(&p_N0[idx12]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx12]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx12]);
+            xmm2 = _mm_loadu_pd(&p_M[idx12]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx12]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx12],xmm4);
+            _mm_store_pd(&sep_mam[idx12],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx14]);
-            xmm6 = _mm_load_pd(&p_Ts[idx14]);
-            xmm7 = _mm_load_pd(&p_M[idx14]);
-            xmm8 = _mm_load_pd(&p_N0[idx14]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx14]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx14]);
+            xmm7 = _mm_loadu_pd(&p_M[idx14]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx14]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx14],xmm9);
+            _mm_store_pd(&sep_mam[idx14],xmm9);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx16],_MM_HINT_T0);
@@ -1649,33 +1557,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u12x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_N0[i+L2_offset+idx16],_MM_HINT_T1);
 #endif
 
-            xmm10 = _mm_load_pd(&p_Ac[idx16]);
-            xmm11 = _mm_load_pd(&p_Ts[idx16]);
-            xmm12 = _mm_load_pd(&p_M[idx16]);
-            xmm13 = _mm_load_pd(&p_N0[idx16]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx16]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx16]);
+            xmm12 = _mm_loadu_pd(&p_M[idx16]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx16]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx16],xmm14);
+            _mm_store_pd(&sep_mam[idx16],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx18]);
-            xmm1 = _mm_load_pd(&p_Ts[idx18]);
-            xmm2 = _mm_load_pd(&p_M[idx18]);
-            xmm3 = _mm_load_pd(&p_N0[idx18]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx18]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx18]);
+            xmm2 = _mm_loadu_pd(&p_M[idx18]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx18]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx18],xmm4);
+            _mm_store_pd(&sep_mam[idx18],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx20]);
-            xmm6 = _mm_load_pd(&p_Ts[idx20]);
-            xmm7 = _mm_load_pd(&p_M[idx20]);
-            xmm8 = _mm_load_pd(&p_N0[idx20]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx20]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx20]);
+            xmm7 = _mm_loadu_pd(&p_M[idx20]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx20]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx20],xmm9);
+            _mm_store_pd(&sep_mam[idx20],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx22]);
-            xmm11 = _mm_load_pd(&p_Ts[idx22]);
-            xmm12 = _mm_load_pd(&p_M[idx22]);
-            xmm13 = _mm_load_pd(&p_N0[idx22]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx22]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx22]);
+            xmm12 = _mm_loadu_pd(&p_M[idx22]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx22]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx22],xmm14);
+            _mm_store_pd(&sep_mam[idx22],xmm14);
 
        }
  
@@ -1698,33 +1606,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u12x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+L2_offset+0ull], _MM_HIN1_T1);
             _mm_prefetch((const char*)&p_N0[i+L2_offset+0ull],_MM_HINT_T1);
 #endif 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx8],_MM_HINT_T0);
@@ -1736,33 +1644,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u12x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+L2_offset+idx8], _MM_HIN1_T1);
             _mm_prefetch((const char*)&p_N0[i+L2_offset+idx8],_MM_HINT_T1);
 #endif
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx10]);
-            xmm11 = _mm_load_pd(&p_Ts[idx10]);
-            xmm12 = _mm_load_pd(&p_M[idx10]);
-            xmm13 = _mm_load_pd(&p_N0[idx10]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx10]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx10]);
+            xmm12 = _mm_loadu_pd(&p_M[idx10]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx10]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx10],xmm14);
+            _mm_store_pd(&sep_mam[idx10],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx12]);
-            xmm1 = _mm_load_pd(&p_Ts[idx12]);
-            xmm2 = _mm_load_pd(&p_M[idx12]);
-            xmm3 = _mm_load_pd(&p_N0[idx12]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx12]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx12]);
+            xmm2 = _mm_loadu_pd(&p_M[idx12]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx12]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx12],xmm4);
+            _mm_store_pd(&sep_mam[idx12],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx14]);
-            xmm6 = _mm_load_pd(&p_Ts[idx14]);
-            xmm7 = _mm_load_pd(&p_M[idx14]);
-            xmm8 = _mm_load_pd(&p_N0[idx14]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx14]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx14]);
+            xmm7 = _mm_loadu_pd(&p_M[idx14]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx14]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx14],xmm9);
+            _mm_store_pd(&sep_mam[idx14],xmm9);
        }
 
        for(; (i+9ull) < a_sz; i += 10ull)
@@ -1781,68 +1689,68 @@ analytic_SEP_BEP_generic_2xf64_array1d_u12x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+L2_offset+0ull], _MM_HIN1_T1);
             _mm_prefetch((const char*)&p_N0[i+L2_offset+0ull],_MM_HINT_T1);
 #endif 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
        }
 
        for(; (i+3ull) < a_sz; i += 4ull)
        {
             const std::size_t idx2  = i+2ull;
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
        }
 
        for(; (i+1ull) < a_sz; i += 2ull)
        {
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
        }
 
        for(; (i+0ull) < a_sz; i += 1ull)
@@ -1851,10 +1759,9 @@ analytic_SEP_BEP_generic_2xf64_array1d_u12x(const double * __restrict__ Ac,
             const double valTs = p_Ts[i];
             const double valM  = p_M[i];
             const double valN0 = p_N0[i];
-            p_sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
+            sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
        }
        return (0);
-    }
     }
 }
 
@@ -1893,65 +1800,20 @@ analytic_SEP_BEP_generic_2xf64_array1d_u8x(const double * __restrict__ Ac,
     const double * __restrict__ p_Ts      = Ts;
     const double * __restrict__ p_M       = M;
     const double * __restrict__ p_N0      = N0;
-    double       * __restrict__ p_sep_mam = sep_mam;
     std::size_t             a_sz         = sz;
-    if(a_sz>=1ull && a_sz<2ull)
-    {
-       for(std::uint32_t i = 0; i<2; ++i) 
-       {
-           const double valAc = p_Ac[i];
-           const double valTs = p_Ts[i];
-           const double valM  = p_M[i];
-           const double valN0 = p_N0[i];
-           p_sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
-       }
-       return (0);
-    }
-    else if(a_sz==2ull)
-    {
-        vAc = _mm_loadu_pd(&p_Ac[0]);
-        vTs = _mm_loadu_pd(&p_Ts[0]);
-        vM  = _mm_loadu_pd(&p_M[0]);
-        vN0 = _mm_loadu_pd(&p_N0[0]);
-        _mm_storeu_pd(&p_sep_mam[0], sse_kernel(vAc,vTs,vM,vN0,n));
-        return (0);
-    }
-    else if(a_sz>2ull && a_sz<=16ull)
-    {
-        std::size_t i,j;
-        for(i = 0ull; i!=ROUND_DOWN(a_sz,1ull); i += 2ull)
-        {
-            vAc = _mm_loadu_pd(&p_Ac[i]);
-            vTs = _mm_loadu_pd(&p_Ts[i]);
-            vM  = _mm_loadu_pd(&p_M[i]);
-            vN0 = _mm_loadu_pd(&p_N0[i]);
-            _mm_storeu_pd(&p_sep_mam[i], sse_kernel(vAc,vTs,vM,vN0,n));
-        }
-        for(j = i; j<a_sz; ++j)  
-        {
-            const double valAc = p_Ac[j];
-            const double valTs = p_Ts[j];
-            const double valM  = p_M[j];
-            const double valN0 = p_N0[j];
-            p_sep_mam[j]      = scalar_kernel(valAc,valTs,valM,valN0,n);
-        }
-        return (0);
-    }
-    else if(a_sz>16ull)
-    {
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_USE_PEEL_LOOP) == 1
-       while(((std::uintptr_t)&p_sep_mam & 15ull) && a_sz)
+       while(((std::uintptr_t)&sep_mam & 15ull) && a_sz)
        {
            const double valAc = *p_Ac;
            const double valTs = *p_Ts;
            const double valM  = *p_M;
            const double valN0 = *p_N0;
-           *p_sep_mam        =  scalar_kernel(valAc,valTs,valM,valN0,n);
+           *sep_mam        =  scalar_kernel(valAc,valTs,valM,valN0,n);
            p_Ac++;
            p_Ts++;
            p_M++;
            p_N0++;
-           p_sep_mam++;
+           sep_mam++;
            a_sz--;
        }
 #else 
@@ -1993,33 +1855,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u8x(const double * __restrict__ Ac,
             const std::size_t idx12 = i+12ull;
             const std::size_t idx14 = i+14ull;
 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx8],_MM_HINT_T0);
@@ -2027,33 +1889,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u8x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[idx8], _MM_HINT_T0);
             _mm_prefetch((const char*)&p_N0[idx8],_MM_HINT_T0);
 #endif
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx10]);
-            xmm11 = _mm_load_pd(&p_Ts[idx10]);
-            xmm12 = _mm_load_pd(&p_M[idx10]);
-            xmm13 = _mm_load_pd(&p_N0[idx10]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx10]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx10]);
+            xmm12 = _mm_loadu_pd(&p_M[idx10]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx10]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx10],xmm14);
+            _mm_store_pd(&sep_mam[idx10],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx12]);
-            xmm1 = _mm_load_pd(&p_Ts[idx12]);
-            xmm2 = _mm_load_pd(&p_M[idx12]);
-            xmm3 = _mm_load_pd(&p_N0[idx12]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx12]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx12]);
+            xmm2 = _mm_loadu_pd(&p_M[idx12]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx12]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx12],xmm4);
+            _mm_store_pd(&sep_mam[idx12],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx14]);
-            xmm6 = _mm_load_pd(&p_Ts[idx14]);
-            xmm7 = _mm_load_pd(&p_M[idx14]);
-            xmm8 = _mm_load_pd(&p_N0[idx14]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx14]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx14]);
+            xmm7 = _mm_loadu_pd(&p_M[idx14]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx14]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx14],xmm9);
+            _mm_store_pd(&sep_mam[idx14],xmm9);
        }
  
        for(; (i+9ull) < a_sz; i += 10ull)
@@ -2068,68 +1930,68 @@ analytic_SEP_BEP_generic_2xf64_array1d_u8x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+0ull], _MM_HINT_T0);
             _mm_prefetch((const char*)&p_N0[i+0ull],_MM_HINT_T0);
 #endif 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
        }
 
        for(; (i+3ull) < a_sz; i += 4ull)
        {
             const std::size_t idx2  = i+2ull;
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
        }
 
        for(; (i+1ull) < a_sz; i += 2ull)
        {
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
        }
 
        for(; (i+0ull) < a_sz; i += 1ull)
@@ -2138,7 +2000,7 @@ analytic_SEP_BEP_generic_2xf64_array1d_u8x(const double * __restrict__ Ac,
             const double valTs = p_Ts[i];
             const double valM  = p_M[i];
             const double valN0 = p_N0[i];
-            p_sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
+            sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
        }
        return (0);
     }
@@ -2164,33 +2026,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u8x(const double * __restrict__ Ac,
             const std::size_t idx12 = i+12ull;
             const std::size_t idx14 = i+14ull;
         
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx8],_MM_HINT_T0);
@@ -2202,33 +2064,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u8x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+L2_offset+idx8], _MM_HIN1_T1);
             _mm_prefetch((const char*)&p_N0[i+L2_offset+idx8],_MM_HINT_T1);
 #endif
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx10]);
-            xmm11 = _mm_load_pd(&p_Ts[idx10]);
-            xmm12 = _mm_load_pd(&p_M[idx10]);
-            xmm13 = _mm_load_pd(&p_N0[idx10]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx10]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx10]);
+            xmm12 = _mm_loadu_pd(&p_M[idx10]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx10]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx10],xmm14);
+            _mm_store_pd(&sep_mam[idx10],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx12]);
-            xmm1 = _mm_load_pd(&p_Ts[idx12]);
-            xmm2 = _mm_load_pd(&p_M[idx12]);
-            xmm3 = _mm_load_pd(&p_N0[idx12]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx12]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx12]);
+            xmm2 = _mm_loadu_pd(&p_M[idx12]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx12]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx12],xmm4);
+            _mm_store_pd(&sep_mam[idx12],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx14]);
-            xmm6 = _mm_load_pd(&p_Ts[idx14]);
-            xmm7 = _mm_load_pd(&p_M[idx14]);
-            xmm8 = _mm_load_pd(&p_N0[idx14]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx14]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx14]);
+            xmm7 = _mm_loadu_pd(&p_M[idx14]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx14]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx14],xmm9);
+            _mm_store_pd(&sep_mam[idx14],xmm9);
 
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_SOFTWARE_PREFETCH) == 1
             _mm_prefetch((const char*)&p_Ac[idx16],_MM_HINT_T0);
@@ -2241,33 +2103,33 @@ analytic_SEP_BEP_generic_2xf64_array1d_u8x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_N0[i+L2_offset+idx16],_MM_HINT_T1);
 #endif
 
-            xmm10 = _mm_load_pd(&p_Ac[idx16]);
-            xmm11 = _mm_load_pd(&p_Ts[idx16]);
-            xmm12 = _mm_load_pd(&p_M[idx16]);
-            xmm13 = _mm_load_pd(&p_N0[idx16]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx16]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx16]);
+            xmm12 = _mm_loadu_pd(&p_M[idx16]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx16]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx16],xmm14);
+            _mm_store_pd(&sep_mam[idx16],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx18]);
-            xmm1 = _mm_load_pd(&p_Ts[idx18]);
-            xmm2 = _mm_load_pd(&p_M[idx18]);
-            xmm3 = _mm_load_pd(&p_N0[idx18]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx18]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx18]);
+            xmm2 = _mm_loadu_pd(&p_M[idx18]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx18]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx18],xmm4);
+            _mm_store_pd(&sep_mam[idx18],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx20]);
-            xmm6 = _mm_load_pd(&p_Ts[idx20]);
-            xmm7 = _mm_load_pd(&p_M[idx20]);
-            xmm8 = _mm_load_pd(&p_N0[idx20]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx20]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx20]);
+            xmm7 = _mm_loadu_pd(&p_M[idx20]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx20]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx20],xmm9);
+            _mm_store_pd(&sep_mam[idx20],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx22]);
-            xmm11 = _mm_load_pd(&p_Ts[idx22]);
-            xmm12 = _mm_load_pd(&p_M[idx22]);
-            xmm13 = _mm_load_pd(&p_N0[idx22]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx22]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx22]);
+            xmm12 = _mm_loadu_pd(&p_M[idx22]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx22]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx22],xmm14);
+            _mm_store_pd(&sep_mam[idx22],xmm14);
        }
  
        for(; (i+9ull) < a_sz; i += 10ull)
@@ -2286,68 +2148,68 @@ analytic_SEP_BEP_generic_2xf64_array1d_u8x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+L2_offset+0ull], _MM_HIN1_T1);
             _mm_prefetch((const char*)&p_N0[i+L2_offset+0ull],_MM_HINT_T1);
 #endif 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx8]);
-            xmm6 = _mm_load_pd(&p_Ts[idx8]);
-            xmm7 = _mm_load_pd(&p_M[idx8]);
-            xmm8 = _mm_load_pd(&p_N0[idx8]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx8]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx8]);
+            xmm7 = _mm_loadu_pd(&p_M[idx8]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx8]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx8],xmm9);
+            _mm_store_pd(&sep_mam[idx8],xmm9);
        }
 
        for(; (i+3ull) < a_sz; i += 4ull)
        {
             const std::size_t idx2  = i+2ull;
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
        }
 
        for(; (i+1ull) < a_sz; i += 2ull)
        {
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
        }
 
        for(; (i+0ull) < a_sz; i += 1ull)
@@ -2356,11 +2218,9 @@ analytic_SEP_BEP_generic_2xf64_array1d_u8x(const double * __restrict__ Ac,
             const double valTs = p_Ts[i];
             const double valM  = p_M[i];
             const double valN0 = p_N0[i];
-            p_sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
+            sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
        }
        return (0);
-    }
-
     }
 }
 
@@ -2399,65 +2259,20 @@ analytic_SEP_BEP_generic_2xf64_array1d_u4x(const double * __restrict__ Ac,
     const double * __restrict__ p_Ts      = Ts;
     const double * __restrict__ p_M       = M;
     const double * __restrict__ p_N0      = N0;
-    double       * __restrict__ p_sep_mam = sep_mam;
     std::size_t             a_sz         = sz;
-    if(a_sz>=1ull && a_sz<2ull)
-    {
-       for(std::uint32_t i = 0; i<2; ++i) 
-       {
-           const double valAc = p_Ac[i];
-           const double valTs = p_Ts[i];
-           const double valM  = p_M[i];
-           const double valN0 = p_N0[i];
-           p_sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
-       }
-       return (0);
-    }
-    else if(a_sz==2ull)
-    {
-        vAc = _mm_loadu_pd(&p_Ac[0]);
-        vTs = _mm_loadu_pd(&p_Ts[0]);
-        vM  = _mm_loadu_pd(&p_M[0]);
-        vN0 = _mm_loadu_pd(&p_N0[0]);
-        _mm_storeu_pd(&p_sep_mam[0], sse_kernel(vAc,vTs,vM,vN0,n));
-        return (0);
-    }
-    else if(a_sz>2ull && a_sz<=8ull)
-    {
-        std::size_t i,j;
-        for(i = 0ull; i!=ROUND_DOWN(a_sz,1ull); i += 2ull)
-        {
-            vAc = _mm_loadu_pd(&p_Ac[i]);
-            vTs = _mm_loadu_pd(&p_Ts[i]);
-            vM  = _mm_loadu_pd(&p_M[i]);
-            vN0 = _mm_loadu_pd(&p_N0[i]);
-            _mm_storeu_pd(&p_sep_mam[i], sse_kernel(vAc,vTs,vM,vN0,n));
-        }
-        for(j = i; j<a_sz; ++j)  
-        {
-            const double valAc = p_Ac[j];
-            const double valTs = p_Ts[j];
-            const double valM  = p_M[j];
-            const double valN0 = p_N0[j];
-            p_sep_mam[j]      = scalar_kernel(valAc,valTs,valM,valN0,n);
-        }
-        return (0);
-    }
-    else if(a_sz>8ull)
-    {
 #if (ANALYTIC_BEP_SEP_CH8_ARRAY1D_F64_USE_PEEL_LOOP) == 1
-       while(((std::uintptr_t)&p_sep_mam & 15ull) && a_sz)
+       while(((std::uintptr_t)&sep_mam & 15ull) && a_sz)
        {
            const double valAc = *p_Ac;
            const double valTs = *p_Ts;
            const double valM  = *p_M;
            const double valN0 = *p_N0;
-           *p_sep_mam        =  scalar_kernel(valAc,valTs,valM,valN0,n);
+           *sep_mam        =  scalar_kernel(valAc,valTs,valM,valN0,n);
            p_Ac++;
            p_Ts++;
            p_M++;
            p_N0++;
-           p_sep_mam++;
+           sep_mam++;
            a_sz--;
        }
 #else 
@@ -2494,61 +2309,61 @@ analytic_SEP_BEP_generic_2xf64_array1d_u4x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+0ull], _MM_HINT_T0);
             _mm_prefetch((const char*)&p_N0[i+0ull],_MM_HINT_T0);
 #endif 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
        }
 
        for(; (i+3ull) < a_sz; i += 4ull)
        {
             const std::size_t idx2  = i+2ull;
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
        }
  
        for(; (i+1ull) < a_sz; i += 2ull)
        {
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
        }
 
        for(; (i+0ull) < a_sz; i += 1ull)
@@ -2557,7 +2372,7 @@ analytic_SEP_BEP_generic_2xf64_array1d_u4x(const double * __restrict__ Ac,
             const double valTs = p_Ts[i];
             const double valM  = p_M[i];
             const double valN0 = p_N0[i];
-            p_sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
+            sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
        }
        return (0);
     }
@@ -2578,62 +2393,62 @@ analytic_SEP_BEP_generic_2xf64_array1d_u4x(const double * __restrict__ Ac,
             _mm_prefetch((const char*)&p_M[i+L2_offset+0ull], _MM_HIN1_T0);
             _mm_prefetch((const char*)&p_N0[i+L2_offset+0ull],_MM_HINT_T1);
 #endif 
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
 
-            xmm10 = _mm_load_pd(&p_Ac[idx4]);
-            xmm11 = _mm_load_pd(&p_Ts[idx4]);
-            xmm12 = _mm_load_pd(&p_M[idx4]);
-            xmm13 = _mm_load_pd(&p_N0[idx4]);
+            xmm10 = _mm_loadu_pd(&p_Ac[idx4]);
+            xmm11 = _mm_loadu_pd(&p_Ts[idx4]);
+            xmm12 = _mm_loadu_pd(&p_M[idx4]);
+            xmm13 = _mm_loadu_pd(&p_N0[idx4]);
             xmm14 = sse_kernel(xmm10,xmm11,xmm12,xmm13,n);
-            _mm_store_pd(&p_sep_mam[idx4],xmm14);
+            _mm_store_pd(&sep_mam[idx4],xmm14);
 
-            xmm0 = _mm_load_pd(&p_Ac[idx6]);
-            xmm1 = _mm_load_pd(&p_Ts[idx6]);
-            xmm2 = _mm_load_pd(&p_M[idx6]);
-            xmm3 = _mm_load_pd(&p_N0[idx6]);
+            xmm0 = _mm_loadu_pd(&p_Ac[idx6]);
+            xmm1 = _mm_loadu_pd(&p_Ts[idx6]);
+            xmm2 = _mm_loadu_pd(&p_M[idx6]);
+            xmm3 = _mm_loadu_pd(&p_N0[idx6]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[idx6],xmm4);
+            _mm_store_pd(&sep_mam[idx6],xmm4);
 
        }
 
        for(; (i+3ull) < a_sz; i += 4ull)
        {
             const std::size_t idx2  = i+2ull;
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
 
-            xmm5 = _mm_load_pd(&p_Ac[idx2]);
-            xmm6 = _mm_load_pd(&p_Ts[idx2]);
-            xmm7 = _mm_load_pd(&p_M[idx2]);
-            xmm8 = _mm_load_pd(&p_N0[idx2]);
+            xmm5 = _mm_loadu_pd(&p_Ac[idx2]);
+            xmm6 = _mm_loadu_pd(&p_Ts[idx2]);
+            xmm7 = _mm_loadu_pd(&p_M[idx2]);
+            xmm8 = _mm_loadu_pd(&p_N0[idx2]);
             xmm9 = sse_kernel(xmm5,xmm6,xmm7,xmm8,n);
-            _mm_store_pd(&p_sep_mam[idx2],xmm9);
+            _mm_store_pd(&sep_mam[idx2],xmm9);
        }
 
        for(; (i+1ull) < a_sz; i += 2ull)
        {
-            xmm0 = _mm_load_pd(&p_Ac[i+0ull]);
-            xmm1 = _mm_load_pd(&p_Ts[i+0ull]);
-            xmm2 = _mm_load_pd(&p_M[i+0ull]);
-            xmm3 = _mm_load_pd(&p_N0[i+0ull]);
+            xmm0 = _mm_loadu_pd(&p_Ac[i+0ull]);
+            xmm1 = _mm_loadu_pd(&p_Ts[i+0ull]);
+            xmm2 = _mm_loadu_pd(&p_M[i+0ull]);
+            xmm3 = _mm_loadu_pd(&p_N0[i+0ull]);
             xmm4 = sse_kernel(xmm0,xmm1,xmm2,xmm3,n);
-            _mm_store_pd(&p_sep_mam[i+0ull],xmm4);
+            _mm_store_pd(&sep_mam[i+0ull],xmm4);
        }
 
        for(; (i+0ull) < a_sz; i += 1ull)
@@ -2642,11 +2457,9 @@ analytic_SEP_BEP_generic_2xf64_array1d_u4x(const double * __restrict__ Ac,
             const double valTs = p_Ts[i];
             const double valM  = p_M[i];
             const double valN0 = p_N0[i];
-            p_sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
+            sep_mam[i]      = scalar_kernel(valAc,valTs,valM,valN0,n);
        }
        return (0);
-    }
-
     }
 }
 
