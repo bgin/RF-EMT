@@ -311,8 +311,33 @@ m_its{},m_ite{},m_jts{},m_jte{},m_kts{},m_kte{},
 m_ideal_terrain{},m_spec_bdy_width{},
 m_flat_plate_ht{},m_dx{},m_dy{},
 m_phb{},m_ph{},m_ibm_ht_u{},m_ibm_ht_v{},m_ibm_ht_w{},
-m_ibm_ht_c{},m_ibm_z0 
+m_ibm_ht_c{},m_ibm_z0{} 
 { 
   
+}
+
+gms::radiolocation
+::terrain_topography_avx512_t
+::terrain_topography_avx512_t(const terrain_topography_args_t &args) noexcept(false)
+    :
+m_ids(args.ids),m_ide(args.ide),m_jds(args.jds),
+m_jde(args.jde),m_kds(args.kds),m_kde(args.kde),
+m_ims(args.ims),m_ime(args.ime),m_jms(args.jms),
+m_jme(args.jme),m_kms(args.kms),m_kme(args.kme),
+m_its(args.its),m_ite(args.ite),m_jts(args.jts),
+m_jte(args.jte),m_kts(args.kts),m_kte(args.kte),
+m_ideal_terrain(args.ideal_terrain),
+m_spec_bdy_width(args.spec_bdy_width),
+m_flat_plate_ht(args.flat_plate_ht),
+m_dx(args.dx),m_dy(args.dy),
+m_phb(boost::extents[m_jme-m_jms][m_kme-m_kms][m_ime-m_ims]),
+m_ph(boost::extents[m_jme-m_jms][m_kme-m_kms][m_ime-m_ims]),
+m_ibm_ht_u(boost::extents[m_jme-m_jms][m_ime-m_ims]),
+m_ibm_ht_v(boost::extents[m_jme-m_jms][m_ime-m_ims]),
+m_ibm_ht_w(boost::extents[m_jme-m_jms][m_ime-m_ims]),
+m_ibm_ht_c(boost::extents[m_jme-m_jms][m_ime-m_ims]),
+m_ibm_z0(boost::extents[m_jme-m_jms][m_ime-m_ims])
+{
+
 }
 
