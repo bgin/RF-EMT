@@ -70,7 +70,7 @@ const char *const GMS_IDEALIZED_TOPO_CREATION_DATE =
     "16-01-2022 09:34 +00200 (SAT 16 APR 2022 GMT+2)";
 const char *const GMS_IDEALIZED_TOPO_BUILD_DATE = __DATE__ " " __TIME__;
 const char *const GMS_IDEALIZED_TOPO_SYNOPSIS =
-    "Idealized gaussian and sinusoidal topography simulator."
+    "Idealized gaussian, sinusoidal and other analytically derived topography simulator."
 
 } // namespace file_info
 
@@ -123,6 +123,33 @@ void sinusoidal_topography(double *__restrict __ATTR_ALIGN__(64) lon,
                            const double deltalat, const bool uneven_sin);
 
 
+
+struct alignas(64) terrain_topography_args_t
+{
+    std::size_t  ids;
+    std::size_t  ide;
+    std::size_t  jds;
+    std::size_t  jde;
+    std::size_t  kds;
+    std::size_t  kde;
+    std::size_t  ims;
+    std::size_t  ime;
+    std::size_t  jms;
+    std::size_t  jme;
+    std::size_t  kms;
+    std::size_t  kme;
+    std::size_t  its;
+    std::size_t  ite;
+    std::size_t  jts;
+    std::size_t  jte;
+    std::size_t  kts;
+    std::size_t  kte;
+    std::int32_t ideal_terrain;
+    std::int32_t spec_bdy_width;
+    float        flat_plate_ht;
+    float        dx;
+    float        dy; 
+};
 
 struct alignas(64) terrain_topography_avx512_t 
 {
@@ -180,7 +207,9 @@ struct alignas(64) terrain_topography_avx512_t
     common::Aligned64Mat2DF32 m_ibm_ht_c;
     common::Aligned64Mat2DF32 m_ibm_z0;
 
-    terrain_topography_avx512_t() noexcept;
+    terrain_topography_avx512_t() noexcept(true);
+
+    terrain_topography_avx512_t(const terrain_topography_args_t &) noexcept(false);
 };
 
 } // namespace radiolocation
