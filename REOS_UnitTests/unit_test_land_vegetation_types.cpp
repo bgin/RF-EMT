@@ -7,8 +7,8 @@
 #include "GMS_malloc.h"
 #include "GMS_land_vegetation_types.h"
 /*
-   icpc -o unit_test_land_vegetation_types -O3 -I /home/user/boost_1_85_0 -fp-model fast=2 -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  \
-   GMS_config.h GMS_malloc.h GMS_avx512_memset.h GMS_avx512_memset.cpp GMS_half.h GMS_boost_multiarray_types.hpp GMS_module_land_params.h GMS_land_vegeatation_types.h unit_test_land_vegetation_types.cpp
+   icpc -o unit_test_land_vegetation_types -O3 -I /home/bernard/Software-Development/Cpp-projects/RF_EMT/RF-EMT_src/boost_1_89_0 -fp-model fast=2 -std=c++17 -ftz -ggdb -ipo -march=skylake-avx512 -mavx512f -falign-functions=32 -w1 -qopt-report=5  -Wall   GMS_config.h GMS_malloc.h GMS_avx512_memset.h GMS_avx512_memset.cpp GMS_avx512_memcpy.h GMS_avx512_memcpy.cpp GMS_half.h GMS_boost_multiarray_types.h GMS_module_land_params.h GMS_land_vegetation_types.h unit_test_land_vegetation_types.cpp
+
    ASM: 
    icpc  -S  -O3 -fverbose-asm -masm=intel  -std=c++17 -march=skylake-avx512 -mavx512f -falign-functions=32 -I /home/user/boost_1_85_0 GMS_config.h GMS_avx512_memset.h GMS_avx512_memset.cpp GMS_boost_multi_array_wrapper.hpp GMS_module_land_params.h GMS_land_vegeatation_types.h unit_test_land_vegetation_types.cpp
    The new icpc command
@@ -68,7 +68,28 @@ std::int32_t unit_test_land_vegetation_types()
         ret_status = ret_status_show_class_memory_layout;
         return ret_status;
     }
-    printf_ret =  printf("[UNIT-TEST]: function=%s -- **STARTED**, Date=%s,Time=%s\n", __PRETTY_FUNCTION__,__DATE__,__TIME__);
+    vegetation_state_avx512_t veg_state2_cpy(veg_state2);
+    ctor_name = gms::common::demangle(typeid(veg_state2_cpy).name(),demangle_status);
+    if(demangle_status==0 && ctor_name != NULL)
+    {
+        printf_ret = printf("[UNIT-TEST]: [3]-- Calling 'Defaulted' Copy-Constructor of type: %s\n", ctor_name);
+        gms::common::gms_mm_free(ctor_name);
+    }
+    else
+    {
+        printf_ret = printf("[UNIT-TEST]: [3] -- Calling 'Defaulted' Copy-Constructor of type: 'abi::__cxa_demangle ***FAILED***!! %s\n", typeid(veg_state2_cpy).name());
+        if(ctor_name != NULL) gms::common::gms_mm_free(ctor_name);
+    } 
+    printf_ret = printf("[UNIT-TEST]: [3]-- Dumping 'Defaulted' Copy-Constructor  of type: %s memory layout.\n", ctor_name);
+    printf_ret = printf("[UNIT-TEST]: [3]-- =====================================================================================\n");
+    ret_status_show_class_memory_layout = veg_state2_cpy.show_class_memory_layout();
+    if(ret_status_show_class_memory_layout!=0)
+    {
+        printf_ret = printf("[UNIT-TEST]: [3]-- Dumping 'Defaulted' Copy-Constructor of type: %s memory layout -- ***FAILED***.\n", ctor_name);
+        ret_status = ret_status_show_class_memory_layout;
+        return ret_status;
+    }
+    printf_ret =  printf("[UNIT-TEST]: function=%s -- **ENDED**, Date=%s,Time=%s\n", __PRETTY_FUNCTION__,__DATE__,__TIME__);
     ret_status = demangle_status;
     return (ret_status);
 }
