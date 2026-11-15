@@ -185,31 +185,7 @@ struct alignas(64) vegetation_state_avx512_t
     Aligned64Mat2DF64 m_sun_alf;          //!sun canopy total absorbed by leaves (W/m**2)
     Aligned64Mat2DF64 m_sha_alf;          //!shade canopy total absored by leaves (W/m**2)
 
-    vegetation_state_avx512_t() noexcept
-        : 
-    m_beg{},m_end{},m_nband{},m_nlevgrnd{},
-    m_frac_veg_nosno{},m_frac_veg_nosno_alb{},
-    m_emv{},m_z0mv{},m_z0hv{},m_z0qv{},m_rootfr{},
-    m_rootr{},m_rresis{},m_dewmx{},m_rssun(),
-    m_rssha(),m_laisun(),m_laisha(),m_btran{},
-    m_fsun(),m_tlai{},m_tsai{},m_elai{},m_esai{},
-    m_fwet{},m_fdry{},m_dt_veg{},m_htop{},m_hbtop{},
-    m_z0m{},m_displa{},m_albd(),m_albi(),m_fabd(),
-    m_fabi(),m_ftdd(),m_ftid(),m_ftii(),m_u10{},
-    m_ram1{},m_fv{},m_forc_hgt_u_pft{},
-    m_forc_hgt_t_pft{},m_forc_hgt_q_pft{},m_vds{},
-    m_slasun{},m_slasha{},m_lncsun{},m_lncsha{},
-    m_vcmxsun{},m_vcmxsha{},m_gdir{},m_omega{},
-    m_eff_kid{},m_eff_kii{},m_sun_faid{},m_sun_faii{},
-    m_sha_faid{},m_sha_faii{},m_sandfrac{},m_clayfrac{},
-    m_soilt{},m_smoist{},m_sz{},m_watopt{},m_watdry{},
-    m_Wlim{},m_tday{},m_tdayavg{},m_noveg{},m_tree{},
-    m_dleaf{},m_xl{},m_sun_add{},m_tot_aid{},
-    m_sun_aid{},m_sun_aii{},m_sha_aid{},m_sha_aii{},
-    m_sun_atot{},m_sha_atot{},m_sun_alf{},m_sha_alf{}
-    {
-
-    }
+    vegetation_state_avx512_t() = default;
     
     vegetation_state_avx512_t(const std::size_t beg,
                               const std::size_t end,
@@ -254,195 +230,18 @@ struct alignas(64) vegetation_state_avx512_t
 
     }
 
-    vegetation_state_avx512_t(const vegetation_state_avx512_t &other) noexcept(false) 
-        :
-    m_beg(other.m_beg),m_end(other.m_end),m_nband(other.m_nband),m_nlevgrnd(other.m_nlevgrnd),
-    m_frac_veg_nosno(other.m_frac_veg_nosno),m_frac_veg_nosno_alb(other.m_frac_veg_nosno_alb),
-    m_emv(other.m_emv),m_z0mv(other.m_z0mv),m_z0hv(other.m_z0hv),
-    m_z0qv(other.m_z0qv),m_rootfr(other.m_rootfr),
-    m_rootr(other.m_rootr),m_rresis(other.m_rresis),
-    m_dewmx(other.m_dewmx),m_rssun(other.m_rssun),
-    m_rssha(other.m_rssha),m_laisun(other.m_laisun),
-    m_laisha(other.m_laisha),m_btran(other.m_btran),
-    m_fsun(other.m_fsun),m_tlai(other.m_tlai),
-    m_tsai(other.m_tsai),m_elai(other.m_elai),m_esai(other.m_esai),
-    m_fwet(other.m_fwet),m_fdry(other.m_fdry),m_dt_veg(other.m_dt_veg),
-    m_htop(other.m_htop),m_hbtop(other.m_hbtop),m_z0m(other.m_z0m),
-    m_displa(other.m_displa),m_albd(other.m_albd),
-    m_albi(other.m_albi),m_fabd(other.m_fabd),
-    m_fabi(other.m_fabi),m_ftdd(other.m_ftdd),
-    m_ftid(other.m_ftid),m_ftii(other.m_ftii),
-    m_u10(other.m_u10),m_ram1(other.m_ram1),m_fv(other.m_fv),
-    m_forc_hgt_u_pft(other.m_forc_hgt_u_pft),m_forc_hgt_t_pft(other.m_forc_hgt_t_pft),
-    m_forc_hgt_q_pft(other.m_forc_hgt_q_pft),m_vds(other.m_vds),
-    m_slasun(other.m_slasun),m_slasha(other.m_slasha),m_lncsun(other.m_lncsun),
-    m_lncsha(other.m_lncsha),m_vcmxsun(other.m_vcmxsun),m_vcmxsha(other.m_vcmxsha),
-    m_gdir(other.m_gdir),m_omega(other.m_omega),m_eff_kid(other.m_eff_kid),
-    m_eff_kii(other.m_eff_kii),m_sun_faid(other.m_sun_faid),
-    m_sun_faii(other.m_sun_faii),m_sha_faid(other.m_sha_faid),
-    m_sha_faii(other.m_sha_faii),m_sandfrac(other.m_sandfrac),m_clayfrac(other.m_clayfrac),
-    m_soilt(other.m_soilt),m_smoist(other.m_smoist),m_sz(other.m_sz),
-    m_watopt(other.m_watopt),m_watdry(other.m_watdry),m_Wlim(other.m_Wlim),
-    m_tday(other.m_tday),m_tdayavg(other.m_tdayavg),m_noveg(other.m_noveg),
-    m_tree(other.m_tree),m_dleaf(other.m_dleaf),m_xl(other.m_xl),
-    m_sun_add(other.m_sun_add),m_tot_aid(other.m_tot_aid),
-    m_sun_aid(other.m_sun_aid),m_sun_aii(other.m_sun_aii),
-    m_sha_aid(other.m_sha_aid),m_sha_aii(other.m_sha_aii),
-    m_sun_atot(other.m_sun_atot),m_sha_atot(other.m_sha_atot),
-    m_sun_alf(other.m_sun_alf),m_sha_alf(other.m_sha_alf)
-    {
+    vegetation_state_avx512_t(const vegetation_state_avx512_t &other) noexcept(false) = default;
 
-    }
+    vegetation_state_avx512_t(vegetation_state_avx512_t &&other) noexcept(true) = default;
 
-     vegetation_state_avx512_t(vegetation_state_avx512_t &&other) noexcept(true) 
-        :
-    m_beg(other.m_beg),m_end(other.m_end),m_nband(other.m_nband),m_nlevgrnd(other.m_nlevgrnd),
-    m_frac_veg_nosno(std::move(other.m_frac_veg_nosno)),m_frac_veg_nosno_alb(std::move(other.m_frac_veg_nosno_alb)),
-    m_emv(std::move(other.m_emv)),m_z0mv(std::move(other.m_z0mv)),m_z0hv(std::move(other.m_z0hv)),
-    m_z0qv(std::move(other.m_z0qv)),m_rootfr(std::move(other.m_rootfr)),
-    m_rootr(std::move(other.m_rootr)),m_rresis(std::move(other.m_rresis)),
-    m_dewmx(std::move(other.m_dewmx)),m_rssun(std::move(other.m_rssun)),
-    m_rssha(std::move(other.m_rssha)),m_laisun(std::move(other.m_laisun)),
-    m_laisha(std::move(other.m_laisha)),m_btran(std::move(other.m_btran)),
-    m_fsun(std::move(other.m_fsun)),m_tlai(std::move(other.m_tlai)),
-    m_tsai(std::move(other.m_tsai)),m_elai(std::move(other.m_elai)),m_esai(std::move(other.m_esai)),
-    m_fwet(std::move(other.m_fwet)),m_fdry(std::move(other.m_fdry)),m_dt_veg(std::move(other.m_dt_veg)),
-    m_htop(std::move(other.m_htop)),m_hbtop(std::move(other.m_hbtop)),m_z0m(std::move(other.m_z0m)),
-    m_displa(std::move(other.m_displa)),m_albd(std::move(other.m_albd)),
-    m_albi(std::move(other.m_albi)),m_fabd(std::move(other.m_fabd)),
-    m_fabi(std::move(other.m_fabi)),m_ftdd(std::move(other.m_ftdd)),
-    m_ftid(std::move(other.m_ftid)),m_ftii(std::move(other.m_ftii)),
-    m_u10(std::move(other.m_u10)),m_ram1(std::move(other.m_ram1)),m_fv(std::move(other.m_fv)),
-    m_forc_hgt_u_pft(std::move(other.m_forc_hgt_u_pft)),m_forc_hgt_t_pft(std::move(other.m_forc_hgt_t_pft)),
-    m_forc_hgt_q_pft(std::move(other.m_forc_hgt_q_pft)),m_vds(std::move(other.m_vds)),
-    m_slasun(std::move(other.m_slasun)),m_slasha(std::move(other.m_slasha)),m_lncsun(std::move(other.m_lncsun)),
-    m_lncsha(std::move(other.m_lncsha)),m_vcmxsun(std::move(other.m_vcmxsun)),m_vcmxsha(std::move(other.m_vcmxsha)),
-    m_gdir(std::move(other.m_gdir)),m_omega(std::move(other.m_omega)),m_eff_kid(std::move(other.m_eff_kid)),
-    m_eff_kii(std::move(other.m_eff_kii)),m_sun_faid(std::move(other.m_sun_faid)),
-    m_sun_faii(std::move(other.m_sun_faii)),m_sha_faid(std::move(other.m_sha_faid)),
-    m_sha_faii(std::move(other.m_sha_faii)),m_sandfrac(std::move(other.m_sandfrac)),m_clayfrac(std::move(other.m_clayfrac)),
-    m_soilt(std::move(other.m_soilt)),m_smoist(std::move(other.m_smoist)),m_sz(std::move(other.m_sz)),
-    m_watopt(std::move(other.m_watopt)),m_watdry(std::move(other.m_watdry)),m_Wlim(std::move(other.m_Wlim)),
-    m_tday(std::move(other.m_tday)),m_tdayavg(std::move(other.m_tdayavg)),m_noveg(std::move(other.m_noveg)),
-    m_tree(std::move(other.m_tree)),m_dleaf(std::move(other.m_dleaf)),m_xl(std::move(other.m_xl)),
-    m_sun_add(std::move(other.m_sun_add)),m_tot_aid(std::move(other.m_tot_aid)),
-    m_sun_aid(std::move(other.m_sun_aid)),m_sun_aii(std::move(other.m_sun_aii)),
-    m_sha_aid(std::move(other.m_sha_aid)),m_sha_aii(std::move(other.m_sha_aii)),
-    m_sun_atot(std::move(other.m_sun_atot)),m_sha_atot(std::move(other.m_sha_atot)),
-    m_sun_alf(std::move(other.m_sun_alf)),m_sha_alf(std::move(other.m_sha_alf))
-    {
-
-    }
-
-    ~vegetation_state_avx512_t() noexcept(true) 
-    {
-
-    }
-
-    friend void swap(vegetation_state_avx512_t &lhs, vegetation_state_avx512_t &rhs) noexcept(true) 
-    {
-        using std::swap;
-        swap(lhs.m_beg,rhs.m_beg);
-        swap(lhs.m_end,rhs.m_end);
-        swap(lhs.m_nband,rhs.m_nband);
-        swap(lhs.m_nlevgrnd,rhs.m_nlevgrnd);
-        swap(lhs.m_frac_veg_nosno,rhs.m_frac_veg_nosno);
-        swap(lhs.m_frac_veg_nosno_alb,rhs.m_frac_veg_nosno_alb);
-        swap(lhs.m_emv,rhs.m_emv);
-        swap(lhs.m_z0mv,rhs.m_z0mv);
-        swap(lhs.m_z0hv,rhs.m_z0hv);
-        swap(lhs.m_z0qv,rhs.m_z0qv);
-        swap(lhs.m_rootfr,rhs.m_rootfr);
-        swap(lhs.m_rresis,rhs.m_rresis);
-        swap(lhs.m_dewmx,rhs.m_dewmx);
-        swap(lhs.m_rssun,rhs.m_rssun);
-        swap(lhs.m_rssha,rhs.m_rssha);
-        swap(lhs.m_laisun,rhs.m_laisun);
-        swap(lhs.m_laisha,lhs.m_laisha);
-        swap(lhs.m_btran,rhs.m_btran);
-        swap(lhs.m_fsun,rhs.m_fsun);
-        swap(lhs.m_tlai,rhs.m_tlai);
-        swap(lhs.m_tsai,rhs.m_tsai);
-        swap(lhs.m_elai,rhs.m_elai);
-        swap(lhs.m_esai,rhs.m_esai);
-        swap(lhs.m_fwet,rhs.m_fwet);
-        swap(lhs.m_fdry,rhs.m_fdry);
-        swap(lhs.m_dt_veg,rhs.m_dt_veg);
-        swap(lhs.m_htop,rhs.m_htop);
-        swap(lhs.m_hbtop,rhs.m_hbtop);
-        swap(lhs.m_z0m,rhs.m_z0m);
-        swap(lhs.m_displa,rhs.m_displa);
-        swap(lhs.m_albd,rhs.m_albd);
-        swap(lhs.m_albi,rhs.m_albi);
-        swap(lhs.m_fabd,rhs.m_fabd);
-        swap(lhs.m_fabi,rhs.m_fabi);
-        swap(lhs.m_ftdd,rhs.m_ftdd);
-        swap(lhs.m_ftid,rhs.m_ftid);
-        swap(lhs.m_ftii,rhs.m_ftii);
-        swap(lhs.m_u10,rhs.m_u10);
-        swap(lhs.m_ram1,rhs.m_ram1);
-        swap(lhs.m_fv,rhs.m_fv);
-        swap(lhs.m_forc_hgt_u_pft,rhs.m_forc_hgt_u_pft);
-        swap(lhs.m_forc_hgt_t_pft,rhs.m_forc_hgt_t_pft);
-        swap(lhs.m_forc_hgt_q_pft,rhs.m_forc_hgt_q_pft);
-        swap(lhs.m_vds,rhs.m_vds);
-        swap(lhs.m_slasun,rhs.m_slasun);
-        swap(lhs.m_slasha,rhs.m_slasha);
-        swap(lhs.m_lncsun,rhs.m_lncsun);
-        swap(lhs.m_lncsha,rhs.m_lncsha);
-        swap(lhs.m_vcmxsun,rhs.m_vcmxsun);
-        swap(lhs.m_vcmxsha,rhs.m_vcmxsha);
-        swap(lhs.m_gdir,rhs.m_gdir);
-        swap(lhs.m_omega,rhs.m_omega);
-        swap(lhs.m_eff_kid,rhs.m_eff_kid);
-        swap(lhs.m_eff_kii,rhs.m_eff_kii);
-        swap(lhs.m_sun_faid,rhs.m_sun_faid);
-        swap(lhs.m_sun_faii,rhs.m_sun_faii);
-        swap(lhs.m_sha_faid,rhs.m_sha_faid);
-        swap(lhs.m_sha_faii,rhs.m_sha_faii);
-        swap(lhs.m_sandfrac,rhs.m_sandfrac);
-        swap(lhs.m_clayfrac,rhs.m_clayfrac);
-        swap(lhs.m_soilt,rhs.m_soilt);
-        swap(lhs.m_smoist,rhs.m_smoist);
-        swap(lhs.m_sz,rhs.m_sz);
-        swap(lhs.m_watopt,rhs.m_watopt);
-        swap(lhs.m_watdry,rhs.m_watdry);
-        swap(lhs.m_Wlim,rhs.m_Wlim);
-        swap(lhs.m_tday,rhs.m_tday);
-        swap(lhs.m_tdayavg,rhs.m_tdayavg);
-        swap(lhs.m_noveg,rhs.m_noveg);
-        swap(lhs.m_tree,rhs.m_tree);
-        swap(lhs.m_dleaf,rhs.m_dleaf);
-        swap(lhs.m_xl,rhs.m_xl);
-        swap(lhs.m_sun_add,rhs.m_sun_add);
-        swap(lhs.m_tot_aid,rhs.m_tot_aid);
-        swap(lhs.m_sun_aid,rhs.m_sun_aid);
-        swap(lhs.m_sun_aii,rhs.m_sun_aii);
-        swap(lhs.m_sha_aid,rhs.m_sha_aid);
-        swap(lhs.m_sha_aii,rhs.m_sha_aii);
-        swap(lhs.m_sun_atot,rhs.m_sun_atot);
-        swap(lhs.m_sha_atot,rhs.m_sha_atot);
-        swap(lhs.m_sun_alf,rhs.m_sun_alf);
-        swap(lhs.m_sha_alf,rhs.m_sha_alf);
-    }
+    ~vegetation_state_avx512_t() = default;
 
     vegetation_state_avx512_t & 
-    operator=(const vegetation_state_avx512_t &other) noexcept(false)
-    {
-          if(__builtin_expect(this==&other,0)) { return (*this);}
-          vegetation_state_avx512_t tmp{other};
-          swap(tmp,*this);
-          return (*this);
-    }
+    operator=(const vegetation_state_avx512_t &other) noexcept(false) = default;
 
     vegetation_state_avx512_t & 
-    operator=(vegetation_state_avx512_t &&other) noexcept(true)
-    {
-          if(__builtin_expect(this==&other,0)) { return (*this);}
-          swap(*this,other);
-          return (*this);
-    }
-
+    operator=(vegetation_state_avx512_t &&other) noexcept(true) = default;
+    
     template<std::int32_t which_size>
     std::size_t total_size() const 
     {   
