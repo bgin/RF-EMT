@@ -42,7 +42,7 @@ RF-EMT is organized around these areas:
 | --- | --- |
 | RF telecommunications | Partly implemented |
 | Radar modeling and simulation | Partly implemented |
-| Baseband (complex-envelope) processing and optimal receivers | Not yet implemented |
+| Baseband (complex-envelope) processing and optimal receivers | Partly implemented |
 | Supporting libraries, including atmosphere, terrain, and buildings | Partly implemented |
 
 ## Electromagnetics module
