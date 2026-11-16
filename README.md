@@ -13,7 +13,7 @@
 
 RF-EMT is a research-oriented toolkit for modeling and simulation in radar, telecommunications, and radio-frequency engineering. It brings together electromagnetic models, propagation and scattering utilities, and performance-focused computing techniques to support design-level analysis and integration into larger simulation workflows.
 
-> **Project status:** RF-EMT is under active development. Radar and telecommunications modeling and environmental support libraries are partly implemented; baseband signal processing and optimal receiver modeling are not yet implemented. Feature coverage and build requirements may vary by module.
+> **Project status:** RF-EMT is under active development. Radar and telecommunications modeling and environmental support libraries are partly implemented; baseband signal processing is partly implemented and optimal receiver modeling is not yet implemented. Feature coverage and build requirements may vary by module.
 
 ## Contents
 
