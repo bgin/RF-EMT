@@ -212,13 +212,13 @@ struct alignas(64) terrain_topography_avx512_t
     terrain_topography_avx512_t(const terrain_topography_args_t &) noexcept(false);
 
     terrain_topography_avx512_t(const terrain_topography_args_t &,
-                                common::Aligned64Mat3DF32,
-                                common::Aligned64Mat3DF32,
-                                common::Aligned64Mat2DF32,
-                                common::Aligned64Mat2DF32,
-                                common::Aligned64Mat2DF32,
-                                common::Aligned64Mat2DF32,
-                                common::Aligned64Mat2DF32) noexcept(false);
+                                common::Aligned64Mat3DF32 &,
+                                common::Aligned64Mat3DF32 &,
+                                common::Aligned64Mat2DF32 &,
+                                common::Aligned64Mat2DF32 &,
+                                common::Aligned64Mat2DF32 &,
+                                common::Aligned64Mat2DF32 &,
+                                common::Aligned64Mat2DF32 &) noexcept(false);
 
     
 };
