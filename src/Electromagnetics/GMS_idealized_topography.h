@@ -318,6 +318,63 @@ struct alignas(64) terrain_topography_avx512_t
         ret_status = 0;
         return (ret_status);
     }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_ibm_ht_w(const float filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        float * __restrict__ ptr = &this->m_ibm_ht_w.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+           common::avx512_memset_unroll16x_ps(&ptr[0],filler,this->m_ibm_ht_w.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+           common::avx512_memset_unroll8x_ps(&ptr[0],filler,this->m_ibm_ht_w.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_ibm_ht_c(const float filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        float * __restrict__ ptr = &this->m_ibm_ht_c.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+           common::avx512_memset_unroll16x_ps(&ptr[0],filler,this->m_ibm_ht_c.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+           common::avx512_memset_unroll8x_ps(&ptr[0],filler,this->m_ibm_ht_c.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_ibm_z0(const float filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        float * __restrict__ ptr = &this->m_ibm_z0.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+           common::avx512_memset_unroll16x_ps(&ptr[0],filler,this->m_ibm_z0.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+           common::avx512_memset_unroll8x_ps(&ptr[0],filler,this->m_ibm_z0.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
 };
 
 } // namespace radiolocation
