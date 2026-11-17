@@ -439,8 +439,91 @@ struct alignas(64) terrain_topography_avx512_t
         return (ret_status);
     }
 
-    
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    set_ibm_ht_v(const common::Aligned64Mat3DF32 &other_ibm_ht_v) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        if(__builtin_expect(this->m_ibm_ht_v.num_elements()!=other_ibm_ht_v.num_elements(),0)) { ret_status = -1; return (ret_status);}
+        double * __restrict__ p_m_ibm_ht_v     = &this->m_ibm_ht_v.data()[0];
+        double * __restrict__ p_other_ibm_ht_v = &other_ibm_ht_v.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memcpy_unroll16x_ps(&p_m_ibm_ht_v[0],&other_ibm_ht_v[0],this->m_ibm_ht_v.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memcpy_unroll8x_ps(&p_m_ibm_ht_v[0],&other_ibm_ht_v[0],this->m_ibm_ht_v.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
 
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    set_ibm_ht_w(const common::Aligned64Mat3DF32 &other_ibm_ht_w) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        if(__builtin_expect(this->m_ibm_ht_w.num_elements()!=other_ibm_ht_w.num_elements(),0)) { ret_status = -1; return (ret_status);}
+        double * __restrict__ p_m_ibm_ht_w     = &this->m_ibm_ht_w.data()[0];
+        double * __restrict__ p_other_ibm_ht_w = &other_ibm_ht_w.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memcpy_unroll16x_ps(&p_m_ibm_ht_w[0],&other_ibm_ht_w[0],this->m_ibm_ht_w.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memcpy_unroll8x_ps(&p_m_ibm_ht_w[0],&other_ibm_ht_w[0],this->m_ibm_ht_w.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    set_ibm_ht_c(const common::Aligned64Mat3DF32 &other_ibm_ht_c) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        if(__builtin_expect(this->m_ibm_ht_c.num_elements()!=other_ibm_ht_c.num_elements(),0)) { ret_status = -1; return (ret_status);}
+        double * __restrict__ p_m_ibm_ht_c     = &this->m_ibm_ht_c.data()[0];
+        double * __restrict__ p_other_ibm_ht_c = &other_ibm_ht_c.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memcpy_unroll16x_ps(&p_m_ibm_ht_c[0],&other_ibm_ht_c[0],this->m_ibm_ht_c.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memcpy_unroll8x_ps(&p_m_ibm_ht_c[0],&other_ibm_ht_c[0],this->m_ibm_ht_c.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    set_ibm_z0(const common::Aligned64Mat3DF32 &other_ibm_z0) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        if(__builtin_expect(this->m_ibm_z0.num_elements()!=other_ibm_z0.num_elements(),0)) { ret_status = -1; return (ret_status);}
+        double * __restrict__ p_m_ibm_z0     = &this->m_ibm_z0.data()[0];
+        double * __restrict__ p_other_ibm_z0 = &other_ibm_z0.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memcpy_unroll16x_ps(&p_m_ibm_z0[0],&other_ibm_z0[0],this->m_ibm_z0.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memcpy_unroll8x_ps(&p_m_ibm_z0[0],&other_ibm_z0[0],this->m_ibm_z0.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    
 
 };
 
