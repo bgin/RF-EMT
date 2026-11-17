@@ -76,7 +76,9 @@ const char *const GMS_IDEALIZED_TOPO_SYNOPSIS =
 
 #include <cstdint>
 #include "GMS_config.h"
-#include "GMS_boost_multiarray_types.hpp"
+#include "GMS_boost_multiarray_types.h"
+#include "GMS_avx512_memset.h"
+#include "GMS_avx512_memcpy.h"
 
 namespace gms {
 
@@ -241,9 +243,43 @@ struct alignas(64) terrain_topography_avx512_t
     terrain_topography_avx512_t &
                        operator=(terrain_topography_avx512_t &&) noexcept(true) = default; 
 
-    
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_phb(const float filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        float * __restrict__ ptr = &this->m_phb.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+           common::avx512_memset_unroll16x_ps(&ptr[0],filler,this->m_phb.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+           common::avx512_memset_unroll8x_ps(&ptr[0],filler,this->m_phb.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
 
-    
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    init_ph(const float filler) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        float * __restrict__ ptr = &this->m_ph.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+           common::avx512_memset_unroll16x_ps(&ptr[0],filler,this->m_ph.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+           common::avx512_memset_unroll8x_ps(&ptr[0],filler,this->m_ph.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
 };
 
 } // namespace radiolocation
