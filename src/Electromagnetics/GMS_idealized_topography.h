@@ -375,6 +375,73 @@ struct alignas(64) terrain_topography_avx512_t
         ret_status = 0;
         return (ret_status);
     }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    set_phb(const common::Aligned64Mat3DF32 &other_phb) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        if(__builtin_expect(this->m_phb.num_elements()!=other_phb.num_elements(),0)) { ret_status = -1; return (ret_status);}
+        double * __restrict__ p_m_phb     = &this->m_phb.data()[0];
+        double * __restrict__ p_other_phb = &other_phb.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memcpy_unroll16x_ps(&p_m_phb[0],&other_phb[0],this->m_phb.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memcpy_unroll8x_ps(&p_m_phb[0],&other_phb[0],this->m_phb.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    set_ph(const common::Aligned64Mat3DF32 &other_ph) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        if(__builtin_expect(this->m_ph.num_elements()!=other_ph.num_elements(),0)) { ret_status = -1; return (ret_status);}
+        double * __restrict__ p_m_ph     = &this->m_ph.data()[0];
+        double * __restrict__ p_other_ph = &other_ph.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memcpy_unroll16x_ps(&p_m_ph[0],&other_ph[0],this->m_ph.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memcpy_unroll8x_ps(&p_m_ph[0],&other_ph[0],this->m_ph.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    template<std::int32_t which_unrolling>
+    std::int32_t 
+    set_ibm_ht_u(const common::Aligned64Mat3DF32 &other_ibm_ht_u) noexcept(true)
+    {
+        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
+        std::int32_t ret_status = -9999;
+        if(__builtin_expect(this->m_ibm_ht_u.num_elements()!=other_ibm_ht_u.num_elements(),0)) { ret_status = -1; return (ret_status);}
+        double * __restrict__ p_m_ibm_ht_u     = &this->m_ibm_ht_u.data()[0];
+        double * __restrict__ p_other_ibm_ht_u = &other_ibm_ht_u.data()[0];
+        if constexpr(which_unrolling==16)
+        {
+            gms::common::avx512_memcpy_unroll16x_ps(&p_m_ibm_ht_u[0],&other_ibm_ht_u[0],this->m_ibm_ht_u.num_elements());
+        }
+        else if constexpr(which_unrolling==8)
+        {
+            gms::common::avx512_memcpy_unroll8x_ps(&p_m_ibm_ht_u[0],&other_ibm_ht_u[0],this->m_ibm_ht_u.num_elements());
+        }
+        ret_status = 0;
+        return (ret_status);
+    }
+
+    
+
+
 };
 
 } // namespace radiolocation
