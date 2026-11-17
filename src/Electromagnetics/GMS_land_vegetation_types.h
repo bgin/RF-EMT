@@ -34,6 +34,7 @@ WRF® is a registered trademark of the University Corporation for Atmospheric Re
 #include <optional>
 #include <utility>
 #include <iostream>
+#include <algorithm>
 #include "GMS_config.h"
 #include "GMS_boost_multiarray_types.h"
 #include "GMS_module_land_params.h"
@@ -348,40 +349,20 @@ struct alignas(64) vegetation_state_avx512_t
         return (ret_status);    
     }
 
-    template<std::int32_t which_unrolling>
     std::int32_t 
     init_frac_veg_nosno(const double filler) noexcept(true)
     {
-        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
         std::int32_t ret_status = -9999;
-        double * __restrict__ ptr = &this->m_frac_veg_nosno.data()[0];
-        if constexpr(which_unrolling==16)
-        {
-           gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_frac_veg_nosno.num_elements());
-        }
-        else if constexpr(which_unrolling==8)
-        {
-           gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_frac_veg_nosno.num_elements());
-        }
+        std::fill(this->m_frac_veg_nosno.begin(),this->m_frac_veg_nosno.end(),filler);
         ret_status = 0;
         return (ret_status);
     }
     
-    template<std::int32_t which_unrolling>
     std::int32_t 
     init_frac_veg_nosno_alb(const double filler) noexcept(true)
     {
-        static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
         std::int32_t ret_status = -9999;
-        double * __restrict__ ptr = &this->m_frac_veg_nosno_alb.data()[0];
-        if constexpr(which_unrolling==16)
-        {
-           gms::common::avx512_memset_unroll16x_pd(&ptr[0],filler,this->m_frac_veg_nosno_alb.num_elements());
-        }
-        else if constexpr(which_unrolling==8)
-        {
-           gms::common::avx512_memset_unroll8x_pd(&ptr[0],filler,this->m_frac_veg_nosno_alb.num_elements());
-        }
+        std::fill(this->m_frac_veg_nosno_alb.begin(),this->m_frac_veg_nosno_alb.end(),filler);
         ret_status = 0;
         return (ret_status);
     }
