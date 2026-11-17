@@ -233,6 +233,14 @@ struct alignas(64) terrain_topography_avx512_t
 
     terrain_topography_avx512_t( terrain_topography_avx512_t &&) noexcept(true) = default;
 
+    ~terrain_topography_avx512_t() noexcept(true) = default;
+
+    terrain_topography_avx512_t &
+                       operator=(const terrain_topography_avx512_t &) noexcept(false) = default;
+
+    terrain_topography_avx512_t &
+                       operator=(terrain_topography_avx512_t &&) noexcept(true) = default; 
+
     
 
     
