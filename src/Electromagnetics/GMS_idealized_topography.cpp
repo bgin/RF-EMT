@@ -333,13 +333,13 @@ m_ibm_z0(boost::extents[m_jme-m_jms][m_ime-m_ims])
 gms::radiolocation
 ::terrain_topography_avx512_t
 ::terrain_topography_avx512_t(const terrain_topography_args_t &args,
-                              common::Aligned64Mat3DF32 &phb,
-                              common::Aligned64Mat3DF32 &ph,
-                              common::Aligned64Mat2DF32 &ibm_ht_u,
-                              common::Aligned64Mat2DF32 &ibm_ht_v,
-                              common::Aligned64Mat2DF32 &ibm_ht_w,
-                              common::Aligned64Mat2DF32 &ibm_ht_c,
-                              common::Aligned64Mat2DF32 &ibm_z0) noexcept(false) 
+                              const common::Aligned64Mat3DF32 &phb,
+                              const common::Aligned64Mat3DF32 &ph,
+                              const common::Aligned64Mat2DF32 &ibm_ht_u,
+                              const common::Aligned64Mat2DF32 &ibm_ht_v,
+                              const common::Aligned64Mat2DF32 &ibm_ht_w,
+                              const common::Aligned64Mat2DF32 &ibm_ht_c,
+                              const common::Aligned64Mat2DF32 &ibm_z0) noexcept(false) 
     : 
 m_ids(args.ids),m_ide(args.ide),m_jds(args.jds),
 m_jde(args.jde),m_kds(args.kds),m_kde(args.kde),
@@ -357,6 +357,34 @@ m_ibm_z0(ibm_z0)
 {}
 
 
-
+/*
+   The dimensions of the terrain topography must be set by the caller
+   This setting is not validated inside the body of below stated Constructor.
+*/
+gms::radiolocation
+::terrain_topography_avx512_t
+::terrain_topography_avx512_t(const terrain_topography_args_t &args,
+                              common::Aligned64Mat3DF32 &&phb,
+                              common::Aligned64Mat3DF32 &&ph,
+                              common::Aligned64Mat2DF32 &&ibm_ht_u,
+                              common::Aligned64Mat2DF32 &&ibm_ht_v,
+                              common::Aligned64Mat2DF32 &&ibm_ht_w,
+                              common::Aligned64Mat2DF32 &&ibm_ht_c,
+                              common::Aligned64Mat2DF32 &&ibm_z0) noexcept(false) 
+    : 
+m_ids(args.ids),m_ide(args.ide),m_jds(args.jds),
+m_jde(args.jde),m_kds(args.kds),m_kde(args.kde),
+m_ims(args.ims),m_ime(args.ime),m_jms(args.jms),
+m_jme(args.jme),m_kms(args.kms),m_kme(args.kme),
+m_its(args.its),m_ite(args.ite),m_jts(args.jts),
+m_jte(args.jte),m_kts(args.kts),m_kte(args.kte),
+m_ideal_terrain(args.ideal_terrain),
+m_spec_bdy_width(args.spec_bdy_width),
+m_flat_plate_ht(args.flat_plate_ht),
+m_dx(args.dx),m_dy(args.dy),
+m_phb(std::move(phb)),m_ph(std::move(ph)),m_ibm_ht_u(std::move(ibm_ht_u)),
+m_ibm_ht_w(std::move(ibm_ht_w)),ibm_ht_c(std::move(ibm_ht_c)),
+m_ibm_z0(std::move(ibm_z0))
+{}
 
 
