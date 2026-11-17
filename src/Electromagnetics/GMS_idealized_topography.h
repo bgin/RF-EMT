@@ -229,6 +229,12 @@ struct alignas(64) terrain_topography_avx512_t
                                 common::Aligned64Mat2DF32 &&,
                                 common::Aligned64Mat2DF32 &&) noexcept(true);
 
+    terrain_topography_avx512_t(const terrain_topography_avx512_t &) noexcept(false) = default;
+
+    terrain_topography_avx512_t( terrain_topography_avx512_t &&) noexcept(true) = default;
+
+    
+
     
 };
 
