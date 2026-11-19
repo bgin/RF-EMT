@@ -392,8 +392,8 @@ struct alignas(64) terrain_topography_avx512_t
         static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
         std::int32_t ret_status = -9999;
         if(__builtin_expect(this->m_phb.num_elements()!=other_phb.num_elements(),0)) { ret_status = -1; return (ret_status);}
-        double * __restrict__ p_m_phb     = &this->m_phb.data()[0];
-        double * __restrict__ p_other_phb = &other_phb.data()[0];
+        float * __restrict__ p_m_phb     = &this->m_phb.data()[0];
+        float * __restrict__ p_other_phb = &other_phb.data()[0];
         if constexpr(which_unrolling==16)
         {
             gms::common::avx512_memcpy_unroll16x_ps(&p_m_phb[0],&other_phb[0],this->m_phb.num_elements());
@@ -413,8 +413,8 @@ struct alignas(64) terrain_topography_avx512_t
         static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
         std::int32_t ret_status = -9999;
         if(__builtin_expect(this->m_ph.num_elements()!=other_ph.num_elements(),0)) { ret_status = -1; return (ret_status);}
-        double * __restrict__ p_m_ph     = &this->m_ph.data()[0];
-        double * __restrict__ p_other_ph = &other_ph.data()[0];
+        float * __restrict__ p_m_ph     = &this->m_ph.data()[0];
+        float * __restrict__ p_other_ph = &other_ph.data()[0];
         if constexpr(which_unrolling==16)
         {
             gms::common::avx512_memcpy_unroll16x_ps(&p_m_ph[0],&other_ph[0],this->m_ph.num_elements());
@@ -434,8 +434,8 @@ struct alignas(64) terrain_topography_avx512_t
         static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
         std::int32_t ret_status = -9999;
         if(__builtin_expect(this->m_ibm_ht_u.num_elements()!=other_ibm_ht_u.num_elements(),0)) { ret_status = -1; return (ret_status);}
-        double * __restrict__ p_m_ibm_ht_u     = &this->m_ibm_ht_u.data()[0];
-        double * __restrict__ p_other_ibm_ht_u = &other_ibm_ht_u.data()[0];
+        float * __restrict__ p_m_ibm_ht_u     = &this->m_ibm_ht_u.data()[0];
+        float * __restrict__ p_other_ibm_ht_u = &other_ibm_ht_u.data()[0];
         if constexpr(which_unrolling==16)
         {
             gms::common::avx512_memcpy_unroll16x_ps(&p_m_ibm_ht_u[0],&other_ibm_ht_u[0],this->m_ibm_ht_u.num_elements());
@@ -455,8 +455,8 @@ struct alignas(64) terrain_topography_avx512_t
         static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
         std::int32_t ret_status = -9999;
         if(__builtin_expect(this->m_ibm_ht_v.num_elements()!=other_ibm_ht_v.num_elements(),0)) { ret_status = -1; return (ret_status);}
-        double * __restrict__ p_m_ibm_ht_v     = &this->m_ibm_ht_v.data()[0];
-        double * __restrict__ p_other_ibm_ht_v = &other_ibm_ht_v.data()[0];
+        float * __restrict__ p_m_ibm_ht_v     = &this->m_ibm_ht_v.data()[0];
+        float * __restrict__ p_other_ibm_ht_v = &other_ibm_ht_v.data()[0];
         if constexpr(which_unrolling==16)
         {
             gms::common::avx512_memcpy_unroll16x_ps(&p_m_ibm_ht_v[0],&other_ibm_ht_v[0],this->m_ibm_ht_v.num_elements());
@@ -476,8 +476,8 @@ struct alignas(64) terrain_topography_avx512_t
         static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
         std::int32_t ret_status = -9999;
         if(__builtin_expect(this->m_ibm_ht_w.num_elements()!=other_ibm_ht_w.num_elements(),0)) { ret_status = -1; return (ret_status);}
-        double * __restrict__ p_m_ibm_ht_w     = &this->m_ibm_ht_w.data()[0];
-        double * __restrict__ p_other_ibm_ht_w = &other_ibm_ht_w.data()[0];
+        float * __restrict__ p_m_ibm_ht_w     = &this->m_ibm_ht_w.data()[0];
+        float * __restrict__ p_other_ibm_ht_w = &other_ibm_ht_w.data()[0];
         if constexpr(which_unrolling==16)
         {
             gms::common::avx512_memcpy_unroll16x_ps(&p_m_ibm_ht_w[0],&other_ibm_ht_w[0],this->m_ibm_ht_w.num_elements());
@@ -497,8 +497,8 @@ struct alignas(64) terrain_topography_avx512_t
         static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
         std::int32_t ret_status = -9999;
         if(__builtin_expect(this->m_ibm_ht_c.num_elements()!=other_ibm_ht_c.num_elements(),0)) { ret_status = -1; return (ret_status);}
-        double * __restrict__ p_m_ibm_ht_c     = &this->m_ibm_ht_c.data()[0];
-        double * __restrict__ p_other_ibm_ht_c = &other_ibm_ht_c.data()[0];
+        float * __restrict__ p_m_ibm_ht_c     = &this->m_ibm_ht_c.data()[0];
+        float * __restrict__ p_other_ibm_ht_c = &other_ibm_ht_c.data()[0];
         if constexpr(which_unrolling==16)
         {
             gms::common::avx512_memcpy_unroll16x_ps(&p_m_ibm_ht_c[0],&other_ibm_ht_c[0],this->m_ibm_ht_c.num_elements());
@@ -518,8 +518,8 @@ struct alignas(64) terrain_topography_avx512_t
         static_assert((which_unrolling==16) || (which_unrolling==8), "The template argument 'which_unrolling' is ***Incorrect***");
         std::int32_t ret_status = -9999;
         if(__builtin_expect(this->m_ibm_z0.num_elements()!=other_ibm_z0.num_elements(),0)) { ret_status = -1; return (ret_status);}
-        double * __restrict__ p_m_ibm_z0     = &this->m_ibm_z0.data()[0];
-        double * __restrict__ p_other_ibm_z0 = &other_ibm_z0.data()[0];
+        float * __restrict__ p_m_ibm_z0     = &this->m_ibm_z0.data()[0];
+        float * __restrict__ p_other_ibm_z0 = &other_ibm_z0.data()[0];
         if constexpr(which_unrolling==16)
         {
             gms::common::avx512_memcpy_unroll16x_ps(&p_m_ibm_z0[0],&other_ibm_z0[0],this->m_ibm_z0.num_elements());

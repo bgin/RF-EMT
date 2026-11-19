@@ -363,8 +363,8 @@ m_spec_bdy_width(args.spec_bdy_width),
 m_flat_plate_ht(args.flat_plate_ht),
 m_dx(args.dx),m_dy(args.dy),
 m_phb(phb),m_ph(ph),m_ibm_ht_u(ibm_ht_u),
-m_ibm_ht_w(ibm_ht_w),m_ibm_ht_c(ibm_ht_c),
-m_ibm_z0(ibm_z0)
+m_ibm_ht_v(ibm_ht_v), m_ibm_ht_w(ibm_ht_w),
+m_ibm_ht_c(ibm_ht_c), m_ibm_z0(ibm_z0)
 {}
 
 
@@ -394,8 +394,8 @@ m_spec_bdy_width(args.spec_bdy_width),
 m_flat_plate_ht(args.flat_plate_ht),
 m_dx(args.dx),m_dy(args.dy),
 m_phb(std::move(phb)),m_ph(std::move(ph)),m_ibm_ht_u(std::move(ibm_ht_u)),
-m_ibm_ht_w(std::move(ibm_ht_w)),m_ibm_ht_c(std::move(ibm_ht_c)),
-m_ibm_z0(std::move(ibm_z0))
+m_ibm_ht_v(std::move(ibm_ht_v)),m_ibm_ht_w(std::move(ibm_ht_w)),
+m_ibm_ht_c(std::move(ibm_ht_c)),m_ibm_z0(std::move(ibm_z0))
 {}
 
 
