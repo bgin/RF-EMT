@@ -538,7 +538,7 @@ struct alignas(64) terrain_topography_avx512_t
     
     __ATTR_HOT__
     __ATTR_ALIGN__(32)
-    std::int32_t modify_idealied_terrain();
+    std::int32_t modify_idealized_terrain();
 
 };
 
