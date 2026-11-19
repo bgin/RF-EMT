@@ -70,7 +70,7 @@ const char *const GMS_IDEALIZED_TOPO_CREATION_DATE =
     "16-01-2022 09:34 +00200 (SAT 16 APR 2022 GMT+2)";
 const char *const GMS_IDEALIZED_TOPO_BUILD_DATE = __DATE__ " " __TIME__;
 const char *const GMS_IDEALIZED_TOPO_SYNOPSIS =
-    "Idealized gaussian, sinusoidal and other analytically derived topography simulator."
+    "Idealized gaussian, sinusoidal and other analytically derived topography simulator.";
 
 } // namespace file_info
 
@@ -79,6 +79,15 @@ const char *const GMS_IDEALIZED_TOPO_SYNOPSIS =
 #include "GMS_boost_multiarray_types.h"
 #include "GMS_avx512_memset.h"
 #include "GMS_avx512_memcpy.h"
+
+
+#if !defined(TERRAIN_TOPOGRAPHY_AVX512_VERBOSE)
+#define TERRAIN_TOPOGRAPHY_AVX512_VERBOSE 1
+#endif 
+
+#if (TERRAIN_TOPOGRAPHY_AVX512_VERBOSE) == 1
+#include <cstdio>
+#endif 
 
 namespace gms {
 
@@ -523,7 +532,13 @@ struct alignas(64) terrain_topography_avx512_t
         return (ret_status);
     }
 
+    __ATTR_HOT__
+    __ATTR_ALIGN__(32)
+    std::int32_t compute_idealized_terrain();
     
+    __ATTR_HOT__
+    __ATTR_ALIGN__(32)
+    std::int32_t modify_idealied_terrain();
 
 };
 
