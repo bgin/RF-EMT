@@ -399,120 +399,6 @@ m_ibm_z0(std::move(ibm_z0))
 {}
 
 
-/*
-// Preserves exact Fortran 1-based bounds (m_its, m_ite, m_jts, m_jte, m_ide, m_jde)
-// Assumes column-major flat storage of size (m_ims:ime, m_jms:jme)
-
-auto idx = [&](std::int32_t i, std::int32_t j) -> size_t {
-    return static_cast<size_t>((j - m_jms) * (ime - m_ims + 1) + (i - m_ims));
-};
-
-for (std::int32_t i = m_its; i <= m_ite; ++i) {
-    if (i >= ista && i <= iend) {
-        for (std::int32_t j = m_jts; j <= m_jte; ++j) {
-            if (j != m_jde) ibm_ht_u[idx(i, j)] = height;
-            if (i != m_ide) ibm_ht_v[idx(i, j)] = height;
-            if (i != m_ide && j != m_jde) ibm_ht_w[idx(i, j)] = height;
-            ibm_ht_c[idx(i, j)] = height;
-        }
-    }
-}
-
-*/
-/*
-std::std::int32_t32_t 
-gms::radiolocation
-::terrain_topography_avx512_t
-::compute_m_idealized_terrain()
-{
-  constexpr    float pi = 3.1415926535897932384626433832795f;
-  std::std::int32_t32_t ret_status = -9999;
-  std::std::int32_t32_t prstd::int32_tf_ret{};
-  std::std::int32_t32_t i,j,k;
-  std::std::int32_t32_t icm,jcm;
-  std::std::int32_t32_t width,ista,iend,jsta,jend;
-  float        hm,xa;
-  float        offset,slope;
-  float        xa1;
-  float        x_dist,y_dist;
-  float        ru,rv; 
-  float        rw,rc; 
-  float        du,dv; 
-  float        dw,dc; 
-  float        dmid,height;
-  
-  if(m_m_ideal_terrain==1)
-  {
-      for(i = m_m_its; i<=m_m_ite; ++i)
-      {
-          for(j = m_m_jts; j<=m_m_jte; ++j)   
-          {
-              if(j!=m_m_jde) m_ibm_ht_u[j][i] = m_flat_plate_ht;
-              if(i!=m_m_ide) m_ibm_ht_v[j][i] = m_flat_plate_ht;
-              if((j!=m_m_jde) && (i!=m_m_ide)) m_ibm_ht_w[j][i] = m_flat_plate_ht;
-              m_ibm_ht_c[i][j] = m_flat_plate_ht;
-          }
-      }
-   }
-   else if(m_m_ideal_terrain==111)
-   {
-      //a flat plate with added bumps to trip turbulence
-      for(i = m_m_its; i<=m_m_ite; ++i)
-      {
-          for(j = m_m_jts; j<=m_m_jte; ++j)   
-          {
-               if(i!=m_m_ide) m_ibm_ht_u[i][j] = 0.0f;
-               if(j!=m_m_jde) m_ibm_ht_v[i][j] = 0.0f;
-               if((j!=m_m_jde) && (i!=m_m_ide)) m_ibm_ht_w[j][i] = 0.0f;
-               m_ibm_ht_c[i][j] = 0.0f;
-          }
-      }
-      height = 6.0f;
-      width  = 6;
-#if (TERRAIN_TOPOGRAPHY_AVX512_VERBOSE) == 1
-      prstd::int32_tf_ret = std::prstd::int32_tf("Function=%s,line=%d, adding a cross to the flat plate with width=%d,height=%.7f\n",__function__,__LINE__,width,height);
-#endif 
-      ista = (m_m_ide-m_m_ids)/2ull+m_m_ids-width;
-      iend = (m_m_ide-m_m_ids)/2ull+m_m_ids+width;
-      for(j = m_m_jts; j<=m_m_jte; ++j)  
-      {
-          if((j>=ista) && (j<=iend))
-          {
-              for(i = m_m_its; i<=m_m_ite; ++i)
-              {
-                  if(i!=m_m_ide) m_ibm_ht_u[i][j] = height;
-                  if(j!=m_m_jde) m_ibm_ht_v[i][j] = height;
-                  if((j!=m_m_jde) && (i!=m_m_ide)) m_ibm_ht_w[i][j] = height;
-                  m_ibm_ht_c[i][j] = height;
-              }
-          }
-      }
-      jsta = (m_m_jde-m_m_jds)/2ull+m_m_jds-width;
-      jend = (m_m_jde-m_m_jds)/2ull+m_m_jds+width;
-      for(j = m_m_jts; j<=m_m_jte; ++j)
-      {
-          if((j>=jsta) && (j<=jend))
-          {
-              for(i=m_m_its; i<=m_m_ite; ++i) 
-              {
-                  if (j != m_jde) {
-                     ibm_ht_u[j][i] = height;
-                  }
-                 if (i != m_ide) {
-                    ibm_ht_v[j][i] = height;
-                 }
-                 if (i != m_ide && j != m_jde) {
-                    ibm_ht_w[j][i] = height;
-                 }
-                ibm_ht_c[j][i] = height;
-        
-              }
-          }
-      }
-   }
-}
-*/
-
 // Fortran domain indices: (i,j) maps to multi_array index (i-m_ims,j-m_jms).
 std::int32_t 
 gms::radiolocation
@@ -703,6 +589,7 @@ gms::radiolocation
         }
     } else if(m_ideal_terrain==7) {
         // The Fortran branch is std::int32_tentionally empty.
+        std::cerr << "RF-EMT[compute_idealized_terrain]: ***Exit*** -- reached invalid parameter: m_ideal_terrain=" << m_ideal_terrain << '\n';
         ret_status = -1;
         return (ret_status);
     } else if(m_ideal_terrain==8 || m_ideal_terrain==81) {
@@ -747,9 +634,191 @@ gms::radiolocation
             else { if(j!=m_jde) U(i,j)=offset; C(i,j)=offset; }
         }
     } else if(m_ideal_terrain==13 || m_ideal_terrain==14 || m_ideal_terrain==15) {
-        std::cerr << "RF-EMT[compute_m_idealized_terrain]: ***Exit*** -- reached invalid parameter: grid%id=" << m_ideal_terrain << '\n';
+        std::cerr << "RF-EMT[compute_idealized_terrain]: ***Exit*** -- reached invalid parameter: m_ideal_terrain=" << m_ideal_terrain << '\n';
         ret_status = -2;
         return (ret_status);
+    }
+    ret_status = 0;
+    return (ret_status);
+}
+
+std::int32_t 
+gms::radiolocation
+::terrain_topography_avx512_t
+::modify_idealized_terrain()
+{
+    std::int32_t ret_status = -9999;
+    ret_status = compute_idealized_terrain();
+    if(ret_status!=0)
+    {
+      std::cerr << "RF-EMT[modify_idealized_terrain]: ***Exit*** -- received error state provided by the callee: ret_status=" << ret_status << '\n';
+      return (ret_status);
+    }
+    // Map the original Fortran indices to zero-based Boost.MultiArray indices.
+    auto U = [&](std::int32_t i, std::int32_t j) -> float& {
+        return m_ibm_ht_u[i - m_ims][j - m_jms];
+    };
+    auto V = [&](std::int32_t i, std::int32_t j) -> float& {
+        return m_ibm_ht_v[i - m_ims][j - m_jms];
+    };
+    auto W = [&](std::int32_t i, std::int32_t j) -> float& {
+        return m_ibm_ht_w[i - m_ims][j - m_jms];
+    };
+    auto C = [&](std::int32_t i, std::int32_t j) -> float& {
+        return m_ibm_ht_c[i - m_ims][j - m_jms];
+    };
+    auto PHB = [&](std::int32_t i, std::int32_t k, std::int32_t j) -> float {
+        return m_phb[i - m_ims][k - m_kms][j - m_jms];
+    };
+    constexpr float gravity = 9.81f;
+    // Terrain following the lowest geopotential level.
+    auto set_terrain_from_phb = [&]() {
+        for (int i = m_its; i <= m_ite; ++i) {
+            for (int j = m_jts; j <= m_jte; ++j) {
+                W(i, j) = PHB(i, 1, j) / gravity;
+                U(i, j) = (PHB(i - 1, 1, j) + PHB(i, 1, j))
+                          / (2.0f * gravity);
+                V(i, j) = (PHB(i, 1, j - 1) + PHB(i, 1, j))
+                          / (2.0f * gravity);
+                C(i, j) = (PHB(i - 1, 1, j - 1) + PHB(i - 1, 1, j)
+                         + PHB(i, 1, j - 1) + PHB(i, 1, j))
+                          / (4.0f * gravity);
+            }
+        }
+    };
+
+    if (m_ideal_terrain == 0) {
+        set_terrain_from_phb();
+    } else if (m_ideal_terrain == 114) {
+        set_terrain_from_phb();
+
+        const int ic = (m_ide - m_ids) / 2 + m_ids;
+        const int jc = (m_jde - m_jds) / 2 + m_jds;
+
+        if (((m_its >= ic - 5 || m_ite <= ic + 5) &&
+             (m_jts >= jc - 5 || m_jte <= jc + 5))) {
+            const int ilo = (m_its > ic - 5) ? m_its : ic - 5;
+            const int ihi = (m_ite < ic + 5) ? m_ite : ic + 5;
+            const int jlo = (m_jts > jc - 5) ? m_jts : jc - 5;
+            const int jhi = (m_jte < jc + 5) ? m_jte : jc + 5;
+
+            for (int i = ilo; i <= ihi; ++i) {
+                for (int j = jlo; j <= jhi; ++j) {
+                    W(i, j) = 400.0f;
+                    U(i, j) = 400.0f;
+                    V(i, j) = 400.0f;
+                    C(i, j) = 400.0f;
+                }
+            }
+        }
+    } else if (m_ideal_terrain == 115) {
+        set_terrain_from_phb();
+
+        const float bldx = 75.0f;
+        const float bldy = 75.0f;
+        const float bldz = 10.0f;
+        const float gapx = 150.0f;
+        const float gapy = 150.0f;
+        const float theta = 10.0f * 2.0f * 4.0f
+                          * static_cast<float>(std::atan(1.0)) / 360.0f;
+
+        for (int i = (m_its - 1) * 2; i <= (m_ite - 1) * 2; ++i) {
+            for (int j = (m_jts - 1) * 2; j <= (m_jte - 1) * 2; ++j) {
+                const float xoff = (j * m_dy / 2.0f)
+                                 * std::tan(theta);
+                const float bx = std::fmod(
+                    i * m_dx / 2.0f + xoff, gapx + bldx);
+
+                if (bx >= (gapx + bldx) / 2.0f - bldx / 2.0f &&
+                    bx <= (gapx + bldx) / 2.0f + bldx / 2.0f) {
+                    const float yoff = (i * m_dx / 2.0f)
+                                     * std::tan(-theta);
+                    const float by = std::fmod(
+                        j * m_dy / 2.0f + yoff, gapy + bldy);
+
+                    if (by >= (gapy + bldy) / 2.0f - bldy / 2.0f &&
+                        by <= (gapy + bldy) / 2.0f + bldy / 2.0f) {
+                        const int fi = static_cast<int>(std::floor(i / 2.0f)) + 1;
+                        const int fj = static_cast<int>(std::floor(j / 2.0f)) + 1;
+                        const bool i_even = std::floor(i / 2.0f) == i / 2.0f;
+                        const bool j_even = std::floor(j / 2.0f) == j / 2.0f;
+
+                        if (i_even && j_even) {
+                            C(fi, fj) += bldz;
+                        } else if (i_even) {
+                            U(fi, fj) += bldz;
+                        } else if (j_even) {
+                            V(fi, fj) += bldz;
+                        } else {
+                            W(fi, fj) += bldz;
+                        }
+                    }
+                }
+            }
+        }
+    } else if (m_ideal_terrain == 116) {
+        set_terrain_from_phb();
+
+        const float bldx = 80.0f;
+        const float bldy = 80.0f;
+        const float bldz = 10.0f;
+        const float gapx = 240.0f;
+        const float gapy = 240.0f;
+        const float theta = 30.0f; // Source expression uses degrees converted below.
+        const float theta_rad = theta * 2.0f * static_cast<float>(std::atan(1.0))
+                              / 180.0f;
+
+        for (int j = (m_jts - 1) * 2; j <= (m_jte - 1) * 2 + 1; ++j) {
+            const float row = j * m_dy / 2.0f;
+            const float row_count = std::floor(row / (gapy + bldy));
+            const float by = row - (row_count + 0.5f) * (gapy + bldy);
+            const float ymid = (row_count + 0.5f) * (gapy + bldy);
+
+            bool keepgoing = true;
+            if (ymid - bldy / 2.0f <=
+                    (m_spec_bdy_width - 0.5f) * m_dy ||
+                ymid + bldy / 2.0f >=
+                    (m_jde - m_spec_bdy_width - 0.5f) * m_dy) {
+                keepgoing = false;
+            }
+
+            if (by >= -bldy / 2.0f && by <= bldy / 2.0f && keepgoing) {
+                const float yoff = row_count * (gapy + bldy);
+                const float xoff = yoff * std::tan(-theta_rad);
+
+                for (int i = (m_its - 1) * 2; i <= (m_ite - 1) * 2 + 1; ++i) {
+                    const float x = i * m_dx / 2.0f + xoff;
+                    const float bx = x - (std::floor(x / (gapx + bldx)) + 0.5f)
+                                         * (gapx + bldx);
+                    const float xmid = i * m_dx / 2.0f - bx;
+
+                    keepgoing = true;
+                    if (xmid - bldx / 2.0f <=
+                            (m_spec_bdy_width - 0.5f) * m_dx ||
+                        xmid + bldx / 2.0f >=
+                            (m_ide - m_spec_bdy_width - 0.5f) * m_dx) {
+                        keepgoing = false;
+                    }
+
+                    if (bx >= -bldx / 2.0f && bx <= bldx / 2.0f && keepgoing) {
+                        const int fi = static_cast<int>(std::floor(i / 2.0f)) + 1;
+                        const int fj = static_cast<int>(std::floor(j / 2.0f)) + 1;
+                        const bool i_even = std::floor(i / 2.0f) == i / 2.0f;
+                        const bool j_even = std::floor(j / 2.0f) == j / 2.0f;
+
+                        if (i_even && j_even) {
+                            C(fi, fj) += bldz;
+                        } else if (i_even) {
+                            U(fi, fj) += bldz;
+                        } else if (j_even) {
+                            V(fi, fj) += bldz;
+                        } else {
+                            W(fi, fj) += bldz;
+                        }
+                    }
+                }
+            }
+        }
     }
     ret_status = 0;
     return (ret_status);
