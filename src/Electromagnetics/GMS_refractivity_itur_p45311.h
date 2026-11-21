@@ -49,6 +49,11 @@ Usage:
 const float refraction = water_vapour_pressure_e<float,32ull,1>(1.0f,2.0f,3.0f);
 */
 
+/*
+   t ! temperature (C)
+   P ! pressure (hPa)
+   H ! relative humidity (%)
+*/
 #pragma omp declare simd simdlen(SimdLen) notinbranch
 template<typename T, std::size_t reg_width, std::int32_t water_or_ice, std::size_t SimdLen = reg_width / sizeof(T)>
 static inline 
@@ -97,6 +102,31 @@ T water_vapour_pressure_e(const T t, const T P, const T H)
     }
     return e;
 }
+
+/*
+   tc ! temperature (C)
+   Tk ! temperatur (K)
+   Pd ! dry atmospheric pressure  (hPa)
+   P ! pressure (hPa)
+   H ! relative humidity (%)
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T, std::size_t reg_width, std::int32_t water_or_ice, std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T refractivity_index_n(const T tc, const T Tk,
+                       const T Pd, const T P,
+                       const T H)
+{
+   float PdT,eT,eTT,e,n_tmp;
+   float n;
+   e       = water_vapour_pressure_e<T,reg_width,water_or_ice>(tc,P,H);
+   PdT     = (static_cast<T>(76.6)*PdT)/Tk; 
+   eT      = (static_cast<T>(72.0)*e)/Tk; 
+   eTT     = static_cast<T>(3750000.0)*(e/(Tk*Tk)); 
+   n_tmp   = PdT+eT+eTT; 
+   n       = static_cast<T>(1.0)+n_tmp*static_cast<T>(0.000001);
+}
+
 
 
 
