@@ -44,14 +44,22 @@ namespace gms
 namespace radiolocation
 {
 
-#pragma omp declare simd simdlen(4) notinbranch(true)
-template<typename T,std::int32_t water_or_ice>
-__ATTR_ALWAYS_INLINE__ 
+/*
+Usage: 
+const float refraction = water_vapour_pressure_e<float,32ull,1>(1.0f,2.0f,3.0f);
+*/
+
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T, std::size_t reg_width, std::int32_t water_or_ice, std::size_t SimdLen = reg_width / sizeof(T)>
 static inline 
-T water_vapour_pressure_e(const T t,const T P,
-                          const T H)
+T water_vapour_pressure_e(const T t, const T P, const T H)
 {
-    static_assert(water_or_ice==1 || water_or_ice==2, "Invalid argument passed: accepted only 1 or 2.");
+    static_assert(water_or_ice == 1 || water_or_ice == 2, 
+                  "Invalid argument passed: accepting only 1 or 2.");
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+
     constexpr T a_wat = static_cast<T>(6.1121);
     constexpr T b_wat = static_cast<T>(18.678);
     constexpr T c_wat = static_cast<T>(257.14);
@@ -63,31 +71,34 @@ T water_vapour_pressure_e(const T t,const T P,
     constexpr T d_ice = static_cast<T>(333.7);
     constexpr T C1    = static_cast<T>(1.0);
     constexpr T C0001 = static_cast<T>(0.0001);
-    T ef_wat,ef_ice,num,den;
+    
+    T ef_wat, ef_ice, num, den;
     T tt, td, es, e;
     
-    if constexpr(water_or_ice==1)
+    if constexpr (water_or_ice == 1)
     {
-       tt     = t*t; 
-       td     = t/d_wat; 
-       num    = (b_wat-td)*t;
-       den    = t+c_wat;
-       ef_wat = C1+C0001*(static_cast<T>(7.2)+P*(static_cast<T>(0.00320)+static_cast<T>(0.0000059)*tt));
-       es     = ef_wat*a_wat*std::exp(num/den);
-       e      = H*es*static_cast<T>(0.01);
+       tt     = t * t; 
+       td     = t / d_wat; 
+       num    = (b_wat - td) * t;
+       den    = t + c_wat;
+       ef_wat = C1 + C0001 * (static_cast<T>(7.2) + P * (static_cast<T>(0.00320) + static_cast<T>(0.0000059) * tt));
+       es     = ef_wat * a_wat * std::exp(num / den);
+       e      = H * es * static_cast<T>(0.01);
     }
-    else if constexpr(water_or_ice==2)
+    else if constexpr (water_or_ice == 2)
     {
-       tt     = t*t; 
-       td     = t/d_ice;  
-       num    = (b_ice-td)*t;
-       den    = t+c_ice; 
-       ef_ice = C1+C0001*(static_cast<T>(2.2)+P*(static_cast<T>(0.00382)+static_cast<T>(0.0000064)*tt));
-       es     = ef_ice*a_wat*std::exp(num/den);
-       e      = H*es*static_cast<T>(0.01);
+       tt     = t * t; 
+       td     = t / d_ice;  
+       num    = (b_ice - td) * t;
+       den    = t + c_ice; 
+       ef_ice = C1 + C0001 * (static_cast<T>(2.2) + P * (static_cast<T>(0.00382) + static_cast<T>(0.0000064) * tt));
+       es     = ef_ice * a_ice * std::exp(num / den); // Note: fixed a_wat -> a_ice here!
+       e      = H * es * static_cast<T>(0.01);
     }
-    return (e);
+    return e;
 }
+
+
 
 }
 
