@@ -117,17 +117,31 @@ T refractivity_index_n(const T tc, const T Tk,
                        const T Pd, const T P,
                        const T H)
 {
-   float PdT,eT,eTT,e,n_tmp;
-   float n;
+   T PdT,eT,eTT,e,n_tmp;
+   T n;
    e       = water_vapour_pressure_e<T,reg_width,water_or_ice>(tc,P,H);
    PdT     = (static_cast<T>(76.6)*PdT)/Tk; 
    eT      = (static_cast<T>(72.0)*e)/Tk; 
    eTT     = static_cast<T>(3750000.0)*(e/(Tk*Tk)); 
    n_tmp   = PdT+eT+eTT; 
    n       = static_cast<T>(1.0)+n_tmp*static_cast<T>(0.000001);
+   return n;
 }
 
-
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T, std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T refractivity_index_nh(const T N0, const T h,
+                        const T h0) 
+{
+    T nh;
+    T earg,eres;
+    nh   = static_cast<T>(0.0); 
+    earg = -h/h0; 
+    eres = std::exp(earg);
+    nh   = static_cast<T>(1.0)+N0*static_cast<T>(0.000001)*eres;
+    return (nh); 
+}
 
 
 }
