@@ -64,7 +64,8 @@ T water_vapour_pressure_e(const T t, const T P, const T H)
     static_assert(reg_width == 32ull || reg_width == 64ull,
                   "Invalid argument passed: accepting only 32ull or 64ull.");
     static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
-
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
     constexpr T a_wat = static_cast<T>(6.1121);
     constexpr T b_wat = static_cast<T>(18.678);
     constexpr T c_wat = static_cast<T>(257.14);
@@ -117,6 +118,11 @@ T refractivity_index_n(const T tc, const T Tk,
                        const T Pd, const T P,
                        const T H)
 {
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
    T PdT,eT,eTT,e,n_tmp;
    T n;
    e       = water_vapour_pressure_e<T,reg_width,water_or_ice>(tc,P,H);
@@ -134,6 +140,11 @@ static inline
 T refractivity_index_nh(const T N0, const T h,
                         const T h0) 
 {
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
     T nh;
     T earg,eres;
     nh   = static_cast<T>(0.0); 
@@ -142,6 +153,8 @@ T refractivity_index_nh(const T N0, const T h,
     nh   = static_cast<T>(1.0)+N0*static_cast<T>(0.000001)*eres;
     return (nh); 
 }
+
+
 
 
 }
