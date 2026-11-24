@@ -32,7 +32,7 @@ const char *const GMS_ANALYTIC_REFRACTION_BUILD_DATE = __DATE__ " " __TIME__;
 const char *const GMS_ANALYTIC_REFRACTION_AUTHOR   = "Programmer:Bernard Gingold, contact: beniekg@gmail.com";
 const char *const GMS_ANALYTIC_REFRACTION_SYNOPSIS =
     "Various characteristics and formulae of atmospheric refraction (radio waves and visible light/IR wavelengths)  \
-     Based mainly on THEКолосов М.А. Шабельников А.В. -- Рефракция электромагнитных волн в атмосферах Земли, Венеры и Марса-Советское Радио (1976)";
+     Based mainly on Колосов М.А. Шабельников А.В. -- Рефракция электромагнитных волн в атмосферах Земли, Венеры и Марса-Советское Радио (1976)";
 
 } // namespace file_info
 
@@ -126,7 +126,7 @@ T n_refract_tht_f243(const T n,const T n0,
                      const T r,const T R0,
                      T phi,T phi0)
 {
-    constexpr one = static_cast<T>(1.0);
+    constexpr T one = static_cast<T>(1.0);
     T tgz, tgz0, tgphi, tgphi0; 
     T num_d, num_s, den_d, den_s; 
     T rat_s, rat_d;
