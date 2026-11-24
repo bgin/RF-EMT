@@ -172,6 +172,70 @@ T n_refract_tht_f243(const T n,const T n0,
     }
 }
 
+/*
+    Formula 2.43, page 46
+    n    refractive index at dest (observation point)
+    n0   refractive index at source
+    z    'z' angle at dest
+    z0   'z' angle at source
+    r    upper limit of integration (radius)
+    R0   lower limit of integration (radius)
+    phi  'phi' angle at dest
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T, std::int32_t which_tan,std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T n_refract_phi_f243(const T n,const T n0,
+                     T z,T z0,
+                     const T r,const T R0,
+                     T phi,T phi0)
+{
+    constexpr T one = static_cast<T>(1.0);
+    T n_over_phi; 
+    T tgz, tgz0, tgphi, tgphi0; 
+    T num_d, num_s, den_d, den_s; 
+    T rat_s, rat_d; 
+    T stgz, stgphi, stgz0, stgphi0;
+    if constexpr(which_tan == 1)
+    {
+        tgz        = std::tan(z);
+        stgz       = tgz*tgz;
+        tgz0       = std::tan(z0);
+        stgz0      = tgz0*tgz0;
+        tgphi      = std::tan(phi);
+        stgphi     = tgphi*tgphi; 
+        tgphi0     = std::tan(phi0);
+        stgphi0    = tgphi0*tgphi0;
+        num_d      = n*r*tgphi; 
+        num_s      = n0*R0*tgphi0; 
+        den_d      = std::sqrt(one+stgz+stgphi); 
+        den_s      = std::sqrt(one+stgz0+stgphi0);
+        rat_s      = num_s/den_s; 
+        rat_d      = num_d/den_d; 
+        n_over_phi = rat_d-rat_s;
+        return (n_over_phi);
+    }
+    else if constexpr(which_tan == 2)
+    {
+        tgz        = approximated_tan<T,reg_width>(z);
+        stgz       = tgz*tgz;
+        tgz0       = approximated_tan<T,reg_width>(z0);
+        stgz0      = tgz0*tgz0;
+        tgphi      = approximated_tan<T,reg_width>(phi);
+        stgphi     = tgphi*tgphi; 
+        tgphi0     = approximated_tan<T,reg_width>(phi0);
+        stgphi0    = tgphi0*tgphi0;
+        num_d      = n*r*tgphi; 
+        num_s      = n0*R0*tgphi0; 
+        den_d      = std::sqrt(one+stgz+stgphi); 
+        den_s      = std::sqrt(one+stgz0+stgphi0);
+        rat_s      = num_s/den_s; 
+        rat_d      = num_d/den_d; 
+        n_over_phi = rat_d-rat_s;
+        return (n_over_phi);
+    }
+}
+
 
 }
 
