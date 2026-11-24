@@ -436,7 +436,7 @@ T n_avg_h_f145(const T dn0,const T beta,
    dn0  ! coefficient of refreaction near the Earth surface i.e. dn0 = (240*10e-6->380*10e-6)
 */
 #pragma omp declare simd simdlen(SimdLen) notinbranch
-template<typename T ,std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
+template<typename T ,std::size_t reg_width, std::int32_t which_exp, std::size_t SimdLen = reg_width / sizeof(T)>
 static inline 
 T approx_beta_coeff_f146(const T dn0)
 {
@@ -445,10 +445,19 @@ T approx_beta_coeff_f146(const T dn0)
     static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
     static_assert(std::is_floating_point<T>::value == true, 
                   "Invalid template argument: accepting only float types!!");
+    static_assert(which_exp == 1 || which_exp == 2,
+                  "Invalid argument passed: accepting only 1 or 2.");
     T beta,t0,earg;
     t0   = static_cast<T>(0.00000732)/dn0; 
     earg = static_cast<T>(5577.0)*dn0; 
-    beta = t0*std::exp(earg);
+    if constexpr(which_exp == 1)
+    {
+        beta = t0*std::exp(earg);
+    }
+    else if constexpr(which_exp) 
+    {
+        beta = t0*exp_estrin_scheme<T,reg_width>(earg);
+    }
     return (beta);
 }
 
