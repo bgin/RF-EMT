@@ -242,7 +242,37 @@ T n_refract_phi_f243(const T n,const T n0,
     z angle
     dndr derivative of refractive index at r
 */
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T ,std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T rad_ray_curvature_f251(const T n,const T z,
+                         const T dndr) 
+{
+    T rho,t0,sinz;
+    sinz = std::sin(z);
+    t0   = -n/sinz; 
+    rho  = t0*dndr;
+    return (rho);
+}
 
+/*
+    formula: 2.54, page: 48
+    n refractive index
+    z angle
+    dndr derivative of refractive index at r
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T ,std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T key_relative_f254(const T n, const T z,
+                    const T dndr)
+{
+    constexpr T inv_erad = static_cast<T>(0.00015678896205707118218877391);
+    T inv_rho,k_rel;
+    inv_rho = static_cast<T>(1.0)/rad_ray_curvature_f251<T,reg_width>(n,z,dndr);
+    k_rel   = inv_erad*inv_rho;
+    return (k_rel);
+}
 
 }
 
