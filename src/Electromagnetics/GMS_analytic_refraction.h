@@ -481,6 +481,73 @@ T prob_integral(const T x)
     return (result);
 }
 
+/*
+   formula 3.37, page: 68
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T ,std::size_t reg_width, std::int32_t which_tan, std::int32_t which_exp,
+         std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T  analytic_solution_L1_f337(const T beta,const T dn0,
+                        T z0, const T H)
+{
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+     static_assert(which_tan == 1 || which_tan == 2,
+                  "Invalid argument passed: accepting only 1 or 2.");
+    static_assert(which_exp == 1 || which_exp == 2,
+                  "Invalid argument passed: accepting only 1 or 2.");
+    constexpr T one = static_cast<T>(1.0);
+    constexpr T two = static_cast<T>(2.0);
+    constexpr T a   = static_cast<T>(6378.0);
+    T L1;
+    T cosz0,ctgz0,ea1;
+    T ea2,exp1,exp2,num2;
+    T den2,num1,den1,sdn0;
+    T stgz0,rat1,rat2,tgz0;
+    ea1   = -two*beta*H;
+    ea2   = -beta*H; 
+    if constexpr(which_tan == 1)
+    {
+       tgz0  = std::tan(z0);
+    }
+    else if constexpr(which_tan == 2)
+    {
+       tgz0 = approximated_tan<T,reg_width>(z0); 
+    }
+    ctgz0 = one/tgz0; 
+    sdn0  = dn0*dn0; 
+    if constexpr(which_exp == 1)
+    {
+        exp1  = std::exp(ea1);
+    }
+    else if constexpr(which_exp == 2)
+    {
+        exp1  = exp_estrin_scheme<T,reg_width>(ea1);
+    }
+    num1  = beta*a*sdn0*ctgz0;
+    cosz0 = std::cos(z0);
+    den1  = cosz0*cosz0;
+    if constexpr(which_exp == 1)
+    { 
+        exp2  = std::exp(ea2);
+    }
+    else if constexpr(which_exp == 2)
+    {
+        exp2  = exp_estrin_scheme<T,reg_width>(ea2);
+    }
+    rat1  = num1/den1; 
+    stgz0 = two*(tgz0*tgz0); 
+    den2  = std::sqrt(one+stgz0*(H/a));
+    num2  = exp1-exp2; 
+    rat2  = num2/den2; 
+    L1    = rat1*rat2;
+    return (L1); 
+}
+
 }
 
 }
