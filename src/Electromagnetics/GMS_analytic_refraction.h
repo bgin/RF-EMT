@@ -75,6 +75,11 @@ template<typename T, std::size_t reg_width, std::size_t SimdLen = reg_width / si
 static inline 
 T approximated_tan(T x, std::int32_t terms = 10) 
 {
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
     constexpr T PI          = static_cast<T>(3.1415926535897932384626433832795);
     constexpr T HALF_PI     = static_cast<T>(1.5707963267948966192313216916398);
     constexpr T QUARTER_PI  = static_cast<T>(0.7853981633974483096156608458199);
@@ -126,6 +131,13 @@ T n_refract_tht_f243(const T n,const T n0,
                      const T r,const T R0,
                      T phi,T phi0)
 {
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+    static_assert(which_tan ==1 || which_tan ==2,
+                  "Invalid template argument: accepting only values: 1 or 2.");
     constexpr T one = static_cast<T>(1.0);
     T tgz, tgz0, tgphi, tgphi0; 
     T num_d, num_s, den_d, den_s; 
@@ -190,6 +202,13 @@ T n_refract_phi_f243(const T n,const T n0,
                      const T r,const T R0,
                      T phi,T phi0)
 {
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+    static_assert(which_tan ==1 || which_tan ==2,
+                  "Invalid template argument: accepting only values: 1 or 2.");
     constexpr T one = static_cast<T>(1.0);
     T n_over_phi; 
     T tgz, tgz0, tgphi, tgphi0; 
@@ -248,6 +267,11 @@ static inline
 T rad_ray_curvature_f251(const T n,const T z,
                          const T dndr) 
 {
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
     T rho,t0,sinz;
     sinz = std::sin(z);
     t0   = -n/sinz; 
@@ -266,12 +290,59 @@ template<typename T ,std::size_t reg_width, std::size_t SimdLen = reg_width / si
 static inline 
 T key_relative_f254(const T n, const T z,
                     const T dndr)
-{
+{   
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
     constexpr T inv_erad = static_cast<T>(0.00015678896205707118218877391);
     T inv_rho,k_rel;
     inv_rho = static_cast<T>(1.0)/rad_ray_curvature_f251<T,reg_width>(n,z,dndr);
     k_rel   = inv_erad*inv_rho;
     return (k_rel);
+}
+
+/*
+    formula 2.67, page: 52
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T ,std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T rho_to_a_f267(const T dndh)
+{
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+    constexpr T inv_erad = static_cast<T>(0.00015678896205707118218877391);
+    T R;
+    R = inv_erad*dndh;
+    return (R);
+}
+
+/*
+   formula: 1.45, page 29
+   dn0  coefficient of refreaction near the Earth surface i.e. dn0 = (240*10e-6->380*10e-6)
+   beta coefficient describing the diminishing of 'n' as function of height, i.e. 0.10->0.14 1/km
+   h    height 
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T ,std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T n_avg_h_f145(const T dn0,const T beta,
+               const T h)
+{
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+    T nah,earg;
+    earg = beta*h; 
+    nah  = static_cast<T>(1.0)+dn0*std::exp(-earg);
+    return (nah);
 }
 
 }
