@@ -154,7 +154,56 @@ T refractivity_index_nh(const T N0, const T h,
     return (nh); 
 }
 
+/*
+  Pd ! dry atmos pressure (hPa)
+  tk ! ! absolute temp (K)
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T, std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T refractivity_index_dry(const T Pd,const T tk)
+{
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+    T Ndry,rat; 
+    rat = Pd/tk;
+    Ndry = static_cast<T>(77.6)*rat;
+    return (Ndry);
+}
 
+/*
+  tc ! temperature (C)
+  Tk ! temperatur (K)
+  Pd ! dry atmospheric pressure  (hPa)
+  P ! pressure (hPa)
+  H ! relative humidity (%)
+*/
+
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T, std::size_t reg_width, std::int32_t water_or_ice, std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T refractivity_index_wet(const T tc,const T Tk,
+                         const T Pd, const T P,
+                         const T H) 
+{
+    static_assert(water_or_ice == 1 || water_or_ice == 2, 
+                  "Invalid argument passed: accepting only 1 or 2.");
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+    T nwet;
+    T eT,eTT,e,n_tmp;
+    e = water_vapour_pressure_e<T,reg_width,water_or_ice,SimdLen>(tc,P,H);
+    eT   = e/Tk; 
+    eTT  = e/(Tk*Tk);
+    nwet = static_cast<T>(72.0)*eT+static_cast<T>(3.75e+5)*eTT;
+    return (nwet); 
+}
 
 
 }
