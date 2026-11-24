@@ -461,6 +461,26 @@ T approx_beta_coeff_f146(const T dn0)
     return (beta);
 }
 
+/*
+      probability integral
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T ,std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T prob_integral(const T x)
+{
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+    constexpr T C0707106781186547524400844362105 = static_cast<T>(0.707106781186547524400844362105);
+    constexpr T half = static_cast<T>(0.5);
+    T result;
+    result = half*(static_cast<T>(1.0)*std::erf(x*C0707106781186547524400844362105));
+    return (result);
+}
+
 }
 
 }
