@@ -236,6 +236,13 @@ T n_refract_phi_f243(const T n,const T n0,
     }
 }
 
+/*
+    !Радиус кривизны траектории луча, formula 2.51, page: 47
+    n refractive index
+    z angle
+    dndr derivative of refractive index at r
+*/
+
 
 }
 
