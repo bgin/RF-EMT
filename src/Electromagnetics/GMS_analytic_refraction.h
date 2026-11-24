@@ -38,6 +38,7 @@ const char *const GMS_ANALYTIC_REFRACTION_SYNOPSIS =
 
 #include <cstdint>
 #include <cmath>
+#include <cstring>
 #include "GMS_config.h"
 
 // Enable for the basic PMC tracing (wall-clock) readout (not statistically rigorous)!!
@@ -111,6 +112,82 @@ T approximated_tan(T x, std::int32_t terms = 10)
 
     T result = sin_val / cos_val;
     return invert ? (static_cast<T>(1.0) / result) : result;
+}
+
+/* For std::bit_cast substitute
+   Adapted from: https://en.cppreference.com/cpp/numeric/bit_cast
+*/
+template<class To, class From>
+std::enable_if_t<
+    sizeof(To) == sizeof(From) &&
+    std::is_trivially_copyable_v<From> &&
+    std::is_trivially_copyable_v<To>,
+    To>
+// constexpr support needs compiler magic
+bit_cast(const From& src) noexcept
+{
+    static_assert(std::is_trivially_constructible_v<To>,
+        "This implementation additionally requires "
+        "destination type to be trivially constructible");
+    
+    To dst;
+    std::memcpy(&dst, &src, sizeof(To));
+    return dst;
+}
+
+#pragma omp declare simd simdlen(SimdLen)
+template<typename T, std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
+static inline
+T exp_estrin_scheme(T x) {
+    
+    constexpr T MAX_X = static_cast<T>(709.782712893384);
+    constexpr T MIN_X = static_cast<T>(-708.3964185322641);
+    x = (x > MAX_X) ? MAX_X : ((x < MIN_X) ? MIN_X : x); // Compiles to branchless MINSD/MAXSD
+
+    constexpr T INV_LN2 = static_cast<T>(1.44269504088896340736);
+    constexpr T LN2_HI  = static_cast<T>(0.69314718036912381649); // High bits of ln(2)
+    constexpr T LN2_LO  = static_cast<T>(1.90821492927058770002e-10); // Low bits for precision
+
+    T kf = std::round(x * INV_LN2);
+    std::int64_t k = static_cast<int64_t>(kf);
+
+    T r = (x - kf * LN2_HI) - kf * LN2_LO;
+
+    constexpr T c0  = static_cast<T>(1.0);
+    constexpr T c1  = static_cast<T>(1.0);
+    constexpr T c2  = static_cast<T>(0.5);
+    constexpr T c3  = static_cast<T>(1.0 / 6.0);
+    constexpr T c4  = static_cast<T>(1.0 / 24.0);
+    constexpr T c5  = static_cast<T>(1.0 / 120.0);
+    constexpr T c6  = static_cast<T>(1.0 / 720.0);
+    constexpr T c7  = static_cast<T>(1.0 / 5040.0);
+    constexpr T c8  = static_cast<T>(1.0 / 40320.0);
+    constexpr T c9  = static_cast<T>(1.0 / 362880.0);
+    constexpr T c10 = static_cast<T>(1.0 / 3628800.0);
+    constexpr T c11 = static_cast<T>(1.0 / 39916800.0);
+
+    T r2 = r * r;
+    T r4 = r2 * r2;
+    T r8 = r4 * r4;
+
+    T p01  = std::fma(c1,  r, c0);
+    T p23  = std::fma(c3,  r, c2);
+    T p45  = std::fma(c5,  r, c4);
+    T p67  = std::fma(c7,  r, c6);
+    T p89  = std::fma(c9,  r, c8);
+    T p1011 = std::fma(c11, r, c10);
+
+    T p03  = std::fma(p23,   r2, p01);
+    T p47  = std::fma(p67,   r2, p45);
+    T p811 = std::fma(p1011, r2, p89);
+
+    T p07  = std::fma(p47,  r4, p03);
+    T poly = std::fma(p811, r8, p07);
+
+    // Double exponent bias is 1023, shifted to bits [62:52]
+    std::uint64_t exp_bits = static_cast<uint64_t>(k + 1023) << 52;
+    T scale = bit_cast<T>(exp_bits);
+    return poly * scale;
 }
 
 /*
@@ -329,7 +406,7 @@ T rho_to_a_f267(const T dndh)
    h    height 
 */
 #pragma omp declare simd simdlen(SimdLen) notinbranch
-template<typename T ,std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
+template<typename T ,std::size_t reg_width, std::int32_t which_exp,std::size_t SimdLen = reg_width / sizeof(T)>
 static inline 
 T n_avg_h_f145(const T dn0,const T beta,
                const T h)
@@ -339,9 +416,18 @@ T n_avg_h_f145(const T dn0,const T beta,
     static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
     static_assert(std::is_floating_point<T>::value == true, 
                   "Invalid template argument: accepting only float types!!");
+    static_assert(which_exp == 1 || which_exp == 2,
+                  "Invalid argument passed: accepting only 1 or 2.");
     T nah,earg;
-    earg = beta*h; 
-    nah  = static_cast<T>(1.0)+dn0*std::exp(-earg);
+    earg = beta*h;
+    if constexpr(which_exp == 1)
+    {
+        nah  = static_cast<T>(1.0)+dn0*std::exp(-earg);
+    }
+    else if constexpr(which_exp == 2)
+    {
+        nah  = static_cast<T>(1.0)+dn0*exp_estrin_scheme<T,reg_width>(-earg);
+    }
     return (nah);
 }
 
