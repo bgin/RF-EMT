@@ -71,11 +71,57 @@ namespace gms
 namespace radiolocation
 {
 
+namespace 
+{
+
+#pragma omp declare simd simdlen(SimdLen)
+template<typename T, std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
+static inline
+constexpr T sin_horner_scheme(T x) noexcept 
+{
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+
+    constexpr T two_over_pi = static_cast<T>(0.6366197723675813430755350534900574);
+    
+    constexpr T pi_over_2_hi = static_cast<T>(1.57079637050628662109375);
+    constexpr T pi_over_2_lo = static_cast<T>(-4.37113900018624283e-8);
+
+    T scaled = x * two_over_pi;
+    auto k = static_cast<std::int64_t>(scaled + (scaled >= T(0) ? T(0.5) : T(-0.5)));
+    T kf = static_cast<T>(k);
+
+    T r = (x - kf * pi_over_2_hi) - kf * pi_over_2_lo;
+    T r2 = r * r;
+
+    T result{};
+    if ((k & 1) == 0) {
+        // Even quadrant: evaluate sin(r) ≈ r + c3*r^3 + c5*r^5 + c7*r^7
+        constexpr T c3 = static_cast<T>(-0.166666666666666324348);
+        constexpr T c5 = static_cast<T>( 0.00833333333332248946124);
+        constexpr T c7 = static_cast<T>(-0.000198412698298579493134);
+
+        result = r * (T(1) + r2 * (c3 + r2 * (c5 + r2 * c7)));
+    } else {
+        // Odd quadrant: evaluate cos(r) ≈ 1 + c2*r^2 + c4*r^4 + c6*r^6
+        constexpr T c2 = static_cast<T>(-0.499999999999999944489);
+        constexpr T c4 = static_cast<T>( 0.0416666666666666019037);
+        constexpr T c6 = static_cast<T>(-0.00138888888888741095749);
+
+        result = T(1) + r2 * (c2 + r2 * (c4 + r2 * c6));
+    }
+
+    return (k & 2) ? -result : result;
+}
+
 // Reduces any angle in radians to the range [-pi/4, pi/4] for fast convergence
 #pragma omp declare simd simdlen(SimdLen)
 template<typename T, std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
 static inline 
-T approximated_tan(T x, std::int32_t terms = 10) 
+T approximated_tan(T x, std::int32_t terms = 10) noexcept
 {
     static_assert(reg_width == 32ull || reg_width == 64ull,
                   "Invalid argument passed: accepting only 32ull or 64ull.");
@@ -139,7 +185,8 @@ bit_cast(const From& src) noexcept
 #pragma omp declare simd simdlen(SimdLen)
 template<typename T, std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
 static inline
-T exp_estrin_scheme(T x) {
+T exp_estrin_scheme(T x) noexcept
+{
     
     constexpr T MAX_X = static_cast<T>(709.782712893384);
     constexpr T MIN_X = static_cast<T>(-708.3964185322641);
@@ -191,6 +238,8 @@ T exp_estrin_scheme(T x) {
     return poly * scale;
 }
 
+} // anonymous namespace 
+
 /*
     Formula 2.43, page 46
     n    refractive index at dest (observation point)
@@ -207,7 +256,7 @@ static inline
 T n_refract_tht_f243(const T n,const T n0,
                      T z,T z0,
                      const T r,const T R0,
-                     T phi,T phi0)
+                     T phi,T phi0) noexcept
 {
     static_assert(reg_width == 32ull || reg_width == 64ull,
                   "Invalid argument passed: accepting only 32ull or 64ull.");
@@ -278,7 +327,7 @@ static inline
 T n_refract_phi_f243(const T n,const T n0,
                      T z,T z0,
                      const T r,const T R0,
-                     T phi,T phi0)
+                     T phi,T phi0) noexcept
 {
     static_assert(reg_width == 32ull || reg_width == 64ull,
                   "Invalid argument passed: accepting only 32ull or 64ull.");
@@ -343,7 +392,7 @@ T n_refract_phi_f243(const T n,const T n0,
 template<typename T ,std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
 static inline 
 T rad_ray_curvature_f251(const T n,const T z,
-                         const T dndr) 
+                         const T dndr) noexcept
 {
     static_assert(reg_width == 32ull || reg_width == 64ull,
                   "Invalid argument passed: accepting only 32ull or 64ull.");
@@ -367,7 +416,7 @@ T rad_ray_curvature_f251(const T n,const T z,
 template<typename T ,std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
 static inline 
 T key_relative_f254(const T n, const T z,
-                    const T dndr)
+                    const T dndr) noexcept
 {   
     static_assert(reg_width == 32ull || reg_width == 64ull,
                   "Invalid argument passed: accepting only 32ull or 64ull.");
@@ -387,7 +436,7 @@ T key_relative_f254(const T n, const T z,
 #pragma omp declare simd simdlen(SimdLen) notinbranch
 template<typename T ,std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
 static inline 
-T rho_to_a_f267(const T dndh)
+T rho_to_a_f267(const T dndh) noexcept
 {
     static_assert(reg_width == 32ull || reg_width == 64ull,
                   "Invalid argument passed: accepting only 32ull or 64ull.");
@@ -410,7 +459,7 @@ T rho_to_a_f267(const T dndh)
 template<typename T ,std::size_t reg_width, std::int32_t which_exp,std::size_t SimdLen = reg_width / sizeof(T)>
 static inline 
 T n_avg_h_f145(const T dn0,const T beta,
-               const T h)
+               const T h) noexcept
 {
     static_assert(reg_width == 32ull || reg_width == 64ull,
                   "Invalid argument passed: accepting only 32ull or 64ull.");
@@ -439,7 +488,7 @@ T n_avg_h_f145(const T dn0,const T beta,
 #pragma omp declare simd simdlen(SimdLen) notinbranch
 template<typename T ,std::size_t reg_width, std::int32_t which_exp, std::size_t SimdLen = reg_width / sizeof(T)>
 static inline 
-T approx_beta_coeff_f146(const T dn0)
+T approx_beta_coeff_f146(const T dn0) noexcept
 {
     static_assert(reg_width == 32ull || reg_width == 64ull,
                   "Invalid argument passed: accepting only 32ull or 64ull.");
@@ -468,7 +517,7 @@ T approx_beta_coeff_f146(const T dn0)
 #pragma omp declare simd simdlen(SimdLen) notinbranch
 template<typename T ,std::size_t reg_width, std::size_t SimdLen = reg_width / sizeof(T)>
 static inline 
-T prob_integral(const T x)
+T prob_integral(const T x) noexcept
 {
     static_assert(reg_width == 32ull || reg_width == 64ull,
                   "Invalid argument passed: accepting only 32ull or 64ull.");
@@ -490,7 +539,7 @@ template<typename T ,std::size_t reg_width, std::int32_t which_tan, std::int32_t
          std::size_t SimdLen = reg_width / sizeof(T)>
 static inline 
 T  analytic_solution_L1_f337(const T beta,const T dn0,
-                        T z0, const T H)
+                        T z0, const T H) noexcept
 {
     static_assert(reg_width == 32ull || reg_width == 64ull,
                   "Invalid argument passed: accepting only 32ull or 64ull.");
@@ -557,7 +606,7 @@ template<typename T ,std::size_t reg_width, std::int32_t which_tan, std::int32_t
          std::size_t SimdLen = reg_width / sizeof(T)>
 static inline 
 T analytic_solution_L2_f341(const T dn0,const T beta,
-                            T z0, const T H)
+                            T z0, const T H) noexcept
 {
     static_assert(reg_width == 32ull || reg_width == 64ull,
                   "Invalid argument passed: accepting only 32ull or 64ull.");
@@ -613,7 +662,7 @@ template<typename T ,std::size_t reg_width, std::int32_t which_tan, std::int32_t
          std::size_t SimdLen = reg_width / sizeof(T)>
 static inline 
 T analytic_solution_L3_f342(const T dn0,const T beta,
-                            T z0, const T H)
+                            T z0, const T H) noexcept
 {
     static_assert(reg_width == 32ull || reg_width == 64ull,
                   "Invalid argument passed: accepting only 32ull or 64ull.");
@@ -659,6 +708,67 @@ T analytic_solution_L3_f342(const T dn0,const T beta,
     t1     = phi1-phi2; 
     L3     = t0*exp1*t1;
     return (L3);
+}
+
+/*
+   Formula: 3.45, computing the angle of Refraction (0 < z0 < 90(deg)) for
+   arbitrary value of n(h)
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T ,std::size_t reg_width, std::int32_t which_sin, std::int32_t which_tan,
+         std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T refraction_angle_f345(const T n0, const T nh,
+                        T z0, const T dn0, const T beta,
+                        const T H) noexcept
+{
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+    static_assert(which_tan == 1 || which_tan == 2,
+                  "Invalid argument passed: accepting only: which_tan == 1 or which_tan == 2.");
+    static_assert(which_exp == 1 || which_exp == 2,
+                  "Invalid argument passed: accepting only: which_sin == 1 or which_sin == 2.");
+    constexpr T a = static_cast<T>(6378.0);
+    constexpr T zero = static_cast<T>(0.0);
+    constexpr T one = static_cast<T>(1.0);
+    T alpha;
+    T ctgz0, ln0nh, ssecz0,badn0, ctgzsec0;
+    T t0, t1, t2; 
+    T L1, L2, L3;
+    badn0  = beta*a*dn0;
+    L1     = zero;
+    if constexpr(which_tan == 1)
+    { 
+        ctgz0  = one/std::tan(z0);
+    }
+    else if constexpr(which_tan == 2)
+    {
+        ctgz0  = one/approximated_tan<T,reg_width>(z0);
+    }
+    L2       = zero; 
+    ln0nh    = std::log(n0/nh); 
+    L3       = zero; 
+    if constexpr(which_sin == 1)
+    {
+        t0 = one/std::sin(z0);
+    }
+    else if constexpr(which_sin == 2)
+    {
+        t0 = one/sin_horner_scheme<T,reg_width>(z0);
+    }
+    ssecz0   = t0*t0;
+    L1       = analytic_solution_L1_f337<T,reg_width,which_tan,which_exp>(dn0,beta,z0,H);
+    t0       = -ctgz0*ln0nh+L1; 
+    ctgzsec0 = ctgz0*ssecz0;
+    L2       = analytic_solution_L2_f341<T,reg_width,which_tan,which_exp>(dn0,beta,z0,H0);
+    t1       = ctgzsec0*L2;
+    L3       = analytic_solution_L3_f342<T,reg_width,which_tan,which_exp>(dn0,beta,z0,H);
+    t2       = badn0*ctgzsec0*(L3-L2);
+    alpha    = t0+t1+t2;
+    return (alpha);
 }
 
 }
