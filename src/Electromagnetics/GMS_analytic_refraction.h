@@ -928,6 +928,34 @@ T  refraction_angle_n90_f351(const T dn0,const T beta,
     return (alpha); 
 }
 
+/*
+ z0 = 90°
+ ! formula: 3.52, page: 71
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T ,std::size_t reg_width,
+         std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T refraction_angle_at90_f352(const T dn0, const T beta)
+{
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+    constexpr T a = static_cast<T>(6378.0);
+    constexpr T half = static_cast<T>(2.0);
+    constexpr T one = static_cast<T>(1.0);
+    T constexpr C041421356237309504880168872421 = static_cast<T>(0.41421356237309504880168872421);
+    T constexpr C314159265358979323846264338328 = static_cast<T>(3.14159265358979323846264338328);
+    T t0, t1;
+    T alpha;
+    t0 = dn0*std::sqrt((C314159265358979323846264338328*beta*a)*half);
+    t1 = one+C041421356237309504880168872421*beta*a*dn0; 
+    alpha = t0*t1;
+    return (alpha);
+}
+
 }
 
 }
