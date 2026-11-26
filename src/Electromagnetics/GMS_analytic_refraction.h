@@ -792,7 +792,7 @@ T analytic_solution_n90_L2_f351(const T dn0, const T beta, T z0) noexcept
     static_assert(which_tan == 1 || which_tan == 2,
                   "Invalid argument passed: accepting only: which_tan == 1 or which_tan == 2.");
     static_assert(which_exp == 1 || which_exp == 2,
-                  "Invalid argument passed: accepting only: which_sin == 1 or which_sin == 2.");
+                  "Invalid argument passed: accepting only: which_exp == 1 or which_exp == 2.");
     constexpr T a = static_cast<T>(6378.0);
     constexpr T two = static_cast<T>(2.0);
     constexpr T one = static_cast<T>(1.0);
@@ -846,7 +846,7 @@ T analytic_solution_n90_L3_f351(const T dn0, const T beta, T z0) noexcept
     static_assert(which_tan == 1 || which_tan == 2,
                   "Invalid argument passed: accepting only: which_tan == 1 or which_tan == 2.");
     static_assert(which_exp == 1 || which_exp == 2,
-                  "Invalid argument passed: accepting only: which_exp == 1 or which_sin == 2.");
+                  "Invalid argument passed: accepting only: which_exp == 1 or which_exp == 2.");
     constexpr T a = static_cast<T>(6378.0);
     constexpr T two = static_cast<T>(2.0);
     constexpr T one = static_cast<T>(1.0);
@@ -902,7 +902,7 @@ T  refraction_angle_n90_f351(const T dn0,const T beta,
     static_assert(which_tan == 1 || which_tan == 2,
                   "Invalid argument passed: accepting only: which_tan == 1 or which_tan == 2.");
     static_assert(which_exp == 1 || which_exp == 2,
-                  "Invalid argument passed: accepting only: which_exp == 1 or which_sin == 2.");
+                  "Invalid argument passed: accepting only: which_exp == 1 or which_exp == 2.");
     constexpr T a   = static_cast<T>(6378.0);
     constexpr T one = static_cast<T>(1.0);
     T ctgz0, badn0, cosz0, scosz0;
@@ -954,6 +954,126 @@ T refraction_angle_at90_f352(const T dn0, const T beta)
     t1 = one+C041421356237309504880168872421*beta*a*dn0; 
     alpha = t0*t1;
     return (alpha);
+}
+
+/*
+   ! formula: 4.2, page 73.
+   For the wavelengths <= 5cm.
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T ,std::size_t reg_width, std::int32_t which_exp, std::int32_t which_tan,
+         std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T analytic_sol_L1_gl5cm_f42(const T dn0, const T beta,
+                            T z0, const T H) noexcept
+{
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+    static_assert(which_tan == 1 || which_tan == 2,
+                  "Invalid argument passed: accepting only: which_tan == 1 or which_tan == 2.");
+    static_assert(which_exp == 1 || which_exp == 2,
+                  "Invalid argument passed: accepting only: which_exp == 1 or which_exp == 2.");
+    constexpr T a   = static_cast<T>(6378.0);
+    constexpr T one = static_cast<T>(1.0);
+    constexpr T two = static_cast<T>(2.0);
+    T ctgz0, secz0, tgz0, betaH; 
+    T t0, t1, exp1, exp2; 
+    T sdn0ba, trm1, trm2, trm3;
+    T L1; 
+    betaH  = beta*H;
+    if constexpr(which_tan == 1)
+    {
+        t0     = std::tan(z0);
+    }
+    else if constexpr(which_tan == 2)
+    {
+        t0     = approximated_tan<T,reg_width>(z0);
+    }
+    ctgz0  = one/t0;
+    sdn0ba = -dn0*dn0*beta*a;
+    tgz0   = t0*t0;
+    t1     = one/std::cos(z0); 
+    secz0  = t1*t1; 
+    if constexpr (which_exp == 1)
+    {
+        exp1   = std::exp(-betaH);
+    }
+    else if constexpr(which_exp == 2)
+    {
+        exp1   = exp_estrin_scheme<T,reg_width>(-betaH);
+    }
+    ctgz0  = one/t0; 
+    if constexpr(which_exp == 1)
+    {
+        exp2   = std::exp(-two*betaH);
+    }
+    else if constexpr(which_exp == 2)
+    {
+        exp2   = exp_estrin_scheme<T,reg_width>(-two*betaH);
+    }
+    trm1   = sdn0ba*ctgz0*secz0; 
+    trm2   = exp1-exp2; 
+    trm3   = std::sqrt(one+two*tgz0*(H/a));
+    L1     = trm1*trm2*trm3;
+    return (L1);
+}
+
+/*
+   ! formula: 4.3, page 73.
+   For the wavelengths <= 5cm.
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T ,std::size_t reg_width, std::int32_t which_exp,
+         std::int32_t which_tan, std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T analytic_sol_L2_gl5cm_f43(const T dn0, const T beta,
+                            T z0, const T H) noexcept
+{
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+    static_assert(which_exp == 1 || which_exp == 2,
+                  "Invalid argument passed: accepting only: which_exp == 1 or which_exp == 2.");
+    static_assert(which_tan == 1 || which_tan == 2,
+                  "Invalid argument passed: accepting only: which_tan == 1 or which_tan == 2.");
+    T constexpr C314159265358979323846264338328 = static_cast<T>(3.14159265358979323846264338328);
+    constexpr T a   = static_cast<T>(6378.0);
+    constexpr T one = static_cast<T>(1.0);
+    constexpr T two = static_cast<T>(2.0);
+    constexpr T half= static_cast<T>(0.5);
+    T piba2, ctgz0, bactgz0, exp1; 
+    T t0, t1, trm1, trm2, trm3;
+    T L2;
+    piba2  = std::sqrt((C314159265358979323846264338328*beta*a)*half);
+    if constexpr(which_exp == 1)
+    {
+        ctgz0  = one/std::tan(z0);
+    }
+    else if constexpr(which_exp == 2)
+    {
+        ctgz0  = one/approximated_tan<T,reg_width>(z0);
+    }
+    bactgz0= beta*a*ctgz0*ctgz0; 
+    if constexpr(which_exp == 1)
+    {
+        exp1 = std::exp(bactgz0*half);
+    }
+    else if constexpr(which_exp == 2)
+    {
+        exp1 = exp_estrin_scheme<T,reg_width>(bactgz0*half);
+    }
+    trm1   = dn0*std::sqrt(piba2)*ctgz0;
+    t0     = prob_integral<T,reg_width>(std::sqrt(bactgz0+two*beta*H));
+    t1     = prob_integral<T,reg_width>(std::sqrt(bactgz0));
+    trm3   = t0-t1; 
+    trm2   = trm1*exp1; 
+    L2     = trm2*trm3;
+    return (L2);
 }
 
 }
