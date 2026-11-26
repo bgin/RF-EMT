@@ -605,6 +605,62 @@ T analytic_solution_L2_f341(const T dn0,const T beta,
     return (L2);
 }
 
+/*
+    Formula: 3.42, page: 68
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T ,std::size_t reg_width, std::int32_t which_tan, std::int32_t which_exp,
+         std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T analytic_solution_L3_f342(const T dn0,const T beta,
+                            T z0, const T H)
+{
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+    static_assert(which_tan == 1 || which_tan == 2,
+                  "Invalid argument passed: accepting only: which_tan == 1 or which_tan == 2.");
+    static_assert(which_exp == 1 || which_exp == 2,
+                  "Invalid argument passed: accepting only: which_exp == 1 or which_exp == 2.");
+    constexpr T one = static_cast<T>(1.0);
+    constexpr T two = static_cast<T>(2.0);
+    constexpr T four= static_cast<T>(4.5);
+    constexpr T a   = static_cast<T>(6378.0);
+    constexpr T C1253314137315500251207882642406 = static_cast<T>(1.253314137315500251207882642406);
+    T L3;
+    T sba, ctgz0;
+    T sctgz0, tbH, phi1, phi2; 
+    T exp1, bactgz0, t0, t1;
+    sba   = std::sqrt(two*beta*a);
+    if constexpr(which_tan == 1)
+    {
+        ctgz0  = one/std::tan(z0);
+    }
+    else if constexpr(which_tan == 2)
+    {
+        ctgz0  = one/approximated_tan<T,reg_width>(z0);
+    }
+    sctgz0 = ctgz0*ctgz0; 
+    bactgz0= two*beta*a*sctgz0; 
+    tbH    = four*beta*H; 
+    t0     = dn0*std::sqrt(beta*a*ctgz0);
+    if constexpr(which_exp == 1)
+    {
+        exp1 = std::exp(sctgz0)*C1253314137315500251207882642406;
+    }
+    else if constexpr(which_exp == 2)
+    {
+        exp1 = exp_estrin_scheme<T,reg_width>(sctgz0)*C1253314137315500251207882642406;
+    }               
+    phi1   = prob_integral<T,reg_width>(std::sqrt(bactgz0+tbH));
+    phi2   = prob_integral<T,reg_width>(std::sqrt(bactgz0));
+    t1     = phi1-phi2; 
+    L3     = t0*exp1*t1;
+    return (L3);
+}
+
 }
 
 }
