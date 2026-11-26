@@ -771,6 +771,62 @@ T refraction_angle_f345(const T n0, const T nh,
     return (alpha);
 }
 
+/*
+       ! The angle of arrival close to horizon.
+       ! formula 3.51, page: 70
+       ! analytic solution L2 for angle near 90 (deg)
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T ,std::size_t reg_width, std::int32_t which_exp, std::int32_t which_tan,
+         std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T analytic_solution_n90_L2_f351(const T dn0, const T beta, T z0) noexcept
+{
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+    static_assert(which_tan == 1 || which_tan == 2,
+                  "Invalid argument passed: accepting only: which_tan == 1 or which_tan == 2.");
+    static_assert(which_exp == 1 || which_exp == 2,
+                  "Invalid argument passed: accepting only: which_sin == 1 or which_sin == 2.");
+    constexpr T a = static_cast<T>(6378.0);
+    constexpr T two = static_cast<T>(2.0);
+    constexpr T one = static_cast<T>(1.0);
+    constexpr T C1253314137315500251207882642406 = static_cast<T>(1.253314137315500251207882642406);
+    constexpr T C0318309886183790671537767526745 = static_cast<T>(0.318309886183790671537767526745);
+    T sba, tgz0, ctgz0;
+    T earg, exp1, t0, t1, strm;
+    T L2;
+    sba  = std::sqrt(beta*a);
+    if constexpr(which_tan == 1)
+    {
+        tgz0 = std::tan(z0);
+    }
+    else if constexpr(which_tan == 2)
+    {
+        tgz0 = approximated_tan<T,reg_width>(z0);
+    }
+    ctgz0= one/tgz0;
+    earg = beta*a/(two*tgz0*tgz0);
+    if constexpr(which_exp == 1)
+    {
+        exp1 = std::exp(earg);
+    }
+    else if constexpr(which_exp == 2)
+    {
+        exp1 = exp_estrin_scheme<T,reg_width>(earg);
+    }
+    t0   = dn0*(sba/tgz0)*exp1; 
+    strm = std::sqrt(two*beta*a*C0318309886183790671537767526745);
+    t1   = C1253314137315500251207882642406*(one-strm*ctgz0);                   
+    L2   = t0*t1;
+    return (L2);
+}
+
+
+
 }
 
 }
