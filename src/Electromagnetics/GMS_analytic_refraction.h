@@ -638,7 +638,7 @@ T analytic_solution_L2_f341(const T dn0,const T beta,
     sctgz0 = ctgz0*ctgz0; 
     bactgz0= beta*a*sctgz0; 
     tbH    = two*beta*H; 
-    t0     = dn0*std::qrt(beta*a*ctgz0);
+    t0     = dn0*std::sqrt(beta*a*ctgz0);
     if constexpr(which_exp == 1)
     {
          exp1 = std::exp(sctgz0*half)*C1253314137315500251207882642406;
@@ -765,7 +765,7 @@ T refraction_angle_f345(const T n0, const T nh,
     L1       = analytic_solution_L1_f337<T,reg_width,which_tan,which_exp>(dn0,beta,z0,H);
     t0       = -ctgz0*ln0nh+L1; 
     ctgzsec0 = ctgz0*ssecz0;
-    L2       = analytic_solution_L2_f341<T,reg_width,which_tan,which_exp>(dn0,beta,z0,H0);
+    L2       = analytic_solution_L2_f341<T,reg_width,which_tan,which_exp>(dn0,beta,z0,H);
     t1       = ctgzsec0*L2;
     L3       = analytic_solution_L3_f342<T,reg_width,which_tan,which_exp>(dn0,beta,z0,H);
     t2       = badn0*ctgzsec0*(L3-L2);
@@ -1075,6 +1075,62 @@ T analytic_sol_L2_gl5cm_f43(const T dn0, const T beta,
     L2     = trm2*trm3;
     return (L2);
 }
+
+/*
+   ! formula: 4.3, page 73.
+   For the wavelengths <= 5cm.
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T ,std::size_t reg_width, std::int32_t which_exp,
+         std::int32_t which_tan, std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T analytic_sol_L3_gl5cm_f43(const T dn0,const T beta,
+                            T z0, const T H) noexcept
+{
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+    static_assert(which_exp == 1 || which_exp == 2,
+                  "Invalid argument passed: accepting only: which_exp == 1 or which_exp == 2.");
+    static_assert(which_tan == 1 || which_tan == 2,
+                  "Invalid argument passed: accepting only: which_tan == 1 or which_tan == 2.");
+    T constexpr C314159265358979323846264338328 = static_cast<T>(3.14159265358979323846264338328);
+    T constexpr a    = static_cast<T>(6378.0);
+    T constexpr two  = static_cast<T>(2.0);
+    T constexpr one  = static_cast<T>(1.0);
+    T constexpr four = static_cast<T>(4.0);
+    T piba, ctgz0, bactgz0, exp1; 
+    T t0, t1, trm1, trm2, trm3;
+    T L3;
+    piba   = std::sqrt(C314159265358979323846264338328*beta*a);
+    if constexpr(which_tan == 1)
+    {
+        ctgz0  = one/std::tan(z0);
+    }
+    else if constexpr(which_tan == 2)
+    {
+        ctgz0  = one/approximated_tan<T,reg_width>(z0);
+    }
+    bactgz0= beta*a*ctgz0*ctgz0;
+    if constexpr(which_exp == 1)
+    { 
+        exp1 = std::exp(bactgz0);
+    }
+    else if constexpr(which_exp == 2)
+    {
+        exp1 = exp_estrin_scheme<T,reg_width>(bactgz0);
+    }
+    trm1   = dn0*sqrt(piba)*ctgz0; 
+    t0     = prob_integral<T,reg_width>(std::sqrt(two*bactgz0+four*beta*H));
+    t1     = prob_integral<T,reg_width>(std::sqrt(two*bactgz0));
+    trm3   = t0-t1; 
+    trm2   = trm1*exp1; 
+    L3     = trm2*trm3;
+    return (L3);
+}
+
 
 }
 
