@@ -1212,6 +1212,48 @@ T refractive_idx_lo_ionosphere_f412(const T h,const T d, const T f,
     return (n);
 }
 
+/*
+    Averaged refractive index, formula: 4.13
+    h     ! height 
+    d     ! height a maximum of layer F2
+    f     ! center signal frequency
+    Nmf   ! electron density in layer F2
+    beta  ! diminishing speed of electron concentration in layer F2
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T ,std::size_t reg_width,std::int32_t which_exp,
+         std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T refractive_idx_hi_ionosphere_f413(const T h, const T d,
+                                    const T f, const T Nmf,
+                                    const T beta) noexcept
+{
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+    static_assert(which_exp == 1 || which_exp == 2,
+                  "Invalid argument passed: accepting only: which_exp == 1 or which_exp == 2.");
+    constexpr T one = static_cast<T>(1.0);
+    constexpr T two = static_cast<T>(2.0);
+    T n; 
+    T dnm, fcr, earg, exp1; 
+    fcr = std::sqrt(static_cast<T>(80.8)*Nmf);
+    dnm = fcr*fcr/(two*f*f);
+    earg= -beta*(h-d);
+    if constexpr (which_exp == 1)
+    {
+        exp1 = std::exp(earg);
+    }
+    else if constexpr(which_exp == 2)
+    {
+        exp1 = exp_estrin_scheme<T,reg_width>(earg);
+    }
+    n   = one-dnm*exp1;
+    return (n);
+}
+
 }
 
 }
