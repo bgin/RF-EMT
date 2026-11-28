@@ -1132,6 +1132,86 @@ T analytic_sol_L3_gl5cm_f43(const T dn0,const T beta,
 }
 
 
+/*
+   ! formula: 4.1, page 73.
+   For the wavelengths <= 5cm.
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T ,std::size_t reg_width, std::int32_t which_exp,
+         std::int32_t which_tan, std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T refraction_angle_gl5cm_f41(const T n0,const T nh, T z0,
+                             const T beta, const T dn0,
+                             const T H) noexcept 
+{
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+    static_assert(which_exp == 1 || which_exp == 2,
+                  "Invalid argument passed: accepting only: which_exp == 1 or which_exp == 2.");
+    static_assert(which_tan == 1 || which_tan == 2,
+                  "Invalid argument passed: accepting only: which_tan == 1 or which_tan == 2."); 
+    constexpr T a   = static_cast<T>(6378.0);
+    constexpr T one = static_cast<T>(1.0);
+    T L1, L2, L3, alpha; 
+    T ctgz0, lnn0nh, ssecz, badn0; 
+    T t0, t1, trm1, trm2, trm3;
+    badn0  = beta*a*dn0; 
+    if constexpr(which_tan == 1)
+    {
+        ctgz0  = one/std::tan(z0);
+    }
+    else if constexpr(which_tan == 2)
+    {
+        ctgz0  = one/approximated_tan<T,reg_width>(z0);
+    }
+    lnn0nh = std::log(n0/nh);
+    L1     = analytic_sol_L1_gl5cm_f42<T,reg_width,which_exp,which_tan>(dn0,beta,z0,H);
+    t0     = one/std::cos(z0);
+    ssecz  = t0*t0; 
+    t1     = ctgz0*ssecz; 
+    L2     = analytic_sol_L2_gl5cm_f43<T,reg_width,which_exp,which_tan>(dn0,beta,z0,H);
+    trm1   = -ctgz0*lnn0nh+L1; 
+    L3     = analytic_sol_L3_gl5cm_f43<T,reg_width,which_exp,which_tan>(dn0,beta,z0,H);
+    trm2   = t1*L2; 
+    trm3   = badn0*t1*(L3-L2);
+    alpha  = trm1+trm2+trm3; 
+    return (alpha);
+}
+
+/*
+   Averaged refractive index, formula: 4.12
+   h     ! height 
+   d     ! height a maximum of layer F2
+   f     ! center signal frequency
+   Nmf   ! electron density in layer F2
+*/
+#pragma omp declare simd simdlen(SimdLen) notinbranch
+template<typename T ,std::size_t reg_width,
+         std::size_t SimdLen = reg_width / sizeof(T)>
+static inline 
+T refractive_idx_lo_ionosphere_f412(const T h,const T d, const T f,
+                                    const T Nmf) noexcept
+{
+    static_assert(reg_width == 32ull || reg_width == 64ull,
+                  "Invalid argument passed: accepting only 32ull or 64ull.");
+    static_assert(SimdLen > 0, "SimdLen must be greater than 0.");
+    static_assert(std::is_floating_point<T>::value == true, 
+                  "Invalid template argument: accepting only float types!!");
+    constexpr T one = static_cast<T>(1.0);
+    constexpr T two = static_cast<T>(2.0);
+    T n;
+    T dnm, hd, hhdd, fcr;
+    fcr = std::sqrt(static_cast<T>(80.8)*Nmf);
+    hd  = h/d; 
+    dnm = fcr*fcr/(two*f*f);
+    hhdd= hd*hd; 
+    n   = one-dnm*(two*hd-hhdd);
+    return (n);
+}
+
 }
 
 }
